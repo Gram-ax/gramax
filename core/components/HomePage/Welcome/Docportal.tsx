@@ -6,11 +6,12 @@ import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import { useSignIn } from "@ext/enterprise/components/SingInOut/hooks/useSignIn";
 import SignInEnterpriseForm from "@ext/enterprise/components/SingInOut/SignInEnterpriseForm";
+import { useIsEnterprise } from "@ext/enterprise/utils/useIsEnterprise";
 import type CloneModal from "@ext/git/actions/Clone/components/CloneModal";
 import t from "@ext/localization/locale/translate";
 import PermissionService from "@ext/security/logic/Permission/components/PermissionService";
 import { configureWorkspacePermission } from "@ext/security/logic/Permission/Permissions";
-import ThemeService from "@ext/Theme/components/ThemeService";
+import { useSetting } from "@ext/settings/logic/hooks";
 import Theme from "@ext/Theme/Theme";
 import { Icon } from "@ui-kit/Icon";
 import {
@@ -51,9 +52,10 @@ const EmptyWelcome = () => {
 };
 
 export const DocportalWelcome = () => {
+	const [theme] = useSetting("general.theme");
 	const workspacePath = WorkspaceService?.current()?.path;
 	const isLogged = PageDataContextService.value.isLogged;
-	const isEnterprise = PageDataContextService.value.conf.enterprise.gesUrl;
+	const isEnterprise = useIsEnterprise();
 	const canConfigureWorkspace = workspacePath
 		? PermissionService.useCheckPermission(configureWorkspacePermission, workspacePath)
 		: true;
@@ -63,7 +65,7 @@ export const DocportalWelcome = () => {
 
 	return (
 		<PageState>
-			<Icon className="w-12 h-12" icon={ThemeService.value === Theme.dark ? "gramax-dark" : "gramax-light"} />
+			<Icon className="w-12 h-12" icon={theme === Theme.dark ? "gramax-dark" : "gramax-light"} />
 			<PageStateTitle className="text-2xl sm:text-lg text-center">
 				{t("welcome.empty-clone.title")}
 			</PageStateTitle>

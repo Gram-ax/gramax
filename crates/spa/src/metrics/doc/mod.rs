@@ -9,10 +9,16 @@ pub use user::*;
 
 pub const UNIQ_ID_COOKIE_NAME: &str = "gx-uniq-id";
 
+pub const YM_UID_COOKIE_NAME: &str = "_ym_uid";
+
+pub const UNIQ_ID_COOKIE_MAX_AGE: time::Duration = time::Duration::days(400);
+
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "kebab-case")]
 pub struct MetricDoc {
 	pub user_id: UserId,
+	pub ym_uid: Option<String>,
+	pub referer: Option<String>,
 	pub app_version: Option<String>,
 	pub action: UserAction,
 	pub ip: Option<IpAddr>,
@@ -31,6 +37,8 @@ impl MetricDocBuilder {
 		Self {
 			inner: MetricDoc {
 				user_id: id,
+				ym_uid: None,
+				referer: None,
 				app_version: None,
 				action: UserAction::Unknown,
 				ip: None,
@@ -47,6 +55,16 @@ impl MetricDocBuilder {
 		};
 
 		self.inner.app_version = Some(version);
+		self
+	}
+
+	pub fn with_ym_uid(mut self, ym_uid: Option<String>) -> Self {
+		self.inner.ym_uid = ym_uid;
+		self
+	}
+
+	pub fn with_referer(mut self, referer: Option<String>) -> Self {
+		self.inner.referer = referer;
 		self
 	}
 

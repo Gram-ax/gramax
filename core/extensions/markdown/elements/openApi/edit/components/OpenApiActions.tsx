@@ -19,6 +19,10 @@ const OpenApiActions = ({ editor, node, updateAttributes }: OpenApiActionsProps)
 		updateAttributes({ flag: !node.attrs.flag });
 	};
 
+	const toggleInfo = () => {
+		updateAttributes({ showInfo: !node.attrs.showInfo });
+	};
+
 	const openEditor = () => {
 		const src = node.attrs.src;
 		ModalToOpenService.setValue(ModalToOpen.DiagramEditor, {
@@ -32,8 +36,16 @@ const OpenApiActions = ({ editor, node, updateAttributes }: OpenApiActionsProps)
 
 	return (
 		<>
-			<ActionButton icon="pencil" onClick={openEditor} tooltipText={t("edit2")} />
+			<ActionButton dataTestId="edit-diagram" icon="pencil" onClick={openEditor} tooltipText={t("edit2")} />
 			<ActionButton
+				dataTestId="toggle-openapi-info"
+				icon="heading"
+				onClick={toggleInfo}
+				selected={node.attrs.showInfo}
+				tooltipText={t(node.attrs.showInfo ? "hide-openapi-info" : "show-openapi-info")}
+			/>
+			<ActionButton
+				dataTestId="toggle-schemas-block"
 				icon={node.attrs.flag ? "square-check" : "square"}
 				onClick={toggleFlag}
 				tooltipText={node.attrs.flag ? t("schemas-block") : t("no-schemas-block")}

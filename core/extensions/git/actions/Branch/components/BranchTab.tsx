@@ -21,9 +21,18 @@ interface BranchTabProps {
 	onMergeRequestCreate?: () => void;
 	onClose: () => void;
 	initNewBranch?: boolean;
+	allowBranchActions?: boolean;
 }
 
-const BranchTab = ({ show, setShow, onClose, branch, onMergeRequestCreate, initNewBranch }: BranchTabProps) => {
+const BranchTab = ({
+	show,
+	setShow,
+	onClose,
+	branch,
+	onMergeRequestCreate,
+	initNewBranch,
+	allowBranchActions = true,
+}: BranchTabProps) => {
 	const [contentHeight, setContentHeight] = useState<number>(null);
 	const [isInitNewBranch, setIsInitNewBranch] = useState(false);
 	const tabWrapperRef = useRef<HTMLDivElement>(null);
@@ -42,6 +51,7 @@ const BranchTab = ({ show, setShow, onClose, branch, onMergeRequestCreate, initN
 		if (show) setIsInitNewBranch(Boolean(initNewBranch));
 	}, [show, initNewBranch]);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: it's ok
 	const onSwitchBranch = useCallback(
 		async (isNewBranchCreated: boolean) => {
 			if (isNewBranchCreated)
@@ -78,6 +88,7 @@ const BranchTab = ({ show, setShow, onClose, branch, onMergeRequestCreate, initN
 			<div>
 				<BranchActions
 					allowAddNewBranch={allowAddNewBranch}
+					allowBranchActions={allowBranchActions}
 					currentBranch={branchName}
 					isInitNewBranch={isInitNewBranch}
 					onMergeRequestCreate={onMergeRequestCreate}

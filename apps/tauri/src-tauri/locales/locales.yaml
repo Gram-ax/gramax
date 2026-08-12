@@ -126,8 +126,25 @@ menu:
       en: 'Show Gramax Logs'
 
     export-logs:
-      ru: 'Экспортировать журнал событий'
-      en: 'Export Gramax Logs'
+      title:
+        ru: 'Экспортировать журнал событий'
+        en: 'Export Gramax Logs'
+
+      session:
+        ru: 'Текущая сессия'
+        en: 'Current session'
+
+      today:
+        ru: 'Сегодня'
+        en: 'Today'
+
+      last-7-days:
+        ru: 'Последние 7 дней'
+        en: 'Last 7 days'
+
+      all:
+        ru: 'Все'
+        en: 'All'
 
 updates:
   you-have-actual-ver:
@@ -169,6 +186,14 @@ updates:
   error-occured:
     ru: 'Не удалось обновить приложение'
     en: 'Failed to update the application'
+
+  dmg-install-error:
+    title:
+      ru: 'Не удалось обновить приложение'
+      en: 'Failed to update the application'
+    body:
+      ru: 'Вы запустили приложение из .dmg. Пожалуйста, перенесите его в папку «Приложения» (Applications) и запустите оттуда, чтобы обновление прошло успешно.'
+      en: 'You launched the application from a .dmg file. Please move it to the Applications folder and run it from there to update successfully.'
 
 file-download:
   fail:

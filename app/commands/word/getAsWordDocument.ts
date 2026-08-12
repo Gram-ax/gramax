@@ -2,6 +2,7 @@ import { ResponseKind } from "@app/types/ResponseKind";
 import type Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
 import docx from "@dynamicImports/docx";
+import CatalogViewRules from "@ext/catalog/views/logic/rules/CatalogViewRules";
 import { resolveRootCategory } from "@ext/localization/core/catalogExt";
 import t from "@ext/localization/locale/translate";
 import ViewLocalizationFilter from "@ext/properties/logic/viewLocalizationFilter";
@@ -33,8 +34,9 @@ const getAsWordDocument: Command<
 		const itemFilters = [
 			...new RuleProvider(ctx, undefined, undefined).getItemFilters(),
 			new ViewLocalizationFilter().getItemFilter(),
+			new CatalogViewRules(catalog).getItemFilter(),
 		];
-		const filters = new RuleProvider(ctx).getItemFilters();
+		const filters = [...new RuleProvider(ctx).getItemFilters(), new CatalogViewRules(catalog).getItemFilter()];
 		const titlesMap: Map<string, TitleInfo> = new Map();
 		const documentTree = await buildDocumentTree(
 			isCategory,

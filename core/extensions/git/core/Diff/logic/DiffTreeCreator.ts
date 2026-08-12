@@ -70,8 +70,8 @@ export default class DiffTreeCreator {
 	}
 
 	private async _gitIndexAddInDesktop() {
-		const isBrowser = getExecutingEnvironment() === "browser";
-		if (!isBrowser && this._gvc) await this._gvc.add();
+		const isWeb = getExecutingEnvironment() === "web";
+		if (!isWeb && this._gvc) await this._gvc.add();
 	}
 
 	private async _getScopedCatalogsAndDiffOpts(): Promise<{

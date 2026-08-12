@@ -36,6 +36,7 @@ describe("RevisionDiffTreePresenter", () => {
 	const createItemLink = (path: string, title?: string, type = ItemType.article): ItemLink => ({
 		type,
 		title: title || path.split("/").pop(),
+		fileName: path.split("/").pop(),
 		ref: { path: `catalog/${path}`, storageId: "1" },
 		pathname: `/articles/${path}`,
 		icon: "",

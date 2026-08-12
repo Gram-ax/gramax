@@ -1,87 +1,66 @@
-import cssEscape from "css.escape";
-import { fromJS } from "immutable";
-import { opId } from "swagger-client/es/helpers";
+import t from "@ext/localization/locale/translate";
+import type { TocItem } from "@ext/navigation/article/logic/createTocItems";
+import { operationAnchorId, tagAnchorId } from "@gramax/openapi-viewer/core";
 
-const escapeDeepLinkPath = (str) => {
-	const deepLinkPath = typeof str === "string" || str instanceof String ? str.trim().replace(/\s/g, "%20") : "";
-	const escapedDeepLinkPath = deepLinkPath.replace(/%20/g, "_");
-	return cssEscape(escapedDeepLinkPath);
-};
-
-// https://github.com/swagger-api/swagger-ui/blob/dcb493cdbf58fa885047513bd176a644f92c4955/src/core/config/defaults.js#L56
 const allowedMethods = ["get", "post", "put", "patch", "delete", "head", "options", "trace"];
 
-const createTagId = (name: string) => ["operations-tag", name].map(escapeDeepLinkPath).join("-");
-const createOperationId = (tagName: string, operationId: string) =>
-	escapeDeepLinkPath(["operations", tagName, operationId].join("-"));
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+	typeof value === "object" && value !== null && !Array.isArray(value);
 
-export interface OpenApiNavigation {
-	id: string;
-	name: string;
-	title: string;
-	child: { id: string; title: string }[];
-}
+const addUnique = (items: string[], value: unknown) => {
+	if (typeof value === "string" && !items.includes(value)) items.push(value);
+};
 
-const buildNavigationFromSpec = (specObject) => {
-	const navigation: OpenApiNavigation[] = [];
-	const tags = specObject.tags;
-	if (tags && Array.isArray(tags))
-		tags.forEach((tag) => {
-			const name = tag.name;
+const orderedTagNames = (spec: Record<string, unknown>, encountered: Iterable<string>): string[] => {
+	const result: string[] = [];
 
-			if (!name) return;
+	if (Array.isArray(spec["x-tagGroups"]))
+		for (const group of spec["x-tagGroups"]) {
+			if (!isRecord(group) || !Array.isArray(group.tags)) continue;
+			for (const tag of group.tags) addUnique(result, tag);
+		}
 
-			const idName = typeof name === "string" ? name : fromJS(name);
-			const id = createTagId(idName);
-			navigation.push({
-				id,
-				name: typeof name === "string" ? name : fromJS(name).toString(),
-				child: [],
-				title: typeof name === "string" ? name : "",
+	if (Array.isArray(spec.tags))
+		for (const tag of spec.tags) {
+			if (isRecord(tag)) addUnique(result, tag.name);
+		}
+
+	for (const tag of encountered) addUnique(result, tag);
+	return result;
+};
+
+const buildNavigationFromSpec = (specObject: unknown): TocItem[] => {
+	if (!isRecord(specObject) || !isRecord(specObject.paths)) return [];
+
+	const operationsByTag = new Map<string, TocItem[]>();
+	for (const [path, pathItem] of Object.entries(specObject.paths)) {
+		if (!isRecord(pathItem)) continue;
+
+		for (const [method, operation] of Object.entries(pathItem)) {
+			if (!allowedMethods.includes(method) || !isRecord(operation) || !isRecord(operation.responses)) continue;
+
+			const tag =
+				Array.isArray(operation.tags) && typeof operation.tags[0] === "string"
+					? operation.tags[0]
+					: t("openApi.untaggedGroupLabel");
+			const operationId = typeof operation.operationId === "string" ? operation.operationId : "";
+			const rendererId = operationId || `${method}-${path}`.replace(/[^\w]+/g, "-");
+			const summary = typeof operation.summary === "string" ? operation.summary : "";
+			const items = operationsByTag.get(tag) ?? [];
+
+			items.push({
+				url: `#${operationAnchorId({ id: rendererId, operationId, method, path })}`,
+				title: summary || operationId || path,
+				items: [],
 			});
-		});
-
-	const paths = specObject.paths;
-	if (!paths) return navigation;
-
-	for (const [path, pathItem] of Object.entries(specObject.paths || {})) {
-		for (const [method, operation] of Object.entries(pathItem || {})) {
-			const lowerMethod = method.toLowerCase().trim();
-			if (!allowedMethods.includes(lowerMethod)) {
-				continue;
-			}
-			const operationId =
-				operation.__originalOperationId || operation.operationId || opId(operation, path, method);
-
-			const currentTags =
-				Array.isArray(operation.tags) && operation.tags.length > 0 ? operation.tags : ["default"];
-
-			currentTags.forEach((tag) => {
-				const tagName = typeof tag === "string" ? tag : fromJS(tag).toString();
-
-				const getCurrentTag = (): OpenApiNavigation => {
-					const tagFromResult = navigation.find((r) => r.name === tagName);
-					if (tagFromResult) return tagFromResult;
-
-					const id = createTagId(tag);
-					const newTag = {
-						id,
-						name: typeof tagName === "string" ? tagName : fromJS(tagName).toString(),
-						child: [],
-						title: typeof name === "string" ? name : "",
-					};
-					navigation.push(newTag);
-					return newTag;
-				};
-				const currentTag = getCurrentTag();
-
-				const title = operation.summary ? operation.summary : path;
-				const id = createOperationId(typeof tag === "string" ? tag : fromJS(tag), operationId);
-				currentTag.child.push({ id, title });
-			});
+			operationsByTag.set(tag, items);
 		}
 	}
-	return navigation;
+
+	return orderedTagNames(specObject, operationsByTag.keys()).flatMap((tag) => {
+		const items = operationsByTag.get(tag);
+		return items ? [{ url: `#${tagAnchorId(tag)}`, title: tag, items }] : [];
+	});
 };
 
 export default buildNavigationFromSpec;

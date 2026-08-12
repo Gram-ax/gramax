@@ -1,5 +1,4 @@
 import { ResponseKind } from "@app/types/ResponseKind";
-import { abortActiveSessionRun, getAgentSession } from "@ext/agent/core/sessionStore";
 import assert from "assert";
 import { Command } from "../../../types/Command";
 
@@ -9,9 +8,9 @@ const sessionCancel: Command<{ sessionId: string }, { ok: true; cancelled: boole
 	kind: ResponseKind.json,
 
 	async do({ sessionId }) {
-		const session = getAgentSession(sessionId);
+		const session = this._app.agentManager.sessions.get(sessionId);
 		assert(session, "agent/session/cancel: session_not_found");
-		const cancelled = abortActiveSessionRun(sessionId);
+		const cancelled = this._app.agentManager.sessions.cancel(sessionId);
 		return { ok: true as const, cancelled };
 	},
 

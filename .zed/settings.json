@@ -40,7 +40,11 @@
 			"hard_tabs": false
 		},
 		"CSS": {
-			"formatter": "language_server"
+			"formatter": { "language_server": { "name": "biome" } },
+			"code_actions_on_format": {
+				"source.fixAll.biome": true,
+				"source.organizeImports.biome": true
+			}
 		},
 		"TOML": {
 			"formatter": { "external": { "command": "taplo", "arguments": ["fmt", "-"] } }
@@ -96,14 +100,22 @@
 				},
 				"cargo": {
 					// "target": "wasm32-unknown-emscripten",
+					// "target": "x86_64-pc-windows-msvc",
 					"features": [],
 					"extraEnv": {
 						"BUGSNAG_API_KEY": ""
 						// "CFLAGS": "-Wno-error=incompatible-pointer-types"
 					}
 				},
-				// "check": { "targets": "wasm32-unknown-emscripten", "command": "clippy", "allTargets": true }
 				"check": { "command": "clippy" }
+				// "check": { "targets": "wasm32-unknown-emscripten", "command": "clippy", "allTargets": true }
+				// "check": { "targets": "x86_64-pc-windows-msvc", "command": "clippy", "allTargets": true },
+				// "extraEnv": {
+				// 	"BUGSNAG_API_KEY": "",
+				// 	"TARGET_CC": "clang",
+				// 	"CFLAGS": "-I${env:HOME}/.xwin/splat/crt/include/ -I${env:HOME}/.xwin/splat/sdk/include/um -I${env:HOME}/.xwin/splat/sdk/include/ucrt -I${env:HOME}/.xwin/splat/sdk/include/shared -I${env:HOME}/.xwin/splat/sdk/include/winrt",
+				// 	"CARGO": "${env:HOME}/.cargo/bin/cargo-xwin"
+				// }
 			}
 		}
 	}

@@ -1,126 +1,133 @@
-import type { AgentEvent } from "./events";
+import type { AgentDraftSnapshot } from "../components/types/chat";
+import { agentConfig } from "./agentConfig";
+import type { AgentFileStore } from "./agentFileStore";
+import { AgentSession } from "./session";
 
-export type AgentUsage = {
-	totalUsage: number;
-	lastTurnUsage: number;
-	contextUsagePercent: number;
-};
+export class AgentSessionStore {
+	private readonly _sessions = new Map<string, AgentSession>();
 
-export type AgentSession = {
-	id: string;
-	openItemPath: string | null;
-	cancelled: boolean;
-	runChain: Promise<void>;
-	activeRunController: AbortController | null;
-	processing: boolean;
-	lastError: string | null;
-	events: AgentEvent[];
-	usage: AgentUsage;
-};
+	constructor(private readonly _fileStore: AgentFileStore) {}
 
-const sessions = new Map<string, AgentSession>();
-
-export function addSessionUsage(
-	session: AgentSession,
-	prompt_tokens_usage: number,
-	total_tokens_usage: number,
-	contextWindowTokens: number | null,
-): void {
-	session.usage.totalUsage += total_tokens_usage;
-	session.usage.lastTurnUsage += total_tokens_usage;
-
-	if (prompt_tokens_usage > 0 && contextWindowTokens && contextWindowTokens > 0) {
-		const percent = (prompt_tokens_usage / contextWindowTokens) * 100;
-		session.usage.contextUsagePercent = Math.max(0, Math.min(100, percent));
+	private _getSessionFilePath(id: string): string {
+		return `sessions/${id}/session.json`;
 	}
-}
 
-export function createAgentSession(): AgentSession {
-	const id =
-		typeof globalThis.crypto !== "undefined" && typeof globalThis.crypto.randomUUID === "function"
-			? globalThis.crypto.randomUUID()
-			: `sess-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-	const session: AgentSession = {
-		id,
-		openItemPath: null,
-		cancelled: false,
-		runChain: Promise.resolve(),
-		activeRunController: null,
-		processing: false,
-		lastError: null,
-		events: [],
-		usage: {
-			totalUsage: 0,
-			lastTurnUsage: 0,
-			contextUsagePercent: 0,
-		},
-	};
-	sessions.set(id, session);
-	return session;
-}
-
-export function getAgentSession(id: string): AgentSession | undefined {
-	return sessions.get(id);
-}
-
-export function listAgentSessions(): Array<{
-	sessionId: string;
-	openItemPath: string | null;
-	cancelled: boolean;
-	processing: boolean;
-	lastError: string | null;
-	events: AgentEvent[];
-	usage: AgentUsage;
-}> {
-	return Array.from(sessions.values()).map((session) => ({
-		sessionId: session.id,
-		openItemPath: session.openItemPath,
-		cancelled: session.cancelled,
-		processing: session.processing,
-		lastError: session.lastError,
-		events: session.events,
-		usage: session.usage,
-	}));
-}
-
-export function restoreAgentSessions(items: AgentSession[]): void {
-	for (const session of sessions.values()) {
-		abortActiveSessionRun(session.id);
+	private _getDraftFilePath(id: string): string {
+		return `sessions/${id}/draft.json`;
 	}
-	sessions.clear();
-	for (const item of items) {
-		if (!item?.id) continue;
-		const existing = sessions.get(item.id);
-		const next: AgentSession = {
-			...item,
-			usage: item.usage ?? { totalUsage: 0, lastTurnUsage: 0, contextUsagePercent: 0 },
-			runChain: item.runChain ?? Promise.resolve(),
-			activeRunController: null,
-		};
-		if (existing) {
-			next.runChain = existing.runChain;
+
+	private _getLastActivityTs(session: Pick<AgentSession, "events">): number {
+		let maxTs = Number.NEGATIVE_INFINITY;
+		for (const event of session.events) {
+			if (typeof event.ts === "number" && Number.isFinite(event.ts)) {
+				maxTs = Math.max(maxTs, event.ts);
+			}
 		}
-		sessions.set(next.id, next);
+		return maxTs;
 	}
-}
 
-export function abortActiveSessionRun(id: string): boolean {
-	const session = sessions.get(id);
-	const controller = session?.activeRunController;
-	if (!controller) return false;
-	controller.abort("cancelled_by_user");
-	if (session) {
-		session.activeRunController = null;
+	private async _applySessionsLimit(activeSessionId?: string | null): Promise<void> {
+		const limit = agentConfig.maxStoredSessions;
+		const all = Array.from(this._sessions.values());
+		if (limit == null || limit <= 0 || all.length <= limit) return;
+
+		const keepIds = new Set(
+			[...all]
+				.sort((a, b) => this._getLastActivityTs(a) - this._getLastActivityTs(b))
+				.slice(-limit)
+				.map((session) => session.id),
+		);
+
+		if (activeSessionId && this._sessions.has(activeSessionId)) {
+			keepIds.add(activeSessionId);
+		}
+
+		for (const session of all) {
+			if (keepIds.has(session.id)) continue;
+			await this.delete(session.id);
+		}
 	}
-	return true;
-}
 
-export function setSessionCancelled(id: string, cancelled: boolean): void {
-	const s = sessions.get(id);
-	if (s) s.cancelled = cancelled;
-}
+	private async _save(id: string): Promise<void> {
+		const session = this._sessions.get(id);
+		if (!session) return;
+		await this._fileStore.writeJsonFile(this._getSessionFilePath(id), session.toSnapshot());
+	}
 
-export function deleteAgentSession(id: string): void {
-	abortActiveSessionRun(id);
-	sessions.delete(id);
+	async saveDraft(id: string, draft: AgentDraftSnapshot): Promise<void> {
+		const empty = !draft.text.trim() && !draft.selectedSkillName && !draft.attachments?.length;
+		if (empty) {
+			await this._fileStore.deletePath(this._getDraftFilePath(id));
+			return;
+		}
+		await this._fileStore.writeJsonFile(this._getDraftFilePath(id), draft);
+	}
+
+	async loadDraft(id: string): Promise<AgentDraftSnapshot | null> {
+		return this._fileStore.readJsonFile<AgentDraftSnapshot | null>(this._getDraftFilePath(id), null);
+	}
+
+	async clearDraft(id: string): Promise<void> {
+		const draft = await this.loadDraft(id);
+		await this.saveDraft(id, {
+			text: "",
+			selectedSkillName: draft?.selectedSkillName ?? null,
+			updatedAt: Date.now(),
+		});
+	}
+
+	async load(activeSessionId?: string | null): Promise<void> {
+		const sessionIds = await this._fileStore.listDir("sessions");
+		for (const session of this._sessions.values()) {
+			this.cancel(session.id);
+		}
+		this._sessions.clear();
+		for (const id of sessionIds) {
+			const item = await this._fileStore.readJsonFile<ReturnType<AgentSession["toSnapshot"]> | null>(
+				this._getSessionFilePath(id),
+				null,
+			);
+			if (!item?.id) continue;
+			this._sessions.set(item.id, AgentSession.fromSnapshot(item));
+		}
+		await this._applySessionsLimit(activeSessionId);
+	}
+
+	async create(): Promise<AgentSession> {
+		const id = `session-${new Date().toISOString().replace(/[-T:]/g, ".")}`;
+		const session = new AgentSession(id, "");
+		this._sessions.set(id, session);
+		await this._save(id);
+		return session;
+	}
+
+	get(id: string): AgentSession | undefined {
+		return this._sessions.get(id);
+	}
+
+	async list(): Promise<ReturnType<AgentSession["toSnapshot"]>[]> {
+		return Array.from(this._sessions.values()).map((session) => session.toSnapshot());
+	}
+
+	cancel(id: string): boolean {
+		const session = this._sessions.get(id);
+		const controller = session?.activeRunController;
+		if (!controller) return false;
+		controller.abort("cancelled_by_user");
+		if (session) {
+			session.activeRunController = null;
+		}
+		return true;
+	}
+
+	async update(id: string): Promise<void> {
+		await this._save(id);
+	}
+
+	async delete(id: string): Promise<boolean> {
+		const cancelled = this.cancel(id);
+		this._sessions.delete(id);
+		await this._fileStore.deletePath(`sessions/${id}`);
+		return cancelled;
+	}
 }

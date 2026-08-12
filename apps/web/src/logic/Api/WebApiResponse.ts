@@ -1,0 +1,56 @@
+import type ApiResponse from "@core/Api/ApiResponse";
+
+export default class WebApiResponse implements ApiResponse {
+	statusCode = 200;
+	headers: { [key: string]: string } = {};
+	body: any;
+
+	get ok() {
+		return this.statusCode == 200;
+	}
+
+	get status() {
+		return this.statusCode;
+	}
+
+	set status(value: number) {
+		this.statusCode = value;
+	}
+
+	setHeader(name: string, value: string) {
+		this.headers[name] = value;
+	}
+
+	redirect(url: string) {
+		window.location.replace(url);
+	}
+
+	send(body: any) {
+		this.body = body;
+	}
+
+	end(body?: any) {
+		if (!this.body) this.body = body;
+	}
+
+	blob() {
+		return Promise.resolve(this.body);
+	}
+
+	arrayBuffer() {
+		return Promise.resolve(this.body);
+	}
+
+	buffer() {
+		return Promise.resolve(this.body);
+	}
+
+	json(): Promise<any> {
+		if (!this.body?.buffer) return Promise.resolve(this.body);
+		return Promise.resolve(JSON.parse(this.body));
+	}
+
+	text(): Promise<any> {
+		return Promise.resolve(this.body?.toString());
+	}
+}

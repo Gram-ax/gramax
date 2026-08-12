@@ -21,10 +21,13 @@ export function parseGitAttributes(raw: string): GitAttributeEntry[] {
 }
 
 export function serializeGitAttributes(entries: GitAttributeEntry[]): string {
-	return entries
+	const lines = entries
 		.filter((e) => e.disabled || e.attributes.length > 0)
-		.map((e) => `${e.disabled ? "# " : ""}${e.pattern} ${e.attributes.join(" ")}`)
-		.join("\n");
+		.map((e) => `${e.disabled ? "# " : ""}${e.pattern} ${e.attributes.join(" ")}`);
+
+	// Trailing newline: what every other tool writes, and what keeps the last entry from being
+	// glued to the next line when the file is diffed or appended to.
+	return lines.length ? `${lines.join("\n")}\n` : "";
 }
 
 export function replaceLfsPatterns(entries: GitAttributeEntry[], newPatterns: string[]): GitAttributeEntry[] {

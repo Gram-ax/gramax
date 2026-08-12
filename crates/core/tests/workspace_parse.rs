@@ -18,8 +18,8 @@ fn known_workspace_paths_skips_nested_descendant(fixture: Fixture) {
 	let mut o = opts();
 	o.known_workspace_paths = vec!["outer/inner/ws".into()];
 
-	let entries = WorkspaceScanner::new(&fixture.fs, Path::new(""), &o).scan_workspace().unwrap();
-	let names: Vec<_> = entries.iter().map(|e| e.name.as_str()).collect();
+	let entries = WorkspaceScanner::new(&fixture.fs, Path::new(""), &o).scan().unwrap();
+	let names: Vec<_> = entries.iter().map(|e| e.rel_path.to_str().unwrap()).collect();
 	assert_eq!(names, vec!["plain"]);
 }
 
@@ -31,8 +31,8 @@ fn known_workspace_paths_skips_self(fixture: Fixture) {
 	let mut o = opts();
 	o.known_workspace_paths = vec!["ws".into()];
 
-	let entries = WorkspaceScanner::new(&fixture.fs, Path::new(""), &o).scan_workspace().unwrap();
-	let names: Vec<_> = entries.iter().map(|e| e.name.as_str()).collect();
+	let entries = WorkspaceScanner::new(&fixture.fs, Path::new(""), &o).scan().unwrap();
+	let names: Vec<_> = entries.iter().map(|e| e.rel_path.to_str().unwrap()).collect();
 	assert_eq!(names, vec!["plain"]);
 }
 
@@ -44,8 +44,8 @@ fn known_workspace_paths_keeps_siblings(fixture: Fixture) {
 	let mut o = opts();
 	o.known_workspace_paths = vec!["other/elsewhere".into()];
 
-	let entries = WorkspaceScanner::new(&fixture.fs, Path::new(""), &o).scan_workspace().unwrap();
-	let names: Vec<_> = entries.iter().map(|e| e.name.clone()).collect();
+	let entries = WorkspaceScanner::new(&fixture.fs, Path::new(""), &o).scan().unwrap();
+	let names: Vec<_> = entries.iter().map(|e| e.rel_path.to_str().unwrap().to_string()).collect();
 	assert_eq!(names, vec!["a", "b"]);
 }
 
@@ -57,7 +57,7 @@ fn known_workspace_paths_empty_keeps_all(fixture: Fixture) {
 	let o = opts();
 	assert!(o.known_workspace_paths.is_empty());
 
-	let entries = WorkspaceScanner::new(&fixture.fs, Path::new(""), &o).scan_workspace().unwrap();
+	let entries = WorkspaceScanner::new(&fixture.fs, Path::new(""), &o).scan().unwrap();
 	assert_eq!(entries.len(), 2);
 }
 
@@ -70,8 +70,8 @@ fn known_workspace_paths_multiple_entries(fixture: Fixture) {
 	let mut o = opts();
 	o.known_workspace_paths = vec!["a".into(), "c".into()];
 
-	let entries = WorkspaceScanner::new(&fixture.fs, Path::new(""), &o).scan_workspace().unwrap();
-	let names: Vec<_> = entries.iter().map(|e| e.name.as_str()).collect();
+	let entries = WorkspaceScanner::new(&fixture.fs, Path::new(""), &o).scan().unwrap();
+	let names: Vec<_> = entries.iter().map(|e| e.rel_path.to_str().unwrap()).collect();
 	assert_eq!(names, vec!["b"]);
 }
 
@@ -84,15 +84,15 @@ fn known_workspace_paths_accepts_absolute(fixture: Fixture) {
 	let abs_wp = fixture.root.join("projects").join("workspace-b").to_string_lossy().into_owned();
 	o.known_workspace_paths = vec![abs_wp];
 
-	let entries = WorkspaceScanner::new(&fixture.fs, Path::new(""), &o).scan_workspace().unwrap();
-	let names: Vec<_> = entries.iter().map(|e| e.name.as_str()).collect();
+	let entries = WorkspaceScanner::new(&fixture.fs, Path::new(""), &o).scan().unwrap();
+	let names: Vec<_> = entries.iter().map(|e| e.rel_path.to_str().unwrap()).collect();
 	assert_eq!(names, vec!["catalog-ok"]);
 }
 
 #[rstest]
 fn scan_returns_empty_when_root_missing(fixture: Fixture) {
 	let o = opts();
-	let entries = WorkspaceScanner::new(&fixture.fs, Path::new("does-not-exist"), &o).scan_workspace().unwrap();
+	let entries = WorkspaceScanner::new(&fixture.fs, Path::new("does-not-exist"), &o).scan().unwrap();
 	assert!(entries.is_empty());
 }
 
@@ -158,7 +158,7 @@ fn docroot_filenames_first_match_wins(fixture: Fixture) {
 	let mut o = opts();
 	o.docroot_filenames = vec![".docroot.yaml".into(), ".docroot.yml".into()];
 
-	let entries = WorkspaceScanner::new(&fixture.fs, Path::new(""), &o).scan_workspace().unwrap();
+	let entries = WorkspaceScanner::new(&fixture.fs, Path::new(""), &o).scan().unwrap();
 	assert_eq!(entries[0].docroot_rel.as_deref(), Some(Path::new(".docroot.yaml")));
 	assert_eq!(entries[0].catalog_props["title"], "long");
 }
@@ -170,7 +170,7 @@ fn docroot_filenames_falls_back_to_alternate(fixture: Fixture) {
 	let mut o = opts();
 	o.docroot_filenames = vec![".docroot.yaml".into(), ".docroot.yml".into()];
 
-	let entries = WorkspaceScanner::new(&fixture.fs, Path::new(""), &o).scan_workspace().unwrap();
+	let entries = WorkspaceScanner::new(&fixture.fs, Path::new(""), &o).scan().unwrap();
 	assert_eq!(entries[0].docroot_rel.as_deref(), Some(Path::new(".docroot.yml")));
 	assert_eq!(entries[0].catalog_props["title"], "yml");
 }
@@ -193,7 +193,7 @@ fn workspace_yaml_must_be_at_entry_root(fixture: Fixture) {
 	fixture.file("cat/docroot.yaml", "");
 
 	let entries = fixture.scan(&opts());
-	let names: Vec<_> = entries.iter().map(|e| e.name.as_str()).collect();
+	let names: Vec<_> = entries.iter().map(|e| e.rel_path.to_str().unwrap()).collect();
 	assert_eq!(names, vec!["cat"]);
 }
 
@@ -203,7 +203,7 @@ fn workspace_yaml_at_entry_root_skipped(fixture: Fixture) {
 	fixture.file("plain/docroot.yaml", "");
 
 	let entries = fixture.scan(&opts());
-	let names: Vec<_> = entries.iter().map(|e| e.name.as_str()).collect();
+	let names: Vec<_> = entries.iter().map(|e| e.rel_path.to_str().unwrap()).collect();
 	assert_eq!(names, vec!["plain"]);
 }
 
@@ -216,7 +216,7 @@ fn files_at_root_are_ignored(fixture: Fixture) {
 	fixture.file("cat/docroot.yaml", "");
 
 	let entries = fixture.scan(&opts());
-	let names: Vec<_> = entries.iter().map(|e| e.name.as_str()).collect();
+	let names: Vec<_> = entries.iter().map(|e| e.rel_path.to_str().unwrap()).collect();
 	assert_eq!(names, vec!["cat"]);
 }
 
@@ -227,9 +227,78 @@ fn entry_without_docroot_still_returned(fixture: Fixture) {
 	fixture.file("c/docroot.yaml", "title: c\n");
 
 	let entries = fixture.scan(&opts());
-	let names: Vec<_> = entries.iter().map(|e| e.name.as_str()).collect();
+	let names: Vec<_> = entries.iter().map(|e| e.rel_path.to_str().unwrap()).collect();
 	assert_eq!(names, vec!["a", "b", "c"]);
 	assert!(entries[0].docroot_rel.is_none());
 	assert!(entries[1].docroot_rel.is_none());
 	assert_eq!(entries[2].docroot_rel.as_deref(), Some(Path::new("docroot.yaml")));
+}
+
+// Git bare-detect -------------------------------------------------------------
+
+#[rstest]
+fn git_detect_worktree_non_bare(fixture: Fixture) {
+	fixture.file("repo/docroot.yaml", "");
+	fixture.file("repo/.git/config", "[core]\n\trepositoryformatversion = 0\n\tbare = false\n");
+
+	let entries = fixture.scan(&opts());
+	let e = entries.iter().find(|e| e.rel_path.to_str().unwrap() == "repo").unwrap();
+	assert!(e.is_git_repo);
+	assert!(!e.is_bare_repo);
+	assert!(!e.has_gitmodules);
+}
+
+#[rstest]
+fn git_detect_bare_in_dotgit(fixture: Fixture) {
+	fixture.file("repo/docroot.yaml", "");
+	fixture.file("repo/.git/config", "[core]\n\tbare = true\n");
+
+	let entries = fixture.scan(&opts());
+	let e = entries.iter().find(|e| e.rel_path.to_str().unwrap() == "repo").unwrap();
+	assert!(e.is_git_repo);
+	assert!(e.is_bare_repo);
+}
+
+#[rstest]
+fn git_detect_bare_suffix_dir(fixture: Fixture) {
+	fixture.file("myrepo.git/config", "[core]\n\tbare = true\n");
+
+	let entries = fixture.scan(&opts());
+	let e = entries.iter().find(|e| e.rel_path.to_str().unwrap() == "myrepo.git").unwrap();
+	assert!(e.is_git_repo);
+	assert!(e.is_bare_repo);
+}
+
+#[rstest]
+fn git_detect_gitmodules(fixture: Fixture) {
+	fixture.file("repo/docroot.yaml", "");
+	fixture.file("repo/.git/config", "[core]\n\tbare = false\n");
+	fixture.file("repo/.gitmodules", "[submodule \"x\"]\n\tpath = x\n\turl = ./x\n");
+
+	let entries = fixture.scan(&opts());
+	let e = entries.iter().find(|e| e.rel_path.to_str().unwrap() == "repo").unwrap();
+	assert!(e.is_git_repo);
+	assert!(e.has_gitmodules);
+}
+
+#[rstest]
+fn git_detect_non_git_dir(fixture: Fixture) {
+	fixture.file("plain/docroot.yaml", "");
+
+	let entries = fixture.scan(&opts());
+	let e = entries.iter().find(|e| e.rel_path.to_str().unwrap() == "plain").unwrap();
+	assert!(!e.is_git_repo);
+	assert!(!e.is_bare_repo);
+	assert!(!e.has_gitmodules);
+}
+
+#[rstest]
+fn git_detect_missing_config_no_panic(fixture: Fixture) {
+	fixture.file("repo/docroot.yaml", "");
+	fixture.dir("repo/.git");
+
+	let entries = fixture.scan(&opts());
+	let e = entries.iter().find(|e| e.rel_path.to_str().unwrap() == "repo").unwrap();
+	assert!(e.is_git_repo);
+	assert!(!e.is_bare_repo);
 }

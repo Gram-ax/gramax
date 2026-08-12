@@ -1,9 +1,10 @@
 import type { PluginDetailParams } from "@ext/enterprise/components/admin/contexts/AdminNavigationContext";
-import type { AdminNavigateFunction } from "@ext/enterprise/components/admin/hooks/useWorkspaceEditorOptions";
+import type { AdminNavigateFunction } from "@ext/enterprise/components/admin/hooks/useAdminPage";
+import { useSidebarGroupOpen } from "@ext/enterprise/components/admin/hooks/useSidebarGroupOpen";
 import { SidePluginIcon } from "@ext/enterprise/components/admin/settings/plugins/plugin.common";
 import { AdminPageGroupSidebarItemTrigger } from "@ext/enterprise/components/admin/sidebar/AdminPageSidebarItem";
 import { AdminSidebarMenuSubButton } from "@ext/enterprise/components/admin/sidebar/AdminSidebarMenuSubButton";
-import { pluginsPageModel } from "@ext/enterprise/model/AdminPageModel";
+import { getGroupTargetPage, pluginsPageDescriptor } from "@ext/enterprise/model/AdminPageModel";
 import type { Settings } from "@ext/enterprise/types/EnterpriseAdmin";
 import { Page } from "@ext/enterprise/types/Page";
 import { Collapsible, CollapsibleContent } from "@ui-kit/Collapsible";
@@ -20,11 +21,21 @@ export interface PluginsSidebarMenuProps {
 export const PluginsSidebarMenu = (props: PluginsSidebarMenuProps) => {
 	const { settings, activePage, pageParams, tryNavigate } = props;
 
+	const containsActivePage =
+		activePage === Page.PLUGINS ||
+		activePage === Page.PLUGIN_DETAIL ||
+		(settings?.plugins?.plugins ?? []).some((plugin) => plugin.metadata.navigateTo === activePage);
+	const { open, setOpen, onItemClick } = useSidebarGroupOpen(
+		containsActivePage,
+		activePage === getGroupTargetPage(pluginsPageDescriptor),
+	);
+
 	return (
-		<Collapsible className="group/sidebar-menu">
+		<Collapsible className="group/sidebar-menu" onOpenChange={setOpen} open={open}>
 			<AdminPageGroupSidebarItemTrigger
 				activePage={activePage}
-				model={pluginsPageModel}
+				model={pluginsPageDescriptor}
+				onItemClick={onItemClick}
 				tryNavigate={tryNavigate}
 			/>
 			<CollapsibleContent>

@@ -23,13 +23,13 @@ export class AndroidBuilder extends Builder {
 		return "aarch64-linux-android";
 	}
 
-	override async build(): Promise<void> {
-		const config = this.createTauriConfig();
+	override async _build(): Promise<void> {
+		const config = this._createTauriConfig();
 
 		await $`cargo tauri android build --apk --target aarch64 -c ${config}`.cwd("apps/tauri").throws(true);
 	}
 
-	override async package(): Promise<void> {
+	override async _package(): Promise<void> {
 		const srcdir = path.join(
 			project,
 			"apps",
@@ -50,18 +50,18 @@ export class AndroidBuilder extends Builder {
 
 		assert(apkFile, `no apk file found in ${srcdir}`);
 
-		await this.artifact({
+		await this._artifact({
 			name: `gramax.${this.platform}.apk`,
 			srcdir,
 			filename: apkFile,
 		});
 	}
 
-	override async sign(): Promise<void> {
+	override async _sign(): Promise<void> {
 		const keystore = path.join(project, "apps", "tauri", "android.keystore");
 
 		await sign.android(path.join(this.outdir, `gramax.${this.platform}.apk`), keystore);
 	}
 
-	override async verify(): Promise<void> {}
+	override async _verify(): Promise<void> {}
 }

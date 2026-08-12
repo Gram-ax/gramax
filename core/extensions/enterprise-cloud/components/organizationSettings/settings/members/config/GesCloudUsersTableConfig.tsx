@@ -8,6 +8,7 @@ import type { GesCloudMember } from "../types/GesCloudUsersComponentTypes";
 export const getGesCloudUsersTableColumns: () => ColumnDef<GesCloudMember>[] = () => [
 	{
 		id: TABLE_SELECT_COLUMN_CODE,
+		size: 40,
 		header: ({ table }) => {
 			const changeableRows = table
 				.getRowModel()

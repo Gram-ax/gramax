@@ -2,6 +2,7 @@ import getGitError from "@ext/git/core/GitCommands/errors/logic/getGitError";
 import { LibGit2BaseCommands } from "@ext/git/core/GitCommands/LibGit2BaseCommands";
 import type GitVersionData from "@ext/git/core/model/GitVersionData";
 import type { VersionControlInfo } from "@ext/VersionControl/model/VersionControlInfo";
+import { normalizeTreeScope } from "@ext/versioning/GitTreeScopeParser";
 import Path from "../../../../logic/FileProvider/Path/Path";
 import type SourceData from "../../../storage/logic/SourceDataProvider/model/SourceData";
 import { FileStatus } from "../../../Watchers/model/FileStatus";
@@ -155,6 +156,10 @@ class LibGit2Commands extends LibGit2BaseCommands implements GitCommandsModel {
 		return res?.length ? res : [];
 	}
 
+	async hasMergeConflicts(branch: string, data: GitSourceData): Promise<string[]> {
+		return git.hasMergeConflicts({ repoPath: this._repoPath, creds: this._intoCreds(data), branch });
+	}
+
 	async formatMergeMessage(data: SourceData, opts: MergeOptions): Promise<string> {
 		return git.formatMergeMessage({ repoPath: this._repoPath, creds: this._intoCreds(data), opts });
 	}
@@ -276,10 +281,13 @@ class LibGit2Commands extends LibGit2BaseCommands implements GitCommandsModel {
 		paths: string[],
 		checkout: boolean,
 		cancelToken: CancelToken,
+		scope?: TreeReadScope,
 	): Promise<void> {
+		// arg order matters: the next backend spreads this object positionally into the napi binding
 		await git.pullLfsObjects({
 			repoPath: this._repoPath,
 			creds: this._intoCreds(data),
+			scope: normalizeTreeScope(scope) ?? "HEAD",
 			paths,
 			checkout,
 			cancelToken,
@@ -395,14 +403,14 @@ class LibGit2Commands extends LibGit2BaseCommands implements GitCommandsModel {
 					oid: new GitVersion(r.oid),
 					isLightweight: !!r.isLightweight,
 					author: r.author,
-					date: new Date(r.date),
+					date: r.date,
 				};
 			}
 			return {
 				kind: r.kind,
 				name: r.name,
 				encodedName: encodeURIComponent(r.name),
-				date: new Date(r.date),
+				date: r.date,
 			};
 		});
 	}

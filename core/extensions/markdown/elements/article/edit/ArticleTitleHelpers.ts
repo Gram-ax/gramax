@@ -1,5 +1,6 @@
 import type { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import { getEditorContext } from "@ext/markdown/elementsUtils/editorContext/EditorContext";
 import { Extension } from "@tiptap/core";
 import { AddMarkStep } from "@tiptap/pm/transform";
 import { Plugin, PluginKey } from "prosemirror-state";
@@ -45,10 +46,11 @@ const ArticleTitleHelpers = Extension.create<{
 						return returnedValue;
 					if (!this.options.onTitleLoseFocus) return returnedValue;
 
+					const { articleProps, apiUrlCreator } = getEditorContext(this.editor);
 					this.options.onTitleLoseFocus({
 						newTitle: newState.doc.firstChild.textContent,
-						articleProps: this.options.articleProps,
-						apiUrlCreator: this.options.apiUrlCreator,
+						articleProps,
+						apiUrlCreator,
 					});
 
 					return returnedValue;

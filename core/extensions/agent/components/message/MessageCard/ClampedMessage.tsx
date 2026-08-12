@@ -1,6 +1,6 @@
+import { cn } from "@core-ui/utils/cn";
 import t from "@ext/localization/locale/translate";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
-import { clsx } from "clsx";
 import { useEffect, useRef, useState } from "react";
 
 interface ClampedMessageProps {
@@ -9,7 +9,7 @@ interface ClampedMessageProps {
 	className?: string;
 }
 
-export function ClampedMessage({ text, lines = 20, className }: ClampedMessageProps) {
+export const ClampedMessage = ({ text, lines = 20, className }: ClampedMessageProps) => {
 	const measureRef = useRef<HTMLDivElement>(null);
 	const [isTooLong, setIsTooLong] = useState(false);
 
@@ -37,7 +37,7 @@ export function ClampedMessage({ text, lines = 20, className }: ClampedMessagePr
 
 			<Tooltip>
 				<TooltipTrigger asChild>
-					<div className={clsx(isTooLong ? ["text-muted", "cursor-pointer"] : "cursor-default", className)}>
+					<div className={cn(isTooLong ? ["text-muted", "cursor-pointer"] : "cursor-default", className)}>
 						{isTooLong ? t("agent.message-too-long") : text}
 					</div>
 				</TooltipTrigger>
@@ -50,4 +50,4 @@ export function ClampedMessage({ text, lines = 20, className }: ClampedMessagePr
 			</Tooltip>
 		</>
 	);
-}
+};

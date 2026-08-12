@@ -4,7 +4,6 @@
 extern crate tracing;
 
 #[cfg(test)]
-#[macro_use]
 extern crate rstest;
 
 #[macro_use]
@@ -115,6 +114,7 @@ impl<R: Runtime> AppBuilder for Builder<R> {
 	fn attach_plugins(self) -> Self {
 		let app = self
 			.plugin(plugin_gramax_core::init())
+			.plugin(plugin_browser_session::init())
 			.plugin(tauri_plugin_dialog::init())
 			.plugin(tauri_plugin_deep_link::init());
 

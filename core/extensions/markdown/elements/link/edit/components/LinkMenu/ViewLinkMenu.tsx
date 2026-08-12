@@ -1,15 +1,16 @@
 import GoToArticle from "@components/Actions/GoToArticle";
 import { getClientDomain } from "@core/utils/getClientDomain";
-import Workspace from "@core-ui/ContextServices/Workspace";
 import { useCtrlKey } from "@core-ui/hooks/useCtrlKey";
 import useMediaQuery from "@core-ui/hooks/useMediaQuery";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { tryCopyToClipboard } from "@core-ui/utils/clipboard";
 import { cssMedia } from "@core-ui/utils/cssUtils";
+// biome-ignore lint/style/noRestrictedImports: idc
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import type { LinkMenuMode } from "@ext/markdown/elements/link/edit/components/LinkMenu/LinkMenu";
 import { getLinkToHeading } from "@ext/markdown/elements/link/edit/logic/getLinkToHeading";
+import { getCachedSetting } from "@ext/settings/logic/cachedSettingsStore";
 import { Toolbar, ToolbarIcon, ToolbarText, ToolbarToggleButton } from "@ui-kit/Toolbar";
 import { type ComponentProps, type HTMLAttributes, memo, useState } from "react";
 
@@ -41,7 +42,7 @@ const TooltipToolbarButton = (props: ComponentProps<typeof ToolbarToggleButton> 
 const CopyButton = (props: HTMLAttributes<HTMLButtonElement> & { href: string }) => {
 	const { href } = props;
 	const [isCopied, setIsCopied] = useState(false);
-	const webEditorUrl = Workspace.current()?.webEditorUrl;
+	const webEditorUrl = getCachedSetting("services.web-editor.endpoint");
 
 	const onClickHandler = () => {
 		let linkToCopy: string;

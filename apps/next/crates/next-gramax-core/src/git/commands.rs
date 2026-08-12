@@ -253,11 +253,20 @@ pub fn get_draft_merge_request(repo_path: String) -> Output {
 	git::get_draft_merge_request(Path::new(&repo_path))
 }
 
+#[allow(clippy::too_many_arguments)] // napi_async appends span_id/trace_id to the signature
 #[napi_async]
-pub async fn pull_lfs_objects(repo_path: String, creds: AccessTokenCreds, paths: Vec<String>, checkout: bool, cancel_token: u32) -> Output {
+pub async fn pull_lfs_objects(
+	repo_path: String,
+	creds: AccessTokenCreds,
+	scope: TreeReadScope,
+	paths: Vec<String>,
+	checkout: bool,
+	cancel_token: u32,
+) -> Output {
 	git::pull_lfs_objects(
 		Path::new(&repo_path),
 		creds.into(),
+		scope.into(),
 		paths.into_iter().map(PathBuf::from).collect(),
 		checkout,
 		(cancel_token as usize).into(),

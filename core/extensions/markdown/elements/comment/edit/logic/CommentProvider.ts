@@ -51,6 +51,9 @@ class CommentProvider {
 			checkoutToken = catalog.repo.events.on("checkout", () => this._onCheckout());
 			syncToken = catalog.repo.events.on("sync", () => this._onCheckout());
 		});
+
+		_catalog.events.on("item-moved", ({ from, to }) => this._onItemMoved(from.path, to.path));
+		_catalog.events.on("item-props-updated", ({ ref, item }) => this._onItemMoved(ref.path, item.ref.path));
 	}
 
 	getNewCommentId(): string {
@@ -65,6 +68,14 @@ class CommentProvider {
 		const articlePathString = articlePath.value;
 		assert(this._comments.has(articlePathString), "comments must be parsed");
 		return this._comments.get(articlePathString);
+	}
+
+	async getAllComments(articlePath: Path, context: ParserContext): Promise<Record<string, CommentBlock>> {
+		const articlePathString = articlePath.value;
+		if (!this._comments.has(articlePathString)) await this._parseComments(articlePath, context);
+
+		const allComments = this._comments.get(articlePathString) ?? {};
+		return Object.fromEntries(Object.entries(allComments).map(([id, comment]) => [id, comment.parsedData]));
 	}
 
 	async getComment(id: string, articlePath: Path, context?: ParserContext) {
@@ -125,7 +136,9 @@ class CommentProvider {
 			convertContentToUiLanguage(ctx.contentLanguage || copyCatalog.props.language),
 		);
 
-		await copyArticle.parsedContent.write(async () => await context.parser.parse(copyArticle.content, context));
+		await copyArticle.parsedContent.write(async () =>
+			context.parser.parse(await copyArticle.getContent(), context),
+		);
 		let newComment = await this.getComment(id, copyArticle.ref.path, context);
 
 		if (!newComment) return false;
@@ -375,7 +388,7 @@ class CommentProvider {
 
 			if (await article.parsedContent.isNull()) {
 				try {
-					const parsedContent = await parser.parse(article.content, parserContext);
+					const parsedContent = await parser.parse(await article.getContent(), parserContext);
 					await article.parsedContent.write(() => parsedContent);
 				} catch {
 					continue;
@@ -537,6 +550,23 @@ class CommentProvider {
 	private _onCheckout() {
 		this._comments.clear();
 		this._assignedComments.clear();
+	}
+
+	private async _onItemMoved(from: Path, to: Path) {
+		if (from.compare(to)) return;
+
+		const oldFilePath = this.getFilePath(from);
+		const newFilePath = this.getFilePath(to);
+		if (await this._fp.exists(oldFilePath)) await this._fp.move(oldFilePath, newFilePath);
+
+		this._rekey(this._comments, from.value, to.value);
+		this._rekey(this._assignedComments, from.value, to.value);
+	}
+
+	private _rekey<T>(map: Map<string, T>, from: string, to: string) {
+		if (!map.has(from)) return;
+		map.set(to, map.get(from));
+		map.delete(from);
 	}
 }
 

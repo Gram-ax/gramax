@@ -1,6 +1,8 @@
 import { useGetCatalogLogoSrc } from "@core-ui/ContextServices/CatalogLogoService/catalogLogoHooks";
 import type { SerializedStyles } from "@emotion/react";
+// biome-ignore lint/style/noRestrictedImports: will be deleted in new sidebars
 import styled from "@emotion/styled";
+import IconComponent from "@ext/markdown/elements/icon/render/components/Icon";
 import { forwardRef, type MutableRefObject, type ReactNode } from "react";
 
 interface BreadcrumbCatalogProps {
@@ -11,11 +13,18 @@ interface BreadcrumbCatalogProps {
 
 const BreadcrumbCatalog = forwardRef((props: BreadcrumbCatalogProps, ref: MutableRefObject<HTMLDivElement>) => {
 	const { catalog, className } = props;
-	const { isExist, src } = useGetCatalogLogoSrc(catalog?.name);
+	const { logo } = useGetCatalogLogoSrc(catalog?.name);
 
 	return (
 		<div className={className} ref={ref}>
-			{isExist && <img alt={catalog.name} src={src} />}
+			{logo &&
+				("iconCode" in logo ? (
+					<IconComponent code={logo.iconCode} color={logo.iconColor} />
+				) : "emoji" in logo ? (
+					<span>{logo.emoji}</span>
+				) : (
+					<img alt={catalog.name} src={logo.src} />
+				))}
 			<span className="title">{catalog.title}</span>
 		</div>
 	);

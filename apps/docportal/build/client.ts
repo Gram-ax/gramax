@@ -6,6 +6,7 @@ import { browserAssertPlugin } from "./plugins/client/browserAssertPlugin";
 import { copyFaviconPlugin } from "./plugins/client/copyFaviconPlugin";
 import { fixBrokenChunkExports } from "./plugins/client/fixBrokenChunkExports";
 import { lucideNoTreeShakePlugin } from "./plugins/client/lucideNoTreeShakePlugin";
+import { otelBrowserEntryPlugin } from "./plugins/client/otelBrowserEntryPlugin";
 import { processStubPlugin } from "./plugins/client/processStubPlugin";
 import replaceImportPlugin from "./plugins/replaceImportPlugin";
 
@@ -23,7 +24,7 @@ const result = await Bun.build({
 	format: "esm",
 	splitting: true,
 	minify: true,
-	publicPath: "/assets/",
+	publicPath: "./",
 	sourcemap: isProduction() ? "none" : "inline",
 	naming: {
 		chunk: "[name]-[hash].[ext]",
@@ -39,6 +40,7 @@ const result = await Bun.build({
 	},
 	plugins: [
 		replaceImportPlugin(dirname),
+		otelBrowserEntryPlugin(dirname),
 		lucideNoTreeShakePlugin(dirname),
 		processStubPlugin(),
 		browserAssertPlugin(),

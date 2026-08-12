@@ -31,6 +31,15 @@ pub enum ArtifactUpdateError {
 
 	#[error("failed to parse version: {}", report(&.0))]
 	InvalidVersion(semver::Error),
+
+	#[error("failed to list versions from an upstream s3 server: {}", report(&.0))]
+	ListFailed(reqwest::Error),
+
+	#[error("upstream s3 server denied bucket listing (403); the updater needs list permission on the bucket")]
+	ListForbidden,
+
+	#[error("failed to parse a list response from an upstream s3 server: {}", report(&.0))]
+	ListParseFailed(quick_xml::Error),
 }
 
 #[derive(thiserror::Error, Debug)]

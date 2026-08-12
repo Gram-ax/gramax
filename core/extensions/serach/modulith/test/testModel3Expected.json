@@ -3,191 +3,23 @@
 		"type": "text",
 		"text": "В визуальном редакторе Gramax можно добавить таблицу в несколько кликов. Gramax работает со стандартными Markdown-таблицами и добавляет расширенные возможности. Пример таблицы:"
 	},
-	{
-		"type": "table",
-		"rows": [
-			{
-				"data": [
-					{
-						"items": [
-							{
-								"type": "text",
-								"text": "Наименование"
-							}
-						],
-						"colspan": 1,
-						"rowspan": 1
-					},
-					{
-						"items": [
-							{
-								"type": "text",
-								"text": "Тип данных"
-							}
-						],
-						"colspan": 1,
-						"rowspan": 1
-					},
-					{
-						"items": [
-							{
-								"type": "text",
-								"text": "Обязательное поле"
-							}
-						],
-						"colspan": 1,
-						"rowspan": 1
-					},
-					{
-						"items": [
-							{
-								"type": "text",
-								"text": "Комментарий"
-							}
-						],
-						"colspan": 1,
-						"rowspan": 1
-					}
-				]
-			},
-			{
-				"data": [
-					{
-						"items": [
-							{
-								"type": "text",
-								"text": "id"
-							}
-						],
-						"colspan": 1,
-						"rowspan": 1
-					},
-					{
-						"items": [
-							{
-								"type": "text",
-								"text": "integer"
-							}
-						],
-						"colspan": 1,
-						"rowspan": 1
-					},
-					{
-						"items": [
-							{
-								"type": "text",
-								"text": "Да"
-							}
-						],
-						"colspan": 1,
-						"rowspan": 1
-					},
-					{
-						"items": [
-							{
-								"type": "text",
-								"text": "Id отсутствия"
-							}
-						],
-						"colspan": 1,
-						"rowspan": 1
-					}
-				]
-			},
-			{
-				"data": [
-					{
-						"items": [
-							{
-								"type": "text",
-								"text": "absenceReason"
-							}
-						],
-						"colspan": 1,
-						"rowspan": 1
-					},
-					{
-						"items": [
-							{
-								"type": "text",
-								"text": "nvarchar(500)"
-							}
-						],
-						"colspan": 1,
-						"rowspan": 1
-					},
-					{
-						"items": [
-							{
-								"type": "text",
-								"text": "Да"
-							}
-						],
-						"colspan": 1,
-						"rowspan": 1
-					},
-					{
-						"items": [
-							{
-								"type": "text",
-								"text": "Причина отсутствия"
-							}
-						],
-						"colspan": 1,
-						"rowspan": 1
-					}
-				]
-			},
-			{
-				"data": [
-					{
-						"items": [
-							{
-								"type": "text",
-								"text": "statusId"
-							}
-						],
-						"colspan": 1,
-						"rowspan": 1
-					},
-					{
-						"items": [
-							{
-								"type": "text",
-								"text": "nvarchar(50)"
-							}
-						],
-						"colspan": 1,
-						"rowspan": 1
-					},
-					{
-						"items": [
-							{
-								"type": "text",
-								"text": "Нет"
-							}
-						],
-						"colspan": 1,
-						"rowspan": 1
-					},
-					{
-						"items": [
-							{
-								"type": "text",
-								"text": "Ссылка на статус"
-							}
-						],
-						"colspan": 1,
-						"rowspan": 1
-					}
-				]
-			}
-		]
-	},
-	{
-		"type": "text",
-		"text": "Добавить таблицу можно двумя способами:"
-	},
+	{ "type": "text", "text": "Наименование" },
+	{ "type": "text", "text": "Тип данных" },
+	{ "type": "text", "text": "Обязательное поле" },
+	{ "type": "text", "text": "Комментарий" },
+	{ "type": "text", "text": "id" },
+	{ "type": "text", "text": "integer" },
+	{ "type": "text", "text": "Да" },
+	{ "type": "text", "text": "Id отсутствия" },
+	{ "type": "text", "text": "absenceReason" },
+	{ "type": "text", "text": "nvarchar(500)" },
+	{ "type": "text", "text": "Да" },
+	{ "type": "text", "text": "Причина отсутствия" },
+	{ "type": "text", "text": "statusId" },
+	{ "type": "text", "text": "nvarchar(50)" },
+	{ "type": "text", "text": "Нет" },
+	{ "type": "text", "text": "Ссылка на статус" },
+	{ "type": "text", "text": "Добавить таблицу можно двумя способами:" },
 	{
 		"type": "text",
 		"text": "Создать вручную. Для этого кликните значок таблицы в панели редактирования, а затем оформите ее: добавьте строки и столбцы, определите заголовки, объедините ячейки."
@@ -198,24 +30,12 @@
 	},
 	{
 		"type": "block",
+		"title": "Закрепить markdown",
 		"items": [
-			{
-				"type": "text",
-				"text": "Если важно, чтобы в статье таблицы были именно в разметке Markdown:"
-			},
-			{
-				"type": "text",
-				"text": "Не меняйте вручную ширину столбцов."
-			},
-			{
-				"type": "text",
-				"text": "Не объединяйте ячейки в таблице."
-			},
-			{
-				"type": "text",
-				"text": "Именно эти действия форматируют Markdown-таблицу в расширенный синтаксис."
-			}
-		],
-		"title": "Закрепить markdown"
+			{ "type": "text", "text": "Если важно, чтобы в статье таблицы были именно в разметке Markdown:" },
+			{ "type": "text", "text": "Не меняйте вручную ширину столбцов." },
+			{ "type": "text", "text": "Не объединяйте ячейки в таблице." },
+			{ "type": "text", "text": "Именно эти действия форматируют Markdown-таблицу в расширенный синтаксис." }
+		]
 	}
 ]

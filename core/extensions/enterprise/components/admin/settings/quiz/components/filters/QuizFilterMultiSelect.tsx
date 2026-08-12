@@ -1,8 +1,8 @@
 import { useDebounce } from "@core-ui/hooks/useDebounce";
 import useWatch from "@core-ui/hooks/useWatch";
+import { Button } from "@ext/enterprise/components/admin/ui-kit/Button";
 import t from "@ext/localization/locale/translate";
 import type { LoadOptionsResult } from "@ui-kit/AsyncSearchSelect";
-import { Button } from "@ui-kit/Button";
 import { Checkbox } from "@ui-kit/Checkbox";
 import { Command, CommandEmpty, CommandInput, CommandItem, CommandList } from "@ui-kit/Command";
 import { Loader } from "@ui-kit/Loader";
@@ -43,7 +43,7 @@ export const FilterMultiSelect = (props: FilterMultiSelectProps) => {
 
 	const { start: debouncedLoadOptions, cancel: cancelDebouncedLoadOptions } = useDebounce(
 		(value: string) => {
-			loadOptions({ searchQuery: value }).then(({ options: newOptions }) => {
+			return loadOptions({ searchQuery: value }).then(({ options: newOptions }) => {
 				setOptions(newOptions);
 				setIsLoading(false);
 			});

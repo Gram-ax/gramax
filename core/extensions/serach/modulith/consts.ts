@@ -4,4 +4,4 @@ import Path from "@core/FileProvider/Path/Path";
 export const MODULITH_BASE = new Path(`${STORAGE_DIR_NAME}/.modulith`);
 export const CACHE_DIR = new Path(".cache");
 
-export const TENANT_NAME = "local4";
+export const TENANT_NAME = "local7";

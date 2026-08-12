@@ -9,15 +9,33 @@ import { type ComponentProps, useCallback } from "react";
 import { SignOut, UserAvatar } from "../../../../components/UserAvatar";
 
 export const GesCloudSignInOut = () => {
+	const isLogged = PageDataContextService.value.isLogged;
+
+	const { enabled } = PageDataContextService.value.conf.enterpriseCloud;
+
+	if (isLogged) return <GesCloudSignOut />;
+
+	if (enabled) return null;
+
+	return <GesCloudSignInButton />;
+};
+
+export const GesCloudTauriSignInOut = () => {
+	const isLogged = PageDataContextService.value.isLogged;
+
+	if (isLogged) return <GesCloudSignOut />;
+
+	return <GesCloudSignInButton overrideIcon="cloud" withUrlStep />;
+};
+
+const GesCloudSignOut = () => {
 	const pageDataContext = PageDataContextService.value;
-	const isLogged = pageDataContext.isLogged;
 	const workspaceContext = pageDataContext.workspace;
 	const currentWorkspaceName = pageDataContext.workspace.current;
 
 	const workspaceConfig = workspaceContext.workspaces.find(
 		(workspaceConfig) => workspaceConfig.path === currentWorkspaceName,
 	);
-	const { url: gesCloudUrl, enabled } = PageDataContextService.value.conf.enterpriseCloud;
 
 	const onLogoutClick = useCallback(() => {
 		const id = ModalToOpenService.addModal<ComponentProps<typeof SignOutGesCloud>>(ModalToOpen.GesCloudSignOut, {
@@ -26,9 +44,31 @@ export const GesCloudSignInOut = () => {
 		});
 	}, [workspaceConfig]);
 
-	if (isLogged) return <UserAvatar logoutComponent={<SignOut />} onLogoutClick={onLogoutClick} />;
+	return <UserAvatar logoutComponent={<SignOut />} onLogoutClick={onLogoutClick} />;
+};
 
-	if (enabled) return null;
+interface GesCloudSignInButtonProps {
+	overrideIcon?: string;
+	withUrlStep?: boolean;
+}
+
+const GesCloudSignInButton = (props: GesCloudSignInButtonProps) => {
+	const { url: gesCloudUrl } = PageDataContextService.value.conf.enterpriseCloud;
+
+	const onClick = () => {
+		if (props.withUrlStep) {
+			const modalId = ModalToOpenService.addModal(ModalToOpen.GesCloudUrl, {
+				onClose: () => ModalToOpenService.removeModal(modalId),
+			});
+			return;
+		}
+
+		const modalId = ModalToOpenService.addModal(ModalToOpen.GesCloudSignIn, {
+			gesCloudUrl,
+			allowContinueWithoutAccount: false,
+			onClose: () => ModalToOpenService.removeModal(modalId),
+		});
+	};
 
 	return (
 		<Tooltip>
@@ -38,15 +78,9 @@ export const GesCloudSignInOut = () => {
 			<TooltipTrigger asChild>
 				<IconButton
 					className="p-2"
-					icon={"user-round"}
+					icon={props.overrideIcon || "user-round"}
 					iconClassName="w-5 h-5 stroke-[1.6]"
-					onClick={() => {
-						const modalId = ModalToOpenService.addModal(ModalToOpen.GesCloudSignIn, {
-							gesCloudUrl,
-							allowContinueWithoutAccount: false,
-							onClose: () => ModalToOpenService.removeModal(modalId),
-						});
-					}}
+					onClick={onClick}
 					size="lg"
 					variant="ghost"
 				/>

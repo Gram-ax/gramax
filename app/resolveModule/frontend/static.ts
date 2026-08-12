@@ -1,8 +1,8 @@
-import useUrlObjectImage from "../../../apps/browser/src/hooks/useUrlObjectImage";
-import getBrowserFetchService from "../../../apps/browser/src/logic/Api/getBrowserFetchService";
-import { getPdfjs } from "../../../apps/browser/src/pdfjs/getPdfjs";
-import BrowserLink from "../../../apps/gramax-cli/src/Components/Atoms/Link";
-import StaticRouter from "../../../apps/gramax-cli/src/logic/api/StaticRouter";
+import WebLink from "../../../apps/cli/src/Components/Atoms/Link";
+import StaticRouter from "../../../apps/cli/src/logic/api/StaticRouter";
+import useUrlObjectImage from "../../../apps/web/src/hooks/useUrlObjectImage";
+import getWebFetchService from "../../../apps/web/src/logic/Api/getWebFetchService";
+import { getPdfjs } from "../../../apps/web/src/pdfjs/getPdfjs";
 import type { DynamicModules } from "..";
 
 const getPathname = () => {
@@ -16,9 +16,9 @@ const getPathname = () => {
 
 export const getStaticModules = (): DynamicModules => {
 	return {
-		Link: BrowserLink,
+		Link: WebLink,
 		Router: StaticRouter,
-		Fetcher: getBrowserFetchService(getPathname),
+		Fetcher: getWebFetchService(getPathname),
 		useImage: useUrlObjectImage,
 		openChildWindow: (params) => window.open(params.url, params.name, params.features),
 		enterpriseLogin: () => Promise.resolve(null),
@@ -29,8 +29,12 @@ export const getStaticModules = (): DynamicModules => {
 		setBadge: () => undefined,
 		openInExplorer: () => undefined,
 		openWindowWithUrl: () => undefined,
+		gesCloudLogin: () => undefined,
 		openInWeb: (url: string) => (typeof window === "undefined" ? undefined : window.open(url)),
 		getPdfjs,
+		updateCheck: () => undefined,
+		updateInstallFromCache: () => undefined,
+		updateAccept: () => undefined,
 	};
 };
 

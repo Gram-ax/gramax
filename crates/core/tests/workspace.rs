@@ -23,7 +23,6 @@ fn single_catalog_with_docroot_at_depth_1(fixture: Fixture) {
 	let entries = fixture.scan(&opts());
 	assert_eq!(entries.len(), 1);
 	let e = &entries[0];
-	assert_eq!(e.name, "cat");
 	assert_eq!(e.rel_path, Path::new("cat"));
 	assert_eq!(e.docroot_rel.as_deref(), Some(Path::new("docroot.yaml")));
 	assert_eq!(e.catalog_props["title"], "My Catalog");
@@ -35,7 +34,7 @@ fn docroot_at_max_depth_is_found_beyond_is_not(fixture: Fixture) {
 	fixture.file("cat6/a/b/c/d/e/docroot.yaml", "title: deep6\n");
 
 	let entries = fixture.scan(&opts());
-	let by_name: std::collections::HashMap<_, _> = entries.iter().map(|e| (e.name.clone(), e)).collect();
+	let by_name: std::collections::HashMap<_, _> = entries.iter().map(|e| (e.rel_path.to_str().unwrap().to_string(), e)).collect();
 
 	assert_eq!(by_name["cat5"].docroot_rel.as_deref(), Some(Path::new("a/b/c/d/docroot.yaml")));
 	assert!(by_name["cat6"].docroot_rel.is_none());
@@ -50,7 +49,7 @@ fn multiple_catalogs_collected(fixture: Fixture) {
 
 	let entries = fixture.scan(&opts());
 	assert_eq!(entries.len(), 20);
-	let names: std::collections::HashSet<_> = entries.iter().map(|e| e.name.clone()).collect();
+	let names: std::collections::HashSet<_> = entries.iter().map(|e| e.rel_path.to_str().unwrap().to_string()).collect();
 	for i in 0..20 {
 		assert!(names.contains(&format!("cat{i:02}")));
 	}
@@ -64,7 +63,7 @@ fn excluded_dirs_skipped(fixture: Fixture) {
 	fixture.file("ok/docroot.yaml", "title: ok\n");
 
 	let entries = fixture.scan(&opts());
-	let names: Vec<_> = entries.iter().map(|e| e.name.as_str()).collect();
+	let names: Vec<_> = entries.iter().map(|e| e.rel_path.to_str().unwrap()).collect();
 	assert_eq!(names, vec!["ok"]);
 }
 
@@ -77,7 +76,7 @@ fn nested_workspace_yaml_dirs_skipped(fixture: Fixture) {
 	fixture.file("plain/docroot.yaml", "title: plain\n");
 
 	let entries = fixture.scan(&opts());
-	let names: Vec<_> = entries.iter().map(|e| e.name.as_str()).collect();
+	let names: Vec<_> = entries.iter().map(|e| e.rel_path.to_str().unwrap()).collect();
 	assert_eq!(names, vec!["plain"]);
 }
 
@@ -89,8 +88,8 @@ fn workspace_config_filename_overridable(fixture: Fixture) {
 
 	let mut o = opts();
 	o.workspace_config_filename = "space.yml".into();
-	let entries = WorkspaceScanner::new(&fixture.fs, Path::new(""), &o).scan_workspace().unwrap();
-	let names: Vec<_> = entries.iter().map(|e| e.name.as_str()).collect();
+	let entries = WorkspaceScanner::new(&fixture.fs, Path::new(""), &o).scan().unwrap();
+	let names: Vec<_> = entries.iter().map(|e| e.rel_path.to_str().unwrap()).collect();
 	assert_eq!(names, vec!["plain"]);
 }
 
@@ -123,7 +122,7 @@ fn docroot_filename_overridable(fixture: Fixture) {
 
 	let mut o = opts();
 	o.docroot_filenames = vec!["custom.yaml".into()];
-	let entries = WorkspaceScanner::new(&fixture.fs, Path::new(""), &o).scan_workspace().unwrap();
+	let entries = WorkspaceScanner::new(&fixture.fs, Path::new(""), &o).scan().unwrap();
 	assert_eq!(entries.len(), 1);
 	assert_eq!(entries[0].docroot_rel.as_deref(), Some(Path::new("custom.yaml")));
 	assert_eq!(entries[0].catalog_props["title"], "custom");
@@ -136,7 +135,6 @@ fn cyrillic_path_names(fixture: Fixture) {
 	let entries = fixture.scan(&opts());
 	assert_eq!(entries.len(), 1);
 	let e = &entries[0];
-	assert_eq!(e.name, "каталог");
 	assert_eq!(e.rel_path, Path::new("каталог"));
 	assert_eq!(e.catalog_props["title"], "Заголовок");
 }
@@ -148,7 +146,7 @@ fn hidden_dot_dirs_excluded_without_explicit_opts(fixture: Fixture) {
 	fixture.file("visible/docroot.yaml", "");
 
 	let entries = fixture.scan(&opts());
-	let names: Vec<_> = entries.iter().map(|e| e.name.as_str()).collect();
+	let names: Vec<_> = entries.iter().map(|e| e.rel_path.to_str().unwrap()).collect();
 	assert_eq!(names, vec!["visible"]);
 }
 
@@ -158,7 +156,7 @@ fn missing_docroot_returns_entry_with_empty_props(fixture: Fixture) {
 
 	let entries = fixture.scan(&opts());
 	assert_eq!(entries.len(), 1);
-	assert_eq!(entries[0].name, "no-docroot");
+	assert_eq!(entries[0].rel_path, Path::new("no-docroot"));
 	assert!(entries[0].docroot_rel.is_none());
 	assert!(entries[0].catalog_props.as_object().unwrap().is_empty());
 }
@@ -169,7 +167,7 @@ fn excluded_dirs_skipped_inside_bfs(fixture: Fixture) {
 	fixture.file("cat/real/docroot.yaml", "title: real\n");
 
 	let entries = fixture.scan(&opts());
-	assert_eq!(entries[0].name, "cat");
+	assert_eq!(entries[0].rel_path, Path::new("cat"));
 	assert_eq!(entries[0].docroot_rel.as_deref(), Some(Path::new("real/docroot.yaml")));
 	assert_eq!(entries[0].catalog_props["title"], "real");
 }
@@ -189,7 +187,7 @@ fn symlink_cycle_does_not_hang(fixture: Fixture) {
 	let started = Instant::now();
 	let entries = fixture.scan(&opts());
 	assert!(started.elapsed() < Duration::from_secs(5), "scan hung on symlink cycle");
-	let names: std::collections::HashSet<_> = entries.iter().map(|e| e.name.as_str()).collect();
+	let names: std::collections::HashSet<_> = entries.iter().map(|e| e.rel_path.to_str().unwrap()).collect();
 	assert!(names.contains("loop"));
 }
 
@@ -201,7 +199,7 @@ fn result_order_is_alphabetical_by_name(fixture: Fixture) {
 	fixture.file("apple/docroot.yaml", "");
 	fixture.file("mango/docroot.yaml", "");
 
-	let names: Vec<_> = fixture.scan(&opts()).into_iter().map(|e| e.name).collect();
+	let names: Vec<_> = fixture.scan(&opts()).into_iter().map(|e| e.rel_path.to_str().unwrap().to_string()).collect();
 	assert_eq!(names, vec!["apple", "mango", "zebra"]);
 }
 
@@ -230,15 +228,19 @@ fn dto_json_shape(fixture: Fixture) {
 	let expected = serde_json::json!([
 		{
 			"relPath": "no-docroot",
-			"name": "no-docroot",
 			"docrootRel": null,
-			"catalogProps": {}
+			"catalogProps": {},
+			"isGitRepo": false,
+			"isBareRepo": false,
+			"hasGitmodules": false,
 		},
 		{
 			"relPath": "with-docroot",
-			"name": "with-docroot",
 			"docrootRel": "docroot.yaml",
-			"catalogProps": { "icon": "i", "title": "t" }
+			"catalogProps": { "icon": "i", "title": "t" },
+			"isGitRepo": false,
+			"isBareRepo": false,
+			"hasGitmodules": false,
 		}
 	]);
 	assert_eq!(actual, expected);

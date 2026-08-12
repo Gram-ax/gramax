@@ -1,12 +1,14 @@
+import { env } from "@app/resolveModule/env";
 import t from "@ext/localization/locale/translate";
 import { Icon } from "@ui-kit/Icon";
 import { Loader } from "@ui-kit/Loader";
-import { Toast, ToastAction } from "@ui-kit/Toast";
+import { Toast, ToastAction, toast } from "@ui-kit/Toast";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@ui-kit/Tooltip";
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { updateCheck } from "../window/commands";
 import { ErrorIcon } from "./UpdateIcons";
-import useUpdateChecker, { UpdateAcceptance, type UpdaterErrorCode, UpdateStatus } from "./useUpdateChecker";
+import { UpdateAcceptance } from "./updateEvents";
+import useUpdateChecker, { type UpdaterErrorCode, UpdateStatus } from "./useUpdateChecker";
 
 const Wrapper = ({ children }: { children: React.ReactNode }): JSX.Element => {
 	return <div className="z-[var(--z-index-overlay)] right-8 bottom-8 absolute print:hidden">{children}</div>;
@@ -28,6 +30,8 @@ const translated = (code: UpdaterErrorCode): string | null => {
 			return t("app.update.code.signature");
 		case "reqwest":
 			return t("app.update.code.reqwest");
+		case "run-from-dmg":
+			return t("app.update.code.run-from-dmg");
 		default:
 			return null;
 	}
@@ -37,10 +41,16 @@ const UpdateChecker = () => {
 	const { state, resetUpdate, acceptance, install, accept, decline, installed, dismissInstalled } =
 		useUpdateChecker();
 
+	useEffect(() => {
+		if (env("MACOS_IS_INSTALLED") === "false") {
+			toast(t("app.update.dmg.title"), { status: "warning", size: "lg", description: t("app.update.dmg.desc") });
+		}
+	}, []);
+
 	const retry = useCallback(async () => {
 		resetUpdate();
 		await updateCheck(true);
-		accept();
+		await accept();
 	}, [resetUpdate, accept]);
 
 	const commonToastProps = useMemo(
@@ -60,7 +70,7 @@ const UpdateChecker = () => {
 				<Toast
 					closeAction
 					focus="low"
-					icon={<Icon icon="check-circle" size="sm" />}
+					icon={<Icon icon="circle-check" size="sm" />}
 					onClose={dismissInstalled}
 					size="sm"
 					status="success"

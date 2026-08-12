@@ -1,0 +1,6 @@
+_version: 2
+
+browser-session:
+  window-title:
+    ru: 'Браузер агента'
+    en: 'Agent Browser'

@@ -5,6 +5,6 @@ export enum GroupSource {
 
 export type Group = {
 	id: string;
-	name: string;
+	name?: string;
 	source: GroupSource;
 };

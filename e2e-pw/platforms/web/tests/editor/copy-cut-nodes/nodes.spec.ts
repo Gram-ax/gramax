@@ -68,18 +68,18 @@ editorTest.describe("Copy-Cut Nodes", () => {
 
 	editorTest("copy drawio", async ({ editor, sharedPage, basePage }) => {
 		await basePage.createFileTree(sharedPage, {
-			editor: { "new-article.svg": DRAWIO_SVG },
+			editor: { "untitled.svg": DRAWIO_SVG },
 		});
 
 		await editor.setMarkdown(md`		
 				text(*)
 
-				<drawio path="./new-article.svg" width="211px" height="101px"/>
+				<drawio path="./untitled.svg" width="211px" height="101px"/>
 			`);
 		await editor.press("ControlOrMeta+A ControlOrMeta+X ControlOrMeta+V");
-		await editor.assertMarkdownContains('<drawio path="./new-article');
+		await editor.assertMarkdownContains('<drawio path="./untitled');
 		await basePage.assertFileTree(sharedPage, {
-			editor: { "new-article.svg": DRAWIO_SVG },
+			editor: { "untitled.svg": DRAWIO_SVG },
 		});
 	});
 });

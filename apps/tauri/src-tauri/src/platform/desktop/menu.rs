@@ -45,6 +45,10 @@ pub enum MenuItemId {
 	ToggleSpellcheck,
 	ShowLogs,
 	ExportLogs,
+	ExportLogsSession,
+	ExportLogsToday,
+	ExportLogs7d,
+	ExportLogsAll,
 	Unknown,
 	#[cfg(target_family = "unix")]
 	ZoomIn,
@@ -72,7 +76,11 @@ impl MenuItemId {
 			#[cfg(target_family = "unix")]
 			MenuItemId::ActualSize => t!("menu.view.actual-size"),
 			MenuItemId::ToggleSpellcheck => t!("menu.edit.toggle-spellcheck"),
-			MenuItemId::ExportLogs => t!("menu.help.export-logs"),
+			MenuItemId::ExportLogs => t!("menu.help.export-logs.title"),
+			MenuItemId::ExportLogsSession => t!("menu.help.export-logs.session"),
+			MenuItemId::ExportLogsToday => t!("menu.help.export-logs.today"),
+			MenuItemId::ExportLogs7d => t!("menu.help.export-logs.last-7-days"),
+			MenuItemId::ExportLogsAll => t!("menu.help.export-logs.all"),
 			MenuItemId::ShowLogs => t!("menu.help.show-logs"),
 			_ => Cow::Owned("unknown".to_string()),
 		}
@@ -199,9 +207,16 @@ pub fn on_menu_event<R: Runtime>(app: &AppHandle<R>, event: MenuEvent) {
 				}
 			}
 		}
-		Id::ExportLogs => {
+		id @ (Id::ExportLogsSession | Id::ExportLogsToday | Id::ExportLogs7d | Id::ExportLogsAll) => {
+			use crate::logging::LogScope;
+			let scope = match id {
+				Id::ExportLogsSession => LogScope::Session,
+				Id::ExportLogsToday => LogScope::Today,
+				Id::ExportLogs7d => LogScope::Last7Days,
+				_ => LogScope::All,
+			};
 			std::thread::spawn(move || {
-				_ = crate::logging::collect_logs(&app).or_show();
+				_ = crate::logging::collect_logs(&app, scope).or_show();
 			});
 		}
 		Id::ShowLogs => {
@@ -309,6 +324,18 @@ fn make_menu<R: Runtime>(app: &AppHandle<R>) -> Result<Menu<R>> {
 		menu.append(&view_menu)?;
 	}
 
+	let export_logs_sub = Submenu::with_items(
+		app,
+		Id::ExportLogs.translated(),
+		true,
+		&[
+			&build_item(Id::ExportLogsSession, None)?,
+			&build_item(Id::ExportLogsToday, None)?,
+			&build_item(Id::ExportLogs7d, None)?,
+			&build_item(Id::ExportLogsAll, None)?,
+		],
+	)?;
+
 	let help_sub = Submenu::new(app, t!("menu.help"), true)?;
 	help_sub.append_items(&[
 		&build_item(Id::VisitDocs, None)?,
@@ -317,7 +344,7 @@ fn make_menu<R: Runtime>(app: &AppHandle<R>) -> Result<Menu<R>> {
 		&build_item(Id::JoinTelegramChat, None)?,
 		&PredefinedMenuItem::separator(app)?,
 		&build_item(Id::ShowLogs, None)?,
-		&build_item(Id::ExportLogs, None)?,
+		&export_logs_sub,
 	])?;
 	menu.append(&help_sub)?;
 

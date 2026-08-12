@@ -2,11 +2,13 @@ import type { IconCode } from "@components/Atoms/Icon/LucideIcon";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import { cn } from "@core-ui/utils/cn";
+// biome-ignore lint/style/noRestrictedImports: idc
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import type { PropertyEditorProps } from "@ext/properties/components/Modals/PropertyEditor";
 import PropertyServiceProvider from "@ext/properties/components/PropertyService";
 import { useUpdateCatalogProperty } from "@ext/properties/logic/hooks/useUpdateCatalogProperty";
+import { filterPropertyList } from "@ext/properties/logic/utils/filterPropertyList";
 import type { Property, PropertyTypes } from "@ext/properties/models";
 import TemplateService from "@ext/templates/components/TemplateService";
 import { isComplexProperty } from "@ext/templates/models/properties";
@@ -204,6 +206,12 @@ const PropertyMenuGroup = ({ editor }: PropertyMenuGroupProps) => {
 		[properties, saveCatalogProperties, isInTemplate],
 	);
 
+	const allProperties = useMemo(() => {
+		const allProps = Array.from(properties.values());
+		if (isInTemplate) return allProps;
+		return allProps.filter((prop) => filterPropertyList(prop));
+	}, [properties, isInTemplate]);
+
 	return (
 		<Button
 			buttonIcon="variable"
@@ -211,7 +219,7 @@ const PropertyMenuGroup = ({ editor }: PropertyMenuGroupProps) => {
 			onEditClick={onEditClickHandler}
 			onItemClick={onItemClick}
 			onlyArticlePropertyTypes={!isInTemplate}
-			properties={Array.from(properties.values())}
+			properties={allProperties}
 			updateProperty={saveCatalogProperties}
 		/>
 	);

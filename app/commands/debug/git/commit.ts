@@ -13,7 +13,7 @@ const commit: Command<{ catalogName: string; msg?: string }, void> = Command.cre
 		const storage = catalog.repo.storage;
 		const name = await storage.getSourceName();
 		const sourceData = this._app.rp.getSourceData(
-			await this._app.contextFactory.fromBrowser({
+			await this._app.contextFactory.fromWeb({
 				language: resolveLanguage(),
 			}),
 			name,

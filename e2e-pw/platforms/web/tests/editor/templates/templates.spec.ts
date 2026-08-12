@@ -16,6 +16,7 @@ editorTest.describe("Templates", () => {
 
 		await sharedPage.getByRole("menuitem", { name: "Templates" }).click();
 		await sharedPage.getByRole("button", { name: "New template" }).click();
+		await sleep(1000);
 		await sharedPage.getByText("Untitled").first().click();
 
 		await editorTest.step("fill template", async () => {
@@ -36,6 +37,10 @@ editorTest.describe("Templates", () => {
 	});
 
 	editorTest("select and fill template for article", async ({ editor, sharedPage, catalogPage }) => {
+		const item = sharedPage.locator(`[data-sidebar="menu-item"]`).first();
+		await expect(item).toBeVisible();
+		await item.hover();
+
 		await sharedPage.getByTestId("article-actions").click();
 		await sharedPage.getByRole("menuitem", { name: "Choose template" }).click();
 

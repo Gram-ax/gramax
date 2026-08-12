@@ -1,9 +1,14 @@
 import type { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import type { ResourceServiceType } from "@core-ui/ContextServices/ResourceService/ResourceService";
+import { getEditorStore } from "@core-ui/stores/EditorStore";
 import { resolveFileKind } from "@core-ui/utils/resolveFileKind";
+import {
+	type ClipboardComments,
+	collectClipboardComments,
+} from "@ext/markdown/elements/comment/edit/logic/clipboardComments";
 import createPlainText from "@ext/markdown/elements/copyArticles/createPlainText";
 import type { JSONContent } from "@tiptap/core";
-import { DOMSerializer, Fragment, type Node, type Schema } from "@tiptap/pm/model";
+import { type Attrs, DOMSerializer, Fragment, type Node, type Schema } from "@tiptap/pm/model";
 import type { EditorView } from "@tiptap/pm/view";
 
 interface CreatedFragment {
@@ -16,6 +21,8 @@ export interface GramaxClipboardData {
 	copyPath: string;
 	range: { from: number; to: number };
 	data: JSONContent;
+	/** Bodies of the comments the copied nodes point at — the marks themselves only carry an id. */
+	comments?: ClipboardComments;
 }
 
 export interface CopyOptions {
@@ -115,11 +122,13 @@ const createGramaxClipboardData = (
 	resourceService: ResourceServiceType,
 ): GramaxClipboardData => {
 	const { $from, $to } = view.state.selection;
+	const storage = getEditorStore().editor?.storage?.comment;
 
 	return {
 		copyPath: articleProps?.logicPath || "",
 		range: { from: $from.pos, to: $to.pos },
 		data: createNodesJSON(view, fragment, resourceService.getBuffer),
+		comments: collectClipboardComments(fragment, storage?.comments),
 	};
 };
 
@@ -135,15 +144,9 @@ const createTableFragment = (content: Fragment, schema: Schema<any, any>): Creat
 	};
 };
 
-const createCodeBlockFragment = (content: Fragment, schema: Schema): Fragment => {
-	return Fragment.fromArray(
-		content.firstChild.text.split("\n").reduce((acc: Node[], text) => {
-			if (text.length > 0) {
-				acc.push(schema.nodes.paragraph.create(null, schema.text(text, [])));
-			}
-			return acc;
-		}, []),
-	);
+export const createCodeBlockFragment = (content: Fragment, schema: Schema, attrs: Attrs): Fragment => {
+	const code = content.textBetween(0, content.size, "\n");
+	return Fragment.from(schema.nodes.code_block.create(attrs, code ? schema.text(code) : null));
 };
 
 const createFragment = (view: EditorView): CreatedFragment => {
@@ -159,7 +162,7 @@ const createFragment = (view: EditorView): CreatedFragment => {
 	const isSameNode = fromNode === $to.node();
 	if (isSameNode && fromNode.type.spec.code) {
 		return {
-			fragment: createCodeBlockFragment(slice.content, schema),
+			fragment: createCodeBlockFragment(slice.content, schema, fromNode.attrs),
 			plainText: text,
 		};
 	}

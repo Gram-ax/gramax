@@ -26,7 +26,7 @@ const sortModel = (model: CloneListItem[]) => {
 
 const SelectGiteaStorageDataFields = (props: SelectGiteaStorageDataFieldsProps) => {
 	const { source, form, mode } = props;
-	const authServiceUrl = PageDataContextService.value.conf.authServiceUrl;
+	const authServiceUrl = PageDataContextService.value.settings?.services?.auth?.endpoint;
 	const sourceApi = useMakeSourceApi(source, authServiceUrl) as GitSourceApi;
 	const gitPaginatedProjectList = useMemo(
 		() => new GitPaginatedProjectList(sourceApi, undefined, sortModel),
@@ -34,6 +34,7 @@ const SelectGiteaStorageDataFields = (props: SelectGiteaStorageDataFieldsProps) 
 	);
 	const [user, setUser] = useState<SourceUser>(null);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: prefill the user once on mount
 	useEffect(() => {
 		if (mode !== "init") return;
 		sourceApi.getUser().then((user) => {

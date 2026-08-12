@@ -1,84 +1,12 @@
-import {
-	type FilterAndSort,
-	type FilterState,
-	type SortRecord,
-	type TableDataExtended,
-	TableHeaderTypes,
+import type {
+	FilterAndSort,
+	FilterState,
+	SortRecord,
+	TableDataExtended,
 } from "@ext/markdown/elements/table/edit/model/tableTypes";
 import { getRowMoves } from "@ext/markdown/elements/table/render/logic/sortFilterUtilsRender";
 import type { Editor } from "@tiptap/core";
 import type { Node } from "@tiptap/pm/model";
-
-const getTableData = (node: Node): TableDataExtended | null => {
-	const header = node.attrs.header as TableHeaderTypes;
-	if (header !== TableHeaderTypes.ROW && header !== TableHeaderTypes.BOTH) return null;
-
-	if (node.childCount === 0) return null;
-
-	let numCols = 0;
-	const firstRow = node.child(0);
-	firstRow.forEach((cell) => {
-		numCols += cell.attrs.colspan || 1;
-	});
-
-	const numRows = node.childCount;
-	const rows: TableDataExtended["rows"] = Array.from({ length: numRows }, () => ({
-		cells: Array(numCols).fill(null),
-	}));
-
-	const colOccupiedUntil = new Array(numCols).fill(-1);
-
-	node.forEach((rowNode, _, currentRowIdx) => {
-		let visualCol = 0;
-		rows[currentRowIdx].initialOrder = rowNode.attrs?.initialOrder;
-
-		while (visualCol < numCols && currentRowIdx <= colOccupiedUntil[visualCol]) {
-			visualCol++;
-		}
-
-		rowNode.forEach((cellNode, _, realColStart) => {
-			while (visualCol < numCols && currentRowIdx <= colOccupiedUntil[visualCol]) {
-				visualCol++;
-			}
-			if (visualCol >= numCols) return;
-
-			const colspan = cellNode.attrs.colspan || 1;
-			const rowspan = cellNode.attrs.rowspan || 1;
-			const text = cellNode.textContent || "";
-
-			for (let r = 0; r < rowspan; r++) {
-				const targetRow = currentRowIdx + r;
-				if (targetRow >= numRows) break;
-
-				for (let c = 0; c < colspan; c++) {
-					const targetCol = visualCol + c;
-					if (targetCol >= numCols) continue;
-
-					const targetRowCells = rows[targetRow].cells;
-					targetRowCells[targetCol] = {
-						text,
-						rowspan,
-						colspan,
-						realRowStart: currentRowIdx,
-						visualColStart: visualCol,
-						realColStart,
-					};
-				}
-			}
-
-			for (let c = 0; c < colspan; c++) {
-				const targetCol = visualCol + c;
-				if (targetCol < numCols) {
-					colOccupiedUntil[targetCol] = currentRowIdx + rowspan - 1;
-				}
-			}
-
-			visualCol += colspan;
-		});
-	});
-
-	return { rows, numRows, numCols };
-};
 
 const getSaved = (node: Node): FilterAndSort => {
 	const firstRow = node.firstChild;
@@ -188,4 +116,4 @@ const restoreOrder = (editor: Editor, tablePos: number) => {
 	view.dispatch(tr);
 };
 
-export { type FilterAndSort, getSaved, getTableData, restoreOrder, sortRows };
+export { type FilterAndSort, getSaved, restoreOrder, sortRows };

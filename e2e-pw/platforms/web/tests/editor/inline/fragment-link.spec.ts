@@ -14,7 +14,7 @@ type FragmentFixture = {
 const fragmentTest = editorTest.extend<FragmentFixture>({
 	files: {
 		editor: {
-			"new-article.md": "",
+			"untitled.md": "",
 			"doc-root.yml": md`syntax: xml`,
 			".gramax": {
 				fragments: {

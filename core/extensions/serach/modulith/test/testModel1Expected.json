@@ -21,7 +21,6 @@
 	},
 	{
 		"type": "block",
-		"level": 2,
 		"items": [
 			{
 				"type": "text",
@@ -44,7 +43,6 @@
 	},
 	{
 		"type": "block",
-		"level": 2,
 		"items": [
 			{
 				"type": "text",

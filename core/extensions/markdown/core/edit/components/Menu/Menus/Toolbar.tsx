@@ -4,8 +4,9 @@ import { cn } from "@core-ui/utils/cn";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import TranscribeButton from "@ext/ai/components/Audio/Buttons/TranscribeMenuButton";
 import { useIsRevision } from "@ext/git/actions/Revisions/logic/hooks/useIsRevision";
+import { ToolbarDiffToggle } from "@ext/git/core/Diff/components/ToolbarDiffToggle";
 import { ToolbarMarkdownModeToggle } from "@ext/git/core/Diff/components/ToolbarMarkdownModeToggle";
-import { ToolbarModesToggle } from "@ext/git/core/Diff/components/ToolbarModesToggle";
+import { useIsDiffView } from "@ext/git/core/Diff/logic/hooks/useIsDiffView";
 import t from "@ext/localization/locale/translate";
 import AIGroup from "@ext/markdown/core/edit/components/Menu/Groups/AIGroup";
 import { useToolbarMode } from "@ext/markdown/core/edit/logic/Toolbar/useToolbarMode";
@@ -76,7 +77,7 @@ const MainToolbarButtons = (props: MainToolbarMenuProps) => {
 					<ToolbarSeparator />
 					<ToolbarMarkdownModeToggle />
 					<ToolbarToggleReview />
-					<ToolbarModesToggle />
+					<ToolbarDiffToggle />
 				</>
 			)}
 		</Toolbar>
@@ -124,12 +125,12 @@ const ToolbarMenu = (props: MainToolbarMenuProps) => {
 	const { editor, includeResources = true, isGramaxAiEnabled, isTemplate, fileName, isSmallEditor = false } = props;
 	const isMobile = useMediaQuery(cssMedia.JSnarrow);
 	const isDefaultMode = useToolbarMode();
-	const isReadOnly = PageDataContext.value.conf.isReadOnly;
+	const isReadOnly = PageDataContext?.value?.conf?.isReadOnly;
 	const isRevision = useIsRevision();
 	const [variant, setVariant] = useState<ToolbarButtonsVariant>("main");
 
 	useEffect(() => {
-		if (!editor || !isMobile) return;
+		if (!editor || !isMobile || isReadOnly) return;
 
 		const onSelectionUpdate = ({ editor }: { editor: Editor }) => {
 			const empty = editor.state.selection.empty && !getSelectedText(editor.state).length;
@@ -141,7 +142,7 @@ const ToolbarMenu = (props: MainToolbarMenuProps) => {
 			setVariant("main");
 			editor.off("selectionUpdate", onSelectionUpdate);
 		};
-	}, [editor, isMobile]);
+	}, [editor, isMobile, isReadOnly]);
 
 	const Component = variant === "main" ? MainToolbarButtons : InlineToolbarButtons;
 
@@ -161,11 +162,15 @@ const ToolbarMenu = (props: MainToolbarMenuProps) => {
 		</>
 	);
 
-	if (isReadOnly && isRevision)
+	const isDiffView = useIsDiffView();
+
+	if ((isReadOnly && !isDiffView) || isRevision)
 		return (
 			<Tooltip>
 				<TooltipTrigger asChild>
-					<div className="[&>div]:pointer-events-none">{Content}</div>
+					<div className={isDiffView || isRevision ? undefined : "[&>div]:pointer-events-none"}>
+						{Content}
+					</div>
 				</TooltipTrigger>
 				<TooltipContent>{t("editor.at-revision")}</TooltipContent>
 			</Tooltip>

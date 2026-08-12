@@ -1,22 +1,10 @@
-import CellComponent from "@ext/markdown/elements/table/edit/components/CellComponent";
-import TableCell from "@tiptap/extension-table-cell";
-import { ReactNodeViewRenderer } from "@tiptap/react";
+import { TableCell } from "@tiptap/extension-table";
 import { tableCell } from "../tableSchema";
+import { createTableCellNodeView } from "./customTableCellNodeView";
 
 const CustomTableCell = TableCell.extend({
 	addNodeView() {
-		return ReactNodeViewRenderer(CellComponent, {
-			as: "td",
-			attrs: ({ HTMLAttributes }) => {
-				const attrs = Object.entries(HTMLAttributes).filter(([, value]) => value);
-				const newAttrs = {};
-				attrs.forEach(([name, value]) => {
-					newAttrs[name] = value;
-				});
-				return newAttrs;
-			},
-			stopEvent: () => false,
-		});
+		return createTableCellNodeView();
 	},
 	parseHTML() {
 		return [
@@ -32,6 +20,13 @@ const CustomTableCell = TableCell.extend({
 	addAttributes() {
 		return {
 			...tableCell.attrs,
+			aggregation: {
+				default: null,
+				parseHTML: (element) => element.getAttribute("aggregation") || null,
+				renderHTML: (attributes) => ({
+					aggregation: attributes.aggregation ?? null,
+				}),
+			},
 			colwidth: {
 				default: null,
 				parseHTML: (element) => {

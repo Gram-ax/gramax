@@ -27,7 +27,7 @@ export function include(context: PrivateParserContext): Schema {
 			}
 
 			const header = article?.getTitle() ? `${gratings} ${article.getTitle()}\r\n\r\n` : "";
-			const content = await context.parser.parse(header + (article?.content ?? ""), context);
+			const content = await context.parser.parse(header + ((await article?.getContent()) ?? ""), context);
 
 			return new Tag("Include", { path: article.ref.path.value }, (content.renderTree as Tag).children);
 		},

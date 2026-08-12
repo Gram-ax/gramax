@@ -47,6 +47,7 @@ RUN apt-get update && \
 COPY --from=deps /app/apps/next/.next/standalone /app \
   /app/apps/next/.next/static /app/apps/next/.next/static/ \
   /app/apps/next/.next/server /app/apps/next/.next/server/
+COPY --from=deps /app/scripts/diagnostics/catalogs.mjs /app/scripts/diagnostics/catalogs.mjs
 
 WORKDIR /app/apps/next
 

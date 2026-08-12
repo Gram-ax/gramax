@@ -1,0 +1,27 @@
+{
+	"name": "gramax-web",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "vite",
+		"build-sdk": "node ../../scripts/plugins/build-sdk.mjs",
+		"build": "npm run build-sdk && vite build",
+		"build:post-js": "bun build crates/gramax-wasm/js/post.ts --minify --outfile=crates/gramax-wasm/js/post.js",
+		"build:wasm": "bun run build:post-js && cargo +nightly build --target wasm32-unknown-emscripten --release -Zbuild-std --manifest-path crates/gramax-wasm/Cargo.toml && bun run ./postbuild.ts",
+		"build:wasm-dev": "bun run build:post-js && cargo +nightly build --target wasm32-unknown-emscripten -Zbuild-std --manifest-path crates/gramax-wasm/Cargo.toml && bun run ./postbuild.ts",
+		"start": "spa static -d dist -f index.html",
+		"run": "npm run build && npm run start",
+		"analyze": "vite-bundle-visualizer",
+		"prune": "node-prune"
+	},
+	"devDependencies": {
+		"fake-indexeddb": "^6.0.0",
+		"vite": "^7.3.1",
+		"vite-bundle-visualizer": "^1.2.1",
+		"vite-plugin-mkcert": "^1.17.8"
+	},
+	"dependencies": {
+		"@biomejs/biome": "^2.4.16"
+	}
+}

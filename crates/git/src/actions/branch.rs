@@ -193,6 +193,7 @@ impl<C: ActualCreds> RemoteBranch for Repo<'_, C> {
 		push_opts.remote_callbacks(cbs);
 		push_opts.follow_redirects(RemoteRedirect::All);
 		push_opts.add_credentials_headers(&self.1);
+		push_opts.proxy_options(create_proxy_options());
 
 		let mut branch = self.0.find_branch(&format!("origin/{}", shorthand.as_ref()), BranchType::Remote)?;
 		let mut remote = self.ensure_remote_has_postfix(self.0.find_remote("origin")?)?;
@@ -235,6 +236,7 @@ impl<C: ActualCreds> RemoteBranch for Repo<'_, C> {
 
 		push_opts.follow_redirects(RemoteRedirect::All);
 		push_opts.remote_callbacks(cbs);
+		push_opts.proxy_options(create_proxy_options());
 
 		let refspec = format!("refs/heads/{}:refs/heads/{}", shorthand.as_ref(), shorthand.as_ref());
 		info!(target: TAG, "create remote branch {}; pushing refspec {} to origin", shorthand.as_ref(), refspec);

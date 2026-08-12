@@ -1,5 +1,5 @@
+import { Button } from "@ext/enterprise/components/admin/ui-kit/Button";
 import t from "@ext/localization/locale/translate";
-import { Button } from "@ui-kit/Button";
 import { Icon } from "@ui-kit/Icon";
 import { PageState, PageStateButtonGroup, PageStateDescription, PageStateTitle } from "@ui-kit/PageState";
 

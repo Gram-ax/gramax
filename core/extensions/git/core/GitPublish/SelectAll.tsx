@@ -1,4 +1,5 @@
 import Icon from "@components/Atoms/Icon";
+// biome-ignore lint/style/noRestrictedImports: will be removed with new sidebars
 import styled from "@emotion/styled";
 import { DiffCheckbox } from "@ext/git/core/Diff/components/Changes/DiffCheckbox";
 import t from "@ext/localization/locale/translate";
@@ -41,8 +42,6 @@ const Wrapper = styled.div`
 	}
 
 	:hover {
-		background-color: var(--color-merge-request-hover);
-
 		.action {
 			padding-left: var(--distance-i-span);
 			width: 1.5em;
@@ -58,6 +57,7 @@ const CheckboxWrapper = styled.div`
 const SelectAll = ({ isSelectedAll, onSelectAll, onDiscard, canDiscard, overview }: SelectAllProps) => {
 	return (
 		<Wrapper
+			className="hover:bg-secondary-bg-hover"
 			data-qa="qa-clickable"
 			onClick={(e) => {
 				onSelectAll(!isSelectedAll, true);

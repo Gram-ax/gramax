@@ -50,7 +50,7 @@ impl<R: Runtime> Updater<R> {
 		self.set_menu_enabled(menu_item.as_ref(), true)?;
 
 		match result {
-			Ok(()) => {
+			Ok(_) => {
 				if !self.app.updater().is_ready() {
 					self.show_dialog(MessageDialogKind::Info, t!("updates.you-have-actual-ver.title"), t!("updates.you-have-actual-ver.body"), MessageDialogButtons::Ok);
 					return Ok(());
@@ -60,7 +60,11 @@ impl<R: Runtime> Updater<R> {
 				if accepted {
 					if let Err(err) = self.app.updater().install() {
 						tracing::Span::current().set_status(Status::Error { description: Cow::Owned(err.to_string()) });
-						self.show_dialog(MessageDialogKind::Error, t!("updates.error-occured"), t!("etc.try-later"), MessageDialogButtons::Ok);
+						if matches!(err, crate::updater::error::UpdaterError::RunFromDmg) {
+							self.show_dialog(MessageDialogKind::Error, t!("updates.dmg-install-error.title"), t!("updates.dmg-install-error.body"), MessageDialogButtons::Ok);
+						} else {
+							self.show_dialog(MessageDialogKind::Error, t!("updates.error-occured"), t!("etc.try-later"), MessageDialogButtons::Ok);
+						}
 					}
 				}
 			}

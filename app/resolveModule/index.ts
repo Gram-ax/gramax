@@ -13,13 +13,15 @@ import type {
 import type { ResourceParseClient } from "@ext/serach/modulith/resourceParse/ResourceParseClient";
 import type { ModulithSearchClient } from "@ext/serach/modulith/search/ModulithSearchClient";
 import type { ImageDimensions } from "@ext/wordExport/options/WordTypes";
-import type useUrlObjectImage from "apps/browser/src/hooks/useUrlObjectImage";
-import type BrowserCookie from "apps/browser/src/logic/BrowserCookie";
 import type DocportalCookie from "apps/docportal/server/logic/DocportalCookie";
 import type NextCookie from "apps/next/logic/NextCookie";
 import type TauriCookie from "apps/tauri/src/cookie/TauriCookie";
-import type { httpFetch } from "../../apps/tauri/src/window/commands";
+import type useUrlObjectImage from "apps/web/src/hooks/useUrlObjectImage";
+import type WebCookie from "apps/web/src/logic/WebCookie";
+import type { httpFetch, updateCheck } from "../../apps/tauri/src/window/commands";
 import type Link from "../../core/components/Atoms/Link";
+
+export type { UpdateCheckResult } from "../../apps/tauri/src/window/commands";
 
 export interface DynamicModules {
 	Link: typeof Link;
@@ -31,6 +33,7 @@ export interface DynamicModules {
 	openInExplorer: (path: string) => void | Promise<void>;
 	openInWeb: (url: string) => void | Promise<void> | Window;
 	enterpriseLogin: (url: string, apiUrlCreator: ApiUrlCreator, router: Router) => Promise<void>;
+	gesCloudLogin: (url: string, apiUrlCreator: ApiUrlCreator, router: Router, gesCloudUrl: string) => Promise<void>;
 	openDirectory: () => string | Promise<string>;
 	openWindowWithUrl: (url: string) => void | Promise<void>;
 	openChildWindow: ({
@@ -47,10 +50,14 @@ export interface DynamicModules {
 	httpFetch: typeof httpFetch;
 	setBadge: (count: number | null) => void | Promise<void>;
 	getPdfjs: () => Promise<typeof import("pdfjs-dist")>;
+	updateCheck: typeof updateCheck;
+	updateInstallFromCache: () => Promise<void>;
+	/** Marks a found update as accepted: it installs as soon as it is downloaded. */
+	updateAccept: () => void;
 }
 
 export interface BackendDynamicModules {
-	Cookie: typeof BrowserCookie | typeof TauriCookie | typeof NextCookie | typeof DocportalCookie;
+	Cookie: typeof WebCookie | typeof TauriCookie | typeof NextCookie | typeof DocportalCookie;
 	initWasm: (corsProxy: string) => Promise<void>;
 	svgToPng: (svg: string, size: ImageDimensions, scale: number) => Promise<Buffer>;
 	getImageSizeFromImageData: (imageBuffer: Buffer, maxWidth?: number, maxHeight?: number) => Promise<ImageDimensions>;

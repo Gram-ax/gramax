@@ -1,5 +1,5 @@
+import { SettingsSection } from "@ext/enterprise/components/admin/ui-kit/SettingsSection";
 import t from "@ext/localization/locale/translate";
-import { Description } from "@ui-kit/Description";
 import { FileUploadCompact, type FileValue } from "@ui-kit/FileUpload";
 import { type Dispatch, type SetStateAction, useCallback, useMemo } from "react";
 import type { ExportTemplate, WorkspaceSettings } from "../types/WorkspaceComponent";
@@ -34,17 +34,14 @@ interface TemplateUploadProps extends WorkspaceTemplateUploadsProps {
 
 export function WorkspaceTemplateUploads(props: WorkspaceTemplateUploadsProps) {
 	return (
-		<div className="space-y-4">
-			<div>
-				<h2 className="text-xl font-medium">{t("enterprise.admin.workspace.templates.title")}</h2>
-			</div>
-			<Description>{t("enterprise.admin.workspace.templates.description")}</Description>
-
-			<div className="grid grid-cols-2 gap-2">
-				<WordTemplateUpload {...props} />
-				<PdfTemplateUpload {...props} />
-			</div>
-		</div>
+		<SettingsSection
+			contentClassName="grid grid-cols-2 gap-2"
+			description={t("enterprise.admin.workspace.templates.description")}
+			title={t("enterprise.admin.workspace.templates.title")}
+		>
+			<WordTemplateUpload {...props} />
+			<PdfTemplateUpload {...props} />
+		</SettingsSection>
 	);
 }
 

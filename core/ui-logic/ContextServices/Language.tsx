@@ -1,47 +1,50 @@
-import type { PageProps } from "@components/Pages/models/Pages";
-import type ContextService from "@core-ui/ContextServices/ContextService";
 import UiLanguage, { resolveLanguage } from "@ext/localization/core/model/Language";
-import type { ReactElement } from "react";
+import { useSetting, useSettingEffect, useUpdateSettings } from "@ext/settings/logic/hooks";
+import { useEffect } from "react";
 
-const DEFAULT_SELECTED_LANGUAGE =
-	typeof window === "undefined"
-		? resolveLanguage()
-		: resolveLanguage(UiLanguage[window.navigator?.language?.split("-")?.[0]]);
+const LEGACY_UI_LANG_KEY = "ui-lang";
 
-const LOCAL_STORAGE_UI_LANGUAGE_KEY = "ui-lang";
-
-class LanguageService implements ContextService {
-	private _current = DEFAULT_SELECTED_LANGUAGE;
-	private _callback: (language: UiLanguage) => void;
-
-	Init({ pageProps, children }: { pageProps?: PageProps; children: ReactElement }): ReactElement {
-		const language = pageProps?.context?.language?.ui;
-		if (language) this._current = language;
-		return children;
+const readLegacyUiLang = (): UiLanguage | undefined => {
+	if (typeof window === "undefined") return undefined;
+	try {
+		return UiLanguage[window.localStorage?.getItem(LEGACY_UI_LANG_KEY)];
+	} catch {
+		return undefined;
 	}
+};
 
-	setupLanguage() {
-		this._current =
-			UiLanguage[typeof window !== "undefined" && window.localStorage?.getItem(LOCAL_STORAGE_UI_LANGUAGE_KEY)];
-	}
+// Write-through is required: the cache is rebuilt from backend values on every
+// load, so a cache-only migration would not survive a reload. The legacy key is
+// removed only after a successful persist so failures retry on next launch.
+export const useMigrateLegacyUiLang = (): void => {
+	const update = useUpdateSettings();
+	// biome-ignore lint/correctness/useExhaustiveDependencies: one-time migration on mount
+	useEffect(() => {
+		const lang = readLegacyUiLang();
+		if (!lang) return;
+		update({ "general.language": lang })
+			.then(() => window.localStorage.removeItem(LEGACY_UI_LANG_KEY))
+			.catch(() => undefined);
+	}, []);
+};
 
-	setUiLanguage(language: UiLanguage, noemit?: boolean) {
-		if (this._current === language) return;
-		window.localStorage.setItem(LOCAL_STORAGE_UI_LANGUAGE_KEY, language);
-		this._current = language;
-		!noemit && this._callback?.(language);
-		refreshPage();
-	}
+let onChangeCallback: ((language: UiLanguage) => void) | undefined;
 
-	onLanguageChanged(callback: (language: UiLanguage) => void) {
-		this._callback = callback;
-	}
+export const setOnLanguageChangeCallback = (callback: (language: UiLanguage) => void) => {
+	onChangeCallback = callback;
+};
 
-	currentUi() {
-		return this._current ?? DEFAULT_SELECTED_LANGUAGE;
-	}
-}
+export const useUiLanguage = (): UiLanguage => {
+	const [lang] = useSetting("general.language");
+	return resolveLanguage(lang);
+};
 
-const languageService = new LanguageService();
-languageService.setupLanguage();
-export default languageService;
+export const useManageUiLanguage = (emit = false) => {
+	const [current, setUiLanguage] = useSetting("general.language");
+	useSettingEffect("general.language", (language, prev) => {
+		if (prev === language) return;
+		if (emit) onChangeCallback?.(language);
+	});
+
+	return [current, setUiLanguage] as const;
+};

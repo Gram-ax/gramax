@@ -17,6 +17,7 @@ import Drawio from "@ext/markdown/elements/drawio/edit/model/drawio";
 import { Dropcursor } from "@ext/markdown/elements/dropCursor";
 import Em from "@ext/markdown/elements/em/edit/em";
 import File from "@ext/markdown/elements/file/edit/model/file";
+import FileDropHandler from "@ext/markdown/elements/fileHandler";
 import ArticleSearch from "@ext/markdown/elements/find/edit/models/ArticleSearch";
 import { FloatExtension } from "@ext/markdown/elements/float/edit/model/extension";
 import Fragment from "@ext/markdown/elements/fragment/edit/model/fragment";
@@ -42,6 +43,7 @@ import BlockMd from "@ext/markdown/elements/md/model/blockMd";
 import InlineMdComponent from "@ext/markdown/elements/md/model/inlineMd";
 import ArrowsMove from "@ext/markdown/elements/moveNode/model/ArrowsMove";
 import NoteComponent from "@ext/markdown/elements/note/edit/model/note";
+import NoteTitle from "@ext/markdown/elements/note/edit/model/noteTitle";
 import OpenApi from "@ext/markdown/elements/openApi/edit/models/openApi";
 import Paragraph from "@ext/markdown/elements/paragraph/edit/model/paragraph";
 import PasteMarkdown from "@ext/markdown/elements/pasteMarkdown/pasteMarkdown";
@@ -58,11 +60,12 @@ import Typography from "@ext/markdown/elements/typography/typography";
 import UnsupportedComponent from "@ext/markdown/elements/unsupported/edit/model/unsupported";
 import VideoComponent from "@ext/markdown/elements/video/edit/model/video";
 import View from "@ext/markdown/elements/view/edit/models/view";
+import { EditorContextExtension } from "@ext/markdown/elementsUtils/editorContext/EditorContext";
 import { Suggestion } from "@ext/StyleGuide/extension/Suggestion";
 import { modifyEditorExtensions } from "@plugins/store";
 import type { Extensions } from "@tiptap/core";
-import History from "@tiptap/extension-history";
 import Text from "@tiptap/extension-text";
+import { UndoRedo } from "@tiptap/extensions";
 
 export interface GetExtensionsPropsOptions {
 	includeResources?: boolean;
@@ -81,6 +84,7 @@ const getExtensions = (options?: GetExtensionsPropsOptions): Extensions => {
 		BlockMd,
 		VideoComponent,
 		NoteComponent,
+		NoteTitle,
 		ArticleSearch,
 		UnsupportedComponent,
 		LinkComponent,
@@ -122,6 +126,7 @@ const getExtensions = (options?: GetExtensionsPropsOptions): Extensions => {
 
 // Base extensions for simple editor like comment editor
 export const getSimpleExtensions = (): Extensions => [
+	EditorContextExtension,
 	CustomOrderList,
 	CustomBulletList,
 	CustomTaskList,
@@ -136,7 +141,7 @@ export const getSimpleExtensions = (): Extensions => [
 	DisableMarksForInlineComponents,
 	HardBreak,
 	Em,
-	History,
+	UndoRedo,
 	Typography,
 	Color,
 	HorizontalRule,
@@ -151,6 +156,15 @@ export const getTemplateExtensions = (readOnly: boolean = true): Extensions => [
 ];
 
 // Extensions which used resource service
-export const getResourcesExtensions = (): Extensions => [Image, File, Icon, Diagrams, Drawio, OpenApi, InlineImage];
+export const getResourcesExtensions = (): Extensions => [
+	Image,
+	File,
+	FileDropHandler,
+	Icon,
+	Diagrams,
+	Drawio,
+	OpenApi,
+	InlineImage,
+];
 
 export default getExtensions;

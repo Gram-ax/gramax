@@ -16,8 +16,10 @@ const EditNotion = ({ onSubmit }: { onSubmit: (data: NotionSourceData) => void }
 	const { setPrimaryButton } = useSetFooterButton();
 	const {
 		domain,
-		conf: { authServiceUrl, basePath },
+		settings,
+		conf: { basePath },
 	} = PageDataContext.value;
+	const authServiceUrl = settings?.services?.auth?.endpoint;
 	const [data, setData] = useState<Query>(null);
 
 	const startAuth = () => {
@@ -32,6 +34,7 @@ const EditNotion = ({ onSubmit }: { onSubmit: (data: NotionSourceData) => void }
 		);
 	};
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: footer button re-syncs on data only
 	useLayoutEffect(() => {
 		const handleAddRepo = () => {
 			if (data) {

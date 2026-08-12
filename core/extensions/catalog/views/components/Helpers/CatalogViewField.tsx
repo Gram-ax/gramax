@@ -1,6 +1,7 @@
+// biome-ignore lint/style/noRestrictedImports: legacy styled component, migrate to Tailwind later
 import styled from "@emotion/styled";
 import { FormField } from "@ui-kit/Form";
-import type { ExtractComponentGeneric } from "core/ui-kit/lib/extractComponentGeneric";
+import type { ExtractComponentGeneric } from "../../../../../ui-kit/lib/extractComponentGeneric";
 
 type CatalogViewFieldProps = Omit<ExtractComponentGeneric<typeof FormField>, "children" | "labelClassName" | "layout">;
 

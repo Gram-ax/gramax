@@ -1,13 +1,14 @@
 /** biome-ignore-all lint/style/noRestrictedImports: it's ok */
 import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpdaterService";
 import TabWrapper from "@components/Layouts/LeftNavigationTabs/TabWrapper";
-import { useRouter } from "@core/Api/useRouter";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
 import { RequestStatus, useApi } from "@core-ui/hooks/useApi";
 import { useScrollPositionStore } from "@core-ui/stores/ScrollPositionStore";
 import styled from "@emotion/styled";
 import CommitMsg from "@ext/git/actions/Publish/components/CommitMsg";
+import { useDiffExtendedMode } from "@ext/git/core/Diff/components/store/DiffExtendedModeStore";
+import { countSelectedVisibleEntries } from "@ext/git/core/Diff/logic/utils/visibleDiffEntries";
 import type { DiffFlattenTreeAnyItem } from "@ext/git/core/GitDiffItemCreator/RevisionDiffPresenter";
 import { PublishChanges } from "@ext/git/core/GitPublish/PublishChanges";
 import { PublishHealthcheckCode, type PublishHealthcheckResult } from "@ext/git/core/GitPublish/PublishHealthcheck";
@@ -17,8 +18,9 @@ import usePublishDiffEntries from "@ext/git/core/GitPublish/usePublishDiffEntrie
 import usePublishSelection from "@ext/git/core/GitPublish/usePublishSelectedFiles";
 import t from "@ext/localization/locale/translate";
 import { Loader } from "@ui-kit/Loader";
-import { memo, useCallback, useEffect, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import DiffExtendedModeToggle from "../Diff/components/Changes/DiffExtendedModeToggle";
+import { useDiffToggle } from "../Diff/logic/hooks/useDiffToggle";
 
 export type PublishTabProps = {
 	show: boolean;
@@ -40,7 +42,6 @@ const PublishTab = memo(({ show = false, setShow }: PublishTabProps) => {
 	const hasDiscarded = useRef(false);
 
 	const apiUrlCreator = ApiUrlCreatorService.value;
-	const router = useRouter();
 
 	const {
 		call: checkPublishHealth,
@@ -59,6 +60,9 @@ const PublishTab = memo(({ show = false, setShow }: PublishTabProps) => {
 		diffTree,
 	});
 
+	const diffToggle = useDiffToggle();
+	const extendedMode = useDiffExtendedMode();
+
 	const clearAllPositions = useScrollPositionStore((s) => s.clearAll);
 
 	const restoreView = useCallback(() => {
@@ -76,7 +80,7 @@ const PublishTab = memo(({ show = false, setShow }: PublishTabProps) => {
 			}
 			hasDiscarded.current = false;
 		},
-		[setShow, restoreView, apiUrlCreator],
+		[setShow, restoreView],
 	);
 
 	const onPublished = useCallback(() => {
@@ -101,8 +105,8 @@ const PublishTab = memo(({ show = false, setShow }: PublishTabProps) => {
 	const open = useCallback(() => {
 		setShow(true);
 		hasBeenOpened.current = true;
-		if (router.query.mode !== "diff") router.pushPath(router.path, { mode: "diff", oldScope: "HEAD" });
-	}, [setShow, router]);
+		diffToggle();
+	}, [setShow, diffToggle]);
 
 	const closeIfDiscardedAll = useCallback(() => {
 		if (diffTree?.data.length === 0 && hasDiscarded.current) void close();
@@ -154,6 +158,13 @@ const PublishTab = memo(({ show = false, setShow }: PublishTabProps) => {
 		[isSelected],
 	);
 
+	// счётчик показывает столько же, сколько выбранных строк видно в списке: в упрощённом режиме
+	// ресурсы статьи спрятаны в её строке, в расширенном — показаны отдельно
+	const fileCount = useMemo(
+		() => countSelectedVisibleEntries(diffTree?.data, extendedMode, isFileSelected),
+		[diffTree, extendedMode, isFileSelected],
+	);
+
 	const healthcheckPending =
 		publishHealthStatus === RequestStatus.Init || publishHealthStatus === RequestStatus.Loading;
 	const healthcheckLoading = publishHealthStatus === RequestStatus.Loading;
@@ -176,7 +187,7 @@ const PublishTab = memo(({ show = false, setShow }: PublishTabProps) => {
 			ref={tabWrapperRef}
 			show={show}
 			title={t("git.publish.name")}
-			titleRightExtension={isLoading ? <Loader className="p-0" size="sm" /> : null}
+			titleRightExtension={isLoading ? <Loader className="p-0" data-qa="loader" size="sm" /> : null}
 		>
 			<>
 				<PublishChanges
@@ -200,7 +211,7 @@ const PublishTab = memo(({ show = false, setShow }: PublishTabProps) => {
 						commitMessageValue={message}
 						disableCommitInput={commitInputDisabled}
 						disablePublishButton={publishButtonDisabled}
-						fileCount={selectedFiles.size}
+						fileCount={fileCount}
 						isLoading={isPublishing}
 						onCommitMessageChange={(msg) => setMessage(msg)}
 						onPublishClick={() => void publish()}

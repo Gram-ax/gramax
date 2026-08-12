@@ -1,3 +1,4 @@
+import NavigationTabsService from "@components/Layouts/LeftNavigationTabs/NavigationTabsService";
 import TabWrapper from "@components/Layouts/LeftNavigationTabs/TabWrapper";
 import { RevisionsCompare } from "@ext/git/actions/Revisions/components/RevisionsTab/Compare/RevisionsCompare";
 import { RevisionCatalogFilters } from "@ext/git/actions/Revisions/components/RevisionsTab/Filters/RevisionCatalogFilters";
@@ -27,6 +28,7 @@ const RevisionsCatalogTab = memo((props: RevisionsCatalogTabProps) => {
 
 	const [tabHeight, setTabHeight] = useState<number>(0);
 	const [contentHeight, setContentHeight] = useState<number>(() => tabHeight);
+	const bottomTab = NavigationTabsService.value.bottomTab;
 
 	const {
 		revisions,
@@ -39,6 +41,7 @@ const RevisionsCatalogTab = memo((props: RevisionsCatalogTabProps) => {
 	} = useRevisionsCatalogTab({
 		show,
 		setShow,
+		navigationBottomTab: bottomTab,
 	});
 
 	const onSetContentHeight = useCallback((height: number) => {

@@ -1,4 +1,5 @@
 import type { CommandTree } from "@app/commands";
+import { getExecutingEnvironment } from "@app/resolveModule/env";
 import type { PageProps } from "@components/Pages/models/Pages";
 import Path from "@core/FileProvider/Path/Path";
 import getPageDataByPathname, { PageDataType } from "@core/RouterPath/logic/getPageDataByPathname";
@@ -41,7 +42,10 @@ const resolvePageData = async (
 	const workspace = wm.maybeCurrent();
 
 	const splittedPath = path.split("/").filter((x) => x);
-	if (!RouterPathProvider.isEditorPathname(splittedPath)) {
+
+	const env = getExecutingEnvironment();
+	const isReadOnlyPlatform = env === "next" || env === "static" || env === "cli";
+	if (isReadOnlyPlatform) {
 		if (!workspace) {
 			const { data, context } = await getHomePageData(commands, props);
 			return { page: "home" as const, data, context };

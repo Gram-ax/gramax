@@ -12,22 +12,38 @@ export default class WorkspaceCheckIsCatalogCloning implements EventHandlerColle
 	) {}
 
 	mount(): void {
-		if (!(getExecutingEnvironment() === "browser" || getExecutingEnvironment() === "tauri")) return;
+		if (!(getExecutingEnvironment() === "web" || getExecutingEnvironment() === "tauri")) return;
 
 		this._workspace.events.on("on-entries-read", ({ mutableEntries }) =>
-			this.tryReviveCloneProgress(mutableEntries.entries),
+			this.tryReviveCloneProgress(mutableEntries),
 		);
 	}
 
-	async tryReviveCloneProgress(entries: CatalogEntry[]) {
+	async tryReviveCloneProgress(mutableEntries: { entries: CatalogEntry[] }) {
 		const fs = this._workspace.getFileStructure();
-		const all = entries.map((e) => e.basePath);
 		const cancelTokens = await GitStorage.getAllCancelTokens(fs.fp.default(), fs.fp.default().rootPath);
 
-		this._rp.cleanupProgressCache(fs, all);
+		const revive = (entry: CatalogEntry) =>
+			this._rp.tryReviveCloneProgress(this._workspace, entry.basePath, entry.props, cancelTokens);
 
-		for (const entry of entries) {
-			await this._rp.tryReviveCloneProgress(this._workspace, entry.basePath, entry.props, cancelTokens);
+		// A clone waiting for a free slot has created nothing on disk, so the entry scan misses it entirely.
+		// Rebuild those entries from the saved clone list before anything looks at the scan result — without
+		// them the catalog silently vanishes from the workspace while its clone keeps running.
+		for (const path of this._rp.getSavedClonePaths(fs)) {
+			if (mutableEntries.entries.some((e) => e.basePath.compare(path))) continue;
+
+			const entry = await fs.getCatalogEntryByPath(path, false);
+			revive(entry);
+			// revive marks the entry as cloning only while the clone is still alive; anything else is a
+			// leftover from a previous run and must not resurrect a catalog that has no content.
+			if (entry.props.isCloning) mutableEntries.entries.push(entry);
 		}
+
+		this._rp.cleanupProgressCache(
+			fs,
+			mutableEntries.entries.map((e) => e.basePath),
+		);
+
+		for (const entry of mutableEntries.entries) revive(entry);
 	}
 }

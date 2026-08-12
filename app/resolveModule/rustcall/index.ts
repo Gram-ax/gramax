@@ -25,7 +25,7 @@ export const initRustCall = async (): Promise<void> => {
 		const env = getExecutingEnvironment();
 
 		switch (env) {
-			case "browser": {
+			case "web": {
 				const { callWasm } = await import("./wasm");
 				call = callWasm;
 				break;

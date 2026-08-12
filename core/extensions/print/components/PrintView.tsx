@@ -1,11 +1,15 @@
 import type { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
 import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
 import isSafari from "@core-ui/utils/isSafari";
+// biome-ignore lint/style/noRestrictedImports: PDF print layout still relies on dynamic scoped Emotion styles.
 import styled from "@emotion/styled";
+import UiLanguage, { ContentLanguage } from "@ext/localization/core/model/Language";
+import t from "@ext/localization/locale/translate";
 import NavigationEventsService from "@ext/navigation/NavigationEvents";
-import { useCallback, useEffect } from "react";
-import { PAGE_HEIGHT_PDF, PAGE_WIDTH_PDF } from "../const";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { NO_PRINT_KEY, PAGE_HEIGHT_PDF, PAGE_WIDTH_PDF } from "../const";
 import type { PdfExportProgress, PdfPrintParams } from "../types";
 import { usePaginationTask } from "./hooks/usePaginationTask";
 import PrintPages from "./PrintPages";
@@ -24,6 +28,18 @@ type PrintViewProps = {
 	onCancelRef?: (cancel?: () => void) => void;
 	exportSignal?: AbortSignal;
 	throttleUnits?: number;
+};
+
+const isPrintDialogDisabled = (): boolean => {
+	try {
+		const value = window.localStorage?.getItem(NO_PRINT_KEY)?.trim().toLowerCase();
+		// This switch is set by hand in a console, so "0" and "false" have to mean off. getItem answers with
+		// strings and every non-empty one is truthy, which would otherwise turn the switch on for whoever
+		// tried to turn it off.
+		return !!value && value !== "0" && value !== "false";
+	} catch {
+		return false;
+	}
 };
 
 const PrintView = ({
@@ -46,9 +62,34 @@ const PrintView = ({
 		return () => NavigationEventsService.off(token);
 	}, []);
 
+	const contentLanguage = PageDataContextService.value.language.content || catalogProps.language;
+	const defaultTocPageTitle =
+		contentLanguage === ContentLanguage.ru
+			? t("export.pdf.tocPageTitle", UiLanguage.ru)
+			: t("export.pdf.tocPageTitle", UiLanguage.en);
+	const printParams = useMemo(
+		() => ({
+			...params,
+			tocPageTitle: params.tocPageTitle ?? defaultTocPageTitle,
+		}),
+		[defaultTocPageTitle, params],
+	);
+
+	// Only ever true once pagination is over. Until then this component must lay out exactly as it does for a
+	// real print run -- the paginator measures what it sees, so dressing the view up early changes the page
+	// breaks it computes, and hiding the copy it measures leaves it with nothing to deal out at all.
+	const [showDebugPreview, setShowDebugPreview] = useState(false);
+
 	const handleDone = useCallback(async () => {
 		try {
 			onProgress?.({ stage: "printing", ratio: 1, cliMessage: "done" });
+			// The dev switch stops here: no browser dialog, and since onComplete is what tears the view down,
+			// the paginated pages stay on screen to be looked at. Closing is the button below. Read at call
+			// time, so flipping the switch takes effect on the next export without a reload.
+			if (isPrintDialogDisabled()) {
+				setShowDebugPreview(true);
+				return;
+			}
 			await new Promise<void>((resolve) => setTimeout(resolve, 50));
 			window.print();
 			onComplete?.();
@@ -58,9 +99,18 @@ const PrintView = ({
 		}
 	}, [onError, onComplete, onProgress]);
 
+	useEffect(() => {
+		if (!showDebugPreview) return;
+		const onKeyDown = (event: KeyboardEvent) => {
+			if (event.key === "Escape") ArticleViewService.setDefaultBottomView();
+		};
+		window.addEventListener("keydown", onKeyDown);
+		return () => window.removeEventListener("keydown", onKeyDown);
+	}, [showDebugPreview]);
+
 	const { start, cancel } = usePaginationTask({
 		apiUrlCreator,
-		params,
+		params: printParams,
 		onProgress,
 		onDone: handleDone,
 		onError,
@@ -77,16 +127,27 @@ const PrintView = ({
 	}, [cancel, onCancelRef]);
 
 	return (
-		<div className={`article-body ${className}`}>
+		<div className={`article-body ${className}${showDebugPreview ? " print-debug-preview" : ""}`}>
+			{showDebugPreview && (
+				<button
+					aria-label={t("close")}
+					className="print-debug-close"
+					onClick={() => ArticleViewService.setDefaultBottomView()}
+					type="button"
+				>
+					×
+				</button>
+			)}
 			<PrintPages
 				apiUrlCreator={apiUrlCreator}
 				catalogProps={catalogProps}
+				exportSignal={exportSignal}
 				isCategory={isCategory}
 				itemPath={itemPath}
 				onCancelPagination={cancel}
 				onProgress={onProgress}
 				onStartPagination={start}
-				params={params}
+				params={printParams}
 			/>
 		</div>
 	);
@@ -102,7 +163,12 @@ export default styled(PrintView)`
 		min-width: ${PAGE_WIDTH_PDF}px !important;
 	}
 
-	.page {
+	/* Scoped to direct children on purpose. A page box is always one: PrintPages renders .render-body > .page
+	   for measuring, and the paginator appends .page to .print-body. Written as a bare .page this also caught
+	   any .page inside the article content -- @gramax/openapi-viewer names its own document container
+	   <main class="page">, and it was being forced to 900x1350 with a page's padding, so an OpenAPI block
+	   reserved a full sheet of empty space no matter how short it was, and the export ended on a blank page. */
+	& :is(.render-body, .print-body) > .page {
 		margin: 0;
 		padding: 0;
 		overflow: hidden;
@@ -144,6 +210,15 @@ export default styled(PrintView)`
 		font-weight: inherit;
 		color: var(--color-article-text);
 	}
+
+	${(p) =>
+		p.catalogProps.resolvedView
+			? `
+				[data-component="tabs"]:has(> .tabs > .tab:only-child) > .tabs > .tab > .case {
+					display: none !important;
+				}
+			`
+			: ""}
 
 	.toc-page {
 		flex: 0 0 auto;
@@ -226,11 +301,64 @@ export default styled(PrintView)`
 		}
 	}
 
+	/* Under NO_PRINT the paginated pages stay on screen instead of going to the printer -- which means
+	   everything the print stylesheet would have done has to be done here, because @media print never runs.
+
+	   Fixed positioning does all of it at once. In the flow this element is a flex item of the article
+	   column, and the article above has already claimed the full height: the box collapses to zero and its
+	   own overflow clips all 1350px of every page out of sight. That is the "nothing happens" a reader
+	   reports -- and it is invisible to a query, because the pages inside still report honest geometry.
+	   Taking the element out of the flow also lets it paint over the two things printing removes rather
+	   than reflows: the export dialog's full-screen overlay, which paper drops via its print:hidden, and
+	   the article itself. Covering the viewport opaquely settles all three.
+
+	   No backticks in this comment: it lives inside a template literal, and one would end it. */
+	&.print-debug-preview {
+		position: fixed;
+		inset: 0;
+		/* Above the dialog overlay's z-50; the close button sits above this in turn. */
+		z-index: 60;
+		overflow: auto;
+		background: var(--color-article-bg);
+
+		.render-body {
+			display: none;
+		}
+
+		.print-debug-close {
+			position: fixed;
+			top: 1rem;
+			right: 1rem;
+			z-index: 100;
+			width: 2rem;
+			height: 2rem;
+			font-size: 1.25rem;
+			line-height: 1;
+			cursor: pointer;
+			color: var(--color-primary-general);
+			background: var(--color-article-bg);
+			border: 1px solid var(--color-line);
+			border-radius: var(--radius-large);
+		}
+	}
+
 	@media print {
 		print-color-adjust: exact;
 		visibility: visible;
 		height: auto !important;
 		overflow: visible !important;
+
+		/* The debug preview is scaffolding for the screen. On paper it must leave no trace, so that pressing
+		   Cmd+P on it -- or emulating print media in a test -- shows the real output and not the scaffolding. */
+		&.print-debug-preview {
+			position: static;
+			background: none;
+			z-index: auto;
+
+			.print-debug-close {
+				display: none;
+			}
+		}
 
 		* {
 			break-before: unset !important;
@@ -241,7 +369,7 @@ export default styled(PrintView)`
 			padding: 0;
 		}
 
-		.page {
+		& :is(.render-body, .print-body) > .page {
 			border: none;
 
 			.page-bottom {

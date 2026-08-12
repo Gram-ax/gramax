@@ -1,7 +1,7 @@
 import { getExecutingEnvironment } from "@app/resolveModule/env";
 import resolveModule from "@app/resolveModule/frontend";
 import type Path from "@core/FileProvider/Path/Path";
-import { isLikelyLfsPointer } from "@core/GitLfs/utils";
+import { isLikelyLfsPointer } from "@core/GitLfs/logic/isLikelyLfsPointer";
 import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import Method from "@core-ui/ApiServices/Types/Method";
@@ -46,7 +46,7 @@ export async function fetchImage(src: string): Promise<ResourceFetchResult> {
 export async function fetchInTauri(src: string): Promise<ResourceFetchResult> {
 	try {
 		const res = await resolveModule("httpFetch")({ url: src });
-		if (!res?.body || res.body.type !== "binary") {
+		if (res?.body?.type !== "binary") {
 			return { error: new ResourceNotFoundError(src) };
 		}
 		return { buffer: Buffer.from(res.body.data) };

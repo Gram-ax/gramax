@@ -1,4 +1,6 @@
 import resolveModule from "@app/resolveModule/frontend";
+import Url from "@core-ui/ApiServices/Types/Url";
+import { parseLinkHref } from "@core-ui/utils/parseLinkhref";
 import type { BaseLink } from "@ext/navigation/NavigationLinks";
 import { forwardRef, type HTMLAttributes, type ReactNode, type RefObject } from "react";
 
@@ -6,25 +8,16 @@ interface LinkProps extends HTMLAttributes<HTMLAnchorElement> {
 	href: BaseLink;
 	children: ReactNode;
 	dataQa?: string;
-	ensureLeadingSlash?: boolean;
 }
 
 const Link = forwardRef((props: LinkProps, ref: RefObject<HTMLAnchorElement>) => {
 	const ExternalLink = resolveModule("Link");
 
-	const { ensureLeadingSlash = true, ...rest } = props;
-	const pathname = props.href.pathname;
 	const newProps = {
-		...rest,
+		...props,
 		href: {
 			...props.href,
-			pathname:
-				ensureLeadingSlash &&
-				!pathname.startsWith("/") &&
-				!pathname.startsWith("#") &&
-				!pathname.startsWith("?")
-					? `/${pathname}`
-					: pathname,
+			pathname: parseLinkHref(Url.from(props.href)),
 		},
 	};
 

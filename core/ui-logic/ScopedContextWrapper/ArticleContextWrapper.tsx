@@ -1,5 +1,6 @@
 import ApiUrlCreator from "@core-ui/ContextServices/ApiUrlCreator";
 import ResourceService from "@core-ui/ContextServices/ResourceService/ResourceService";
+import ViewportIntersectionService from "@core-ui/ContextServices/ViewportIntersection";
 import useGetArticleContextData from "@core-ui/ScopedContextWrapper/useGetArticleContextData";
 import { ArticlePropsStoreProvider } from "@core-ui/stores/ArticlePropsStore/ArticlePropsStore.provider";
 import {
@@ -34,7 +35,9 @@ const ArticleContextWrapper = (props: ArticleContextWrapperProps) => {
 		<ApiUrlCreator.Provider value={apiUrlCreator}>
 			<ArticlePropsStoreProvider data={articleProps}>
 				<CatalogStoreProvider data={catalogProps}>
-					<ResourceService.Provider>{children}</ResourceService.Provider>
+					<ViewportIntersectionService.Provider>
+						<ResourceService.Provider>{children}</ResourceService.Provider>
+					</ViewportIntersectionService.Provider>
 				</CatalogStoreProvider>
 			</ArticlePropsStoreProvider>
 		</ApiUrlCreator.Provider>

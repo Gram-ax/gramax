@@ -9,7 +9,9 @@ import type { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsM
 import type { RenderableTreeNodes } from "@ext/markdown/core/render/logic/Markdoc";
 import type { ItemLink } from "@ext/navigation/NavigationLinks";
 
-export type ArticlePageMode = "edit" | "markdown" | "read" | "diff";
+export type ArticlePageMode = "edit" | "markdown" | "read";
+
+export type ArticleDiffData = { sideBarData: SideBarData; scope: TreeReadScope; oldScope: TreeReadScope };
 
 type BaseArticlePageData = {
 	articleProps: ClientArticleProps;
@@ -17,22 +19,13 @@ type BaseArticlePageData = {
 	itemLinks: ItemLink[];
 	rootRef?: ClientItemRef;
 	mode: ArticlePageMode;
+	diff?: ArticleDiffData;
 };
 
-type BaseArticlePageOptions = {
+type DiffArticlePageOptions = { diff?: true; scope?: string; oldScope?: string };
+
+type BaseArticlePageOptions = DiffArticlePageOptions & {
 	mode: ArticlePageMode;
-};
-
-export type DiffArticlePageData = BaseArticlePageData & {
-	sideBarData: SideBarData;
-	scope: TreeReadScope;
-	oldScope: TreeReadScope;
-	mode: "diff";
-};
-type DiffArticlePageOptions = BaseArticlePageOptions & {
-	mode: "diff";
-	scope?: string;
-	oldScope?: string;
 };
 
 export type EditArticlePageData = BaseArticlePageData & {
@@ -60,16 +53,8 @@ type ReadonlyArticlePageOptions = BaseArticlePageOptions & {
 	mode: "read";
 };
 
-export type ArticlePageOptions =
-	| EditArticlePageOptions
-	| ReadonlyArticlePageOptions
-	| DiffArticlePageOptions
-	| MarkdownArticlePageOptions;
+export type ArticlePageOptions = EditArticlePageOptions | ReadonlyArticlePageOptions | MarkdownArticlePageOptions;
 
-export type ArticlePageData =
-	| EditArticlePageData
-	| ReadonlyArticlePageData
-	| DiffArticlePageData
-	| MarkdownArticlePageData;
+export type ArticlePageData = EditArticlePageData | ReadonlyArticlePageData | MarkdownArticlePageData;
 
 export type ArticlePageDataWithContent = EditArticlePageData | ReadonlyArticlePageData | MarkdownArticlePageData;

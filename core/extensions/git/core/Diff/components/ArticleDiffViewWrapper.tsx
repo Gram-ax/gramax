@@ -1,10 +1,15 @@
-import type { ArticleComponentProps } from "@components/Article/Article";
 import Path from "@core/FileProvider/Path/Path";
+import type { ArticleDiffData } from "@core/SitePresenter/types/ArticlePage";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
 import debounceFunction from "@core-ui/debounceFunction";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
+import BranchUpdaterService, {
+	type OnBranchUpdateListener,
+} from "@ext/git/actions/Branch/BranchUpdaterService/logic/BranchUpdaterService";
+import OnBranchUpdateCaller from "@ext/git/actions/Branch/BranchUpdaterService/model/OnBranchUpdateCaller";
+import { PublishEmitter } from "@ext/git/actions/Publish/logic/PublishEmitter";
 import { useIsRevision } from "@ext/git/actions/Revisions/logic/hooks/useIsRevision";
 import ArticleDiffModeView from "@ext/git/core/Diff/components/ArticleDiffModeView";
 import LoadingWithDiffBottomBar from "@ext/git/core/Diff/components/LoadingWithDiffBottomBar";
@@ -12,30 +17,38 @@ import {
 	setDiffEnabled,
 	setDoublePanelLocked,
 	setSideBarData,
+	useSideBarData,
 } from "@ext/git/core/Diff/components/store/DiffViewModeStore";
 import useFetchDiffData from "@ext/git/core/Diff/logic/hooks/useFetchDiffData";
 import { useResetArticleView } from "@ext/git/core/Diff/logic/hooks/useResetArticleView";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import type { JSONContent } from "@tiptap/core";
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 const DEBOUNCE_TIME = 200;
 const DEBOUNCE_SYMBOL = Symbol();
 
-const ArticleDiffViewWrapper = ({ data, isReadOnly: propsIsReadOnly }: ArticleComponentProps<"diff">) => {
+interface ArticleDiffViewWrapperProps {
+	data: ArticleDiffData;
+	isReadOnly: boolean;
+}
+
+const ArticleDiffViewWrapper = ({ data, isReadOnly: propsIsReadOnly }: ArticleDiffViewWrapperProps) => {
 	const { sideBarData, scope, oldScope } = data;
 
 	const catalogName = useCatalogPropsStore((state) => state.data?.name);
 	const isRevision = useIsRevision();
-	const apiUrlCreator = ApiUrlCreatorService.value;
 
-	const isAdded = sideBarData.data.status === FileStatus.new;
-	const isDeleted = sideBarData.data.status === FileStatus.delete;
+	const apiUrlCreator = ApiUrlCreatorService.value;
+	const sideBarDataRef = useRef(sideBarData);
+
+	const isAdded = sideBarDataRef.current.data.status === FileStatus.new;
+	const isDeleted = sideBarDataRef.current.data.status === FileStatus.delete;
 	const isAddedOrDeleted = isAdded || isDeleted;
 	const isReadOnly = propsIsReadOnly || isDeleted || isRevision;
 
-	const newPath = sideBarData.data.filePath.path;
-	const oldPath = sideBarData.data.filePath.oldPath;
+	const newPath = sideBarDataRef.current.data.filePath.path;
+	const oldPath = sideBarDataRef.current.data.filePath.oldPath;
 	const fullArticlePath = Path.join(catalogName, newPath);
 
 	const content = useRef<string>(null);
@@ -119,12 +132,55 @@ const ArticleDiffViewWrapper = ({ data, isReadOnly: propsIsReadOnly }: ArticleCo
 		};
 	}, []);
 
+	useEffect(() => {
+		const onPublishFinish = async () => {
+			const sidebarData = sideBarDataRef.current;
+			const newSideBarData = {
+				...sidebarData,
+				data: {
+					...sidebarData.data,
+					status: FileStatus.current,
+					isChanged: false,
+					added: 0,
+					deleted: 0,
+				},
+			};
+			setSideBarData(newSideBarData);
+			sideBarDataRef.current = newSideBarData;
+		};
+
+		const onDiscard: OnBranchUpdateListener = (_, caller) => {
+			if (caller !== OnBranchUpdateCaller.DiscardNoReset && caller !== OnBranchUpdateCaller.MergeRequest) return;
+			const sidebarData = sideBarDataRef.current;
+			const newSideBarData = {
+				...sidebarData,
+				data: {
+					...sidebarData.data,
+					status: FileStatus.current,
+					isChanged: false,
+					added: 0,
+					deleted: 0,
+				},
+			};
+			setSideBarData(newSideBarData);
+			sideBarDataRef.current = newSideBarData;
+		};
+
+		const finishToken = PublishEmitter.events.on("finish", onPublishFinish);
+		BranchUpdaterService.addListener(onDiscard);
+		return () => {
+			PublishEmitter.events.off(finishToken);
+			BranchUpdaterService.removeListener(onDiscard);
+		};
+	}, []);
+
+	const changeType = useSideBarData()?.data?.status;
 	if (isLoading) return <LoadingWithDiffBottomBar />;
 
 	return (
 		<ArticleDiffModeView
 			articlePath={newPath}
-			changeType={sideBarData.data.status}
+			changeType={changeType}
 			key={newPath}
 			newContent={content.current}
 			newEditTree={editTree.current}
@@ -149,8 +205,8 @@ const ArticleDiffViewWrapper = ({ data, isReadOnly: propsIsReadOnly }: ArticleCo
 				if (isReadOnly) return;
 				void tryGetNewData();
 			}}
-			onWysiwygUpdate={() => {
-				content.current = null;
+			onWysiwygUpdate={({ editor }) => {
+				content.current = editor.state.doc.content.toJSON();
 			}}
 			readOnly={isReadOnly}
 		/>

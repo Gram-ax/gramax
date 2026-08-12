@@ -186,14 +186,15 @@ export class CommentsSearchCache {
 		const article = this._catalog.findItemByItemPath<Article>(path);
 
 		if (!article) return null;
-		if (!article.content) return 0;
+		const articleContent = await article.getContent();
+		if (!articleContent) return 0;
 		const commentFileExist = await this._fp.exists(this._commentProvider.getFilePath(article.ref.path));
 
 		if (!commentFileExist) return 0;
 		const data = commentContent || (await this._fp.read(this._commentProvider.getFilePath(article.ref.path)));
 
 		const hasher = XxHash.xxhash.create32(0);
-		hasher.update(article.content);
+		hasher.update(articleContent);
 		hasher.update(data);
 		return hasher.digest();
 	}
@@ -205,6 +206,15 @@ export class CommentsSearchCache {
 
 	private _clearArticle(articlePath: string) {
 		this._searchCache.delete(articlePath);
+	}
+
+	private async _onItemPathChanged(from: Path, to: Path) {
+		if (from.compare(to)) return;
+		await this._loadCaches();
+		if (!this._searchCache.has(from.value)) return;
+
+		this._clearArticle(from.value);
+		await this._saveCaches();
 	}
 
 	private async _parseArticleForSearch(article: Article) {
@@ -225,7 +235,7 @@ export class CommentsSearchCache {
 			if (allComments[id]) comments[id] = allComments[id].stringifiedData as CommentBlock<string>;
 		}
 
-		await this.updateArticle(articlePath, comments, article.content);
+		await this.updateArticle(articlePath, comments, await article.getContent());
 	}
 
 	private _initArticleEvents(article: Article) {
@@ -251,6 +261,11 @@ export class CommentsSearchCache {
 			this._clearArticle(ref.path.value);
 			await this._saveCaches();
 		});
+
+		this._catalog.events.on("item-moved", ({ from, to }) => this._onItemPathChanged(from.path, to.path));
+		this._catalog.events.on("item-props-updated", ({ ref, item }) =>
+			this._onItemPathChanged(ref.path, item.ref.path),
+		);
 
 		let checkoutToken = null;
 		let syncToken = null;

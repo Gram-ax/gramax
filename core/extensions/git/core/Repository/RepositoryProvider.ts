@@ -16,6 +16,7 @@ import BrokenRepository from "@ext/git/core/Repository/BrokenRepository";
 import NullRepository from "@ext/git/core/Repository/NullRepository";
 import type Repository from "@ext/git/core/Repository/Repository";
 import WorkdirRepository from "@ext/git/core/Repository/WorkdirRepository";
+import { Level, trace } from "@ext/loggers/opentelemetry";
 import type UserInfo from "@ext/security/logic/User/UserInfo";
 import isGitSourceType from "@ext/storage/logic/SourceDataProvider/logic/isGitSourceType";
 import type { ProxiedSourceDataCtx } from "@ext/storage/logic/SourceDataProvider/logic/SourceDataCtx";
@@ -27,8 +28,10 @@ import type StorageData from "@ext/storage/models/StorageData";
 import type { Workspace } from "@ext/workspace/Workspace";
 import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 import assert from "assert";
+import type { Catalog } from "../../../../logic/FileStructue/Catalog/Catalog";
 
-export type RepositoryProviderEvents = Event<"connect-repository", { repo: Repository }>;
+export type RepositoryProviderEvents = Event<"connect-repository", { repo: Repository }> &
+	Event<"before-connect-repository", { catalog: Catalog }>;
 
 export default class RepositoryProvider {
 	private _sdp: SourceDataProvider;
@@ -39,6 +42,7 @@ export default class RepositoryProvider {
 		this._sp = new StorageProvider();
 	}
 
+	@trace({ level: Level.Important, name: "RepositoryProvider.resetRepo" })
 	static async resetRepo() {
 		return await resetRepo();
 	}
@@ -55,6 +59,7 @@ export default class RepositoryProvider {
 		return this._sdp.withContext(ctx).getSourceDatas(workspaceId);
 	}
 
+	@trace({ level: Level.Important })
 	removeSource(ctx: Context, storageName: string) {
 		this._sdp.withContext(ctx).removeSource(storageName);
 	}
@@ -76,10 +81,12 @@ export default class RepositoryProvider {
 		return { mail: data.userEmail, name: data.userName, id: data.userEmail };
 	}
 
+	@trace({ level: Level.Important, omitArgs: true })
 	setSourceData(ctx: Context, data: SourceData, workspaceId?: WorkspacePath): string {
 		return this._sdp.withContext(ctx).updateSource(data, workspaceId);
 	}
 
+	@trace({ level: Level.Important })
 	async getRepositoryByPath(path: Path, fp: FileProvider, error?: Error): Promise<Repository> {
 		const gvc = new GitVersionControl(path, fp);
 		let storage: Storage;
@@ -100,18 +107,25 @@ export default class RepositoryProvider {
 		return NullRepository.instance;
 	}
 
+	@trace({ level: Level.Important })
 	async update(repo: Repository, fp: FileProvider, newPath: Path): Promise<void> {
 		const gvc = new GitVersionControl(newPath, fp);
 		const storage = await this._sp.getStorageByPath(newPath, fp, this._config);
 		repo.update(newPath, gvc, storage, fp);
 	}
 
-	async initNew(path: Path, fp: FileProvider, data: StorageData): Promise<Repository> {
-		const gvc = await GitVersionControl.init(fp, path, data.source);
-		const storage = await this._sp.initStorage(fp, path, data, this._config);
-		const repo = await this._makeRepository(path, fp, gvc, storage);
+	@trace({ level: Level.Important, omitArgs: true })
+	async initNew(catalog: Catalog, fp: FileProvider, data: StorageData): Promise<Repository> {
+		await this._events.emit("before-connect-repository", { catalog });
+		const gvc = await GitVersionControl.init(fp, catalog.basePath, data.source);
+		const storage = await this._sp.initStorage(fp, catalog.basePath, data, this._config);
+		const repo = await this._makeRepository(catalog.basePath, fp, gvc, storage);
 		await this._events.emit("connect-repository", { repo });
 		return repo;
+	}
+
+	getSavedClonePaths(fs: FileStructure): Path[] {
+		return this._sp.getSavedClonePaths(fs);
 	}
 
 	cleanupProgressCache(fs: FileStructure, entries: Path[]) {
@@ -139,6 +153,7 @@ export default class RepositoryProvider {
 		return this._sp.tryReviveCloneProgress(workspace, path, initProps, cancelTokens);
 	}
 
+	@trace({ level: Level.Important, omitArgs: true })
 	async clone(
 		fs: FileStructure,
 		path: Path,
@@ -151,6 +166,7 @@ export default class RepositoryProvider {
 		return await this._sp.clone(fs, { out: path, data, isBare, branch, skipLfsPull, onFinish: onCloneFinish });
 	}
 
+	@trace({ level: Level.Important, omitArgs: true })
 	async recover(repo: BrokenRepository, data: StorageData, onFinish?: OnCloneFinish) {
 		assert(data, "StorageData is required");
 		assert(
@@ -161,6 +177,7 @@ export default class RepositoryProvider {
 		return await this._sp.recover(repo, data, onFinish);
 	}
 
+	@trace({ level: Level.Important })
 	async cancelClone(fs: FileStructure, path: Path) {
 		return this._sp.cancelClone(fs, path);
 	}

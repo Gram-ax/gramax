@@ -1,7 +1,7 @@
 import inputRuleHandler from "@ext/markdown/elements/list/edit/logic/inputRuleHandler";
 import toggleListPrepare from "@ext/markdown/elements/list/edit/logic/toggleListPrepare";
 import { wrappingInputRule } from "@tiptap/core";
-import BulletList from "@tiptap/extension-bullet-list";
+import { BulletList } from "@tiptap/extension-list";
 
 const TextStyleName = "textStyle";
 const inputRegex = /^\s*([-*])\s$/;

@@ -26,7 +26,7 @@ const ShareModal = (props: ShareProps) => {
 	const copyBlockRef = useRef<HTMLDivElement>(null);
 
 	const router = useRouter();
-	const { isBrowser } = usePlatform();
+	const { isWeb } = usePlatform();
 
 	const { refname: branch } = useMemo(() => {
 		const newPath = path || router.path;
@@ -47,7 +47,7 @@ const ShareModal = (props: ShareProps) => {
 			<DialogContent>
 				<FormHeader description={description} icon="external-link" title={legend} />
 				<DialogBody>
-					<div className="article">
+					<div className="article !bg-transparent">
 						<p>
 							{t("share.copy")}
 							{branch && <FormattedBranch name={branch} />}
@@ -55,7 +55,7 @@ const ShareModal = (props: ShareProps) => {
 						<div ref={copyBlockRef}>
 							<CodeBlock>{shareUrl}</CodeBlock>
 						</div>
-						{isBrowser && <p>{t("share.hint")}</p>}
+						{isWeb && <p>{t("share.hint")}</p>}
 						<p
 							dangerouslySetInnerHTML={{
 								// biome-ignore lint/style/useNamingConvention: expected

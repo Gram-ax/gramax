@@ -68,6 +68,10 @@ const COMMANDS: &[&str] = &[
 	"lfs_prune",
 	"healthcheck",
 	"scan_workspace",
+	"scan_catalog",
+	"watch_workspace",
+	"unwatch_workspace",
+	"has_merge_conflicts"
 ];
 
 fn main() {

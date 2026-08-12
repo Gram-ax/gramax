@@ -10,18 +10,22 @@ import {
 	type ReactElement,
 	type ReactNode,
 	useCallback,
-	useEffect,
+	useLayoutEffect,
 	useRef,
 	useState,
 } from "react";
 import { tv } from "tailwind-variants";
 
+type Scale = number | string;
+
 interface ArticleComponentResizerProps extends Omit<HTMLAttributes<HTMLDivElement>, "onChange"> {
 	selected?: boolean;
-	scale?: number | string;
+	scale?: Scale;
+	defaultScale?: Scale;
 	children?: ReactNode;
 	disabled?: boolean;
 	onChange?: (resize: string) => void;
+	isPrint?: boolean;
 }
 
 const styles = tv({
@@ -40,7 +44,7 @@ const styles = tv({
 });
 
 export const ArticleComponentResizer = (props: ArticleComponentResizerProps): ReactElement => {
-	const { className, scale, selected = false, onChange, children, disabled, ...rest } = props;
+	const { className, scale, selected = false, onChange, children, disabled, defaultScale, isPrint, ...rest } = props;
 	const [isFullArticle, setIsFullArticle] = useState(false);
 	const isReadOnly = PageDataContextService.value.conf.isReadOnly;
 
@@ -61,11 +65,18 @@ export const ArticleComponentResizer = (props: ArticleComponentResizerProps): Re
 		return !!container;
 	}, []);
 
+	const isNested = useCallback(() => {
+		const el = containerRef.current;
+		const component = el.closest("[data-component]");
+		// Check is nested in other components like table cells, list items, notes and others
+		return !!component?.parentElement?.closest("[data-component], td, th") || !!el.closest("td, th");
+	}, []);
+
 	const getMaxWidth = useCallback(() => {
 		const article = articleRef.current?.firstElementChild as HTMLElement;
 		if (!article) return 0;
 		return parseFloat(window.getComputedStyle(article).getPropertyValue(ARTICLE_CONTENT_WRAPPER_WIDTH_ATTRIBUTE));
-	}, [articleRef]);
+	}, []);
 
 	const handleResizeStart = useCallback((startX: number) => {
 		const mainContainer = containerRef.current;
@@ -89,10 +100,11 @@ export const ArticleComponentResizer = (props: ArticleComponentResizerProps): Re
 			const newHeight = newWidth / aspectRatio;
 
 			const isFloat = hasFloat();
+			const nested = isNested();
 
 			const articleMaxWidth = parseFloat(getComputedStyle(container).width);
 			const minWidth = 2.5 * parseFloat(getComputedStyle(object).fontSize);
-			const fullArticleWidth = isFloat ? articleMaxWidth : getMaxWidth();
+			const fullArticleWidth = isFloat || nested ? articleMaxWidth : getMaxWidth();
 
 			const snapThreshold = parseFloat(getComputedStyle(document.documentElement).fontSize) * 2;
 			const distanceToMax = Math.abs(newWidth - articleMaxWidth);
@@ -108,9 +120,9 @@ export const ArticleComponentResizer = (props: ArticleComponentResizerProps): Re
 				object.style.width = `${effectiveWidth}px`;
 			}
 
-			setIsFullArticle(effectiveWidth > articleMaxWidth);
+			setIsFullArticle(!nested && effectiveWidth > articleMaxWidth);
 		},
-		[getContainer, getMaxWidth, hasFloat],
+		[getContainer, getMaxWidth, hasFloat, isNested],
 	);
 
 	const handleResizeEnd = useCallback(() => {
@@ -123,15 +135,9 @@ export const ArticleComponentResizer = (props: ArticleComponentResizerProps): Re
 		const object = containerRef.current;
 		if (!object) return;
 
-		const containerWidth = parseFloat(getComputedStyle(getContainer()).width);
 		const finalWidth = object.offsetWidth;
-
-		if (finalWidth > containerWidth) {
-			onChange(`${finalWidth}px`);
-		} else {
-			onChange(String(Math.round((finalWidth / containerWidth) * 100)));
-		}
-	}, [getContainer, onChange]);
+		onChange(`${finalWidth}px`);
+	}, [onChange]);
 
 	const { onPointerDown, onTouchStart, onMouseDown } = useTouchHandler({
 		onStart: handleResizeStart,
@@ -140,56 +146,76 @@ export const ArticleComponentResizer = (props: ArticleComponentResizerProps): Re
 	});
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
-	useEffect(() => {
+	useLayoutEffect(() => {
+		const currentScale = scale ?? defaultScale;
+
 		const applyScale = (newScale: number | string) => {
 			const component = containerRef.current;
-			if (!component) return;
+			if (!component) return false;
 
 			if (!newScale) {
 				component.style.removeProperty("width");
-				return;
+				return true;
 			}
 
 			const container = getContainer();
-			if (!container) return;
+			if (!container) return false;
 
 			const articleMaxWidth = parseFloat(getComputedStyle(container).width);
+			if (!articleMaxWidth) return false;
+
+			const nested = isNested();
+			const fullArticleWidth = nested ? articleMaxWidth : getMaxWidth() || articleMaxWidth;
 
 			let width: number;
 			if (typeof newScale === "string" && newScale.endsWith("px")) {
 				width = parseFloat(newScale);
 			} else {
 				const scaleNum = typeof newScale === "string" ? parseFloat(newScale) : newScale;
-				const fullArticleWidth = getMaxWidth();
 				width =
 					scaleNum <= 100
 						? getScale(scaleNum, articleMaxWidth)
 						: articleMaxWidth + ((scaleNum - 100) / 100) * (fullArticleWidth - articleMaxWidth);
 			}
 
-			if (width > articleMaxWidth) setIsFullArticle(true);
-			component.style.width = `${width}px`;
+			width = Math.min(width, fullArticleWidth);
+
+			setIsFullArticle(!nested && width > articleMaxWidth);
+			component.style.width = `min(${width}px, var(${ARTICLE_CONTENT_WRAPPER_WIDTH_ATTRIBUTE}))`;
+			return true;
 		};
 
-		applyScale(scale);
+		const applied = applyScale(currentScale);
 
 		const resize = () => {
-			applyScale(scale);
+			applyScale(currentScale);
 		};
 
 		window.addEventListener("resize", resize);
 
+		const container = getContainer();
+		let observer: ResizeObserver;
+		if (container && (!applied || isNested())) {
+			observer = new ResizeObserver(() => {
+				if (!applyScale(currentScale)) return;
+				observer.disconnect();
+				observer = null;
+			});
+			observer.observe(container);
+		}
+
 		return () => {
 			window.removeEventListener("resize", resize);
+			observer?.disconnect();
 		};
-	}, [scale, getContainer, sidebarsIsPin]);
+	}, [scale, defaultScale, getContainer, sidebarsIsPin]);
 
 	const { resizer, container } = styles();
 	return (
 		<div
 			className="flex"
 			style={
-				isFullArticle
+				isFullArticle && !isPrint
 					? {
 							width: `var(${ARTICLE_CONTENT_WRAPPER_WIDTH_ATTRIBUTE})`,
 							maxWidth: `var(${ARTICLE_CONTENT_WRAPPER_WIDTH_ATTRIBUTE})`,

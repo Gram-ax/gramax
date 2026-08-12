@@ -7,7 +7,8 @@ const htmlTransform: PreTransformerFunc = ({ tokens }) => {
 		if (token.type === "tag_open" && token.meta.tag === "html") {
 			let text = "";
 			let nextID = idx + 1;
-			const mode = token.meta.attributes?.[0].value || "iframe";
+			const attributes = (token.meta.attributes ?? []).filter(({ name }) => name !== "content");
+			const mode = attributes.find(({ name }) => name === "mode")?.value || "iframe";
 
 			while (nextID < tokens.length) {
 				const nextToken = tokens[nextID];
@@ -25,6 +26,7 @@ const htmlTransform: PreTransformerFunc = ({ tokens }) => {
 					tag: "html",
 					attributes: [
 						{ type: "attribute", name: "content", value: text },
+						...attributes.filter(({ name }) => name !== "mode"),
 						{ type: "attribute", name: "mode", value: mode },
 					],
 				},

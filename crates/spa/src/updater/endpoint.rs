@@ -47,6 +47,8 @@ impl Updater {
 		Router::new()
 			.layer(middleware::from_fn_with_state(metrics.clone(), crate::metrics::layers::updater_metrics))
 			.route("/updates", get(get_all_updates).layer(all_updates_check_middleware))
+			.route("/downloads", get(downloads_page))
+			.route("/versions", get(get_versions))
 			.route("/{platform}/updates", get(get_update).layer(update_check_middleware))
 			.route("/download/{platform}", get(stream_download).layer(download_middleware.clone()))
 			.route("/{platform}", get(stream_download).layer(download_middleware))
@@ -65,7 +67,7 @@ async fn get_all_updates(State(AppState { artifacts }): State<AppState>, Query(q
 		.map_err(UpdaterError::FailedToFetchUpdate)?;
 
 	let mut updates = HashMap::new();
-	let mut metadata: (Option<semver::Version>, Option<time::OffsetDateTime>) = (None, None);
+	let mut oldest: Option<(semver::Version, time::OffsetDateTime)> = None;
 
 	for platform in platforms {
 		let platform_package = PlatformPackage::from_platform_default(platform);
@@ -76,16 +78,8 @@ async fn get_all_updates(State(AppState { artifacts }): State<AppState>, Query(q
 			.report_if_err()
 			.map_err(|_| UpdaterError::not_found(q.channel).platform(platform_package).build())?;
 
-		match metadata {
-			(Some(ref version), _) => {
-				if version > &update.version {
-					metadata = (Some(update.version), Some(update.pub_date));
-				}
-			}
-			(None, None) => {
-				metadata = (Some(update.version), Some(update.pub_date));
-			}
-			_ => {}
+		if oldest.as_ref().is_none_or(|(version, _)| update.version < *version) {
+			oldest = Some((update.version.clone(), update.pub_date));
 		}
 
 		updates.insert(
@@ -97,13 +91,11 @@ async fn get_all_updates(State(AppState { artifacts }): State<AppState>, Query(q
 		);
 	}
 
-	if updates.is_empty() {
-		return Err(UpdaterError::not_found(q.channel).build());
-	}
+	let (version, pub_date) = oldest.ok_or(UpdaterError::not_found(q.channel).build())?;
 
 	Ok(Json(Release {
-		version: metadata.0.ok_or(UpdaterError::not_found(q.channel).build())?,
-		pub_date: metadata.1.ok_or(UpdaterError::not_found(q.channel).build())?,
+		version,
+		pub_date,
 		platforms: updates,
 	}))
 }
@@ -165,28 +157,80 @@ async fn get_update(
 	Ok(Json(update))
 }
 
+async fn get_versions(State(AppState { artifacts }): State<AppState>, Query(q): Query<ParamsQuery>) -> Result<Json<VersionList>, UpdaterError> {
+	let channel = artifacts.channel(q.channel);
+
+	let versions = channel.list_versions().await.report_if_err()?;
+
+	let versions = versions
+		.iter()
+		.map(|v| VersionListEntry {
+			packages: v
+				.packages
+				.iter()
+				.map(|pp| VersionListPackage {
+					platform: pp.platform(),
+					package: pp.package(),
+					filename: pp.filename(&v.version),
+				})
+				.collect(),
+			version: v.version.clone(),
+		})
+		.collect();
+
+	let packages = PlatformPackage::all()
+		.into_iter()
+		.map(|pp| PackageInfo {
+			platform: pp.platform(),
+			package: pp.package(),
+			label: pp.label().to_string(),
+		})
+		.collect();
+
+	Ok(Json(VersionList {
+		channel: q.channel,
+		packages,
+		versions,
+	}))
+}
+
+async fn downloads_page() -> impl IntoResponse {
+	axum::response::Html(include_str!("downloads.html"))
+}
+
 async fn stream_download(
 	State(AppState { artifacts }): State<AppState>,
 	ExtractPlatformPackage(platform, channel): ExtractPlatformPackage,
+	Query(q): Query<ParamsQuery>,
 ) -> Result<impl IntoResponse, UpdaterError> {
-	let channel = artifacts.channel(channel);
+	let channel_artifacts = artifacts.channel(channel);
 
-	channel
-		.update_latest_if_needed(Some(platform))
-		.await
-		.report_if_err()
-		.map_err(UpdaterError::FailedToFetchUpdate)?;
+	let (url, version) = match q.version {
+		Some(Version::Exact(version)) => (channel_artifacts.installer_url(version.clone(), platform), version),
+		_ => {
+			channel_artifacts
+				.update_latest_if_needed(Some(platform))
+				.await
+				.report_if_err()
+				.map_err(UpdaterError::FailedToFetchUpdate)?;
 
-	let (url, version) = channel
-		.latest_installer_download_url(platform)
-		.await
-		.report_if_err()
-		.map_err(|_| UpdaterError::InstallerNotFound(platform))?;
+			channel_artifacts
+				.latest_installer_download_url(platform)
+				.await
+				.report_if_err()
+				.map_err(|_| UpdaterError::InstallerNotFound(platform))?
+		}
+	};
 
 	let s3_res = reqwest::get(url.clone()).await.report_if_err().map_err(UpdaterError::S3FailedToFetch)?;
 
 	if s3_res.status() == reqwest::StatusCode::NOT_FOUND {
-		return Err(UpdaterError::S3NotFound(url.to_string()));
+		return Err(
+			UpdaterError::not_found(channel)
+				.platform(platform)
+				.version(Version::Exact(version))
+				.build(),
+		);
 	}
 
 	let headers = s3_res.headers().clone();

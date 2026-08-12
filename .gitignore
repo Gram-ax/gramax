@@ -26,11 +26,14 @@ next-env.d.ts
 
 # target -> vite
 .build
-/apps/gramax-cli/build
+/apps/cli/build
 
 # plugins SDK (generated)
 /core/public/plugins/sdk.js
 /apps/next/public/plugins/sdk.js
+# es-module-shims copied in by build-sdk from scripts/plugins/vendor
+/core/public/plugins/es-module-shims.js
+/apps/next/public/plugins/es-module-shims.js
 
 # target -> application
 /application/bin
@@ -74,6 +77,9 @@ junit*.xml
 .idea/
 
 
-!apps/browser/crates/gramax-wasm/dist
+!apps/web/crates/gramax-wasm/dist
 apps/next/gramaxVersion.txt
 apps/tauri/src-tauri/icons/icon.png
+
+AGENTS.md
+.claude/worktrees

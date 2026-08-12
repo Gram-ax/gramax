@@ -18,7 +18,7 @@ interface CloneModalProps {
 
 const CloneModal = ({ trigger, onClose, selectedStorage, onSubmit, ...props }: CloneModalProps) => {
 	const [isOpen, setIsOpen] = useState(!trigger);
-	const { isNext, isTauri, isBrowser } = usePlatform();
+	const { isNext, isTauri, isWeb } = usePlatform();
 
 	const { startClone } = useCloneRepo({
 		skipCheck: true,
@@ -39,7 +39,7 @@ const CloneModal = ({ trigger, onClose, selectedStorage, onSubmit, ...props }: C
 	const handleSubmit = (storageData: GitStorageData) => {
 		startClone({
 			storageData,
-			skipLfsPull: isBrowser || isTauri,
+			skipLfsPull: isWeb || isTauri,
 		});
 		onSubmit?.(storageData);
 		closeForm();

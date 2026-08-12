@@ -1,4 +1,5 @@
 import { cn } from "@core-ui/utils/cn";
+import { sectionTitleClass } from "@ext/enterprise/components/admin/ui-kit/SettingsSection";
 
 interface TableInfoBlockProps {
 	titleClassName?: string;
@@ -9,8 +10,8 @@ interface TableInfoBlockProps {
 
 export const TableInfoBlock = ({ titleClassName, descriptionClassName, title, description }: TableInfoBlockProps) => {
 	return (
-		<div className={"flex gap-2"}>
-			{title && <h2 className={cn("font-medium text-lg", titleClassName)}>{title}</h2>}
+		<div className={"flex gap-2 items-baseline"}>
+			{title && <h2 className={cn(sectionTitleClass, titleClassName)}>{title}</h2>}
 			{description !== undefined && <span className={cn("text-lg", descriptionClassName)}>{description}</span>}
 		</div>
 	);

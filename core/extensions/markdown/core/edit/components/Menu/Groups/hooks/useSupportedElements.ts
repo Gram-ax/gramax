@@ -4,8 +4,8 @@ import getFormatterType from "@ext/markdown/core/edit/logic/Formatter/Formatters
 import { useMemo } from "react";
 
 const useSupportedElements = () => {
-	const syntax = useCatalogPropsStore((state) => state.data.syntax);
-	const diagramRendererUrl = PageDataContextService.value.conf.diagramsServiceUrl;
+	const syntax = useCatalogPropsStore((state) => state?.data?.syntax);
+	const diagramRendererUrl = PageDataContextService.value?.settings?.services?.["diagram-renderer"]?.endpoint;
 
 	return useMemo(() => {
 		const supportedElements = getFormatterType(syntax).supportedElements;

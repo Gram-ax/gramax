@@ -1,16 +1,14 @@
 import useCheck from "@core-ui/hooks/useCheck";
 import { useSettings } from "@ext/enterprise/components/admin/contexts/SettingsContext";
+import { useAlertMessage } from "@ext/enterprise/components/admin/hooks/useAlertMessage";
 import { useTabGuard } from "@ext/enterprise/components/admin/hooks/useTabGuard";
-import { FloatingAlert } from "@ext/enterprise/components/admin/ui-kit/FloatingAlert";
-import { Spinner } from "@ext/enterprise/components/admin/ui-kit/Spinner";
-import { StickyHeader } from "@ext/enterprise/components/admin/ui-kit/StickyHeader";
+import { SettingsPageLayout } from "@ext/enterprise/components/admin/ui-kit/SettingsPageLayout";
+import { SettingsSection } from "@ext/enterprise/components/admin/ui-kit/SettingsSection";
 import { StyledField } from "@ext/enterprise/components/admin/ui-kit/StyledField";
-import { TabErrorBlock } from "@ext/enterprise/components/admin/ui-kit/TabErrorBlock";
-import { TabInitialLoader } from "@ext/enterprise/components/admin/ui-kit/TabInitialLoader";
+import { toGesErrorCode } from "@ext/enterprise/errors/GesError";
+import { getGesErrorBadgeText, getGesErrorTitle, getSaveErrorText } from "@ext/enterprise/errors/getGesErrorText";
 import { Page } from "@ext/enterprise/types/Page";
-import { getAdminPageTitle } from "@ext/enterprise/utils/getAdminPageTitle";
 import t from "@ext/localization/locale/translate";
-import { Button, LoadingButtonTemplate } from "@ui-kit/Button";
 import { Input } from "@ui-kit/Input";
 import { useCallback, useEffect, useState } from "react";
 
@@ -35,11 +33,11 @@ const defaultSettings: MailSettings = {
 };
 
 const MailComponent = () => {
-	const { settings, updateMail, ensureMailLoaded, isRefreshing, getTabError, isInitialLoading } = useSettings();
-	const mailSettings = settings?.mailServer;
+	const { settings, gesUrl, update, ensureLoaded, isRefreshing, getTabError, isInitialLoading } = useSettings();
+	const mailSettings = settings?.mail;
 	const [localSettings, setLocalSettings] = useState<MailSettings>(mailSettings || defaultSettings);
 	const [isSaving, setIsSaving] = useState(false);
-	const [saveError, setSaveError] = useState<string | null>(null);
+	const saveError = useAlertMessage();
 	const isEqual = useCheck(mailSettings, localSettings);
 
 	useEffect(() => {
@@ -70,21 +68,18 @@ const MailComponent = () => {
 	};
 
 	const handleSave = useCallback(async () => {
+		saveError.hide();
 		setIsSaving(true);
 		try {
-			await updateMail(localSettings);
+			await update("mail", localSettings);
+			await ensureLoaded("mail", true);
 		} catch (e) {
-			setSaveError(e?.message);
+			const code = toGesErrorCode(e);
+			saveError.alert(getSaveErrorText(code, gesUrl), getGesErrorTitle(code), getGesErrorBadgeText(code));
 		} finally {
 			setIsSaving(false);
 		}
-	}, [localSettings, updateMail]);
-
-	useEffect(() => {
-		if (!saveError) return;
-		const t = setTimeout(() => setSaveError(null), 4000);
-		return () => clearTimeout(t);
-	}, [saveError]);
+	}, [localSettings, update, ensureLoaded, saveError.hide, saveError.alert, gesUrl]);
 
 	useTabGuard({
 		page: Page.MAIL,
@@ -104,114 +99,89 @@ const MailComponent = () => {
 
 	const tabError = getTabError("mail");
 
-	if (!tabError && !mailSettings) {
-		return <TabInitialLoader />;
-	}
-
-	if (tabError) {
-		return <TabErrorBlock message={tabError.message} onRetry={() => ensureMailLoaded(true)} />;
-	}
-
 	return (
-		<>
-			<StickyHeader
-				actions={
-					<>
-						{isSaving ? (
-							<LoadingButtonTemplate text={`${t("save2")}...`} />
-						) : (
-							<Button disabled={isEqual || isSaving} onClick={handleSave}>
-								{t("save")}
-							</Button>
-						)}
-					</>
-				}
-				title={
-					<>
-						{getAdminPageTitle(Page.MAIL)} <Spinner show={isRefreshing("mail")} size="small" />
-					</>
-				}
-			/>
-			<FloatingAlert message={saveError} show={Boolean(saveError)} />
-
-			<div className="space-y-6">
-				<div>
-					<h2 className="text-xl font-medium mb-4">{t("enterprise.admin.mail.sender-settings")}</h2>
-
-					<StyledField
-						control={() => (
-							<Input
-								id="sender"
-								name="sender"
-								onChange={handleInputChange}
-								placeholder="example@example.com"
-								value={localSettings.sender}
-							/>
-						)}
-						title={t("enterprise.admin.mail.sender-address")}
-					/>
-				</div>
-
-				<div>
-					<h2 className="text-xl font-medium mb-4">{t("enterprise.admin.mail.smtp-settings")}</h2>
-					<div className="space-y-4">
-						<StyledField
-							control={() => (
-								<Input
-									id="smtp.host"
-									name="smtp.host"
-									onChange={handleInputChange}
-									placeholder="smtp.example.com"
-									value={localSettings.smtp.host}
-								/>
-							)}
-							title={t("enterprise.admin.mail.host")}
+		<SettingsPageLayout
+			isInitialLoading={!tabError && !mailSettings}
+			isRefreshing={isRefreshing("mail")}
+			isSaveDisabled={isEqual || isSaving}
+			isSaving={isSaving}
+			onRetry={() => ensureLoaded("mail", true)}
+			onSave={handleSave}
+			page={Page.MAIL}
+			saveError={saveError}
+			tabError={tabError}
+		>
+			<SettingsSection title={t("enterprise.admin.mail.sender-settings")}>
+				<StyledField
+					control={() => (
+						<Input
+							id="sender"
+							name="sender"
+							onChange={handleInputChange}
+							placeholder="example@example.com"
+							value={localSettings.sender}
 						/>
+					)}
+					title={t("enterprise.admin.mail.sender-address")}
+				/>
+			</SettingsSection>
 
-						<StyledField
-							control={() => (
-								<Input
-									id="smtp.port"
-									name="smtp.port"
-									onChange={handleInputChange}
-									placeholder="587"
-									type="number"
-									value={localSettings.smtp.port}
-								/>
-							)}
-							title={t("enterprise.admin.mail.port")}
+			<SettingsSection contentClassName="space-y-4" title={t("enterprise.admin.mail.smtp-settings")}>
+				<StyledField
+					control={() => (
+						<Input
+							id="smtp.host"
+							name="smtp.host"
+							onChange={handleInputChange}
+							placeholder="smtp.example.com"
+							value={localSettings.smtp.host}
 						/>
+					)}
+					title={t("enterprise.admin.mail.host")}
+				/>
 
-						<StyledField
-							control={() => (
-								<Input
-									id="smtp.user"
-									name="smtp.user"
-									onChange={handleInputChange}
-									placeholder="example@example.com"
-									value={localSettings.smtp.user}
-								/>
-							)}
-							title={t("enterprise.admin.mail.user")}
+				<StyledField
+					control={() => (
+						<Input
+							id="smtp.port"
+							name="smtp.port"
+							onChange={handleInputChange}
+							placeholder="587"
+							type="number"
+							value={localSettings.smtp.port}
 						/>
+					)}
+					title={t("enterprise.admin.mail.port")}
+				/>
 
-						<StyledField
-							control={() => (
-								<Input
-									id="smtp.password"
-									name="smtp.password"
-									onChange={handleInputChange}
-									placeholder={t("enterprise.admin.mail.password-placeholder")}
-									type="password"
-									value={localSettings.smtp.password}
-								/>
-							)}
-							title={t("enterprise.admin.mail.password")}
+				<StyledField
+					control={() => (
+						<Input
+							id="smtp.user"
+							name="smtp.user"
+							onChange={handleInputChange}
+							placeholder="example@example.com"
+							value={localSettings.smtp.user}
 						/>
-					</div>
-				</div>
-			</div>
-		</>
+					)}
+					title={t("user")}
+				/>
+
+				<StyledField
+					control={() => (
+						<Input
+							id="smtp.password"
+							name="smtp.password"
+							onChange={handleInputChange}
+							placeholder={t("enterprise.admin.mail.password-placeholder")}
+							type="password"
+							value={localSettings.smtp.password}
+						/>
+					)}
+					title={t("enterprise.admin.mail.password")}
+				/>
+			</SettingsSection>
+		</SettingsPageLayout>
 	);
 };
 

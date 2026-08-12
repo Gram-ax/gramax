@@ -19,21 +19,13 @@ const CatalogViewDisplayValue = ({ bind, view }: { bind: string; view: CatalogVi
 	const { properties } = PropertyServiceProvider.value;
 
 	const combinedProperty = combineProperties([property], properties)?.[0];
-	const isFlag = combinedProperty
-		? combinedProperty?.type === PropertyTypes.flag
-		: properties.get(bind)?.type === PropertyTypes.flag;
-
-	if (!property && !isFlag) return;
 
 	return resolveDisplayValue(combinedProperty, properties, bind);
 };
 
 const ArticleDisplayValue = ({ bind }: { bind: string }) => {
 	const { articleProperties, properties } = PropertyServiceProvider.value;
-	const property = articleProperties?.find((p) => p.name === bind);
-	const isFlag = property ? property?.type === PropertyTypes.flag : properties.get(bind)?.type === PropertyTypes.flag;
-
-	if (!property && !isFlag) return;
+	const property = articleProperties?.find((p) => p?.id === bind);
 
 	return resolveDisplayValue(property, properties, bind);
 };

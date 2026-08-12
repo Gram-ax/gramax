@@ -1,7 +1,23 @@
+import { expect } from "@playwright/test";
 import { md } from "@utils/utils";
 import { editorTest } from "@web/fixtures/editor.fixture";
 
 editorTest.describe("Note", () => {
+	editorTest("collapsed note keeps its title visible and hides only the body", async ({ editor, sharedPage }) => {
+		await editor.setMarkdown(md`
+			<note title="My Title" collapsed="true">
+
+			secret body text
+
+			</note>
+		`);
+
+		const note = sharedPage.getByTestId("article-editor").locator(".admonition");
+		await expect(note.locator(".note-title")).toHaveText("My Title");
+		await expect(note.locator(".note-title")).toBeVisible();
+		await expect(note.getByText("secret body text")).toBeHidden();
+	});
+
 	editorTest("exit quote with double Enter", async ({ editor }) => {
 		await editor.setMarkdown(md`
 			<note type="quote">

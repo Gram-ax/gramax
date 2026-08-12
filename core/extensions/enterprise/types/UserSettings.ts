@@ -14,6 +14,7 @@ interface WorkspaceSource {
 
 interface WorkspaceGit {
 	source: WorkspaceSource;
+	lfs?: { patterns: string[] };
 }
 
 interface WorkspaceStyle {
@@ -35,6 +36,7 @@ export interface EnterpriseWorkspaceConfig extends WorkspaceConfig {
 	plugins?: PluginConfig[];
 	wordTemplates?: ExportTemplate[];
 	pdfTemplates?: ExportTemplate[];
+	/* deprecated use git.lfs instead */
 	lfs?: { patterns: string[] };
 }
 
@@ -43,7 +45,6 @@ interface UserSettings {
 	ai: AiServerConfig;
 	workspace: EnterpriseWorkspaceConfig;
 	from: string;
-	isNotEditor?: boolean;
 }
 
 export type ExportTemplate = {

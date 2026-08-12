@@ -1,11 +1,12 @@
-import type { HomePageData } from "@core/SitePresenter/SitePresenter";
-import type { ArticlePageData } from "@core/SitePresenter/types/ArticlePage";
+import type { PageProps } from "@components/Pages/models/Pages";
+import t from "@ext/localization/locale/translate";
 
-const getPageTitle = (isArticle: boolean, data: HomePageData | ArticlePageData): string =>
-	!isArticle
-		? "Gramax"
-		: joinTitles((data as ArticlePageData).articleProps.title, (data as ArticlePageData).catalogProps.title);
+const getPageTitle = (data: PageProps): string => {
+	if (data?.page !== "article") return "Gramax";
+	return joinTitles(data.data.articleProps.title, data.data.catalogProps.title);
+};
 
-export const joinTitles = (articleTitle: string, catalogTitle: string): string => `${articleTitle} | ${catalogTitle}`;
+export const joinTitles = (articleTitle: string, catalogTitle: string): string =>
+	`${articleTitle || t("article.no-name")} | ${catalogTitle || t("article.no-name")}`;
 
 export default getPageTitle;

@@ -4,6 +4,7 @@ import SidebarsIsPinService from "@core-ui/ContextServices/Sidebars/SidebarsIsPi
 import LeftNavViewContentContainer from "@core-ui/ContextServices/views/leftNavView/LeftNavViewContainer";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { getEditorStore } from "@core-ui/stores/EditorStore";
+import { useItemLinks } from "@core-ui/stores/ItemLinksStore/ItemLinksStore.provider";
 import stopOpeningPanels from "@core-ui/utils/stopOpeningPanels ";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import LeftNavigationBottom from "./LeftNavigationBottom";
@@ -24,6 +25,7 @@ const LeftNavigationComponent = ({
 	const isPin = SidebarsIsPinService.value.left;
 	const [prevIsPin, setPrevIsPin] = useState<boolean>(undefined);
 	const { isStaticCli } = usePlatform();
+	const itemLinks = useItemLinks();
 
 	const isOpen = SidebarsIsOpenService.value.left;
 
@@ -70,8 +72,8 @@ const LeftNavigationComponent = ({
 				isPin={isPin}
 				isStaticBuilding={isStaticCli}
 				leftNavigationBottom={<LeftNavigationBottom data={data} />}
-				leftNavigationContent={<LeftNavViewContentContainer itemLinks={data.itemLinks} />}
-				leftNavigationTop={<LeftNavigationTop data={data} />}
+				leftNavigationContent={<LeftNavViewContentContainer itemLinks={itemLinks} />}
+				leftNavigationTop={<LeftNavigationTop />}
 				mediumMedia={mediumMedia}
 				onMouseEnter={() =>
 					setTimeout(() => {

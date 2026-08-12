@@ -20,9 +20,9 @@ export class WindowsBuilder extends Builder {
 		return "x86_64-pc-windows-msvc";
 	}
 
-	override async build(): Promise<void> {
+	override async _build(): Promise<void> {
 		const target = this.target;
-		const config = this.createTauriConfig();
+		const config = this._createTauriConfig();
 		const profile = this.profile;
 
 		await $`cargo tauri build --ci --target ${target} -c ${config} -v --runner cargo-xwin -- --profile ${profile}`
@@ -30,33 +30,33 @@ export class WindowsBuilder extends Builder {
 			.throws(true);
 	}
 
-	override async package(): Promise<void> {
+	override async _package(): Promise<void> {
 		const bundlesrc = path.join(this.targetDir, "bundle/nsis");
 
-		await this.artifact({
+		await this._artifact({
 			name: `gramax.${this.platform}.exe`,
 			srcdir: this.targetDir,
 			filename: "gramax.exe",
 		});
 
-		await this.artifact({
+		await this._artifact({
 			name: `gramax.${this.platform}.setup.exe`,
 			srcdir: bundlesrc,
 			filename: `${this.opts.productName}_${this.opts.version}_x64-setup.exe`,
 		});
 
-		await this.artifact({
+		await this._artifact({
 			name: `gramax.${this.platform}.setup.exe.sig`,
 			srcdir: bundlesrc,
 			filename: `${this.opts.productName}_${this.opts.version}_x64-setup.exe.sig`,
 		});
 	}
 
-	override async sign(): Promise<void> {
+	override async _sign(): Promise<void> {
 		// gramax.windows-x86_64.exe & the app packaged in installer are already signed
 	}
 
-	override async verify(): Promise<void> {
+	override async _verify(): Promise<void> {
 		await sign.win.verify(path.join(this.outdir, `gramax.${this.platform}.exe`));
 	}
 }

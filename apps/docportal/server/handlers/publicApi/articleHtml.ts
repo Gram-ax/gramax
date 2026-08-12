@@ -34,7 +34,6 @@ const articleHtml = async (
 		convertContentToUiLanguage(ctx.contentLanguage || catalog?.props?.language),
 	);
 	const htmlContent = parser.getHtml((await article.parsedContent.read()).renderTree, parserContext, originDomain);
-
 	if (req.method === "HEAD") {
 		return new Response("", {
 			status: 200,

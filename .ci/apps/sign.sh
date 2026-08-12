@@ -57,16 +57,21 @@ sign_containers() {
 
     TAGS=()
 
-    if [[ "$CI_COMMIT_REF_NAME" == "develop" ]]; then
-        TAGS+=("${APP_VERSION}-dev" "latest-dev")
-    fi
+    if [[ -n "${CONTAINER_SIGN_TAGS:-}" ]]; then
+        read -r -a TAGS <<< "${CONTAINER_SIGN_TAGS}"
+    else
+        if [[ "$CI_COMMIT_REF_NAME" == "develop" ]]; then
+            TAGS+=("${APP_VERSION}-dev" "latest-dev")
+        fi
 
-    if [[ "$CI_COMMIT_REF_NAME" == "$PROD_BRANCH" ]]; then
-        TAGS+=("${APP_VERSION}" "latest" "prod")
+        if [[ "$CI_COMMIT_REF_NAME" == "$PROD_BRANCH" ]]; then
+            TAGS+=("${APP_VERSION}" "latest" "prod")
+        fi
     fi
 
     for TAG in "${TAGS[@]}"; do
-        IMAGE="${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${TAG}"
+        IMAGE_PREFIX="${CONTAINER_SIGN_REGISTRY_IMAGE_PREFIX:-$CI_REGISTRY_IMAGE}"
+        IMAGE="${IMAGE_PREFIX}/${IMAGE_NAME}:${TAG}"
 
         echo "Processing image: ${IMAGE}"
 
@@ -77,7 +82,7 @@ sign_containers() {
             continue
         fi
 
-        FULL_IMAGE="${CI_REGISTRY_IMAGE}/${IMAGE_NAME}@${DIGEST}"
+        FULL_IMAGE="${IMAGE_PREFIX}/${IMAGE_NAME}@${DIGEST}"
 
         if cosign verify --key "awskms:///${KMS_AWS_KEY_ARN}" "${FULL_IMAGE}" >/dev/null 2>&1; then
             echo "Image already signed: ${FULL_IMAGE}"

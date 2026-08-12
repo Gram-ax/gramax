@@ -49,6 +49,7 @@ impl Fs for DiskFs {
 		getstat(self.sanitize(path)?, follow_link)
 	}
 
+	#[instrument(target = TAG)]
 	fn read(&self, path: &Path) -> Result<Vec<u8>> {
 		Ok(fs::read(self.sanitize(path)?)?)
 	}
@@ -71,18 +72,14 @@ impl Fs for DiskFs {
 
 		let mut buf = Vec::with_capacity(4096);
 		reader.read_until(b'\n', &mut buf)?;
-		if !super::has_frontmatter_start(&buf) {
+		if super::open_delimiter_len(&buf).is_none() {
 			return Ok(Vec::new());
 		}
 
 		loop {
 			let before = buf.len();
 			let n = reader.read_until(b'\n', &mut buf)?;
-			if n == 0 {
-				return Ok(buf);
-			}
-			let line = &buf[before..];
-			if line == b"---\n" || line == b"---\r\n" {
+			if n == 0 || super::open_delimiter_len(&buf[before..]).is_some() {
 				return Ok(buf);
 			}
 		}

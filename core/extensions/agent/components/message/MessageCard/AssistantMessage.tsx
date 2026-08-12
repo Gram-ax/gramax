@@ -1,59 +1,47 @@
+import { cn } from "@core-ui/utils/cn";
 import type { Ref } from "react";
-import { useStreamingLogic } from "../../hooks/useStreamingLogic";
-import type { ChatMessage, SuggestionState } from "../../types/chat";
-import { getDiffBlocks } from "../../utils/diffHelpers";
+import { useChatStreamText } from "../../store/ChatStore";
+import type { AssistantChatMessage } from "../../types/chat";
 import { AssistantMarkdown } from "../AssistantMarkdown";
-import { DiffViewer } from "../DiffViewer";
+import { CopyAnswerButton } from "../CopyAnswerButton";
 
 export interface AssistantMessageProps {
-	message: ChatMessage;
+	message: AssistantChatMessage;
 	streamDescription?: boolean;
-	fullDescriptionForStream?: string;
-	streamLive?: boolean;
-	onStreamComplete?: (id: string) => void;
 	responseRef?: Ref<HTMLDivElement>;
+	showCopyButton?: boolean;
+	footerAlwaysVisible?: boolean;
 }
 
-export function AssistantMessage({
+export const AssistantMessage = ({
 	message,
 	streamDescription = false,
-	fullDescriptionForStream = "",
-	streamLive = false,
-	onStreamComplete,
 	responseRef,
-}: AssistantMessageProps) {
-	const state: SuggestionState = message.suggestionState ?? "generated";
+	showCopyButton = false,
+	footerAlwaysVisible = false,
+}: AssistantMessageProps) => {
+	const streamText = useChatStreamText(streamDescription);
+	const isLoading = message.isLoading ?? false;
+	const shouldStream = streamDescription && isLoading;
 
-	const { description } = useStreamingLogic({
-		streamDescription,
-		fullDescriptionForStream,
-		streamLive,
-		onStreamComplete,
-		messageId: message.id,
-		state,
-	});
-
-	const diffBlocks = getDiffBlocks(message);
-
-	const displayDescription = description !== "" ? description : (message.description ?? "");
+	const displayDescription = shouldStream ? streamText : message.description;
+	const hasContent = displayDescription !== "" || shouldStream;
+	const showFooter = showCopyButton && !isLoading && displayDescription !== "";
 
 	return (
 		<div className="w-full min-w-0" ref={responseRef}>
-			{message.title && <h2 className="text-sm font-semibold text-primary-fg">{message.title}</h2>}
-			{(displayDescription !== "" || (streamLive && streamDescription && state === "loading")) && (
-				<div>
-					<AssistantMarkdown text={displayDescription} />
+			{hasContent && <AssistantMarkdown text={displayDescription} />}
+			{showFooter && (
+				<div
+					className={cn(
+						"flex items-center gap-1",
+						!footerAlwaysVisible &&
+							"opacity-0 transition-opacity duration-150 focus-within:opacity-100 group-hover/turn:opacity-100",
+					)}
+				>
+					<CopyAnswerButton text={displayDescription} />
 				</div>
 			)}
-
-			{diffBlocks.map((block, index) => (
-				<DiffViewer
-					defaultCollapsed={index > 0}
-					diff={block}
-					id={index === 0 ? `diff-anchor-${message.id}` : undefined}
-					key={`${message.id}-${block.filePath}-${index}`}
-				/>
-			))}
 		</div>
 	);
-}
+};

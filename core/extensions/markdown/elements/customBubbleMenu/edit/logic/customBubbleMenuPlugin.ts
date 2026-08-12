@@ -71,9 +71,9 @@ export class CustomBubbleMenuView {
 
 	public updateDelay: number;
 
-	private updateDebounceTimer: number | undefined;
+	private _updateDebounceTimer: number | undefined;
 
-	private isVisible: boolean = false;
+	private _isVisible: boolean = false;
 
 	public shouldShow: Exclude<BubbleMenuPluginProps["shouldShow"], null> = ({ view, state, from, to }) => {
 		const { doc, selection } = state;
@@ -121,7 +121,7 @@ export class CustomBubbleMenuView {
 	};
 
 	onKeydownHandler = (event: KeyboardEvent) => {
-		if (!this.isVisible) return;
+		if (!this._isVisible) return;
 		const hasFocusGuard = document.body.querySelector("[data-radix-focus-guard]");
 
 		if (event.key === "Escape" && !hasFocusGuard) {
@@ -133,7 +133,7 @@ export class CustomBubbleMenuView {
 	};
 
 	createTooltip() {
-		const { element: editorElement } = this.editor.options;
+		const editorElement = this.editor.view.dom;
 		const editorIsAttached = !!editorElement.parentElement;
 
 		if (this.tippy || !editorIsAttached) {
@@ -156,7 +156,7 @@ export class CustomBubbleMenuView {
 		const { state } = view;
 		const hasValidSelection = state.selection.from !== state.selection.to;
 
-		if (!view.editable && this.isVisible) {
+		if (!view.editable && this._isVisible) {
 			this.hide();
 			return;
 		}
@@ -180,11 +180,11 @@ export class CustomBubbleMenuView {
 			return;
 		}
 
-		if (this.updateDebounceTimer) {
-			clearTimeout(this.updateDebounceTimer);
+		if (this._updateDebounceTimer) {
+			clearTimeout(this._updateDebounceTimer);
 		}
 
-		this.updateDebounceTimer = window.setTimeout(() => {
+		this._updateDebounceTimer = window.setTimeout(() => {
 			this.updateHandler(view, selectionChanged, docChanged, oldState);
 		}, this.updateDelay);
 	};
@@ -252,12 +252,12 @@ export class CustomBubbleMenuView {
 	};
 
 	show() {
-		this.isVisible = true;
+		this._isVisible = true;
 		this.tippy?.show();
 	}
 
 	hide() {
-		this.isVisible = false;
+		this._isVisible = false;
 		this.tippy?.hide();
 	}
 

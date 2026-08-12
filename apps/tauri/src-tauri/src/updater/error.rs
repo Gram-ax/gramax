@@ -16,6 +16,9 @@ pub enum UpdaterError {
 	#[error("server did not respond with any valid release json or 204 status code")]
 	NotFound,
 
+	#[error("application is running from a read-only volume like .dmg")]
+	RunFromDmg,
+
 	#[error("update check failed (status {status}): {message}")]
 	CheckFailed { status: u16, message: String },
 
@@ -101,8 +104,8 @@ impl From<E> for UpdaterError {
 			E::SignatureUtf8(err) => UpdaterError::SignatureMismatch(err),
 
 			E::Tauri(err) => UpdaterError::Tauri(err),
-			E::TempDirNotOnSameMountPoint
-			| E::BinaryNotFoundInArchive
+			E::TempDirNotOnSameMountPoint => UpdaterError::RunFromDmg,
+			E::BinaryNotFoundInArchive
 			| E::TempDirNotFound
 			| E::DebInstallFailed
 			| E::PackageInstallFailed

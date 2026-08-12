@@ -1,3 +1,4 @@
+import type { IconCode } from "@components/Atoms/Icon/LucideIcon";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import openNewTab from "@core-ui/utils/openNewTab";
@@ -21,11 +22,13 @@ export const useOpenExternalGitSourceButton = (closeHandler: () => void) => {
 	const gitverseIcon = SourceType.gitVerse === sourceType ? "gitverse" : undefined;
 	const giteaIcon = SourceType.gitea === sourceType ? "gitea" : undefined;
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	const gitButtonProps = useMemo(
 		() => ({
 			shouldRender: !!sourceType && !gesUrl,
 			children: `${t("open-in.generic")} ${sourceType}`,
-			startIcon: gitlabIcon || githubIcon || gitverseIcon || giteaIcon,
+			startIcon: (gitlabIcon || githubIcon || gitverseIcon || giteaIcon) as IconCode,
+			endIcon: "external-link" as IconCode,
 
 			onClick: (e: MouseEvent<HTMLButtonElement>) => {
 				e.preventDefault();

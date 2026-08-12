@@ -22,7 +22,7 @@ const DiffContentComponent = forwardRef<HTMLDivElement, { changes: DiffHunk[]; u
 export const BreadcrumbDiffLine = ({ changes }: { changes: DiffHunk[] }) => {
 	const wrapperRef = useRef<HTMLDivElement>(null);
 	const content = (
-		<div className="article tooltip-article">
+		<div className="article tooltip-article bg-[var(--color-article-bg)]">
 			<Header>
 				<HeaderText>{t("diff.type.breadcrumb").toUpperCase()}</HeaderText>
 			</Header>

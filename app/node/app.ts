@@ -11,14 +11,15 @@ import ResourceUpdaterFactory from "@core/Resource/ResourceUpdaterFactory";
 import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
 import SitePresenterFactory from "@core/SitePresenter/SitePresenterFactory";
 import YamlFileConfig from "@core/utils/YamlFileConfig";
+import AgentManager from "@ext/agent/core/agentManager";
 import { AiDataProvider } from "@ext/ai/logic/AiDataProvider";
 import EnterpriseManager from "@ext/enterprise/EnterpriseManager";
 import { EnterpriseWorkspace } from "@ext/enterprise/EnterpriseWorkspace";
-import EnterpriseLfsResolver from "@ext/enterprise/events/EnterpriseLfsResolver";
 import MergeNotificationHandler from "@ext/enterprise/notifications/MergeNotificationHandler";
 import { GesCloudManager } from "@ext/enterprise-cloud/GesCloudManager";
 import RepositoryProviderEventHandlers from "@ext/git/core/Repository/events/RepositoryProviderEventHandlers";
 import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
+import { HealthcheckRegistry } from "@ext/healthcheck/HealthCheckRegistry";
 import BugsnagLogger from "@ext/loggers/BugsnagLogger";
 import ConsoleLogger from "@ext/loggers/ConsoleLogger";
 import type Logger from "@ext/loggers/Logger";
@@ -33,10 +34,10 @@ import EnterpriseAuth from "@ext/security/logic/AuthProviders/EnterpriseAuth";
 import ServerAuthManager from "@ext/security/logic/ServerAuthManager";
 import { TicketManager } from "@ext/security/logic/TicketManager/TicketManager";
 import { createNodeSearcherManager } from "@ext/serach/createSearcherManager";
+import SettingsResolver from "@ext/settings/logic/SettingsResolver";
+import { YamlSettingsStore } from "@ext/settings/logic/SettingsStore";
 import { SourceDataProvider } from "@ext/storage/logic/SourceDataProvider/logic/SourceDataProvider";
-import ThemeManager from "@ext/Theme/ThemeManager";
 import { TableDB } from "@ext/tableDB/table";
-import { feature } from "@ext/toggleFeatures/features";
 import { PdfTemplateManager } from "@ext/wordExport/PdfTemplateManager";
 import { WordTemplateManager } from "@ext/wordExport/WordTemplateManager";
 import WorkspaceManager from "@ext/workspace/WorkspaceManager";
@@ -46,7 +47,7 @@ import { type AppConfig, getConfig } from "../config/AppConfig";
 import type Application from "../types/Application";
 
 const init = async (config: AppConfig): Promise<Application> => {
-	if (feature("opentelemetry-logs")) await registerOtel();
+	await registerOtel();
 	await initBackendModules();
 	if (!config.isReadOnly && !config.paths.data) throw new Error(`USER_DATA_PATH not specified`);
 
@@ -58,6 +59,7 @@ const init = async (config: AppConfig): Promise<Application> => {
 
 	await XxHash.init();
 
+	const healthcheckRegistry = new HealthcheckRegistry();
 	const em = new EnterpriseManager(config.enterprise);
 
 	const rp = new RepositoryProvider(config);
@@ -70,29 +72,36 @@ const init = async (config: AppConfig): Promise<Application> => {
 	const formatter = new MarkdownFormatter();
 	const tablesManager = new TableDB(parser);
 	const parserContextFactory = new ParserContextFactory(config.paths.base, tablesManager, parser, formatter, rp);
+	const resourceUpdaterFactory = new ResourceUpdaterFactory(parser, parserContextFactory, formatter);
+
+	// TODO(app-settings): replace dummy yaml config with the real app-level
+	// store (path under config.paths.data). Tracked in the epic.
+	const fileConfig = YamlFileConfig.dummy();
+	const appStore = new YamlSettingsStore(fileConfig as unknown as YamlFileConfig<Record<string, unknown>>);
+	const settings = new SettingsResolver(config, appStore);
 
 	const wm = new WorkspaceManager(
 		(path) => MountFileProvider.fromDefault(new Path(path)),
 		(fs) => {
-			new FileStructureEventHandlers(fs).mount();
+			new FileStructureEventHandlers(fs, resourceUpdaterFactory).mount();
 			new RepositoryProviderEventHandlers(fs, rp).mount();
 			templateEventHandlers.mount(fs);
 		},
 		(workspace) => {
 			if (workspace instanceof EnterpriseWorkspace) {
-				return [
-					new MergeNotificationHandler(workspace, parser, parserContextFactory),
-					new EnterpriseLfsResolver(workspace),
-				];
+				return [new MergeNotificationHandler(workspace, parser, parserContextFactory)];
 			}
 			return [];
 		},
 		rp,
 		config,
-		YamlFileConfig.dummy(),
+		fileConfig,
 	);
 	tablesManager.mountWorkspaceManager(wm); // TODO: remove
-	parserContextFactory.mountWorkspaceManager(wm); // TODO: remove
+	parserContextFactory.mount(
+		wm,
+		async () => settings.resolveServices(wm.maybeCurrent())?.["diagram-renderer"]?.endpoint,
+	); // TODO: remove
 
 	const sdp = new SourceDataProvider(wm);
 	rp.addSourceDataProvider(sdp);
@@ -100,7 +109,7 @@ const init = async (config: AppConfig): Promise<Application> => {
 	const adp = new AiDataProvider(wm);
 
 	const enterpriseConfig = em.getConfig();
-	const workspace = await wm.addWorkspace(config.paths.root.value, {
+	const workspace = await wm.addWorkspace(config.paths.root?.value ?? "", {
 		name: "Gramax",
 		icon: "layers",
 		enterprise: enterpriseConfig.gesUrl ? { ...enterpriseConfig, lastUpdateDate: 0 } : {},
@@ -114,12 +123,11 @@ const init = async (config: AppConfig): Promise<Application> => {
 
 	templateEventHandlers.withParser(parser, formatter, parserContextFactory);
 
-	const tm = new ThemeManager();
 	const ap = enterpriseConfig?.gesUrl
 		? new EnterpriseAuth(config.paths.base, em, () => wm.current())
 		: new EnvAuth(config.paths.base, config.admin.login, config.admin.password);
 	const am: AuthManager = new ServerAuthManager(em, ap, ticketManager);
-	const contextFactory = new ContextFactory(tm, config.tokens.cookie, am);
+	const contextFactory = new ContextFactory(config.tokens.cookie, am);
 	const sitePresenterFactory = new SitePresenterFactory(
 		wm,
 		parser,
@@ -129,63 +137,73 @@ const init = async (config: AppConfig): Promise<Application> => {
 		config.isReadOnly,
 	);
 
-	const resourceUpdaterFactory = new ResourceUpdaterFactory(parser, parserContextFactory, formatter);
+	const workspaceConfig = await wm.maybeCurrent()?.config();
+	const services = workspaceConfig?.services ?? config.services;
 
 	const { aiAvailable, searcherManager } = await createNodeSearcherManager({
 		config,
 		wm,
 		parser,
 		parserContextFactory,
+		tablesManager,
+		healthcheckRegistry,
 	});
-
-	const workspaceConfig = await wm.maybeCurrent()?.config();
 
 	const wtm = new WordTemplateManager(wm);
 	const ptm = new PdfTemplateManager(wm);
 
 	const enterpriseCloudManager = new GesCloudManager(config.enterpriseCloud);
+	const agentManager = new AgentManager(config);
 
 	return {
-		tm,
 		am,
 		rp,
 		wm,
 		em,
+		settings,
+		hashes,
+		logger,
+		parser,
+		tablesManager,
 		adp,
 		wtm,
 		ptm,
-		parser,
-		logger,
-		hashes,
 		formatter,
 		ticketManager,
-		tablesManager,
 		contextFactory,
 		searcherManager,
 		parserContextFactory,
 		sitePresenterFactory,
-		customArticlePresenter,
 		resourceUpdaterFactory,
+		customArticlePresenter,
 		enterpriseCloudManager,
+		agentManager,
+		healthcheckRegistry,
 		conf: {
+			search: config.search,
 			basePath: config.paths.base,
+			version: config.version,
+			buildVersion: config.buildVersion,
 			disableSeo: config.disableSeo,
+			hideErrorCause: config.hideErrorCause,
 
 			isRelease: config.isRelease,
 			isReadOnly: config.isReadOnly,
 			isProduction: config.isProduction,
 
-			metrics: config.metrics,
-			version: config.version,
-			buildVersion: config.buildVersion,
 			bugsnagApiKey: config.bugsnagApiKey,
-			services: workspaceConfig?.services ?? config.services,
+
+			services,
+
+			metrics: config.metrics,
 
 			logo: config.logo,
 
 			allowedOrigins: config.allowedGramaxUrls,
 
-			portalAi: { enabled: aiAvailable },
+			portalAi: {
+				enabled: aiAvailable,
+			},
 
 			forceUiLangSync: config.forceUiLangSync,
 		},
@@ -193,10 +211,9 @@ const init = async (config: AppConfig): Promise<Application> => {
 };
 
 const getApp = (): Promise<Application> => {
-	if (!global.app) {
-		global.app = init(getConfig());
-		if (getExecutingEnvironment() !== "cli") void initAutoPull(global.app);
-	}
+	if (global.app) return global.app;
+	global.app = init(getConfig());
+	if (getExecutingEnvironment() !== "cli") void initAutoPull(global.app);
 	return global.app;
 };
 

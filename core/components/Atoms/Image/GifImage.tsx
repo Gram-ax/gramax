@@ -63,7 +63,7 @@ const GifImage = (props: GifImageProps) => {
 	const articleRef = ArticleRefService.value;
 	const { id: resourceId, provider: resourceProvider } = ResourceService.value;
 
-	const [isPlaying, setIsplaying] = useState(false);
+	const [isPlaying, setIsplaying] = useState(!noplay);
 	const [thumbnail, setThumbnail] = useState<string>(null);
 	const [size, setSize] = useState(null);
 
@@ -149,13 +149,12 @@ const GifImage = (props: GifImageProps) => {
 						<ImageSkeleton height={size?.height} isLoaded={!!thumbnail} width={size?.width}>
 							<PlayButton
 								className={cn("ff-button absolute inset-0", { hidden: isPlaying })}
-								iconClassName="absolute inset-0 m-auto z-[var(--z-index-foreground)] text-[length:min(5em,70%)] text-[color:var(--color-white)] cursor-pointer bg-contain bg-center bg-no-repeat [filter:drop-shadow(0px_0px_2px_rgba(0,0,0,0.7))] !mt-auto"
 								onClick={onPlayButtonClick}
 								ref={buttonRef}
 							/>
 							<canvas
 								className={cn("ff-canvas absolute w-full h-full select-none", {
-									hidden: isPlaying,
+									"!hidden": isPlaying,
 								})}
 								data-focusable="true"
 								ref={canvasRef}
@@ -173,7 +172,7 @@ const GifImage = (props: GifImageProps) => {
 									onError={onError}
 									onLoad={preOnLoad}
 									ref={gifRef}
-									src={(!thumbnail && !isPlaying) || (isPlaying && thumbnail) ? src : thumbnail}
+									src={isPlaying || !thumbnail ? src : thumbnail}
 								/>
 							</div>
 						</ImageSkeleton>

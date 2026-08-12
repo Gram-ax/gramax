@@ -118,12 +118,21 @@ impl<C: Creds> Reset for Repo<'_, C> {
 			let fs_path = workdir.join(path.as_ref());
 			match tree.get_path(path.as_ref()) {
 				Ok(entry) => {
+					let mode = entry.filemode();
 					let blob = entry.to_object(&self.0)?.peel_to_blob()?;
 					if !fs_path.parent().map(|p| p.exists()).unwrap_or(true) {
 						std::fs::create_dir_all(fs_path.parent().unwrap())?;
 					}
 					let content = self.0.get_lfs_blob_content(&blob)?;
-					std::fs::write(fs_path, content)?;
+					std::fs::write(&fs_path, content)?;
+
+					// Restore the executable bit from the tree; std::fs::write does not touch perms,
+					// so a discarded chmod (e.g. 0o100755 -> 0o100644) would otherwise stay pending.
+					#[cfg(unix)]
+					if mode == 0o100644 || mode == 0o100755 {
+						use std::os::unix::fs::PermissionsExt;
+						std::fs::set_permissions(&fs_path, std::fs::Permissions::from_mode(mode as u32 & 0o777))?;
+					}
 				}
 				Err(err) if matches!((err.class(), err.code()), (ErrorClass::Tree, ErrorCode::NotFound)) => {
 					try_remove_path(&fs_path)?;

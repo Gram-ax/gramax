@@ -1,5 +1,4 @@
 import FileInput from "@components/Atoms/FileInput/FileInput";
-import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import { classNames } from "@components/libs/classNames";
 import UnsavedChangesModal from "@components/UnsavedChangesModal";
 import DiagramType from "@core/components/Diagram/DiagramType";
@@ -9,6 +8,7 @@ import { useGetResource } from "@core-ui/ContextServices/ResourceService/hooks/u
 import ResourceService from "@core-ui/ContextServices/ResourceService/ResourceService";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
 import useWatch from "@core-ui/hooks/useWatch";
+// biome-ignore lint/style/noRestrictedImports: existing styled wrapper, Tailwind migration out of scope
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import DiagramError from "@ext/markdown/elements/diagrams/component/DiagramError";
@@ -22,7 +22,7 @@ import { Dialog, DialogBody, DialogContent, DialogTrigger } from "@ui-kit/Dialog
 import { FormFooter, FormHeader } from "@ui-kit/Form";
 import { type FC, lazy, memo, Suspense, useCallback, useEffect, useRef, useState } from "react";
 
-const LazySwaggerUI = lazy(() => import("@ext/markdown/elements/openApi/render/SwaggerUI"));
+const LazyOpenApiPreview = lazy(() => import("@ext/markdown/elements/openApi/edit/components/OpenApiPreview"));
 
 const langs: { [type in DiagramType]: string } = {
 	Mermaid: "mermaid",
@@ -52,6 +52,7 @@ interface OverloadRendererProps {
 	setError: (value: boolean) => void;
 	error: boolean | null;
 	title?: string;
+	src?: string;
 }
 
 const DiagramsEditor = (props: DiagramsEditorProps) => {
@@ -68,7 +69,7 @@ const DiagramsEditor = (props: DiagramsEditorProps) => {
 	const [monacoHeight, setMonacoHeight] = useState(undefined);
 	const isMobile = IsMobileService.value;
 	const [pendedData, setPendedData] = useState(content ?? "");
-	const diagramsServiceUrl = PageDataContextService.value.conf.diagramsServiceUrl;
+	const diagramsServiceUrl = PageDataContextService.value.settings?.services?.["diagram-renderer"]?.endpoint;
 
 	const [showWarning, setShowWarning] = useState(false);
 
@@ -213,6 +214,7 @@ const DiagramsEditor = (props: DiagramsEditorProps) => {
 											diagramName={diagramName as DiagramType}
 											error={error}
 											setError={setError}
+											src={src}
 										/>
 									</div>
 								</div>
@@ -234,17 +236,11 @@ const DiagramsEditor = (props: DiagramsEditorProps) => {
 	);
 };
 
-const SwaggerDiagramRenderer = ({ content, className }) => {
+const OpenApiDiagramRenderer = ({ content, className, src }: { content: string; className: string; src?: string }) => {
 	return (
 		<div className={classNames(className, {}, ["article"])} data-focusable="true">
-			<Suspense
-				fallback={
-					<div className="suspense">
-						<SpinnerLoader height={75} width={75} />
-					</div>
-				}
-			>
-				<LazySwaggerUI defaultModelsExpandDepth={1} spec={content} />
+			<Suspense fallback={null}>
+				<LazyOpenApiPreview content={content} src={src} />
 			</Suspense>
 		</div>
 	);
@@ -253,7 +249,7 @@ const SwaggerDiagramRenderer = ({ content, className }) => {
 const FunctionDiagramRenderer: FC<OverloadRendererProps & { className: string }> = (props) => {
 	const { className, diagramName, error, setError, title = "", content = "" } = props;
 
-	const diagramsServiceUrl = PageDataContextService.value.conf.diagramsServiceUrl;
+	const diagramsServiceUrl = PageDataContextService.value.settings?.services?.["diagram-renderer"]?.endpoint;
 
 	const ref = useRef<HTMLDivElement | HTMLImageElement>();
 	const [data, setData] = useState("");
@@ -291,11 +287,11 @@ const FunctionDiagramRenderer: FC<OverloadRendererProps & { className: string }>
 };
 
 const OverloadDiagramRenderer: FC<OverloadRendererProps> = memo((props) => {
-	const { diagramName, content = "" } = props;
+	const { diagramName, content = "", src } = props;
 	const className = "diagram-background-without-lightbox";
 
 	if (!DIAGRAM_FUNCTIONS?.[diagramName]) {
-		return <SwaggerDiagramRenderer className={className} content={content} />;
+		return <OpenApiDiagramRenderer className={className} content={content} src={src} />;
 	}
 	return <FunctionDiagramRenderer {...props} className={className} />;
 });

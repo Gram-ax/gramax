@@ -1,0 +1,18 @@
+"$schema" = "schemas/schema.json"
+
+[default]
+description = "Default permissions for plugin-browser-session."
+permissions = [
+  "allow-get-session-meta",
+  "allow-resolve-request",
+  "allow-debug-log",
+  "allow-ensure-session",
+  "allow-navigate",
+  "allow-read-page",
+  "allow-read-element",
+  "allow-click",
+  "allow-type",
+  "allow-scroll",
+  "allow-reveal",
+  "allow-teardown",
+]

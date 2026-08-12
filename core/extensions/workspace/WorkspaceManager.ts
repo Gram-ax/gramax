@@ -1,4 +1,4 @@
-import type { AppConfig, ServicesConfig } from "@app/config/AppConfig";
+import type { AppConfig } from "@app/config/AppConfig";
 import { WORKSPACE_CONFIG_FILENAME } from "@app/config/const";
 import resolveModule from "@app/resolveModule/backend";
 import { getExecutingEnvironment } from "@app/resolveModule/env";
@@ -10,21 +10,24 @@ import type { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import type CatalogEntry from "@core/FileStructue/Catalog/CatalogEntry";
 import type { CatalogFilesUpdated } from "@core/FileStructue/Catalog/CatalogEvents";
 import FileStructure from "@core/FileStructue/FileStructure";
-import mergeObjects from "@core/utils/mergeObjects";
 import { uniqueName } from "@core/utils/uniqueName";
 import YamlFileConfig from "@core/utils/YamlFileConfig";
 import { EnterpriseWorkspace } from "@ext/enterprise/EnterpriseWorkspace";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import type RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import t from "@ext/localization/locale/translate";
-import { trace } from "@ext/loggers/opentelemetry";
+import { Level, trace } from "@ext/loggers/opentelemetry";
+import { migrateWorkspaceConfig } from "@ext/settings/migration/workspaceMigration";
+import { feature } from "@ext/toggleFeatures/features";
 import NoActiveWorkspace from "@ext/workspace/error/NoActiveWorkspaceError";
 import WorkspaceMissingPath from "@ext/workspace/error/UnknownWorkspace";
 import UnintializedWorkspace from "@ext/workspace/UnintializedWorkspace";
 import { Workspace, type WorkspaceInitCallback } from "@ext/workspace/Workspace";
 import WorkspaceAssets from "@ext/workspace/WorkspaceAssets";
 import type { ClientWorkspaceConfig, WorkspaceConfig, WorkspacePath } from "@ext/workspace/WorkspaceConfig";
-import { getBaseCatalogName } from "../../../apps/gramax-cli/src/logic/initialDataUtils/getCatalogName";
+import { getBaseCatalogName } from "../../../apps/cli/src/logic/initialDataUtils/getCatalogName";
+import { GesCloudWorkspace } from "../enterprise-cloud/GesCloudWorkspace";
+import { watchWorkspace } from "./workspaceWatcher";
 
 export type FSCreatedCallback = (fs: FileStructure) => void;
 export type CatalogChangedCallback = (change: CatalogFilesUpdated) => void | Promise<void>;
@@ -65,13 +68,17 @@ export default class WorkspaceManager {
 		private _rp: RepositoryProvider,
 		private _config: AppConfig,
 		private _workspacesConfig: YamlFileConfig<WorkspaceManagerConfig>,
-	) {}
+	) {
+		this._rp.events.on("before-connect-repository", ({ catalog }) => {
+			this._current.events.emit("before-connect-repository", { catalog });
+		});
+	}
 
 	get events() {
 		return this._events;
 	}
 
-	@trace()
+	@trace({ level: Level.Important })
 	async getUnintializedWorkspaces() {
 		const current = this.maybeCurrent()?.path();
 		if (!current) return [];
@@ -83,7 +90,7 @@ export default class WorkspaceManager {
 		});
 	}
 
-	@trace()
+	@trace({ level: Level.Important })
 	async getUnintializedWorkspace(path: WorkspacePath) {
 		return await UnintializedWorkspace.init({
 			path,
@@ -96,11 +103,14 @@ export default class WorkspaceManager {
 		});
 	}
 
-	@trace()
+	@trace({ level: Level.Important })
 	async setWorkspace(path: WorkspacePath) {
 		if (!path) throw new Error(`Invalid workspace path ${path}`);
 		const { config: init } = this._workspaces.get(path);
 		if (!init) throw new Error(`There is no workspace with id '${path}'`);
+
+		if (feature("native-fs")) await watchWorkspace(path);
+
 		const fp = this._makeFileProvider(path);
 		await fp.createRootPathIfNeed();
 		const fs = new FileStructure(fp, this._config.isReadOnly, Array.from(this._workspaces.keys()));
@@ -121,7 +131,7 @@ export default class WorkspaceManager {
 				this._current = await EnterpriseWorkspace.init(workspaceConfig);
 				break;
 			case "enterpriseCloud":
-				this._current = await Workspace.init(workspaceConfig);
+				this._current = await GesCloudWorkspace.init(workspaceConfig);
 				break;
 			default:
 				this._current = await Workspace.init(workspaceConfig);
@@ -157,7 +167,7 @@ export default class WorkspaceManager {
 		await this._events.emit("workspace-changed", { workspace: this._current });
 	}
 
-	@trace()
+	@trace({ level: Level.Important })
 	async readWorkspaces(): Promise<void> {
 		await Promise.all(this._workspacesConfig.get("workspaces")?.map((w) => this.addWorkspace(w)) ?? []);
 
@@ -180,6 +190,7 @@ export default class WorkspaceManager {
 		path && (await this.setWorkspace(path));
 	}
 
+	@trace({ level: Level.Important })
 	async addWorkspace(
 		path: WorkspacePath,
 		config?: WorkspaceConfig,
@@ -232,19 +243,21 @@ export default class WorkspaceManager {
 		return new WorkspaceAssets(fp);
 	}
 
+	@trace({ level: Level.Important })
 	async saveWorkspaces() {
 		this._workspacesConfig.set("workspaces", Array.from(this._workspaces.keys()));
 		await this._workspacesConfig.save();
 	}
 
+	@trace({ level: Level.Important })
 	async removeWorkspace(path: WorkspacePath) {
 		const fp = this._makeFileProvider(path);
-		if (getExecutingEnvironment() === "browser") await fp.delete(Path.empty);
+		if (getExecutingEnvironment() === "web") await fp.delete(Path.empty);
 		this._workspaces.delete(path);
 		await this.saveWorkspaces();
 		if (this.current().path() === path && this.workspaces()?.[0]?.path) {
 			await this.setWorkspace(this.workspaces()[0].path);
-		}
+		} else this._current = null;
 	}
 
 	defaultPath() {
@@ -270,7 +283,7 @@ export default class WorkspaceManager {
 		return !!this._current;
 	}
 
-	@trace()
+	@trace({ level: Level.Important })
 	async getCatalogOrFindAtAnyWorkspace(catalogName: string): Promise<Catalog> {
 		const current = this.maybeCurrent();
 
@@ -310,12 +323,19 @@ export default class WorkspaceManager {
 	}
 
 	private async _getWorkspaceClass(config: WorkspaceConfig) {
-		if (config.enterprise?.gesUrl) return "enterprise";
+		// post-migration: enterprise endpoint moved from `gesUrl` to `endpoint`;
+		// check both so pre-migration callers (e.g. enterprise sync) still work.
+		const ent = config.enterprise as (typeof config.enterprise & { endpoint?: string }) | undefined;
+		if (ent?.endpoint || ent?.gesUrl) return "enterprise";
 		if (config.enterpriseCloud?.url) return "enterpriseCloud";
 		return "workspace";
 	}
 
 	private async _readWorkspace(fp: FileProvider, config?: WorkspaceConfig): Promise<WorkspaceConfigWithCatalogs> {
+		// Legacy `services` / `webEditorUrl` from the init config must be seeded here:
+		// migrateWorkspaceConfig (below) folds them into `settings.services`, and the
+		// enterprise config sync still reads/writes the legacy shape. Dropping them
+		// would silently lose per-workspace service overrides passed to workspace/create.
 		const yaml = await YamlFileConfig.readFromFile(fp, workspaceConfigFilename, {
 			name: config?.name || t(DEFAULT_WORKSPACE_NAME),
 			icon: config?.icon || DEFAULT_WORKSPACE_ICON,
@@ -330,8 +350,14 @@ export default class WorkspaceManager {
 			enterpriseCloud: {
 				url: config?.enterpriseCloud?.url ?? null,
 			},
-			services: mergeObjects<ServicesConfig>(this._config.services, config?.services ?? {}),
+			git: {
+				lfs: config?.git?.lfs ?? undefined,
+			},
+			services: config?.services ?? undefined,
+			settings: config?.settings ?? undefined,
 		});
+
+		await migrateWorkspaceConfig(yaml);
 
 		const name = yaml.get("name");
 		yaml.set(
@@ -344,8 +370,10 @@ export default class WorkspaceManager {
 			),
 		);
 
-		if (!yaml.get("enterprise")?.gesUrl && !yaml.get("enterpriseCloud")?.url)
-			yaml.set("services", this._config.services);
+		// App-level service defaults come from SettingsResolver's env layer and are
+		// never copied into workspace yaml (the pre-settings writeback of
+		// this._config.services is gone on purpose) — only explicit init overrides
+		// are seeded above.
 		if (yaml.get("name") !== name) await yaml.save();
 
 		const catalogNames = await FileStructure.getCatalogDirs(fp);

@@ -12,7 +12,7 @@ export const confirmDiscard = async (count: number) => {
 		}
 
 		ModalToOpenService.setValue<ComponentProps<typeof AlertConfirm>>(ModalToOpen.AlertConfirm, {
-			title: t("git.discard.alert.title").replace("{count}", count > 1 ? ` (${count})` : ""),
+			title: t("git.discard.alert.title"),
 			description: t("git.discard.alert.body"),
 			cancelText: t("git.discard.alert.buttons.secondary"),
 			confirmText: t("git.discard.alert.buttons.primary").replace("{count}", count > 1 ? ` (${count})` : ""),

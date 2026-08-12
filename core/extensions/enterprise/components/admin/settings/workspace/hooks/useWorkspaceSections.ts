@@ -3,6 +3,7 @@ import {
 	type WorkspaceSettings,
 	WorkspaceView,
 } from "@ext/enterprise/components/admin/settings/workspace/types/WorkspaceComponent";
+import t from "@ext/localization/locale/translate";
 import { useCallback, useState } from "react";
 
 export function useWorkspaceSections(
@@ -62,7 +63,7 @@ export function useWorkspaceSections(
 
 		if (!currentForm.key || !currentForm.title) return;
 
-		const alertMessage = `Секция с ключом "${currentForm.key}" уже существует. Пожалуйста, выберите другой ключ.`;
+		const alertMessage = t("enterprise.admin.workspace.sections.key-exists").replace("{key}", currentForm.key);
 
 		if (editingKey && editingKey !== currentForm.key) {
 			if (localSettings.sections?.[currentForm.key]) {

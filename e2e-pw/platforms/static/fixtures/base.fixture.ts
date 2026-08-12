@@ -1,9 +1,9 @@
-import { type BrowserContext, type Page, test } from "@playwright/test";
+import { type Page, test, type WebContext } from "@playwright/test";
 import "@utils/async";
 
 export interface BaseFixture {
 	startUrl: string;
-	sharedContext: BrowserContext;
+	sharedContext: WebContext;
 	sharedPage: Page;
 }
 

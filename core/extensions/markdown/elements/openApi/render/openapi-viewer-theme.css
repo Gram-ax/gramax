@@ -1,0 +1,225 @@
+/* Maps @gramax/openapi-viewer's public --openapi-* theme surface onto Gramax's own design tokens (core/styles/vars.css, themes.css). */
+/** biome-ignore-all lint/complexity/noImportantStyles: it's ok */
+/* Targets openapi-doc directly (not just [data-theme]): the package sets its own --openapi-* defaults on the openapi-doc element itself (tokens.css), which shadows anything only declared on an ancestor like <body>. Matching the same element with higher specificity is what lets this override win regardless of CSS load order. */
+[data-theme] openapi-doc {
+	--openapi-font: var(--app-font-famaly), sans-serif;
+	--openapi-mono: "Roboto Mono", Consolas, monospace;
+
+	--openapi-text: hsl(var(--primary-fg));
+	--openapi-text-soft: var(--color-primary-general);
+	--openapi-text-muted: hsl(var(--muted));
+
+	--openapi-bg: var(--color-article-bg);
+	--openapi-surface: var(--color-block);
+	--openapi-surface-hover: var(--color-block-hover);
+	--openapi-surface-muted: var(--color-background-muted);
+	--openapi-surface-subtle: var(--color-code-bg);
+	--openapi-surface-code: var(--color-code-bg);
+	--openapi-surface-info: var(--color-property-bg-blue);
+
+	--openapi-border: var(--color-table-border);
+	--openapi-border-strong: var(--color-line);
+	--openapi-border-accent: var(--color-property-border-blue);
+	--openapi-border-info-soft: var(--color-property-border-blue);
+
+	--openapi-text-faint: var(--color-placeholder);
+	--openapi-text-inverse: hsl(var(--primary-foreground));
+
+	--openapi-method-get-bg: var(--color-property-bg-blue);
+	--openapi-method-get-text: var(--color-property-text-blue);
+	--openapi-method-get-border: var(--color-property-border-blue);
+	--openapi-method-post-bg: var(--color-property-bg-green);
+	--openapi-method-post-text: var(--color-property-text-green);
+	--openapi-method-post-border: var(--color-property-border-green);
+	--openapi-method-put-bg: var(--color-property-bg-teal);
+	--openapi-method-put-text: var(--color-property-text-teal);
+	--openapi-method-put-border: var(--color-property-border-teal);
+	--openapi-method-delete-bg: var(--color-property-bg-red);
+	--openapi-method-delete-text: var(--color-property-text-red);
+	--openapi-method-delete-border: var(--color-property-border-red);
+
+	--openapi-param-query-bg: var(--color-property-bg-blue);
+	--openapi-param-query-text: var(--color-property-text-blue);
+	--openapi-param-path-bg: var(--color-property-bg-green);
+	--openapi-param-path-text: var(--color-property-text-green);
+	--openapi-param-header-bg: var(--color-property-bg-blue-purple);
+	--openapi-param-header-text: var(--color-property-text-blue-purple);
+	--openapi-param-cookie-bg: var(--color-property-bg-orange-red);
+	--openapi-param-cookie-text: var(--color-property-text-orange-red);
+
+	/* ui-kit --status-* family: dark variants live under the .dark class, which Theme/utils.ts writeToDom()
+	   sets on <html> (document.documentElement.className = theme) alongside body[data-theme]. */
+	--openapi-danger-bg: hsl(var(--status-error-bg));
+	--openapi-danger-border: hsl(var(--status-error-primary-border));
+	--openapi-danger-text: hsl(var(--status-error-fg));
+	--openapi-warning-bg: hsl(var(--status-warning-bg));
+	--openapi-warning-border: hsl(var(--status-warning-primary-border));
+	--openapi-warning-text: hsl(var(--status-warning-fg));
+	--openapi-info-bg: hsl(var(--status-info-bg));
+	--openapi-info-border: hsl(var(--status-info-primary-border));
+	--openapi-info-text: hsl(var(--status-info-fg));
+	--openapi-success: hsl(var(--status-success-fg));
+
+	--openapi-deprecated-bg: var(--color-property-bg-orange-red);
+	--openapi-deprecated-border: var(--color-property-border-orange-red);
+	--openapi-deprecated-text: var(--color-property-text-orange-red);
+
+	--openapi-accent-purple: var(--color-property-text-purple);
+	--openapi-accent-orange: var(--color-property-text-bright-orange);
+	--openapi-accent-sky: var(--color-property-text-blue);
+	--openapi-accent-link: var(--color-link);
+	/* A filled action is one UI Kit color pair in every state. Mixing its dark foreground with Gramax's
+	   legacy block hover produced black text on a dark-blue Send button. */
+	--openapi-accent: hsl(var(--primary));
+	--openapi-accent-fg: hsl(var(--primary-foreground));
+	--openapi-accent-dark-hover: hsl(var(--primary-hover));
+
+	--openapi-note-bg: var(--color-comment-bg);
+	--openapi-note-text: var(--color-comment-fg);
+
+	/* Same ring the ui-kit inputs use (tailwind shadow-focus in ics-ui-kit inputBaseStyles). */
+	--openapi-focus-ring: 0 0 0 1px hsl(var(--primary-bg)), 0 0 0 2px hsl(var(--primary-accent));
+
+	/* Layout. The package's own page box is a centred 980px column with gutters — right for a standalone page,
+	   wrong inside an article, where the article column already sets the measure and the block rhythm. Zeroed
+	   here so the doc runs the full width of the article, exactly like a table or an image does. */
+	--openapi-page-max-width: 100%;
+	--openapi-page-gutter: 0px;
+	--openapi-page-padding-block: 0px;
+}
+
+/* OpenAPI descriptions are article prose, not secondary UI copy. Keep controls and metadata muted, but render
+   Markdown from the spec with the same foreground as the surrounding article. The document description also
+   owns tables, so it must use the whole article column instead of the package's standalone 620px reading measure. */
+[data-theme] openapi-doc .markdown {
+	color: var(--openapi-text);
+}
+
+[data-theme] openapi-doc .description {
+	max-width: none;
+	font-size: inherit;
+	line-height: inherit;
+}
+
+/* Article tables reserve inline space for editor controls. Markdown rendered inside OpenAPI descriptions does not
+   have those controls, so let its table use the full description width. */
+[data-theme] openapi-doc .markdown table {
+	padding-inline: 0;
+}
+
+/* Inside the editor ProseMirror gives article links a text cursor. OpenAPI is an interactive embedded view, so
+   its real links keep normal browser link affordance in edit mode too. */
+.ProseMirror[contentEditable="true"] openapi-doc a {
+	cursor: pointer !important;
+}
+
+/* The permalink and authorization control are one compact action group. Keep both boxes identical. */
+[data-theme] openapi-doc api-operation :is(.op-anchor, .lock) {
+	width: 30px;
+	height: 30px;
+	background: var(--openapi-surface);
+	border-color: var(--openapi-border);
+}
+
+[data-theme] openapi-doc api-operation .op-anchor {
+	cursor: pointer !important;
+}
+
+[data-theme] openapi-doc api-operation .lock[data-open-auth] {
+	cursor: pointer;
+}
+
+[data-theme] openapi-doc api-operation :is(.op-anchor, .lock[data-open-auth]):is(:hover, :focus-visible),
+[data-theme]
+	openapi-doc
+	api-operation
+	.op-head:hover
+	:is(.op-anchor, .lock[data-open-auth]):is(:hover, :focus-visible) {
+	color: var(--openapi-text);
+	border-color: var(--openapi-text-faint);
+}
+
+/* Avoid saturated red text on the dark article surface: it can appear displaced or doubled. */
+[data-theme="dark"] openapi-doc {
+	--openapi-method-delete-bg: hsl(var(--status-error-primary-bg));
+	--openapi-method-delete-text: var(--openapi-text-soft);
+	--openapi-method-delete-border: hsl(var(--status-error-secondary-border));
+}
+
+/* The block's selection frame in the editor is an outline (ProseMirror.css), so it costs no layout width — but
+   drawn on the content box it would run right along the edge of the doc. The negative margin, undone by an equal
+   padding, puts the frame outside the article column instead of shrinking the doc to make room for it. */
+.openapi-block {
+	--openapi-block-frame-inset: 12px;
+
+	padding: var(--openapi-block-frame-inset);
+	/* Block rhythm is 1em, the same as any other standalone block in an article (.article pre, blockquote) —
+	   the package's page padding is off, so the article spaces the doc. Horizontally the inset is pulled back
+	   out, so the doc keeps starting exactly at the edge of the article column. */
+	margin: 1em calc(-1 * var(--openapi-block-frame-inset));
+	border-radius: var(--radius-large);
+}
+
+/* Print layout: the document goes to paper as a list of operations, each one heading-only.
+
+   A layout rule and not a state change on purpose. The PDF export renders its own copy of the article, so the
+   reader's document is never touched -- and the paginator clones `openapi-doc`, `api-section` and
+   `api-operation` as repeating page chrome, which a state-based approach would keep missing. Scoping to the
+   two export containers covers the copy while it is measured (.render-body) and after it has been dealt out
+   into page boxes (.print-body).
+
+   `display: none` and not the package's own collapse mechanism. On screen a closed card is a grid row of
+   `0fr` whose inner div clips with `overflow: hidden`; that survives neither the paginator moving nodes
+   between containers nor the print stylesheet, and the body printed in full under a closed chevron. Taking
+   the body out of the flow outright does not depend on either.
+
+   Replace this with the package's own print layout once it has one -- see the openapi-viewer rework epic. */
+:is(.render-body, .print-body) :is(api-operation, api-models) .op-body {
+	display: none;
+}
+
+/* Chevrons of the cards hidden above point at a closed card, so the page does not promise content that is not
+   there. Sections keep theirs open: the list of operations is exactly what is being printed. */
+:is(.render-body, .print-body) :is(api-operation, .model-card) {
+	/* !important is the only thing that reaches here: the package writes this custom property inline
+	   (runtime/state.js: element.style.setProperty("--openapi-angle", …)), and no selector outranks an
+	   inline declaration. The neighbouring print rules win on specificity and carry none. */
+	--openapi-angle: 0deg !important;
+}
+
+/* Search belongs to the screen. It survives here only because the element's own print mode -- which drops it
+   -- is switched off in OpenApiViewer.tsx, and an empty input on paper is noise. */
+:is(.render-body, .print-body) openapi-doc .search-field {
+	display: none;
+}
+
+/* A card sits flush against the page's clip boundary, and there its shadow has nowhere to fade: `overflow:
+   hidden` on `.page` cuts the soft edge into a hard vertical line, which reads as a second, misaligned border
+   running down the side of the card, and squares off the rounded corner it passes through.
+
+   Only the shadow is dropped, not the block's inset. `.openapi-block` does pull itself out of the column with
+   a negative inline margin, which looks like the culprit -- but its equal padding puts the content back, so
+   the cards land in the same column either way. Zeroing both was tried on a real page and moved nothing;
+   the rule was removed again rather than left as a no-op with a convincing comment over it.
+
+   Paper has no use for a drop shadow anyway: the border alone carries the card. Only the operation card
+   carries one; the model and diagnostics cards below are bordered but flat. */
+:is(.render-body, .print-body) .op-card {
+	box-shadow: none;
+}
+
+/* Every rounded card in the package draws its corners by clipping: the head inside it is a square box with
+   its own background, laid straight across the rounded border, and only `overflow: hidden` keeps the border
+   visible through it. Printing blankets the layout with `* { overflow: visible }` (CatalogLayout) -- right
+   for scroll containers, fatal here: every corner reaches paper as a break in the outline.
+
+   All three of the package's bordered cards are listed, not just the one that was reported. They are built
+   the same way (style.css: `.op-card`, `.model-card`, `.diagnostics-group` -- border + radius + clip), so
+   they break the same way, and fixing them one bug report at a time only means printing the next one wrong. */
+:is(.render-body, .print-body) :is(.op-card, .model-card, .diagnostics-group) {
+	/* !important is required here too, for a different reason: CatalogLayout prints with
+	   `* { overflow: visible !important }`, and nothing but another !important reaches past that --
+	   specificity does not enter into it. Between the two important declarations this one wins on
+	   specificity. Removing it was tried: the outline test went red. */
+	overflow: hidden !important;
+}

@@ -1,12 +1,12 @@
 import StickyTableWrapper from "@components/StickyWrapper/StickyTableWrapper";
+import AggregationFooter from "@ext/markdown/elements/table/edit/components/Helpers/AggregationFooter";
 import ColGroup, { type ColInfo } from "@ext/markdown/elements/table/edit/components/Helpers/ColGroup";
-import { useAggregation } from "@ext/markdown/elements/table/edit/logic/aggregation";
 import type { TableHeaderTypes } from "@ext/markdown/elements/table/edit/model/tableTypes";
 import modifyChildren from "@ext/markdown/elements/table/print/modifyChildren";
 import PrintColGroup from "@ext/markdown/elements/table/print/PrintColGroup";
-import filterAndSortModifyChildren from "@ext/markdown/elements/table/render/components/FilterAndSort/filterAndSortModifyChildren";
 import { TablePropsProvider } from "@ext/markdown/elements/table/render/components/FilterAndSort/TablePropsProvider";
 import { useFilterAndSortRender } from "@ext/markdown/elements/table/render/components/FilterAndSort/useFilterAndSortRender";
+import reactModifyChildren from "@ext/markdown/elements/table/render/components/reactModifyChildren";
 import TableWrapper from "@ext/markdown/elements/table/render/components/TableWrapper";
 
 import { type ReactElement, useLayoutEffect, useMemo, useRef, useState } from "react";
@@ -24,7 +24,7 @@ const Table = (props: TableProps): ReactElement => {
 
 	const [isEnabledWrapper, setIsEnabledWrapper] = useState(false);
 	const tableChildren = useMemo(
-		() => (isPrint ? modifyChildren : filterAndSortModifyChildren)(children, header),
+		() => (isPrint ? modifyChildren : reactModifyChildren)(children, header),
 		[isPrint, children, header],
 	);
 
@@ -32,8 +32,6 @@ const Table = (props: TableProps): ReactElement => {
 	const [modifiedChildren, setModifiedChildren] = useState(
 		Array.isArray(tableChildren) ? tableChildren.slice(1) : undefined,
 	);
-
-	useAggregation(ref);
 
 	const colInfo: ColInfo[] = useMemo(() => {
 		const firstRowChildren = firstRow?.props?.children;
@@ -57,6 +55,17 @@ const Table = (props: TableProps): ReactElement => {
 		<ColGroup init={{ colInfo: colInfo || [] }} tableRef={ref} />
 	);
 
+	const headerRowRef = useRef<HTMLTableRowElement | null>(null);
+
+	const filterAndSortProps = useFilterAndSortRender(
+		header,
+		ref,
+		{ headerRow: firstRow, rowsArray: modifiedChildren || [] },
+		setModifiedChildren,
+		props.sortingOrder,
+	);
+	const { active, aggregation, tableData } = filterAndSortProps;
+
 	const table = (
 		<table
 			data-focusable="true"
@@ -76,6 +85,7 @@ const Table = (props: TableProps): ReactElement => {
 				{firstRow}
 				{modifiedChildren}
 			</tbody>
+			<AggregationFooter aggregation={aggregation} />
 		</table>
 	);
 
@@ -86,17 +96,6 @@ const Table = (props: TableProps): ReactElement => {
 			</div>
 		);
 	}
-
-	const headerRowRef = useRef<HTMLTableRowElement | null>(null);
-
-	const filterAndSortProps = useFilterAndSortRender(
-		header,
-		ref,
-		{ headerRow: firstRow, rowsArray: modifiedChildren || [] },
-		setModifiedChildren,
-		props.sortingOrder,
-	);
-	const { active, tableData } = filterAndSortProps;
 
 	useLayoutEffect(() => {
 		const el = ref.current;

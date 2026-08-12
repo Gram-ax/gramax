@@ -47,7 +47,7 @@ const Search = forwardRef<HTMLInputElement, SearchProps>((props, ref) => {
 	return (
 		<span
 			className={cn(
-				"flex items-center gap-2 text-sm px-4 mb-2 bg-[var(--color-article-bg)] py-1 font-normal",
+				"flex items-center gap-2 text-sm px-4 mb-2 bg-secondary-bg-hover py-1 font-normal",
 				className,
 			)}
 		>

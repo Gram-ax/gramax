@@ -1,5 +1,6 @@
 import Header from "@components/Layouts/LeftNavigationTabs/Header";
-import { classNames } from "@components/libs/classNames";
+import { cn } from "@core-ui/utils/cn";
+// biome-ignore lint/style/noRestrictedImports: expected
 import styled from "@emotion/styled";
 import { forwardRef, type ReactNode } from "react";
 
@@ -11,15 +12,10 @@ const Wrapper = styled.div<{ height: number }>`
 	width: 100%;
 	font-size: 12px;
 	color: var(--color-merge-request-text);
-	background-color: var(--color-merge-request-bg);
 	transition: height var(--transition-time-fast) ease-out;
 	line-height: 1.6;
 	z-index: var(--z-index-base);
 	pointer-events: none;
-
-	border-width: 0px;
-	border-style: solid;
-	border-color: var(--color-merge-request-border);
 
 	padding: 0;
 	gap: 0.8em;
@@ -36,7 +32,6 @@ const Wrapper = styled.div<{ height: number }>`
 		margin-top: unset;
 		pointer-events: auto;
 		padding: 0.92em 0;
-		border-width: 1px 1px 0px 0px;
 		height: ${(props) => props.height}px;
 	}
 
@@ -47,7 +42,7 @@ const Wrapper = styled.div<{ height: number }>`
 interface TabWrapperProps {
 	children: ReactNode;
 	show: boolean;
-	title: string;
+	title?: string;
 	onClose?: () => void;
 	contentHeight?: number;
 	isTop?: boolean;
@@ -72,22 +67,29 @@ const TabWrapper = forwardRef<HTMLDivElement, TabWrapperProps>((props, ref) => {
 		className,
 		dataQa,
 	} = props;
-
 	return (
 		<Wrapper
-			className={classNames("tab-wrapper", { show, "is-top": isTop }, [className])}
+			className={cn(
+				"tab-wrapper bg-secondary-bg border-secondary-border",
+				show && "show",
+				isTop && "is-top",
+				show ? (isTop ? "border-b border-r border-t" : "border-t border-r") : "",
+				className,
+			)}
 			data-qa={dataQa}
 			height={show ? contentHeight : undefined}
 			ref={ref}
 		>
-			<Header
-				actions={actions}
-				leftExtension={titleLeftExtension}
-				onClose={onClose}
-				rightExtension={titleRightExtension}
-				show={show}
-				title={title}
-			/>
+			{(titleLeftExtension || titleRightExtension || title) && (
+				<Header
+					actions={actions}
+					leftExtension={titleLeftExtension}
+					onClose={onClose}
+					rightExtension={titleRightExtension}
+					show={show}
+					title={title}
+				/>
+			)}
 			{children}
 		</Wrapper>
 	);

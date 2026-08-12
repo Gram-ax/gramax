@@ -1,225 +1,84 @@
 import { Extension, textInputRule } from "@tiptap/core";
 
-export interface TypographyOptions {
-	dash: false;
-	ellipsis: false;
-	openDoubleQuote: false;
-	closeDoubleQuote: false;
-	openSingleQuote: false;
-	closeSingleQuote: false;
-	leftArrow: false;
-	rightArrow: false;
-	copyright: false;
-	trademark: false;
-	registeredTrademark: false;
-	oneHalf: false;
-	plusMinus: false;
-	notEqual: false;
-	laquo: false;
-	raquo: false;
-	multiplication: false;
-	superscriptTwo: false;
-	superscriptThree: false;
-	oneQuarter: false;
-	threeQuarters: false;
-}
+type TypographyRule = { find: RegExp; replace: string };
 
-const dash = textInputRule({
-	find: /--$/,
-	replace: "—",
-});
+const rules: Record<string, TypographyRule> = {
+	dash: { find: /--$/, replace: "—" },
+	ellipsis: { find: /\.\.\.$/, replace: "…" },
+	rightArrow: { find: /(?:—>|->)$/, replace: "→" },
+	leftArrow: { find: /(?:<-|<-)$/, replace: "←" },
+	bidirectionalArrow: { find: /<->$/, replace: "↔" },
+	doubleRightArrow: { find: /=>$/, replace: "⇒" },
+	doubleLeftRightArrow: { find: /\s?<=>$/, replace: "⇔" },
+	upArrow: { find: /\(up\)$/i, replace: "↑" },
+	downArrow: { find: /\(down\)$/i, replace: "↓" },
+	openDoubleQuote: { find: /(?:^|[\s{[(<'"‘“])(")$/, replace: "«" },
+	closeDoubleQuote: { find: /"$/, replace: "»" },
+	openSingleQuote: { find: /(?:^|[\s{[(<'"‘“])(')$/, replace: "‘" },
+	closeSingleQuote: { find: /'$/, replace: "’" },
+	laquo: { find: /<<$/, replace: "«" },
+	raquo: { find: />>$/, replace: "»" },
+	copyright: { find: /\(c\)$/, replace: "©" },
+	trademark: { find: /\(tm\)$/, replace: "™" },
+	registeredTrademark: { find: /\(r\)$/, replace: "®" },
+	plusMinus: { find: /\+\/-$/, replace: "±" },
+	notEqual: { find: /!=$/, replace: "≠" },
+	lessOrEqual: { find: /<=$/, replace: "≤" },
+	greaterOrEqual: { find: />=$/, replace: "≥" },
+	approximately: { find: /\(approx\)$/i, replace: "≈" },
+	multiplication: { find: /\d+\s?([*x])\s?\d+$/, replace: "×" },
+	oneHalf: { find: /1\/2$/, replace: "½" },
+	oneQuarter: { find: /1\/4$/, replace: "¼" },
+	threeQuarters: { find: /3\/4$/, replace: "¾" },
+	superscriptZero: { find: /\^0$/, replace: "⁰" },
+	superscriptOne: { find: /\^1$/, replace: "¹" },
+	superscriptTwo: { find: /\^2$/, replace: "²" },
+	superscriptThree: { find: /\^3$/, replace: "³" },
+	superscriptFour: { find: /\^4$/, replace: "⁴" },
+	superscriptFive: { find: /\^5$/, replace: "⁵" },
+	superscriptSix: { find: /\^6$/, replace: "⁶" },
+	superscriptSeven: { find: /\^7$/, replace: "⁷" },
+	superscriptEight: { find: /\^8$/, replace: "⁸" },
+	superscriptNine: { find: /\^9$/, replace: "⁹" },
+	euroSign: { find: /\(eur\)$/i, replace: "€" },
+	poundSign: { find: /\(gbp\)$/i, replace: "£" },
+	yenSign: { find: /\(yen\)$/i, replace: "¥" },
+	rubleSign: { find: /\(rub\)$/i, replace: "₽" },
+	degreeSign: { find: /\(deg\)$/i, replace: "°" },
+	microSign: { find: /\(micro\)$/i, replace: "µ" },
+	numberSign: { find: /\(no\)$/i, replace: "№" },
+	sectionSign: { find: /\(sect\)$/i, replace: "§" },
+	bulletPoint: { find: /\(bullet\)$/i, replace: "•" },
+	dagger: { find: /\(dagger\)$/i, replace: "†" },
+	squareRoot: { find: /\(sqrt\)$/i, replace: "√" },
+	summation: { find: /\(sum\)$/i, replace: "∑" },
+	infinity: { find: /\(inf\)$/i, replace: "∞" },
+	emptySet: { find: /\(empty\)$/i, replace: "∅" },
+	elementOf: { find: /\(in\)$/i, replace: "∈" },
+	forAll: { find: /\(forall\)$/i, replace: "∀" },
+	thereExists: { find: /\(exists\)$/i, replace: "∃" },
+	piSymbol: { find: /\(pi\)$/i, replace: "π" },
+	alphaSymbol: { find: /\(alpha\)$/i, replace: "α" },
+	betaSymbol: { find: /\(beta\)$/i, replace: "β" },
+	gammaSymbol: { find: /\(gamma\)$/i, replace: "γ" },
+	deltaSymbol: { find: /\(delta\)$/i, replace: "δ" },
+	epsilonSymbol: { find: /\(epsilon\)$/i, replace: "ε" },
+	lambdaSymbol: { find: /\(lambda\)$/i, replace: "λ" },
+	muSymbol: { find: /\(mu\)$/i, replace: "μ" },
+	sigmaSymbol: { find: /\(sigma\)$/i, replace: "σ" },
+	omegaSymbol: { find: /\(omega\)$/i, replace: "ω" },
+	thetaSymbol: { find: /\(theta\)$/i, replace: "θ" },
+};
 
-const rightArrow = textInputRule({
-	find: /(?:—>|->)$/,
-	replace: "→",
-});
-
-export const leftArrow = textInputRule({
-	find: /(?:<-|<-)$/,
-	replace: "←",
-});
-
-export const ellipsis = textInputRule({
-	find: /\.\.\.$/,
-	replace: "…",
-});
-
-export const openDoubleQuote = textInputRule({
-	find: /(?:^|[\s{[(<'"\u2018\u201C])(")$/,
-	replace: "«",
-});
-
-export const closeDoubleQuote = textInputRule({
-	find: /"$/,
-	replace: "»",
-});
-
-export const openSingleQuote = textInputRule({
-	find: /(?:^|[\s{[(<'"\u2018\u201C])(')$/,
-	replace: "‘",
-});
-
-export const closeSingleQuote = textInputRule({
-	find: /'$/,
-	replace: "’",
-});
-
-export const copyright = textInputRule({
-	find: /\(c\)$/,
-	replace: "©",
-});
-
-export const trademark = textInputRule({
-	find: /\(tm\)$/,
-	replace: "™",
-});
-
-export const registeredTrademark = textInputRule({
-	find: /\(r\)$/,
-	replace: "®",
-});
-
-export const oneHalf = textInputRule({
-	find: /1\/2$/,
-	replace: "½",
-});
-
-export const plusMinus = textInputRule({
-	find: /\+\/-$/,
-	replace: "±",
-});
-
-export const notEqual = textInputRule({
-	find: /!=$/,
-	replace: "≠",
-});
-
-export const laquo = textInputRule({
-	find: /<<$/,
-	replace: "«",
-});
-
-export const raquo = textInputRule({
-	find: />>$/,
-	replace: "»",
-});
-
-export const multiplication = textInputRule({
-	find: /\d+\s?([*x])\s?\d+$/,
-	replace: "×",
-});
-
-export const superscriptTwo = textInputRule({
-	find: /\^2$/,
-	replace: "²",
-});
-
-export const superscriptThree = textInputRule({
-	find: /\^3$/,
-	replace: "³",
-});
-
-export const oneQuarter = textInputRule({
-	find: /1\/4$/,
-	replace: "¼",
-});
-
-const threeQuarters = textInputRule({
-	find: /3\/4$/,
-	replace: "¾",
-});
+export type TypographyOptions = { [K in keyof typeof rules]: false };
 
 const Typography = Extension.create<TypographyOptions>({
 	name: "typography",
 
 	addInputRules() {
-		const rules = [];
-
-		if (this.options.leftArrow !== false) {
-			rules.push(leftArrow);
-		}
-
-		if (this.options.rightArrow !== false) {
-			rules.push(rightArrow);
-		}
-
-		if (this.options.dash !== false) {
-			rules.push(dash);
-		}
-
-		if (this.options.ellipsis !== false) {
-			rules.push(ellipsis);
-		}
-
-		if (this.options.openDoubleQuote !== false) {
-			rules.push(openDoubleQuote);
-		}
-
-		if (this.options.closeDoubleQuote !== false) {
-			rules.push(closeDoubleQuote);
-		}
-
-		if (this.options.openSingleQuote !== false) {
-			rules.push(openSingleQuote);
-		}
-
-		if (this.options.closeSingleQuote !== false) {
-			rules.push(closeSingleQuote);
-		}
-
-		if (this.options.copyright !== false) {
-			rules.push(copyright);
-		}
-
-		if (this.options.trademark !== false) {
-			rules.push(trademark);
-		}
-
-		if (this.options.registeredTrademark !== false) {
-			rules.push(registeredTrademark);
-		}
-
-		if (this.options.oneHalf !== false) {
-			rules.push(oneHalf);
-		}
-
-		if (this.options.plusMinus !== false) {
-			rules.push(plusMinus);
-		}
-
-		if (this.options.notEqual !== false) {
-			rules.push(notEqual);
-		}
-
-		if (this.options.laquo !== false) {
-			rules.push(laquo);
-		}
-
-		if (this.options.raquo !== false) {
-			rules.push(raquo);
-		}
-
-		if (this.options.multiplication !== false) {
-			rules.push(multiplication);
-		}
-
-		if (this.options.superscriptTwo !== false) {
-			rules.push(superscriptTwo);
-		}
-
-		if (this.options.superscriptThree !== false) {
-			rules.push(superscriptThree);
-		}
-
-		if (this.options.oneQuarter !== false) {
-			rules.push(oneQuarter);
-		}
-
-		if (this.options.threeQuarters !== false) {
-			rules.push(threeQuarters);
-		}
-
-		return rules;
+		return Object.entries(rules)
+			.filter(([key]) => this.options[key as keyof TypographyOptions] !== false)
+			.map(([, rule]) => textInputRule(rule));
 	},
 });
 

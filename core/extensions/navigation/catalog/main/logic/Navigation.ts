@@ -1,5 +1,7 @@
+/** biome-ignore-all lint/complexity/useLiteralKeys: it's ok */
 import { createEventEmitter, type Event, type HasEvents } from "@core/Event/EventEmitter";
 import Path from "@core/FileProvider/Path/Path";
+import type { Article } from "@core/FileStructue/Article/Article";
 import type BaseCatalog from "@core/FileStructue/Catalog/BaseCatalog";
 import type CatalogEntry from "@core/FileStructue/Catalog/CatalogEntry";
 import type { ReadonlyBaseCatalog, ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
@@ -7,9 +9,17 @@ import { ItemType } from "@core/FileStructue/Item/ItemType";
 import type LastVisited from "@core/SitePresenter/LastVisited";
 import type { ClientItemRef } from "@core/SitePresenter/SitePresenter";
 import BrokenRepository from "@ext/git/core/Repository/BrokenRepository";
+import t from "@ext/localization/locale/translate";
 import type { Category } from "../../../../../logic/FileStructue/Category/Category";
 import type { Item } from "../../../../../logic/FileStructue/Item/Item";
-import type { ArticleLink, CatalogLink, CategoryLink, ItemLink, TitledLink } from "../../../NavigationLinks";
+import type {
+	ArticleLink,
+	CatalogLink,
+	CategoryLink,
+	ItemLink,
+	ItemLinkOptions,
+	TitledLink,
+} from "../../../NavigationLinks";
 
 export type NavigationEvents = Event<
 	"before-build-nav-tree",
@@ -69,7 +79,7 @@ export default class Navigation implements HasEvents<NavigationEvents> {
 			pathname: await catalog.getPathname(),
 			lastVisited: lastVisited?.getLastVisitedArticle(catalog) ?? null,
 			logo: catalog.props[navProps.logo] ?? null,
-			title: catalog.props[navProps.title] ?? catalog.name,
+			title: catalog.props[navProps.title] ?? t("article.no-name"),
 			query: {},
 			group: catalog.props[navProps.group] ?? null,
 			style: catalog.props[navProps.style] ?? null,
@@ -143,12 +153,15 @@ export default class Navigation implements HasEvents<NavigationEvents> {
 			ref: { path: item.ref.path.value, storageId: item.ref.storageId },
 			icon: item.props[navProps.icon] ?? null,
 			title: item.getTitle() ?? item.ref.path.name,
+			fileName: item.getFileName(),
 			type: null,
 			pathname: await catalog.getPathname(item),
 			external: item.props.external ?? null,
 			query: {},
 			isCurrentLink: item.ref.path.value === currentItemPaths[currentItemPaths.length - 1],
 		};
+		const options = this._getItemLinkOptions(item as Article);
+		if (options) link.options = options;
 
 		if (item.type === ItemType.category) {
 			link.type = ItemType.category;
@@ -177,6 +190,17 @@ export default class Navigation implements HasEvents<NavigationEvents> {
 			return link;
 		}
 		return null;
+	}
+
+	private _getItemLinkOptions(item: Article): ItemLinkOptions {
+		const isTemplate = Boolean(item.props.template);
+		const isHasErrorCode = Boolean(item.errorCode);
+		if (!isTemplate && !isHasErrorCode) return;
+
+		return {
+			...(isTemplate && { isTemplate: true }),
+			...(isHasErrorCode && { isHasErrorCode: true }),
+		};
 	}
 }
 

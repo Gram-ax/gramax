@@ -46,8 +46,26 @@ import { diagramsWordLayout } from "../markdown/elements/diagrams/word/diagrams"
 import { formulaWordBlockLayout, formulaWordInlineLayout } from "../markdown/elements/formula/word/formula";
 import { tabledbWordlayout } from "../markdown/elements/tabledb/word/tabledb";
 import { videoWordLayout } from "../markdown/elements/video/word/video";
+import type { WordBlockChild, WordInlineChild } from "./options/WordTypes";
+
+const mdInlineWordLayout: WordInlineChild = async ({ state, tag, addOptions }) => {
+	const attrs = "attributes" in tag ? tag.attributes : tag.attrs;
+	const tags = Array.isArray(attrs?.tag) ? attrs.tag : attrs?.tag ? [attrs.tag] : [];
+
+	return state.renderInline({ children: tags } as never, addOptions);
+};
+
+const mdBlockWordLayout: WordBlockChild = async ({ state, tag, addOptions }) => {
+	const attrs = "attributes" in tag ? tag.attributes : tag.attrs;
+	const tags = Array.isArray(attrs?.tag) ? attrs.tag : attrs?.tag ? [attrs.tag] : [];
+	const blocks = await Promise.all(tags.map((tag) => state.renderBlock(tag, addOptions)));
+
+	return blocks.flat().filter(Boolean);
+};
 
 export const inlineLayouts = {
+	// biome-ignore lint/style/useNamingConvention: expected
+	inlineMd_component: mdInlineWordLayout,
 	strong: strongWordLayout,
 	em: emWordLayout,
 	Link: linkWordLayout,
@@ -77,6 +95,7 @@ export const inlineLayouts = {
 };
 
 export const blockLayouts = {
+	blockMd: mdBlockWordLayout,
 	p: paragraphWordLayout,
 	orderedList: orderListWordLayout,
 	bulletList: ulListWordLayout,

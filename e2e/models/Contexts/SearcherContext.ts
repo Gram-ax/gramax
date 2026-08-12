@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/correctness/noUndeclaredVariables: expected */
 import type { Locator } from "playwright";
 import config from "../../setup/config";
 import { type Aliases, globalIcon } from "../../steps/utils/aliases";
@@ -6,7 +7,7 @@ import type { PageInfo } from "../Pages/PageContext";
 import type { ReplaceAlias } from "../World";
 
 const CLICKABLE_SELECTOR =
-	'[data-qa="qa-clickable"], label:has(> button[role="checkbox"]), button, [role="menuitemradio"], [role="menuitem"], [cmdk-item], [data-radix-collection-item]';
+	'[data-qa="qa-clickable"], label:has(> button[role="checkbox"]), [role="button"], button, [role="menuitemradio"], [role="menuitem"], [cmdk-item], [data-radix-collection-item]';
 
 export default class SearcherContext {
 	constructor(
@@ -21,7 +22,7 @@ export default class SearcherContext {
 
 	async scope(selector: string, by: "lookup" | "find" = "lookup", number?: number) {
 		this._info.scope =
-			by == "lookup"
+			by === "lookup"
 				? await this.lookup(selector, undefined, undefined, number)
 				: await this.find(selector, undefined, number - 1);
 		return this;

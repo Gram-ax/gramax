@@ -13,7 +13,7 @@ interface ReadOnlyUserFieldProps {
 
 const ReadOnlyUserField = (props: ReadOnlyUserFieldProps) => {
 	const { user, renderAvatar = true } = props;
-	const { isBrowser } = usePlatform();
+	const { isWeb } = usePlatform();
 
 	const getStartIcon = () => {
 		if (!user) return <Loader className="p-0" />;
@@ -21,7 +21,7 @@ const ReadOnlyUserField = (props: ReadOnlyUserFieldProps) => {
 
 		return (
 			<Avatar className="w-4 h-4" size="xs">
-				<AvatarImage crossOrigin={isBrowser ? "anonymous" : undefined} src={user.avatarUrl} />
+				<AvatarImage crossOrigin={isWeb ? "anonymous" : undefined} src={user.avatarUrl} />
 			</Avatar>
 		);
 	};

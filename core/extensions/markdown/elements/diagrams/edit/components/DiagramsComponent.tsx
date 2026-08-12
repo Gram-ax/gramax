@@ -64,6 +64,7 @@ const DiagramComponent = (props: NodeViewProps): ReactElement => {
 
 	return (
 		<NodeViewContextableWrapper
+			data-component="diagram"
 			data-drag-handle
 			data-float={float ? float : undefined}
 			data-resize-container

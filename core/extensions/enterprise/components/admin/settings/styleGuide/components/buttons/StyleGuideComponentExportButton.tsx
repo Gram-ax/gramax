@@ -1,12 +1,14 @@
-import { useStyleGuideData } from "@ext/enterprise/components/admin/settings/styleGuide/helpers/StyleGuideContext";
+import type { StyleGuideSettings } from "@ext/enterprise/components/admin/settings/styleGuide/StyleGuideComponent";
 import { downloadJson } from "@ext/enterprise/components/admin/settings/styleGuide/utils/downloadJson";
 import t from "@ext/localization/locale/translate";
 import { IconButton } from "@ui-kit/Button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
 
-export const StyleGuideComponentExportButton = () => {
-	const { localSettings } = useStyleGuideData();
+interface StyleGuideComponentExportButtonProps {
+	localSettings: StyleGuideSettings;
+}
 
+export const StyleGuideComponentExportButton = ({ localSettings }: StyleGuideComponentExportButtonProps) => {
 	const handleExport = () => {
 		const languageToolRules = (localSettings.lgt?.rules ?? []).map((rule) => ({
 			guid: rule.guid,
@@ -52,7 +54,9 @@ export const StyleGuideComponentExportButton = () => {
 					<IconButton icon="download" onClick={handleExport} variant="outline" />
 				</div>
 			</TooltipTrigger>
-			<TooltipContent>{t("enterprise.admin.check.export-rules")}</TooltipContent>
+			<TooltipContent className="font-sans font-normal">
+				{t("enterprise.admin.check.export-rules")}
+			</TooltipContent>
 		</Tooltip>
 	);
 };

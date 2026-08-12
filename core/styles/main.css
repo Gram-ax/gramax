@@ -7,10 +7,11 @@
 @import "@fontsource/roboto/700.css";
 @import "@fontsource/roboto-mono/300.css";
 @import "@fontsource/roboto-mono/400.css";
+@import "@fontsource-variable/inter";
 
 @import "./ProseMirror.css";
 @import "./admonition.css";
 @import "./article-alfabeta.css";
 @import "./article.css";
+@import "./sticky-table-wrapper.css";
 @import "./global.css";
-@import "./swagger-ui-theme.css";

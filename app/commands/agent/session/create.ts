@@ -1,15 +1,15 @@
 import { ResponseKind } from "@app/types/ResponseKind";
-import { createAgentSession } from "@ext/agent/core/sessionStore";
+import type { AgentSession } from "@ext/agent/core/session";
 import { Command } from "../../../types/Command";
 
-const createSession: Command<Record<string, never>, { sessionId: string }> = Command.create({
+const createSession: Command<Record<string, never>, ReturnType<AgentSession["toSnapshot"]>> = Command.create({
 	path: "agent/session/create",
 
 	kind: ResponseKind.json,
 
 	async do() {
-		const session = createAgentSession();
-		return { sessionId: session.id };
+		const session = await this._app.agentManager.sessions.create();
+		return session.toSnapshot();
 	},
 
 	params() {

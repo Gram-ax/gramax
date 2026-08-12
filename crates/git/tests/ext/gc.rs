@@ -266,7 +266,7 @@ fn gc_multiple_calls(_sandbox: TempDir, #[with(&_sandbox)] repo: Repo<TestCreds>
 
 		let gc_options = GcOptions {
 			loose_objects_limit: Some(1),
-			..Default::default()
+				..Default::default()
 		};
 		repo.gc(gc_options)?;
 
@@ -429,6 +429,72 @@ fn gc_healthcheck_after_gc(_sandbox: TempDir, #[with(&_sandbox)] repo: Repo<Test
 	assert!(err.contains("bad object 6b584e8ece562ebffc15d38808cd6b98fc3d97ea;"));
 
 	repo.repo().find_object(id, None).unwrap_err();
+
+	Ok(())
+}
+
+#[rstest]
+fn gc_keeps_objects_reachable_only_from_ref_without_reflog(_sandbox: TempDir, #[with(&_sandbox)] repo: Repo<TestCreds>) -> Result {
+	let file_name = "file";
+
+	fs::write(_sandbox.path().join(file_name), "initial")?;
+	repo.add(file_name)?;
+	repo.commit_debug()?;
+
+	repo.new_branch("dev")?;
+	repo.checkout("dev", true)?;
+
+	fs::write(_sandbox.path().join(file_name), "dev-only")?;
+	repo.add(file_name)?;
+	let (dev_commit_oid, _) = repo.commit_debug()?;
+
+	repo.checkout("master", true)?;
+
+	// no reflogs at all — e.g. repo written with core.logAllRefUpdates=false or logs pruned;
+	// dev commit is now reachable only through the refs/heads/dev target itself
+	fs::remove_dir_all(repo.repo().path().join("logs"))?;
+
+	repo.gc(GcOptions {
+		loose_objects_limit: Some(1),
+		..Default::default()
+	})?;
+
+	let verify = git2::Repository::open(_sandbox.path()).unwrap();
+	let commit = verify.find_commit(dev_commit_oid).expect("dev branch tip must survive gc");
+	let tree = commit.tree().expect("dev commit tree must survive gc");
+	let blob_entry = tree.get_name(file_name).unwrap();
+	verify.find_blob(blob_entry.id()).expect("dev blob must survive gc");
+
+	Ok(())
+}
+
+#[rstest]
+fn gc_keeps_index_objects_added_via_external_handle(_sandbox: TempDir, #[with(&_sandbox)] repo: Repo<TestCreds>) -> Result {
+	let file_name = "file";
+	let file2_name = "file-2";
+
+	fs::write(_sandbox.path().join(file_name), "content")?;
+	repo.add(file_name)?;
+	repo.commit_debug()?;
+
+	// force-load the index into this handle's cache
+	let _ = repo.repo().index()?;
+
+	// another handle (second app instance / external process) stages a new file
+	let external = Repo::open(_sandbox.path(), TestCreds)?;
+	fs::write(_sandbox.path().join(file2_name), "staged externally")?;
+	external.add(file2_name)?;
+	let staged_oid = external.repo().index()?.get_path(Path::new(file2_name), 0).unwrap().id;
+	drop(external);
+
+	// gc runs on the handle with the stale cached index
+	repo.gc(GcOptions {
+		loose_objects_limit: Some(1),
+		..Default::default()
+	})?;
+
+	let verify = git2::Repository::open(_sandbox.path()).unwrap();
+	verify.find_blob(staged_oid).expect("index-referenced object staged via another handle must survive gc");
 
 	Ok(())
 }

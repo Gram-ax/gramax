@@ -10,8 +10,8 @@ import convertCatalogLink from "@ext/static/logic/convertCatalogLink";
 import VersionedCloudApi from "@ext/static/logic/VersionedCloudApi";
 import ZipFileProvider from "@ext/static/logic/ZipFileProvider";
 import assert from "assert";
-import type { DirectoryInfoBasic } from "../../../../apps/gramax-cli/src/logic/initialDataUtils/types";
-import StaticSiteBuilder from "../../../../apps/gramax-cli/src/logic/StaticSiteBuilder";
+import type { DirectoryInfoBasic } from "../../../../apps/cli/src/logic/initialDataUtils/types";
+import StaticSiteBuilder from "../../../../apps/cli/src/logic/StaticSiteBuilder";
 import { Command } from "../../../types/Command";
 
 const uploadStatic: Command<{ ctx: Context; catalogName: string }, void> = Command.create({

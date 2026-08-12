@@ -26,7 +26,7 @@ export class SharedCloneProgress {
 	private _cancelToken: number;
 	private _timeout: ReturnType<typeof setTimeout>;
 	private _timerDisabled = false;
-	private _onDone: OnProgressDone = null;
+	private _onDone: OnProgressDone[] = [];
 
 	constructor(id: string, cancelToken = 0, progress?: RemoteProgress) {
 		this._id = id;
@@ -64,8 +64,10 @@ export class SharedCloneProgress {
 		return this;
 	}
 
+	// A single progress is watched by every workspace init that finds it alive, so listeners accumulate
+	// instead of replacing each other. Terminal events happen once — the list is dropped after firing.
 	onDone(callback: OnProgressDone) {
-		this._onDone = callback;
+		this._onDone.push(callback);
 		return this;
 	}
 
@@ -110,7 +112,11 @@ export class SharedCloneProgress {
 
 	setProgress(p: RemoteProgress, emit = true) {
 		this._progress = p;
-		if (p.type === "finish" || p.type === "error") this._onDone?.(p);
+		if (p.type === "finish" || p.type === "error") {
+			const listeners = this._onDone;
+			this._onDone = [];
+			for (const listener of listeners) listener(p);
+		}
 		if (emit) this._emit();
 		return this;
 	}

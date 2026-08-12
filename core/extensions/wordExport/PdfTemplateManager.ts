@@ -1,3 +1,4 @@
+import { Level, trace } from "@ext/loggers/opentelemetry";
 import type { Workspace } from "@ext/workspace/Workspace";
 import type WorkspaceManager from "@ext/workspace/WorkspaceManager";
 import type { Buffer } from "buffer";
@@ -21,7 +22,7 @@ class PdfTemplate {
 }
 
 export class PdfTemplateManager {
-	_templates: Record<string, string[]> = {};
+	private _templates: Record<string, string[]> = {};
 
 	constructor(private _workspaceManager: WorkspaceManager) {
 		this._subscribeToWorkspaceEvents();
@@ -33,11 +34,13 @@ export class PdfTemplateManager {
 		return new PdfTemplate(workspace, await this._getTemplates(workspace));
 	}
 
+	@trace({ level: Level.Important, omitArgs: true })
 	async addTemplates(workspace: Workspace, templates: Array<{ name: string; buffer: Buffer }>): Promise<void> {
 		await workspace.getAssets().pdfTemplates.add(templates);
 		await this._refreshTemplatesCache(workspace);
 	}
 
+	@trace({ level: Level.Important })
 	async removeTemplates(workspace: Workspace, templateNames: string[]): Promise<void> {
 		await workspace.getAssets().pdfTemplates.delete(templateNames);
 		await this._refreshTemplatesCache(workspace);

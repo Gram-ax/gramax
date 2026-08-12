@@ -92,6 +92,7 @@ export const Placeholder = Extension.create<PlaceholderOptions>({
 export default Placeholder.configure({
 	placeholder: ({ editor, node, pos }) => {
 		const isParagraph = node.type.name === "paragraph";
+		if (node.type.name === "noteTitle") return t("title");
 		if (editor.state.doc.firstChild.type.name === "paragraph" && editor.state.doc.firstChild === node)
 			return t("article.title");
 

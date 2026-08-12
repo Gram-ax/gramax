@@ -24,8 +24,8 @@ type FieldsConfluenceCloudValue = {
 const FieldsConfluenceCloud = ({ sourceData }: FieldsConfluenceCloudProps) => {
 	const pageProps = PageDataContextService.value;
 	const api = useMemo(
-		() => makeSourceApi(sourceData, pageProps.conf.authServiceUrl) as ConfluenceAPI,
-		[pageProps?.conf?.authServiceUrl, sourceData],
+		() => makeSourceApi(sourceData, pageProps.settings?.services?.auth?.endpoint) as ConfluenceAPI,
+		[sourceData],
 	);
 
 	const { loadOptions } = useCache(async (params) => {

@@ -6,6 +6,7 @@ const videoSchema = {
 		title: { default: null },
 		path: { default: null },
 		isLink: { default: true },
+		scale: { default: null },
 	},
 };
 

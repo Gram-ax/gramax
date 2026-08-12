@@ -6,7 +6,7 @@ const aliases = {
 	публикация: '[data-qa="article-git-modal"]',
 	комментарий: '[data-qa="qa-comment"]',
 	"загружающийся каталог": '.spinner-loader div[data-qa="loader"]',
-	"левую навигацию": ".left-navigation-layout .scrolling-content ul[class*='tree-root']",
+	"левую навигацию": ".left-navigation-layout .left-navigation-content",
 	"левую панель": ".left-navigation-layout, .left-sidebar",
 	"футер левой панели": ".left-sidebar-footer",
 	"нижнюю панель": `[data-qa="qa-status-bar"]`,

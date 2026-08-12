@@ -4,7 +4,13 @@ import type { NodeSerializerSpec } from "@ext/markdown/core/edit/logic/Prosemirr
 const videoFormatter =
 	(formatter: FormatterType): NodeSerializerSpec =>
 	(state, node) => {
-		state.write(formatter.openTag("video", { path: node.attrs.path, title: node.attrs.title }, true));
+		state.write(
+			formatter.openTag(
+				"video",
+				{ path: node.attrs.path, title: node.attrs.title, scale: node.attrs.scale },
+				true,
+			),
+		);
 		state.closeBlock(node);
 	};
 

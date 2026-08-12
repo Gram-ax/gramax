@@ -17,9 +17,21 @@ import { useButtonsHandlers } from "./logic/useButtonsHandlers";
 
 const itemClassName = "w-full flex items-center gap-2";
 
-const AddCatalogMenu = () => {
+type AddCatalogMenuProps = {
+	canCreateCatalog?: boolean;
+	canCloneCatalog?: boolean;
+	canImportCatalog?: boolean;
+};
+
+const AddCatalogMenu = ({
+	canCreateCatalog = true,
+	canCloneCatalog = true,
+	canImportCatalog = true,
+}: AddCatalogMenuProps) => {
 	const { onCloneClick, onImportClick } = useButtonsHandlers();
 	const isMobile = isMobileService.value;
+
+	if (!canCreateCatalog && !canCloneCatalog && !canImportCatalog) return null;
 
 	return (
 		<DropdownMenu>
@@ -47,38 +59,44 @@ const AddCatalogMenu = () => {
 			)}
 			<DropdownMenuContent align="start">
 				<DropdownMenuGroup>
-					<IsReadOnlyHOC>
-						<DropdownMenuItem data-qa="qa-clickable">
-							<CreateCatalog
-								className={itemClassName}
-								trigger={
-									<MenuItemRichTemplate
-										description={t("catalog.new-3")}
-										icon={"plus"}
-										title={t("catalog.new-2")}
-									/>
-								}
-							/>
-						</DropdownMenuItem>
-					</IsReadOnlyHOC>
+					{canCreateCatalog && (
+						<IsReadOnlyHOC>
+							<DropdownMenuItem data-qa="qa-clickable">
+								<CreateCatalog
+									className={itemClassName}
+									trigger={
+										<MenuItemRichTemplate
+											description={t("catalog.new-3")}
+											icon={"plus"}
+											title={t("catalog.new-2")}
+										/>
+									}
+								/>
+							</DropdownMenuItem>
+						</IsReadOnlyHOC>
+					)}
 
-					<DropdownMenuItem data-qa="qa-clickable" onSelect={onCloneClick}>
-						<MenuItemRichTemplate
-							description={t("catalog.clone-4")}
-							icon={"cloud-download"}
-							title={t("catalog.clone-2")}
-						/>
-					</DropdownMenuItem>
-
-					<IsReadOnlyHOC>
-						<DropdownMenuItem data-qa="qa-clickable" onSelect={onImportClick}>
+					{canCloneCatalog && (
+						<DropdownMenuItem data-qa="qa-clickable" onSelect={onCloneClick}>
 							<MenuItemRichTemplate
-								description={t("catalog.import-3")}
-								icon={"import"}
-								title={t("catalog.import-2")}
+								description={t("catalog.clone-4")}
+								icon={"cloud-download"}
+								title={t("catalog.clone-2")}
 							/>
 						</DropdownMenuItem>
-					</IsReadOnlyHOC>
+					)}
+
+					{canImportCatalog && (
+						<IsReadOnlyHOC>
+							<DropdownMenuItem data-qa="qa-clickable" onSelect={onImportClick}>
+								<MenuItemRichTemplate
+									description={t("catalog.import-3")}
+									icon={"import"}
+									title={t("catalog.import-2")}
+								/>
+							</DropdownMenuItem>
+						</IsReadOnlyHOC>
+					)}
 				</DropdownMenuGroup>
 			</DropdownMenuContent>
 		</DropdownMenu>

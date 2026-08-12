@@ -32,13 +32,10 @@ catalogTest.describe("Managing catalog properties", () => {
 		const flagItem = await typeSelect.findItemByTitle("Flag");
 		await flagItem.click();
 
-		const styleSelect = new Select(
-			sharedPage,
-			catalogPage.modal.getByRole("combobox").filter({ hasText: "Select a style" }),
-		);
+		const styleTrigger = catalogPage.modal.getByTestId("style-popover-trigger");
 
-		await styleSelect.open();
-		const redItem = await styleSelect.findItemByTitle("Red");
+		await styleTrigger.click();
+		const redItem = sharedPage.getByTestId("color-tile-picker-item-red");
 		await redItem.click();
 
 		const saveButton = catalogPage.modal.getByRole("button", { name: "Add" });
@@ -78,13 +75,9 @@ catalogTest.describe("Managing catalog properties", () => {
 		const enumItem = await typeSelect.findItemByTitle("One from the list");
 		await enumItem.click();
 
-		const styleSelect = new Select(
-			sharedPage,
-			catalogPage.modal.getByRole("combobox").filter({ hasText: "Select a style" }),
-		);
-
-		await styleSelect.open();
-		const blueItem = await styleSelect.findItemByTitle("Blue");
+		const styleTrigger = catalogPage.modal.getByTestId("style-popover-trigger");
+		await styleTrigger.click();
+		const blueItem = sharedPage.getByTestId("color-tile-picker-item-blue");
 		await blueItem.click();
 
 		const addValueButton = catalogPage.modal.getByTestId("add-value");

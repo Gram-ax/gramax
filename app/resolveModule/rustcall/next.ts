@@ -6,6 +6,7 @@ import GitErrorCode from "@ext/git/core/GitCommands/errors/model/GitErrorCode";
 import { type CredsArgs, progress } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
 import { span } from "@ext/loggers/opentelemetry";
 import native from "../../../apps/next/crates/next-gramax-core";
+import { fsArgOrder } from "./fsArgOrder";
 import { parseCommand } from "./index";
 
 const tryParse = (data: any) => {
@@ -14,24 +15,6 @@ const tryParse = (data: any) => {
 	} catch {
 		return data;
 	}
-};
-
-const fsArgOrder: Record<string, string[]> = {
-	exists: ["scope", "path"],
-	getstat: ["scope", "path", "followLink"],
-	read_dir: ["scope", "path"],
-	read_dir_stats: ["scope", "path"],
-	read_link: ["scope", "path"],
-	read_file: ["scope", "path"],
-	write_file: ["scope", "path", "content", "compress"],
-	make_dir: ["scope", "path", "recursive"],
-	remove_dir: ["scope", "path", "recursive"],
-	rmfile: ["scope", "path"],
-	hardlink: ["scope", "from", "to"],
-	copy: ["scope", "from", "to"],
-	mv: ["scope", "from", "to"],
-	delete_empty_dirs: ["scope", "path"],
-	scan_workspace: ["scope", "path", "opts"],
 };
 
 const intoTreeReadScope = (data: any) => {

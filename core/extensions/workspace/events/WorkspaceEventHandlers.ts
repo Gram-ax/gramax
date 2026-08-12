@@ -5,6 +5,7 @@ import type RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider
 import ScopedCatalogsResolver from "@ext/git/core/ScopedCatalogs/events/ScopedCatalogsResolver";
 import WorkspaceCheckIsCatalogCloning from "@ext/storage/events/WorkspaceCheckIsCatalogCloning";
 import CatalogVersionResolver from "@ext/versioning/events/CatalogVersionResolver";
+import WebhookPeerNotifier from "@ext/workspace/events/WebhookPeerNotifier";
 import type { Workspace } from "@ext/workspace/Workspace";
 
 export default class WorkspaceEventHandlers extends EventHandlerProvider {
@@ -15,6 +16,7 @@ export default class WorkspaceEventHandlers extends EventHandlerProvider {
 			new ScopedCatalogsResolver(workspace, rp),
 			new RepositoryHealthcheckHandler(workspace, rp),
 			new WorkspaceCheckIsCatalogCloning(workspace, rp),
+			new WebhookPeerNotifier(workspace),
 			...(events ?? []),
 		];
 	}

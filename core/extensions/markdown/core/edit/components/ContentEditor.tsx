@@ -34,10 +34,7 @@ import PageDataContextService from "../../../../../ui-logic/ContextServices/Page
 import OnAddMark from "../../../elements/onAdd/OnAddMark";
 import OnDeleteMark from "../../../elements/onDocChange/OnDeleteMark";
 import OnDeleteNode from "../../../elements/onDocChange/OnDeleteNode";
-import {
-	useExtendExtensionsWithContext,
-	useUpdateContextInExtensions,
-} from "../../../elementsUtils/editExtensionUpdator/ExtensionContextUpdater";
+import useEditorContext from "../../../elementsUtils/editorContext/useEditorContext";
 import { useGetEditorProps } from "../logic/useGetEditorProps";
 export const ContentEditorId = "ContentEditorId";
 
@@ -102,23 +99,11 @@ const ContentEditor = (props: ContentEditorProps) => {
 		],
 	);
 
-	const extensionsList = useExtendExtensionsWithContext(ext);
+	const extensionsList = ext;
 
 	useEffect(() => {
 		updateEditorExtensions(extensionsList);
 	}, [extensionsList]);
-
-	useWatch(() => {
-		const extension = extensionsList.find((ext) => ext.name === "controllers");
-		if (!extension) return;
-
-		if (!articlePropsRef.current?.template?.length) {
-			extension.configure({ editable: false });
-			return;
-		}
-
-		extension.configure({ editable: true });
-	}, [articlePropsRef.current?.template]);
 
 	const editorProps = useGetEditorProps();
 
@@ -162,10 +147,10 @@ const ContentEditor = (props: ContentEditorProps) => {
 		}
 	}, [articlePropsRef.current?.template, editor]);
 
-	useUpdateContextInExtensions(editor);
+	useEditorContext(editor);
 
 	useEffect(() => {
-		if (!editor) return;
+		if (!editor || editor.isDestroyed || !editor.isEditable) return;
 		if (editor && !editor.state.doc.textContent) editor.commands.focus();
 		if (editor) {
 			bindEditor(editor);
@@ -175,6 +160,7 @@ const ContentEditor = (props: ContentEditorProps) => {
 		}
 	}, [editor]);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useEffect(() => {
 		if (!editor) return;
 		editor.storage.ai = editor.storage.ai || {};

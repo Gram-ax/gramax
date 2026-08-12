@@ -1,4 +1,4 @@
-import { span, traced } from "@ext/loggers/opentelemetry";
+import { Level, span, traced } from "@ext/loggers/opentelemetry";
 import {
 	type SearchWorker,
 	WorkerModulithSearchClientBase,
@@ -25,7 +25,7 @@ export class NodeWorkerModulithSearchClient extends WorkerModulithSearchClientBa
 			this._failAllPending(new Error(`Search worker crashed: ${String(err)}`));
 		});
 		worker.on("messageerror", (err: unknown) =>
-			traced("search-worker.messageerror", () => {
+			traced("search-worker.messageerror", { level: Level.Commands }, () => {
 				span()?.recordException(err instanceof Error ? err : new Error(String(err)));
 			}),
 		);

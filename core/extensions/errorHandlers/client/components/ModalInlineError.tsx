@@ -30,7 +30,7 @@ export const ModalInlineError = (props: ModalInlineErrorProps) => {
 					<p className="article" dangerouslySetInnerHTML={{ __html: message }} />
 				</div>
 			</div>
-			<div className="article bg-transparent">
+			<div className="article !bg-transparent">
 				<Error error={error} />
 			</div>
 			<div className="flex justify-end gap-2 pt-2">

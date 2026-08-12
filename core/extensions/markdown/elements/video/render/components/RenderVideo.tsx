@@ -1,8 +1,8 @@
 import { getExecutingEnvironment } from "@app/resolveModule/env";
 import GifImage from "@components/Atoms/Image/GifImage";
 import { classNames } from "@components/libs/classNames";
-import styled from "@emotion/styled";
 import type { HTMLAttributes } from "react";
+import getInstagramEmbedUrl from "../../logic/getInstagramEmbedUrl";
 import { getUrlFileExtension } from "../../logic/getUrlFileExtension";
 import previews from "./previews";
 
@@ -23,7 +23,7 @@ export type PreviewVideoProps = Omit<RenderVideoProps, "onLoad" | "onError"> &
 	};
 
 const agent = typeof window !== "undefined" && window.navigator?.userAgent;
-const isCredentiallessUnsupported = getExecutingEnvironment() === "browser" && !agent.includes("Chrome");
+const isCredentiallessUnsupported = getExecutingEnvironment() === "web" && !agent.includes("Chrome");
 
 const rutubeUrlReplacer = (url: string): string => {
 	if (url.includes("video/private")) return url.replace("video/private", "play/embed");
@@ -42,7 +42,7 @@ const SupportedVideoHostings: {
 	[key: string]: (url: string, onLoad: () => void, onError: () => void) => JSX.Element;
 } = {
 	"youtube.com": (url, onLoad, onError) => {
-		const id = url.match(/v=([^&]+)/)?.[1];
+		const id = url.match(/(?:[?&]v=|\/(?:embed|shorts|live)\/)([^?&#/]+)/)?.[1];
 		return isCredentiallessUnsupported ? (
 			<PreviewVideo onLoad={onLoad} previewUrl={`https://img.youtube.com/vi/${id}/maxresdefault.jpg`} url={url} />
 		) : (
@@ -94,28 +94,33 @@ const SupportedVideoHostings: {
 		) : (
 			<IFrameVideo onError={onError} onLoad={onLoad} url={rutubeUrlReplacer(url)} />
 		),
+	"instagram.com": (url, onLoad, onError) =>
+		isCredentiallessUnsupported ? (
+			<PreviewVideo onLoad={onLoad} previewUrl={previews.instagram} url={url} />
+		) : (
+			<IFrameVideo onError={onError} onLoad={onLoad} url={getInstagramEmbedUrl(url)} />
+		),
 	// "sharepoint.com": (link) => <VideoTag link={link.replace(/\?e=.*?$/, "?download=1")} />,
 };
 
-const PreviewVideoUnstyled = ({ url, previewUrl, className, onLoad, ...props }: PreviewVideoProps) => {
+const PreviewVideo = ({ url, previewUrl, className, onLoad, ...props }: PreviewVideoProps) => {
 	return (
-		<a {...props} className={classNames("video-js", {}, [className])} href={url} rel="noreferrer" target="_blank">
+		<a
+			{...props}
+			className={classNames("video-js relative inline h-fit w-fit", {}, [className])}
+			href={url}
+			rel="noreferrer"
+			target="_blank"
+		>
 			<GifImage noplay onLoad={onLoad} src={previewUrl} />
 		</a>
 	);
 };
 
-const PreviewVideo = styled(PreviewVideoUnstyled)`
-	position: relative;
-	display: inline;
-	width: fit-content;
-	height: fit-content;
-`;
-
 export const IFrameVideo = ({ url, onLoad, onError }: RenderVideoProps) => {
 	const props = {
 		credentialless: "true",
-		allow: "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture",
+		allow: "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope",
 		allowFullScreen: true,
 	};
 

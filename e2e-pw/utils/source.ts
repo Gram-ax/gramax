@@ -9,7 +9,8 @@ export const getSourceDataFromEnv = (): GitSourceData => {
 		userName: env.optional("GX_E2E_GITLAB_USERNAME") || "e2e",
 		token: env("GX_E2E_GITLAB_TOKEN"),
 		domain: env("GX_E2E_GITLAB_DOMAIN"),
-		gitServerUsername: env.optional("GX_E2E_USER") || "git",
+		protocol: "https",
+		gitServerUsername: "git",
 	};
 };
 

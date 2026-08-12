@@ -1,15 +1,13 @@
 import SuggestionTooltip from "@ext/StyleGuide/extension/SuggestionTooltip";
-import { type Editor, Mark, mergeAttributes } from "@tiptap/core";
-import { DOMParser as TipTapDOMParser } from "@tiptap/pm/model";
+import applySuggestions from "@ext/StyleGuide/logic/applySuggestions";
+import buildReplacement from "@ext/StyleGuide/logic/buildReplacement";
+import { getMarkRange, Mark, mergeAttributes } from "@tiptap/core";
+import { Fragment } from "@tiptap/pm/model";
 import { Plugin, PluginKey } from "prosemirror-state";
-
-const getNodeByHTMLText = (text: string, editor: Editor) => {
-	return TipTapDOMParser.fromSchema(editor.schema).parse(new DOMParser().parseFromString(text, "text/html"));
-};
 
 declare module "@tiptap/core" {
 	interface Commands<ReturnType> {
-		suggestion: { setSuggestion: (suggestions?: SuggestionItem[]) => ReturnType };
+		suggestion: { markSuggestions: (suggestions?: SuggestionItem[]) => ReturnType };
 	}
 }
 
@@ -45,39 +43,12 @@ export const Suggestion = Mark.create({
 
 	addCommands() {
 		return {
-			setSuggestion:
+			markSuggestions:
 				(suggestions) =>
-				({ editor, state, dispatch }) => {
+				({ state, dispatch }) => {
 					if (!suggestions?.length || !dispatch) return false;
 
-					let tr = state.tr;
-					const handleFindAndReplace = (findText: string, replaceText: string) => {
-						findText = getNodeByHTMLText(findText, editor).textContent;
-						if (!findText) {
-							console.warn("findText is empty");
-							return;
-						}
-						state.doc.descendants((node, pos) => {
-							if (node.type.name === "paragraph" || node.type.name === "heading") {
-								const regex = new RegExp(findText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g");
-								const matches = [...Array.from(node.textContent?.matchAll(regex) ?? [])];
-								matches.forEach((match) => {
-									if (match.index === undefined) return;
-									const start = pos + 1 + match.index;
-									const end = start + findText.length;
-									const newNode = getNodeByHTMLText(replaceText, editor).child(0);
-									tr = tr.replaceWith(start, end, newNode.content);
-								});
-								return false;
-							}
-						});
-					};
-					dispatch(tr);
-					suggestions.forEach((suggestion) => {
-						if (!suggestion.originalSentence) return;
-						handleFindAndReplace(suggestion.originalSentence, suggestion.suggestion);
-					});
-
+					dispatch(applySuggestions(state.tr, this.type, suggestions));
 					return true;
 				},
 		};
@@ -92,28 +63,32 @@ export const Suggestion = Mark.create({
 				props: {
 					handleDOMEvents: {
 						click: (view, event) => {
-							const target = event.target as HTMLElement;
 							suggestionTooltip.removeTooltip();
-							if (target.tagName !== "SUGGESTION") return;
-
-							const name = target.getAttribute("name");
-							const replaceText = target.getAttribute("text");
-							const description = target.getAttribute("description");
+							const target = (event.target as HTMLElement)?.closest?.("suggestion") as HTMLElement;
+							if (!target) return;
 
 							const pos = view.posAtDOM(target, 0);
 							const resolvedPos = view.state.doc.resolve(pos);
+							const mark = (resolvedPos.nodeAfter?.marks ?? []).find((mark) => mark.type === currentType);
+							const range = getMarkRange(resolvedPos, currentType, mark?.attrs);
+							if (!range) return;
+
 							suggestionTooltip.setTooltip(target, {
-								name,
-								replaceText,
-								description,
+								name: mark?.attrs.name ?? target.getAttribute("name"),
+								replaceText: mark?.attrs.text ?? target.getAttribute("text"),
+								description: mark?.attrs.description ?? target.getAttribute("description"),
 								onClick: (replaceText) => {
-									let tr = view.state.tr;
-									const newNode = getNodeByHTMLText(replaceText, this.editor);
-									tr = tr.replaceWith(
-										pos,
-										pos + (resolvedPos.nodeAfter?.nodeSize ?? 0),
-										newNode.child(0).content,
-									);
+									const { from, to } = range;
+									const { tr, doc, schema } = view.state;
+
+									if (replaceText) {
+										const marks = buildReplacement(doc, from, to, replaceText, currentType);
+										const nodes = Array.from(replaceText, (char, index) =>
+											schema.text(char, marks[index]),
+										);
+										tr.replaceWith(from, to, Fragment.fromArray(nodes));
+									} else tr.delete(from, to);
+
 									view.dispatch(tr);
 									suggestionTooltip.removeTooltip();
 								},

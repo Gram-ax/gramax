@@ -2,6 +2,7 @@
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import CatalogFetchTimersService from "@core-ui/ContextServices/CatalogFetchTimers";
+import GitIndexService from "@core-ui/ContextServices/GitIndexService";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import SourceDataService from "@core-ui/ContextServices/SourceDataService";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
@@ -137,6 +138,18 @@ export default class GlobalSyncCountService {
 				clearTimeout(fetchTimeoutRef.current);
 			};
 		}, [handleFocus, handleBlur]);
+
+		useEffect(() => {
+			const token = GitIndexService.events.on("index-changed", ({ catalogName, changed }) => {
+				setSyncCounts((prev) => {
+					const existing = prev[catalogName] ?? { pull: 0, push: 0, changed: 0, hasChanges: false };
+					const hasChanges = changed > 0 || existing.pull > 0 || existing.push > 0;
+					if (existing.changed === changed && existing.hasChanges === hasChanges) return prev;
+					return { ...prev, [catalogName]: { ...existing, changed, hasChanges } };
+				});
+			});
+			return () => GitIndexService.events.off(token);
+		}, []);
 
 		// useEffect(() => {
 		// void resolveModule("setBadge")?.(totalPullCount > 0 ? totalPullCount : null);

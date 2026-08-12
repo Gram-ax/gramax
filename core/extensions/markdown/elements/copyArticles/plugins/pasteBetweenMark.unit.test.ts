@@ -1,7 +1,7 @@
 import { pasteBetweenMark } from "@ext/markdown/elements/copyArticles/plugins/pasteBetweenMark";
 import { Fragment, Slice } from "@tiptap/pm/model";
-import { schema } from "@tiptap/pm/schema-basic";
 import { EditorState, TextSelection } from "@tiptap/pm/state";
+import { schema } from "prosemirror-schema-basic";
 
 const { doc: docNode, paragraph, blockquote, code_block, hard_break } = schema.nodes;
 

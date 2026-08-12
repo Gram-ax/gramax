@@ -37,3 +37,4 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 playwright-report/
 test-report/
 docportal-test-data
+next-test-data

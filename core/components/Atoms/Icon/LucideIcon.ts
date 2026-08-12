@@ -2,25 +2,13 @@ import customIcons, { type CustomIcon } from "@components/Atoms/Icon/customIcons
 import preloadedIcons from "@components/Atoms/Icon/preloadedIcons";
 import lucideIcons, { useLucideModule } from "@dynamicImports/lucide-icons";
 import type { LucideIcon as LucideIconType } from "lucide-react";
+import type dynamicIconImports from "lucide-react/dynamicIconImports";
 
 export type { LucideIconType };
 
-type CamelToKebab<S extends string> = S extends `${infer T}${infer U}`
-	? U extends Uncapitalize<U>
-		? `${Lowercase<T>}${CamelToKebab<U>}`
-		: `${Lowercase<T>}-${CamelToKebab<U>}`
-	: S;
+type KebabIconNames = keyof typeof dynamicIconImports;
 
-type LucideModule = Awaited<ReturnType<typeof lucideIcons>>;
-type RemoveIconSuffix<T> = T extends `${string}Icon` ? never : T extends `Lucide${string}` ? never : T;
-type CleanIcons<T> = {
-	[K in keyof T]: T[K] extends LucideIconType ? RemoveIconSuffix<K> : never;
-}[keyof T];
-
-type IconNames = CleanIcons<LucideModule>;
-type KebabIconNames = CamelToKebab<IconNames>;
-
-export type IconCode = keyof typeof customIcons | KebabIconNames;
+export type IconCode = (keyof typeof customIcons & string) | KebabIconNames;
 
 const toCamelCase = (str: string) => {
 	const parts = str.split("-");

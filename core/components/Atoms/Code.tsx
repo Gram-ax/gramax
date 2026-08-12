@@ -1,3 +1,4 @@
+// biome-ignore lint/style/noRestrictedImports: idc
 import styled from "@emotion/styled";
 import type { HTMLAttributes } from "react";
 
@@ -19,7 +20,7 @@ const Code = styled(
 	padding: 0;
 	white-space: pre-wrap;
 	font-size: 12px;
-	font-family: "Roboto Mono";
+	font-family: "Roboto Mono", Consolas, monospace;
 	font-weight: 400;
 	line-height: 20px;
 `;

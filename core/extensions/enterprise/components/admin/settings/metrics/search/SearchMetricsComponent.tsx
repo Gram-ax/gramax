@@ -1,15 +1,15 @@
 import { cn } from "@core-ui/utils/cn";
 import { useSettings } from "@ext/enterprise/components/admin/contexts/SettingsContext";
+import { useAdminHeader } from "@ext/enterprise/components/admin/hooks/useAdminHeader";
 import { useHealthCheck } from "@ext/enterprise/components/admin/settings/HealthCheck";
 import SearchQueryDetailsTable from "@ext/enterprise/components/admin/settings/metrics/search/details/SearchQueryDetailsTable";
 import ArticleRatingsTable from "@ext/enterprise/components/admin/settings/metrics/search/ratings/ArticleRatingsTable";
-import { StickyHeader } from "@ext/enterprise/components/admin/ui-kit/StickyHeader";
+import { Button } from "@ext/enterprise/components/admin/ui-kit/Button";
 import { TabErrorBlock } from "@ext/enterprise/components/admin/ui-kit/TabErrorBlock";
+import { TabInitialLoader } from "@ext/enterprise/components/admin/ui-kit/TabInitialLoader";
 import { Page } from "@ext/enterprise/types/Page";
 import { getAdminPageTitle } from "@ext/enterprise/utils/getAdminPageTitle";
 import t from "@ext/localization/locale/translate";
-import { Button } from "@ui-kit/Button";
-import { Loader } from "@ui-kit/Loader";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
 import { useCallback, useMemo, useRef, useState } from "react";
 import MetricsChart from "../components/chart/MetricsChart";
@@ -27,7 +27,7 @@ const TABLES_HEIGHT = 420;
 const SearchMetricsComponent = () => {
 	const {
 		settings,
-		ensureSearchMetricsLoaded,
+		ensureLoaded,
 		getSearchTableData,
 		getTabError,
 		isInitialLoading,
@@ -87,71 +87,66 @@ const SearchMetricsComponent = () => {
 	const handleFilterChange = useCallback(
 		async (filterUpdate: Parameters<typeof setFilters>[0]) => {
 			setFilters(filterUpdate);
-			await ensureSearchMetricsLoaded();
+			await ensureLoaded("searchMetrics");
 		},
-		[setFilters, ensureSearchMetricsLoaded],
+		[setFilters, ensureLoaded],
 	);
 
-	if (isInitialLoading("metrics")) {
-		return (
-			<div className="flex items-center justify-center h-full">
-				<Loader style={{ transform: "scale(3)" }} />
-			</div>
-		);
-	}
+	const isContentUnavailable = isInitialLoading("metrics") || Boolean(tabError) || Boolean(healthCheckLoader);
 
-	if (tabError) {
-		return <TabErrorBlock message={tabError.message} onRetry={() => ensureSearchMetricsLoaded()} />;
-	}
+	useAdminHeader({
+		title: (
+			<div className="flex gap-2">
+				{getAdminPageTitle(Page.SEARCH_METRICS)}
+				{isHealthy === false && (
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<Button
+								className="p-0 h-auto"
+								size="sm"
+								startIcon="circle-alert"
+								status="error"
+								variant="text"
+							/>
+						</TooltipTrigger>
+						<TooltipContent className="font-sans font-normal">
+							{t("enterprise.admin.errors.database-unavailable")}
+						</TooltipContent>
+					</Tooltip>
+				)}
+			</div>
+		),
+		actions: isContentUnavailable ? undefined : (
+			<div className={cn("flex items-center gap-2", !isHealthy && "opacity-50 pointer-events-none")}>
+				<SearchMetricsFilterDropdown
+					disabled={isRefreshing("metrics")}
+					getMetricsCatalogs={getSearchMetricsCatalogs}
+					onCatalogChange={(catalogs) => handleFilterChange({ selectedCatalogs: catalogs })}
+					selectedCatalogs={filters.selectedCatalogs ?? []}
+				/>
+				<MetricsDateFilter
+					dateRange={{
+						startDate: filters.startDate,
+						endDate: filters.endDate,
+					}}
+					disabled={isRefreshing("metrics")}
+					interval={filters.interval}
+					onChange={(newInterval, startDate, endDate) =>
+						handleFilterChange({ interval: newInterval, startDate, endDate })
+					}
+				/>
+			</div>
+		),
+	});
+
+	if (isInitialLoading("metrics")) return <TabInitialLoader />;
+
+	if (tabError) return <TabErrorBlock code={tabError} onRetry={() => ensureLoaded("searchMetrics")} />;
 
 	if (healthCheckLoader) return healthCheckLoader;
 
 	return (
 		<div>
-			<StickyHeader
-				actions={
-					<div className={cn("flex items-center gap-2", !isHealthy && "opacity-50 pointer-events-none")}>
-						<SearchMetricsFilterDropdown
-							disabled={isRefreshing("metrics")}
-							getMetricsCatalogs={getSearchMetricsCatalogs}
-							onCatalogChange={(catalogs) => handleFilterChange({ selectedCatalogs: catalogs })}
-							selectedCatalogs={filters.selectedCatalogs ?? []}
-						/>
-						<MetricsDateFilter
-							dateRange={{
-								startDate: filters.startDate,
-								endDate: filters.endDate,
-							}}
-							disabled={isRefreshing("metrics")}
-							interval={filters.interval}
-							onChange={(newInterval, startDate, endDate) =>
-								handleFilterChange({ interval: newInterval, startDate, endDate })
-							}
-						/>
-					</div>
-				}
-				title={
-					<div>
-						<div className="flex gap-2">
-							{getAdminPageTitle(Page.SEARCH_METRICS)}
-							{!isHealthy && (
-								<Tooltip>
-									<TooltipTrigger asChild>
-										<Button
-											className="p-0 h-auto"
-											size="sm"
-											startIcon="circle-alert"
-											status="error"
-											variant="text"
-										/>
-									</TooltipTrigger>
-									<TooltipContent>{t("enterprise.admin.error.database-unavailable")}</TooltipContent>
-								</Tooltip>
-							)}
-						</div>
-					</div>
-				}
-			/>
 			<div
 				className={`flex flex-col flex-1 min-h-0 gap-8 overflow-auto ${!isHealthy ? "opacity-50 pointer-events-none" : ""}`}
 			>

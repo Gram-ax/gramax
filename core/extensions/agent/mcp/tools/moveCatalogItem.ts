@@ -1,7 +1,10 @@
+import Path from "@core/FileProvider/Path/Path";
+import type { Article } from "@core/FileStructue/Article/Article";
+import type { Item } from "@core/FileStructue/Item/Item";
 import type { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
 import { fail, ok, type ToolExecutionContext, type ToolExecutionResult } from "../tool";
-import { buildCatalogItemLookup } from "../utils/catalogPaths";
+import { CatalogItemLookup } from "../utils/catalogPaths";
 
 type MoveCatalogItemInput = {
 	catalogName: string;
@@ -9,77 +12,79 @@ type MoveCatalogItemInput = {
 	toItemPath: string;
 };
 
-function validateTargetPathForType(type: ItemType, targetItemPath: string): string | null {
-	if (type === ItemType.category) {
-		if (!targetItemPath.endsWith("_index.md")) {
-			return "move_catalog_item: for category target toItemPath must end with _index.md";
-		}
-		return null;
-	}
-	if (!targetItemPath.endsWith(".md")) {
-		return "move_catalog_item: for article target toItemPath must end with .md";
-	}
-	if (targetItemPath.endsWith("_index.md")) {
-		return "move_catalog_item: article cannot be moved to category path (_index.md)";
-	}
-	return null;
-}
-
 export async function runMoveCatalogItem({ app, ctx, input }: ToolExecutionContext): Promise<ToolExecutionResult> {
 	const { catalogName, fromItemPath, toItemPath } = input as MoveCatalogItemInput;
 
-	const fromLookup = buildCatalogItemLookup(catalogName, fromItemPath);
-	const toLookup = buildCatalogItemLookup(catalogName, toItemPath);
-	if (fromLookup.fullPath.compare(toLookup.fullPath)) {
-		return fail("move_catalog_item: fromItemPath and toItemPath must be different");
+	const fromRef = new Path(Path.join(catalogName, fromItemPath));
+	const toRef = new Path(Path.join(catalogName, toItemPath));
+	if (fromRef.compare(toRef)) {
+		return fail("fromItemPath and toItemPath must be different");
+	}
+
+	const targetType = CatalogItemLookup.getTypeFromPath(toItemPath);
+	if (!targetType) {
+		return fail("toItemPath must end with .md (article) or _index.md (category)");
 	}
 
 	try {
-		const catalog = await app.wm.current().getCatalog(fromLookup.catalogName, ctx);
-		const sourceItem = catalog.findItemByItemPath(fromLookup.fullPath);
+		const catalog = await app.wm.current().getCatalog(catalogName, ctx);
+		const sourceItem = catalog.findItemByItemPath(fromRef);
 		if (!sourceItem) {
-			return fail(`Item not found. itemPath: ${fromLookup.itemPath}`);
+			return fail("Item not found");
 		}
-		if (sourceItem.ref === undefined || sourceItem.ref === null) {
-			return fail(`Item has no ref. itemPath: ${fromLookup.itemPath}`);
-		}
-
-		const pathValidationError = validateTargetPathForType(sourceItem.type, toLookup.itemPath);
-		if (pathValidationError) return fail(pathValidationError);
-
-		const existing = catalog.findItemByItemPath(toLookup.fullPath);
+		const existing = catalog.findItemByItemPath(toRef);
 		if (existing) {
-			return fail(`Move error: target already exists: ${toLookup.itemPath}`);
+			return fail(`Target already exists`);
 		}
 
 		if (sourceItem.type === ItemType.category) {
+			if (targetType === ItemType.article) {
+				return fail("Converting category to article is not supported");
+			}
 			const sourceDir = sourceItem.ref.path.parentDirectoryPath;
-			const targetDir = toLookup.fullPath.parentDirectoryPath;
+			const targetDir = toRef.parentDirectoryPath;
 			if (targetDir.startsWith(sourceDir)) {
-				return fail("Move error: cannot move category inside itself");
+				return fail("Cannot move category inside itself");
 			}
 		}
 
-		const toRef: ItemRef = {
-			path: toLookup.fullPath,
+		const fromLookup = (await CatalogItemLookup.fromCatalogItem(catalog, sourceItem)).asJSON();
+		const toItemRef: ItemRef = {
+			path: toRef,
 			storageId: sourceItem.ref.storageId,
 		};
 		const baseCatalog = catalog.deref;
-		if (!baseCatalog) {
-			return fail("Move error: catalog deref missing");
-		}
-		const moved = await baseCatalog.moveItem(sourceItem.ref, toRef, app.resourceUpdaterFactory.withContext(ctx), [
-			sourceItem.ref,
-		]);
+		const resourceUpdater = app.resourceUpdaterFactory.withContext(ctx);
 
-		return ok({
-			type: moved.type,
-			fromItemPath: fromLookup.itemPath,
-			toItemPath: toLookup.itemPath,
-			refreshPage: true,
-		});
+		let resultItem: Item;
+		if (sourceItem.type !== targetType) {
+			const category = await baseCatalog.createCategoryByArticle(resourceUpdater, sourceItem as Article);
+			if (!category.ref.path.compare(toRef)) {
+				resultItem = await baseCatalog.moveItem(category.ref, toItemRef, resourceUpdater, [category.ref]);
+			} else {
+				resultItem = category;
+			}
+		} else {
+			resultItem = await baseCatalog.moveItem(sourceItem.ref, toItemRef, resourceUpdater, [sourceItem.ref]);
+		}
+
+		await app.wm.current().refreshCatalog(catalog.name);
+		const refreshedCatalog = await app.wm.current().getCatalog(catalogName, ctx);
+		const refreshedItem = refreshedCatalog.findItemByItemPath(resultItem.ref.path);
+		if (!refreshedItem) {
+			return fail(`Moved item not found after refresh. itemPath: ${toItemPath}`);
+		}
+
+		return ok(
+			{
+				type: refreshedItem.type,
+				from: fromLookup,
+				to: (await CatalogItemLookup.fromCatalogItem(refreshedCatalog, refreshedItem)).asJSON(),
+			},
+			true,
+		);
 	} catch (e) {
 		const msg = e instanceof Error ? e.message : String(e);
-		return fail(`Move error (${fromLookup.itemPath} -> ${toLookup.itemPath}): ${msg}`);
+		return fail(`Failed to move item: ${msg}`);
 	}
 }

@@ -6,11 +6,11 @@ const highlightStyles = tv({
 	base: [
 		"group flex relative items-center w-full m-0 py-[0.15em] h-5 leading-[1.33em] cursor-pointer",
 		"before:content-[''] before:flex before:absolute before:items-center before:left-[3px] before:top-[10%] before:w-[3px] before:h-[80%]",
-		"hover:bg-[var(--color-merge-request-hover)]",
+		"hover:bg-secondary-bg-hover text-primary-fg",
 	],
 	variants: {
 		active: {
-			true: "bg-[var(--color-merge-request-hover)]",
+			true: "bg-secondary-bg-hover",
 			false: "",
 		},
 		status: {

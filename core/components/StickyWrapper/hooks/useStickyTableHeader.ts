@@ -1,45 +1,29 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-export interface StickyTableHeaderState {
-	tableStyles: TableStyles;
-	headerRowStyles: HeaderRowStyles;
-}
+import useStickyTableStyles, {
+	type StickyTableStyleOptions,
+	TOP_PADDING,
+} from "@components/StickyWrapper/hooks/useStickyTableStyles";
+import { type MutableRefObject, type RefObject, useCallback, useEffect, useRef } from "react";
 
-type TableStyles = {
-	tableMarginTop?: number;
-};
-
-type HeaderRowStyles = {
-	top?: number;
-	width?: number;
-};
+export { TOP_PADDING };
 
 const headerRowSelector = "tbody tr:first-child";
 const controlsContainerHorizontalSelector =
-	".width-wrapper > .scrollableContent > .table-actions > .table-controller > .controls-container-horizontal";
+	":scope > .width-wrapper-container > .width-wrapper > .scrollableContent > .table-actions > .table-controller > .controls-container-horizontal";
 const lastRowSelector = "tbody tr:nth-last-child(-n+5)";
 
-export const TOP_PADDING = 20;
+type UseStickyTableHeaderParams = StickyTableStyleOptions & {
+	headerRowRef?: MutableRefObject<HTMLTableRowElement>;
+	stickyTableWrapperRef: MutableRefObject<HTMLDivElement>;
+	tableRef: RefObject<HTMLTableElement>;
+	topShadowContainerRef: MutableRefObject<HTMLDivElement>;
+};
 
-type useStickyTableHeaderType = (
-	tableRef: React.RefObject<HTMLTableElement>,
-	stickyTableWrapperRef: React.MutableRefObject<HTMLDivElement>,
-	topShadowContainerRef: React.MutableRefObject<HTMLDivElement>,
-	headerRowRef: React.MutableRefObject<HTMLTableRowElement>,
-) => StickyTableHeaderState;
-
-export const useStickyTableHeader: useStickyTableHeaderType = (
-	tableRef,
-	stickyTableWrapperRef,
-	topShadowContainerRef,
-	headerRowRef,
-) => {
-	const [tableStyles, setTableStyles] = useState<TableStyles>({});
-	const [headerRowStyles, setHeaderRowStyles] = useState<HeaderRowStyles>({});
+const useStickyTableHeader = (params: UseStickyTableHeaderParams) => {
+	const { enableStickyRow, headerRowRef, stickyTableWrapperRef, tableRef, topShadowContainerRef } = params;
+	const { applyStickyHeaderStyles, resetStickyHeaderStyles } = useStickyTableStyles(params);
 
 	const headerHeightRef = useRef<number>(0);
 	const borderHeightRef = useRef<number>(0);
-	const prevTableStylesRef = useRef<TableStyles>({});
-	const prevHeaderRowStylesRef = useRef<HeaderRowStyles>({});
 
 	const verticalRef = useRef<HTMLElement>(null);
 	const horizontalRef = useRef<HTMLElement>(null);
@@ -48,21 +32,22 @@ export const useStickyTableHeader: useStickyTableHeaderType = (
 	const resizeObserverRef = useRef<ResizeObserver | null>(null);
 	const mutationObserverRef = useRef<MutationObserver | null>(null);
 
-	const controlsContainerHorizontal = useMemo(
-		() => stickyTableWrapperRef.current?.querySelector<HTMLDivElement>(controlsContainerHorizontalSelector),
-		[stickyTableWrapperRef.current],
-	);
-	const headerRow = useMemo(
+	const getHeaderRow = useCallback(
 		() =>
-			(headerRowRef?.current || tableRef?.current?.querySelector<HTMLTableRowElement>(headerRowSelector)) ?? null,
-		[tableRef?.current, headerRowRef?.current],
+			(headerRowRef?.current || tableRef.current?.querySelector<HTMLTableRowElement>(headerRowSelector)) ?? null,
+		[headerRowRef, tableRef],
+	);
+
+	const getControlsContainerHorizontal = useCallback(
+		() => stickyTableWrapperRef.current?.querySelector<HTMLDivElement>(controlsContainerHorizontalSelector) ?? null,
+		[stickyTableWrapperRef],
 	);
 
 	const findScrollableParents = useCallback(() => {
 		let vertical: HTMLElement | null = null;
 		let horizontal: HTMLElement | null = null;
 
-		let current = tableRef?.current?.parentElement ?? null;
+		let current = tableRef.current?.parentElement ?? null;
 		while (current && current !== document.body) {
 			const style = getComputedStyle(current);
 
@@ -84,102 +69,114 @@ export const useStickyTableHeader: useStickyTableHeaderType = (
 
 		verticalRef.current = vertical;
 		horizontalRef.current = horizontal;
-	}, [tableRef?.current]);
+	}, [tableRef]);
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	const setScrollLeft = useCallback(
 		(scrollLeft: number) => {
-			if (horizontalRef.current) horizontalRef.current.scrollLeft = scrollLeft;
-			if (headerRow) headerRow.scrollLeft = scrollLeft;
-			if (controlsContainerHorizontal) controlsContainerHorizontal.scrollLeft = scrollLeft;
-			if (topShadowContainerRef?.current) topShadowContainerRef.current.scrollLeft = scrollLeft;
+			const horizontal = horizontalRef.current;
+			const headerRow = getHeaderRow();
+			const controlsContainerHorizontal = getControlsContainerHorizontal();
+			const topShadowContainer = topShadowContainerRef.current;
+
+			if (horizontal && horizontal.scrollLeft !== scrollLeft) horizontal.scrollLeft = scrollLeft;
+			if (headerRow && headerRow.scrollLeft !== scrollLeft) headerRow.scrollLeft = scrollLeft;
+			if (controlsContainerHorizontal && controlsContainerHorizontal.scrollLeft !== scrollLeft) {
+				controlsContainerHorizontal.scrollLeft = scrollLeft;
+			}
+			if (topShadowContainer && topShadowContainer.scrollLeft !== scrollLeft) {
+				topShadowContainer.scrollLeft = scrollLeft;
+			}
 		},
-		[horizontalRef.current, headerRow, controlsContainerHorizontal, topShadowContainerRef?.current],
+		[getControlsContainerHorizontal, getHeaderRow, topShadowContainerRef],
 	);
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	const horizontalRowScroll = useCallback(() => {
 		if (!horizontalRef.current) return;
 		setScrollLeft(horizontalRef.current.scrollLeft);
-	}, [horizontalRef.current, setScrollLeft]);
+	}, [setScrollLeft]);
 
 	const headerRowScroll = useCallback(() => {
+		const headerRow = getHeaderRow();
 		if (!headerRow) return;
 		setScrollLeft(headerRow.scrollLeft);
-	}, [headerRow, setScrollLeft]);
+	}, [getHeaderRow, setScrollLeft]);
 
 	const computeBorderHeight = useCallback(() => {
+		const headerRow = getHeaderRow();
 		if (!headerRow?.firstElementChild) return;
 		const cellStyles = window.getComputedStyle(headerRow.firstElementChild);
 		borderHeightRef.current = parseFloat(cellStyles.borderTopWidth) + parseFloat(cellStyles.borderBottomWidth);
-	}, [headerRow]);
+	}, [getHeaderRow]);
 
 	const computeStyles = useCallback(() => {
-		const table = tableRef?.current;
-		if (!table || !headerRow || !verticalRef.current) return;
+		const table = tableRef.current;
+		const headerRow = getHeaderRow();
+		const vertical = verticalRef.current;
+
+		if (!enableStickyRow || !table || !headerRow || !vertical) {
+			headerHeightRef.current = 0;
+			resetStickyHeaderStyles();
+			return;
+		}
 
 		const rect = table.getBoundingClientRect();
-		const verticalRect = verticalRef.current.getBoundingClientRect();
+		const verticalRect = vertical.getBoundingClientRect();
 
 		const headerRect = headerRow.getBoundingClientRect();
 		const tbodyTop = rect.top - headerHeightRef.current;
 
 		const sticked = !!headerHeightRef.current;
 		const borderHeight = sticked ? borderHeightRef.current : 0;
+		const paddingTop = sticked ? TOP_PADDING : 0;
+		const headerRectHeight = headerRect.height - borderHeight - paddingTop;
 
-		const headerRectHeight = headerRect.height - borderHeight;
 		const shouldStick =
 			rect.top - headerHeightRef.current <= verticalRect.top + TOP_PADDING &&
-			headerRectHeight <= verticalRef.current.clientHeight / 2;
+			headerRectHeight <= vertical.clientHeight / 2;
 
 		headerHeightRef.current = 0;
 
 		const lastRows = table.querySelectorAll<HTMLTableRowElement>(lastRowSelector);
+		if (!lastRows.length) {
+			resetStickyHeaderStyles();
+			return;
+		}
+
 		const firstRowRect = lastRows[0].getBoundingClientRect();
 		const lastRowRect = lastRows[lastRows.length - 1].getBoundingClientRect();
 
 		const top = Math.min(
 			Math.max(
-				lastRowRect.bottom - verticalRect.top - verticalRef.current.clientHeight / 2,
+				lastRowRect.bottom - verticalRect.top - vertical.clientHeight / 2,
 				firstRowRect.top - verticalRect.top,
 			) - headerRectHeight,
-			TOP_PADDING,
+			0,
 		);
 
-		let nextHeader: HeaderRowStyles = {};
-		let nextTableStyles: TableStyles = {};
-
-		if (shouldStick && top >= tbodyTop && top > -headerRectHeight - 1) {
+		if (shouldStick && top + TOP_PADDING >= tbodyTop && top > -headerRectHeight - 1) {
 			headerHeightRef.current = headerRectHeight;
+
 			const horizontal = horizontalRef.current;
 			let containerWidth = headerRect.width;
+			const scrollLeft = horizontal?.scrollLeft ?? 0;
 
-			headerRow.scrollLeft = horizontal.scrollLeft;
+			if (headerRow.scrollLeft !== scrollLeft) headerRow.scrollLeft = scrollLeft;
 
 			if (horizontal) {
 				const cRect = horizontal.getBoundingClientRect();
 				containerWidth = cRect.width;
 			}
 
-			nextHeader = {
+			applyStickyHeaderStyles({
+				tableMarginTop: headerRect.height - paddingTop,
 				top,
 				width: containerWidth,
-			};
+			});
+			return;
+		}
 
-			nextTableStyles = { tableMarginTop: headerRect.height };
-		}
-		if (
-			nextHeader.top !== prevHeaderRowStylesRef.current.top ||
-			nextHeader.width !== prevHeaderRowStylesRef.current.width
-		) {
-			prevHeaderRowStylesRef.current = nextHeader;
-			setHeaderRowStyles(nextHeader);
-		}
-		if (nextTableStyles.tableMarginTop !== prevTableStylesRef.current.tableMarginTop) {
-			prevTableStylesRef.current = nextTableStyles;
-			setTableStyles(nextTableStyles);
-		}
-	}, [tableRef, headerRow]);
+		resetStickyHeaderStyles();
+	}, [applyStickyHeaderStyles, enableStickyRow, getHeaderRow, resetStickyHeaderStyles, tableRef]);
 
 	const scheduleUpdate = useCallback(() => {
 		if (rafIdRef.current != null) return;
@@ -190,22 +187,14 @@ export const useStickyTableHeader: useStickyTableHeaderType = (
 	}, [computeStyles]);
 
 	useEffect(() => {
-		const table = tableRef?.current;
-		if (!table) {
-			if (prevTableStylesRef.current.tableMarginTop) {
-				const emptyStyles = {};
-				prevTableStylesRef.current = emptyStyles;
-				setTableStyles(emptyStyles);
-			}
+		const table = tableRef.current;
+		const headerRow = getHeaderRow();
 
-			if (prevHeaderRowStylesRef.current.top || prevHeaderRowStylesRef.current.width) {
-				const emptyHeaderStyles = {};
-				prevHeaderRowStylesRef.current = emptyHeaderStyles;
-				setHeaderRowStyles(emptyHeaderStyles);
-			}
+		if (!enableStickyRow || !table || !headerRow) {
+			headerHeightRef.current = 0;
+			resetStickyHeaderStyles();
 			return;
 		}
-		if (!headerRow) return;
 
 		computeBorderHeight();
 		findScrollableParents();
@@ -232,7 +221,6 @@ export const useStickyTableHeader: useStickyTableHeaderType = (
 		const horizontal = horizontalRef.current;
 
 		const onHeaderRowScroll = () => headerRowScroll();
-
 		const onVerticalScroll = () => scheduleUpdate();
 		const onHorizontalScroll = () => horizontalRowScroll();
 
@@ -270,17 +258,17 @@ export const useStickyTableHeader: useStickyTableHeaderType = (
 			}
 		};
 	}, [
-		computeStyles,
-		findScrollableParents,
-		scheduleUpdate,
-		tableRef,
-		headerRow,
 		computeBorderHeight,
+		computeStyles,
+		enableStickyRow,
+		findScrollableParents,
+		getHeaderRow,
 		headerRowScroll,
 		horizontalRowScroll,
+		resetStickyHeaderStyles,
+		scheduleUpdate,
+		tableRef,
 	]);
-
-	return { tableStyles, headerRowStyles };
 };
 
 export default useStickyTableHeader;

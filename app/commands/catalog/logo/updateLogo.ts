@@ -14,11 +14,14 @@ const updateLogo: Command<{ catalogName: string; name: string; content: string }
 		if (!catalog) return;
 
 		const path = catalog.getRootCategoryDirectoryPath().join(new Path(name));
+		const isSvg = name.toLowerCase().endsWith(".svg");
 
-		const cleanedBase64 = content.replace(/^data:image\/[^;]+;base64,/, "");
-		const svgBuffer = Buffer.from(cleanedBase64, "base64");
-
-		await workspace.getFileProvider().write(path, svgBuffer);
+		if (isSvg) {
+			await workspace.getFileProvider().write(path, content);
+		} else {
+			const cleanedBase64 = content.replace(/^data:image\/[^;]+;base64,/, "");
+			await workspace.getFileProvider().write(path, Buffer.from(cleanedBase64, "base64"));
+		}
 	},
 
 	params(ctx, q, body) {

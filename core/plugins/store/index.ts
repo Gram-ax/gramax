@@ -6,8 +6,12 @@ import { PluginStore, type PluginStoreType } from "@plugins/store/PluginStore";
 import { ExtensionType, type PluginConfig } from "@plugins/types";
 import type { Extensions } from "@tiptap/core";
 
-export const loadPlugins = async (plugins: Parameters<PluginStoreType["init"]>[0], props?: PluginProps) => {
-	await PluginStore.getState().init(plugins, props);
+export const loadPlugins = async (
+	plugins: Parameters<PluginStoreType["init"]>[0],
+	props?: PluginProps,
+	app?: unknown,
+) => {
+	await PluginStore.getState().init(plugins, props, app);
 };
 
 export const useIsPluginReady = () => {
@@ -31,14 +35,18 @@ export const addPlugin = async (pluginRaw: PluginConfig) => {
 };
 
 export const getPluginIsReady = () => PluginStore.getState().pluginsReady;
+
+// biome-ignore lint/suspicious/noExplicitAny: prosemirror schema spec uses untyped plain objects
 export const getPluginSchemas = (): { nodes: Record<string, any>; marks: Record<string, any> } => {
 	const extensionRegistry = PluginStore.getState()?.manager?.container.get(ServiceKey.Extensions);
 
+	// biome-ignore lint/suspicious/noExplicitAny: prosemirror schema spec uses untyped plain objects
 	const schemas: Array<{ type: ExtensionType.MarkSchema | ExtensionType.NodeSchema; data: any[] }> = [
 		{ type: ExtensionType.MarkSchema, data: extensionRegistry?.getAllExtensions(ExtensionType.MarkSchema) ?? [] },
 		{ type: ExtensionType.NodeSchema, data: extensionRegistry?.getAllExtensions(ExtensionType.NodeSchema) ?? [] },
 	];
 
+	// biome-ignore lint/suspicious/noExplicitAny: prosemirror schema spec uses untyped plain objects
 	const result = { nodes: {} as Record<string, any>, marks: {} as Record<string, any> };
 
 	for (const { type, data } of schemas) {
@@ -67,6 +75,12 @@ export const getPluginComponents = () =>
 	PluginStore.getState()?.manager?.container.get(ServiceKey.Extensions).getAllExtensions(ExtensionType.Component) ??
 	[];
 
+/** Reactive hook — re-renders consumers whenever the plugin manager changes. */
+export const usePluginComponents = () => {
+	const manager = PluginStore((state) => state.manager);
+	return manager?.container.get(ServiceKey.Extensions).getAllExtensions(ExtensionType.Component) ?? [];
+};
+
 export const modifyEditorExtensions = (extensions: Extensions): Extensions => {
 	const pluginExtensions =
 		PluginStore.getState()
@@ -74,6 +88,20 @@ export const modifyEditorExtensions = (extensions: Extensions): Extensions => {
 			.getAllExtensions(ExtensionType.Extension) ?? [];
 
 	return extensions.concat(pluginExtensions);
+};
+
+export const getPluginParseSignature = () => {
+	const { pluginsData } = PluginStore.getState();
+	return JSON.stringify(
+		pluginsData
+			.map((plugin) => ({
+				id: plugin.metadata.id,
+				version: plugin.metadata.version,
+				disabled: plugin.metadata.disabled,
+				scriptLength: plugin.script.length,
+			}))
+			.sort((a, b) => a.id.localeCompare(b.id)),
+	);
 };
 
 export const applyMenuModifiers = async (

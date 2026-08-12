@@ -5,7 +5,7 @@ import { HttpMethodsMiddleware } from "@core/Api/middleware/HttpMethodsMiddlewar
 import { MainMiddleware } from "@core/Api/middleware/MainMiddleware";
 import { TokenValidationMiddleware } from "@core/Api/middleware/TokenValidationMiddleware";
 import TransformData from "@ext/publicApi/TransformData";
-import { ApplyApiMiddleware } from "apps/next/logic/Api/ApplyMiddleware";
+import { ApplyApiMiddleware } from "../../../logic/Api/ApplyMiddleware";
 
 export default ApplyApiMiddleware(
 	async function (req: ApiRequest, res: ApiResponse) {

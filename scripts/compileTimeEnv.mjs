@@ -20,6 +20,7 @@ const env = {
 	GES_URL: null,
 	GES_CLOUD_URL: null,
 	GES_REFRESH_INTERVAL: null,
+	HIDE_ERROR_CAUSE: null,
 };
 
 const getBuiltInVariables = () => Object.keys(env).reduce((obj, x) => ({ ...obj, [x]: process.env[x] ?? env[x] }), {});
@@ -74,7 +75,7 @@ const setBuildVersion = (platform) => {
 
 const dynamicModules = () => {
 	const env = process.env.VITE_ENVIRONMENT;
-	const otelEnv = env === "next" || env === "cli" ? "next" : "browser";
+	const otelEnv = env === "next" || env === "cli" ? "next" : "web";
 
 	return {
 		"@app/resolveModule/frontend": path.resolve(__dirname, "../app/resolveModule/frontend/", env),

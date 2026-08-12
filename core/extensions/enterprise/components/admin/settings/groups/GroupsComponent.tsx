@@ -1,268 +1,106 @@
-import { useAdminNavigation } from "@ext/enterprise/components/admin/contexts/AdminNavigationContext";
-import { useSettings } from "@ext/enterprise/components/admin/contexts/SettingsContext";
-import { ConfirmationDialog } from "@ext/enterprise/components/admin/ui-kit/ConfirmationDialog";
-import { FloatingAlert } from "@ext/enterprise/components/admin/ui-kit/FloatingAlert";
-import { SheetComponent } from "@ext/enterprise/components/admin/ui-kit/SheetComponent";
+import { useAdminHeader } from "@ext/enterprise/components/admin/hooks/useAdminHeader";
+import { BulkGroupsCard } from "@ext/enterprise/components/admin/settings/groups/BulkGroupsCard";
+import { GroupCard } from "@ext/enterprise/components/admin/settings/groups/GroupCard";
+import { useGroupsViewModel } from "@ext/enterprise/components/admin/settings/groups/hooks/useGroupsViewModel";
+import { TypeFilterDropdown } from "@ext/enterprise/components/admin/settings/users/components/TypeFilterDropdown";
+import { AddButton } from "@ext/enterprise/components/admin/ui-kit/AddButton";
+import { DeleteConfirmationDialog } from "@ext/enterprise/components/admin/ui-kit/DeleteConfirmationDialog";
+import { Spinner } from "@ext/enterprise/components/admin/ui-kit/Spinner";
 import { TabErrorBlock } from "@ext/enterprise/components/admin/ui-kit/TabErrorBlock";
-import { TabInitialLoader } from "@ext/enterprise/components/admin/ui-kit/TabInitialLoader";
+import { SelectableTable } from "@ext/enterprise/components/admin/ui-kit/table/SelectableTable";
+import {
+	DeleteDropdownItem,
+	EditDropdownItem,
+	SelectionDropdown,
+} from "@ext/enterprise/components/admin/ui-kit/table/SelectionDropdown";
+import { WithTooltip } from "@ext/enterprise/components/admin/ui-kit/WithTooltip";
 import { Page } from "@ext/enterprise/types/Page";
+import { getAdminPageTitle } from "@ext/enterprise/utils/getAdminPageTitle";
 import t from "@ext/localization/locale/translate";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Button, LoadingButtonTemplate } from "@ui-kit/Button";
-import { Form, FormField } from "@ui-kit/Form";
-import { Icon } from "@ui-kit/Icon";
-import { TextInput } from "@ui-kit/Input";
-import { useEffect, useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import type { GroupValue } from "../components/roles/Access";
-import { GroupsTable } from "./components/GroupsTable";
-import { GroupsUserTable } from "./components/GroupsUserTable";
-
-const createFormSchema = (
-	groupSettings: Record<string, { name: string; members: GroupValue[] }> | undefined,
-	editingGroup: string | null,
-	editingGroupOriginalName: string | null,
-) =>
-	z.object({
-		groupName: z
-			.string()
-			.min(1, t("enterprise.admin.groups.name-error"))
-			.refine((name) => {
-				if (!groupSettings) return true;
-				if (editingGroup && name.trim() === editingGroupOriginalName) return true;
-				const nameExists = Object.values(groupSettings).some((g) => g.name === name.trim());
-				return !nameExists;
-			}, t("enterprise.admin.groups.group-name-exists")),
-	});
-
-type FormData = z.infer<ReturnType<typeof createFormSchema>>;
 
 const GroupsComponent = () => {
-	const {
-		settings,
-		addGroup,
-		updateGroup,
-		renameGroup,
-		ensureGroupsLoaded,
-		deleteGroups,
-		getTabError,
-		isInitialLoading,
-	} = useSettings();
-	const groupSettings = settings?.groups;
-	const { pageParams, navigate } = useAdminNavigation(Page.USER_GROUPS);
+	const { aggregate, applyChanges, card, data, form } = useGroupsViewModel();
 
-	const entityId = pageParams?.entityId;
-
-	const [isEditing, setIsEditing] = useState(false);
-	const [editingGroup, setEditingGroup] = useState<string | null>(null);
-	const [editingGroupOriginalName, setEditingGroupOriginalName] = useState<string | null>(null);
-	const [groupUsers, setGroupUsers] = useState<GroupValue[]>([]);
-	const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
-	const [isSaving, setIsSaving] = useState(false);
-	const [saveError, setSaveError] = useState<string | null>(null);
-
-	const formSchema = createFormSchema(groupSettings, editingGroup, editingGroupOriginalName);
-	const form = useForm<FormData>({
-		resolver: zodResolver(formSchema),
-		mode: "onChange",
-		defaultValues: {
-			groupName: "",
-		},
+	useAdminHeader({
+		title: (
+			<>
+				{getAdminPageTitle(Page.GROUPS)}
+				{form.isLoading && <Spinner className="self-center" size="small" />}
+			</>
+		),
+		titleClassName: "items-baseline",
 	});
 
-	useEffect(() => {
-		if (!saveError) return;
-		const t = setTimeout(() => setSaveError(null), 4000);
-		return () => clearTimeout(t);
-	}, [saveError]);
-
-	const handleSave = form.handleSubmit(async (values) => {
-		if (!groupSettings) return;
-
-		if (editingGroup) {
-			const originalGroup = groupSettings[editingGroup];
-			const nameChanged = values.groupName.trim() !== editingGroupOriginalName;
-			const membersChanged = JSON.stringify(originalGroup?.members) !== JSON.stringify(groupUsers);
-
-			if (nameChanged && membersChanged) {
-				await proceedUpdate(editingGroup, groupUsers, values.groupName.trim());
-			} else if (nameChanged) {
-				await proceedRename(editingGroup, values.groupName.trim());
-			} else if (membersChanged) {
-				await proceedUpdate(editingGroup, groupUsers, originalGroup.name);
-			}
-		} else {
-			await proceedAdd(values.groupName.trim(), groupUsers);
-		}
-
-		resetForm();
-		navigate(Page.USER_GROUPS, { entityId: "" });
-	});
-
-	const proceedAdd = async (groupName: string, groupValue: GroupValue[]) => {
-		setIsSaving(true);
-		try {
-			await addGroup({ groupId: groupName, groupValue, groupName });
-		} catch (e) {
-			setSaveError(e?.message);
-		} finally {
-			setIsSaving(false);
-		}
-	};
-
-	const proceedRename = async (groupId: string, newName: string) => {
-		setIsSaving(true);
-		try {
-			await renameGroup(groupId, newName);
-		} catch (e) {
-			setSaveError(e?.message);
-		} finally {
-			setIsSaving(false);
-		}
-	};
-
-	const proceedUpdate = async (groupId: string, groupValue: GroupValue[], groupName: string) => {
-		setIsSaving(true);
-		try {
-			await updateGroup(groupId, groupValue, groupName);
-		} catch (e) {
-			setSaveError(e?.message);
-		} finally {
-			setIsSaving(false);
-		}
-	};
-
-	const proceedDelete = async (groupIds: string[]) => {
-		setIsSaving(true);
-		try {
-			await deleteGroups(groupIds);
-		} catch (e) {
-			setSaveError(e?.message);
-		} finally {
-			setIsSaving(false);
-		}
-	};
-
-	const resetForm = () => {
-		setIsEditing(false);
-		setEditingGroup(null);
-		setEditingGroupOriginalName(null);
-		form.reset();
-		setGroupUsers([]);
-	};
-
-	const handleClose = () => {
-		if (hasChanges) {
-			setShowUnsavedDialog(true);
-			return;
-		}
-		resetForm();
-		navigate(Page.USER_GROUPS, { entityId: "" });
-	};
-
-	const groupName = form.watch("groupName");
-	const hasChanges = useMemo(() => {
-		if (!groupSettings) return false;
-		if (editingGroup) {
-			const originalGroup = groupSettings[editingGroup];
-			const nameChanged = groupName !== originalGroup?.name;
-			const membersChanged = JSON.stringify(originalGroup?.members) !== JSON.stringify(groupUsers);
-			return nameChanged || membersChanged;
-		}
-		return groupName?.trim() !== "" || groupUsers.length > 0;
-	}, [groupSettings, editingGroup, groupName, groupUsers]);
-
-	useEffect(() => {
-		if (entityId) {
-			setIsEditing(true);
-			if (entityId === "new") {
-				setEditingGroup(null);
-				setEditingGroupOriginalName(null);
-				form.reset({ groupName: "" });
-				setGroupUsers([]);
-			} else {
-				const groupData = groupSettings?.[entityId];
-				setEditingGroup(entityId);
-				setEditingGroupOriginalName(groupData?.name ?? entityId);
-				form.reset({ groupName: groupData?.name ?? entityId });
-				setGroupUsers(groupData?.members ?? []);
-			}
-		} else {
-			setIsEditing(false);
-		}
-	}, [entityId, groupSettings, form]);
-
-	const tabError = getTabError("groups");
-
-	if (isInitialLoading("groups")) {
-		return <TabInitialLoader />;
-	}
-
-	if (tabError) {
-		return <TabErrorBlock message={tabError.message} onRetry={() => ensureGroupsLoaded(true)} />;
-	}
-
-	if (!groupSettings) return null;
+	if (form.tabError) return <TabErrorBlock code={form.tabError} onRetry={form.retry} />;
 
 	return (
-		<div>
-			<div>
-				<GroupsTable onDelete={proceedDelete} />
-			</div>
-
-			<FloatingAlert message={saveError} show={Boolean(saveError)} />
-
-			<SheetComponent
-				confirmButton={
+		<div className="h-full flex flex-col gap-2">
+			{data.ssoEnabled && (
+				<span className="text-sm text-muted">{t("enterprise.admin.groups.use-search-for-sso")}</span>
+			)}
+			<SelectableTable
+				className="flex flex-col min-h-0"
+				columns={data.columns}
+				data={data.rows}
+				getRowId={data.getId}
+				isLoading={data.isLoading}
+				onRowClick={card.single.openWith}
+				onRowSelectionChange={data.setSelection}
+				onSearchChange={data.filter.query.set}
+				rowSelection={data.selection}
+				searchPlaceholder={t("enterprise.admin.groups.find")}
+				toolbarActions={
 					<>
-						{isSaving ? (
-							<LoadingButtonTemplate text={`${t("save2")}...`} />
-						) : (
-							<Button disabled={!form.formState.isValid || !hasChanges} onClick={handleSave}>
-								<Icon icon="save" />
-								{t("save")}
-							</Button>
-						)}
+						<SelectionDropdown selectedCount={data.selected.length}>
+							<EditDropdownItem onSelect={card.bulk.openSelected} />
+							<WithTooltip
+								tooltip={
+									data.delete.disabled
+										? t("enterprise.admin.groups.errors.delete-disabled")
+										: undefined
+								}
+							>
+								<DeleteDropdownItem disabled={data.delete.disabled} onSelect={data.delete.open} />
+							</WithTooltip>
+						</SelectionDropdown>
+						<AddButton onClick={() => card.single.openWith(null)} />
 					</>
 				}
-				isOpen={isEditing}
-				onOpenChange={(open) => !open && handleClose()}
-				sheetContent={
-					<Form asChild {...form}>
-						<form className="contents">
-							<div className="flex flex-col">
-								<FormField
-									control={({ field }) => (
-										<TextInput
-											className="w-[300px] mb-4"
-											placeholder={t("enterprise.admin.groups.group-name-placeholder")}
-											{...field}
-										/>
-									)}
-									layout="vertical"
-									name="groupName"
-									title={t("enterprise.admin.groups.group-name")}
-								/>
-								<GroupsUserTable onChange={setGroupUsers} users={groupUsers} />
-							</div>
-						</form>
-					</Form>
-				}
-				title={
-					editingGroup
-						? editingGroupOriginalName
-							? `${t("enterprise.admin.groups.group")} ${editingGroupOriginalName}`
-							: t("enterprise.admin.groups.group")
-						: t("enterprise.admin.groups.add-group")
+				toolbarLeftActions={
+					<TypeFilterDropdown<"owner">
+						onSelectType={data.filter.type.set}
+						selectedType={data.filter.type.selected}
+						types={["owner"]}
+					/>
 				}
 			/>
 
-			<ConfirmationDialog
-				isOpen={showUnsavedDialog}
-				onClose={resetForm}
-				onOpenChange={setShowUnsavedDialog}
-				onSave={handleSave}
+			<GroupCard
+				aggregate={aggregate}
+				group={card.single.data}
+				key={card.single.session}
+				onApply={applyChanges}
+				onClose={card.single.close}
+				open={card.single.isOpen}
+			/>
+
+			{card.bulk.data && (
+				<BulkGroupsCard
+					aggregate={aggregate}
+					groups={card.bulk.data}
+					key={card.bulk.session}
+					onApply={applyChanges}
+					onClose={card.bulk.close}
+					open={card.bulk.isOpen}
+				/>
+			)}
+
+			<DeleteConfirmationDialog
+				isOpen={data.delete.isOpen}
+				loading={data.delete.isDeleting}
+				onConfirm={data.delete.confirm}
+				onOpenChange={data.delete.setIsOpen}
+				selectedCount={data.selected.length}
 			/>
 		</div>
 	);

@@ -1,7 +1,7 @@
-import { getPdfjs } from "../../../apps/browser/src/pdfjs/getPdfjs";
+import Link from "../../../apps/cli/src/Components/Atoms/Link";
 import DocportalFetcher from "../../../apps/docportal/client/logic/DocportalFetcher";
 import DocportalRouter from "../../../apps/docportal/client/logic/DocportalRouter";
-import Link from "../../../apps/gramax-cli/src/Components/Atoms/Link";
+import { getPdfjs } from "../../../apps/web/src/pdfjs/getPdfjs";
 import useUrlImage from "../../../core/components/Atoms/Image/useUrlImage";
 import type { DynamicModules } from "..";
 
@@ -22,7 +22,11 @@ export const getDocportalModules = (): DynamicModules => {
 		openInExplorer: () => undefined,
 		openWindowWithUrl: () => undefined,
 		openInWeb: () => undefined,
+		gesCloudLogin: () => undefined,
 		getPdfjs,
+		updateCheck: () => undefined,
+		updateInstallFromCache: () => undefined,
+		updateAccept: () => undefined,
 	};
 };
 

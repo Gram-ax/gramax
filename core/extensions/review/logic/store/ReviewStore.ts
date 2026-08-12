@@ -113,19 +113,14 @@ export const updatePathnameToTitle = (map: Record<string, string>) => {
 };
 
 export const addReviewItem = (item: ReviewListItem) => {
-	const articleItems = store.getState().articleItems || [];
-	store.getState().setArticleItems([...articleItems, item]);
+	const { articleItems, catalogItems, setArticleItems, setCatalogItems } = store.getState();
 
-	const catalogItems = store.getState().catalogItems || [];
-	store.getState().setCatalogItems([...catalogItems, item]);
+	if (articleItems) setArticleItems([...articleItems.filter((i) => i.id !== item.id), item]);
+	if (catalogItems) setCatalogItems([...catalogItems.filter((i) => i.id !== item.id), item]);
 };
 
 export const deleteReviewItem = (id: string) => {
-	const articleItems = store.getState().articleItems || [];
-	const newArticleItems = articleItems.filter((i) => i.id !== id);
-	store.getState().setArticleItems(newArticleItems);
-
-	const catalogItems = store.getState().catalogItems || [];
-	const newCatalogItems = catalogItems.filter((i) => i.id !== id);
-	store.getState().setCatalogItems(newCatalogItems);
+	const { articleItems, catalogItems, setArticleItems, setCatalogItems } = store.getState();
+	if (articleItems) setArticleItems(articleItems.filter((i) => i.id !== id));
+	if (catalogItems) setCatalogItems(catalogItems.filter((i) => i.id !== id));
 };

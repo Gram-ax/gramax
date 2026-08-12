@@ -1,7 +1,7 @@
 import type { RenderableTreeNode, RenderableTreeNodes, Tag } from "@ext/markdown/core/render/logic/Markdoc";
+import getChildTextId from "@ext/markdown/elements/heading/logic/getChildTextId";
 import headingTransformer from "@ext/markdown/elements/heading/render/logic/headingTransformer";
 import HtmlTagComponentEditTreeToRenderTree from "@ext/markdown/elements/htmlTag/render/logic/HtmlTagComponentEditTreeToRenderTreeTransformer";
-import mdEditTreeToRenderTree from "@ext/markdown/elements/md/logic/mdEditTreeToRenderTree";
 import type { JSONContent } from "@tiptap/core";
 import type { Schema } from "@tiptap/pm/model";
 
@@ -46,6 +46,9 @@ const getComponentNames = (): ComponentsNames => {
 
 const forceChildren = ["inline-property"];
 
+const getNodeText = (node: JSONContent): string =>
+	node.text ?? (node.content ?? []).map((child) => getNodeText(child)).join("");
+
 const diagramsTransformer = (node: JSONContent, componentsNames: ComponentsNames): JSONContent => {
 	const diagramName = node.attrs?.diagramName?.toLowerCase();
 	if (!diagramName) return node;
@@ -59,6 +62,14 @@ const diagramsTransformer = (node: JSONContent, componentsNames: ComponentsNames
 	};
 
 	return tag;
+};
+
+const noteTitleCollapseTransformer = (node: JSONContent): JSONContent => {
+	if (node.type !== "note") return node;
+	const first = node.content?.[0];
+	if (first?.type !== "noteTitle") return node;
+	const title = (first.content ?? []).map((child) => child.text ?? "").join("");
+	return { ...node, attrs: { ...(node.attrs ?? {}), title }, content: node.content.slice(1) };
 };
 
 const listTransformer = (node: JSONContent): JSONContent => {
@@ -147,8 +158,33 @@ const parentLinksTagTransformer = (tag: Child): object | object[] => {
 };
 
 const editTreeToRenderTree = (editTree: JSONContent, editSchema: Schema): RenderableTreeNode => {
+	const usedHeadingIds = new Set<string>();
+
 	const transformNode = (node: JSONContent) => {
-		const nodeHandlers = [diagramsTransformer, listTransformer, HtmlTagComponentEditTreeToRenderTree];
+		if (node.type === "heading") {
+			const baseId = node.attrs?.id ?? getChildTextId(getNodeText(node));
+			if (node.attrs?.isCustomId) {
+				usedHeadingIds.add(baseId);
+				return;
+			}
+
+			let id = baseId;
+			let suffix = 1;
+
+			while (usedHeadingIds.has(id)) {
+				id = `${baseId}-${suffix}`;
+				suffix++;
+			}
+			usedHeadingIds.add(id);
+			node.attrs = { ...node.attrs, id };
+		}
+
+		const nodeHandlers = [
+			diagramsTransformer,
+			listTransformer,
+			HtmlTagComponentEditTreeToRenderTree,
+			noteTitleCollapseTransformer,
+		];
 
 		for (const handler of nodeHandlers) {
 			const result = handler(node, componentsNames);
@@ -185,19 +221,8 @@ const editTreeToRenderTree = (editTree: JSONContent, editSchema: Schema): Render
 		};
 	};
 
-	const customConvert = (node: JSONContent) => {
-		const nodeHandlers = [mdEditTreeToRenderTree];
-		for (const handler of nodeHandlers) {
-			const result = handler(node);
-			if (result) return result;
-		}
-	};
-
 	const convertNode = (inputNode: JSONContent): object[] | object | string => {
 		const node = transformNode(inputNode) || inputNode;
-
-		const customConvertedNode = customConvert(node);
-		if (customConvertedNode) return customConvertedNode;
 
 		if (node?.text && !node?.marks) return node.text;
 

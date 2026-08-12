@@ -1,10 +1,10 @@
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
-import type CatalogPropsEditor from "@ext/catalog/actions/propsEditor/components/CatalogPropsEditor";
 import { DialogErrorHeader } from "@ext/errorHandlers/client/components/DialogErrorHeader";
 import t from "@ext/localization/locale/translate";
+import type { AppSettingsEditorProps } from "@ext/settings/components/AppSettingsEditor";
+import { Level } from "@ext/settings/logic/settings";
 import { DialogBody, DialogFooterTemplate } from "@ui-kit/Dialog";
-import type { ComponentProps } from "react";
 import type { GetErrorComponentProps } from "../../errorHandlers/logic/GetErrorComponent";
 
 const CatalogExistsError = ({ error, onCancelClick }: GetErrorComponentProps) => {
@@ -12,7 +12,7 @@ const CatalogExistsError = ({ error, onCancelClick }: GetErrorComponentProps) =>
 		if (!error.props?.storage) return error.message;
 		const parts = t("catalog.error.already-exist-2").split("%");
 		return (
-			<div className="article bg-transparent">
+			<div className="article !bg-transparent">
 				{parts[0]}
 				<code>{error.props.storage}</code>
 				{parts[1]}
@@ -23,9 +23,10 @@ const CatalogExistsError = ({ error, onCancelClick }: GetErrorComponentProps) =>
 	};
 
 	const onConfigure = () => {
-		ModalToOpenService.setValue<ComponentProps<typeof CatalogPropsEditor>>(ModalToOpen.CatalogPropsEditor, {
+		ModalToOpenService.setValue<AppSettingsEditorProps>(ModalToOpen.AppSettings, {
+			defaultLevel: Level.catalog,
 			onClose: () => ModalToOpenService.resetValue(),
-			onSubmit: onCancelClick,
+			onCatalogSubmit: onCancelClick,
 			modalContentProps: { "data-upper-error": true },
 		});
 	};

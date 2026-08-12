@@ -1,22 +1,7 @@
-import styled from "@emotion/styled";
 import type { RendererProps } from "@ext/markdown/elements/file/edit/components/Preview/FilePreview";
 import { FilePreviewError } from "@ext/markdown/elements/file/edit/model/fileErrors";
 import type PPTXPreviewer from "pptx-preview/dist/previewer/index";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-
-const PptxContainer = styled.div`
-	width: min(95vw, 210mm);
-	height: min(85vh, 297mm);
-	overflow: hidden;
-	justify-self: center;
-
-	.pptx-preview-wrapper {
-		margin: unset !important;
-		overflow: auto;
-		background: transparent;
-		padding: unset;
-	}
-`;
 
 const PptxRenderer = ({ file, onLoad, onError }: RendererProps) => {
 	const [pptx, setPptx] = useState<PPTXPreviewer>(null);
@@ -37,11 +22,7 @@ const PptxRenderer = ({ file, onLoad, onError }: RendererProps) => {
 			onLoad?.();
 		};
 
-		try {
-			preview();
-		} catch (error) {
-			onError?.(error);
-		}
+		void preview().catch((error) => onError?.(error));
 
 		return () => {
 			if (ref.current) ref.current.innerHTML = "";
@@ -57,7 +38,12 @@ const PptxRenderer = ({ file, onLoad, onError }: RendererProps) => {
 		onError?.(new FilePreviewError("We can't display this file", file.name));
 	}, [pptx]);
 
-	return <PptxContainer ref={ref} />;
+	return (
+		<div
+			className="h-full min-h-[420px] w-[min(100%,210mm)] justify-self-center overflow-hidden [&_.pptx-preview-wrapper]:!m-0 [&_.pptx-preview-wrapper]:overflow-auto [&_.pptx-preview-wrapper]:bg-transparent [&_.pptx-preview-wrapper]:[padding:unset]"
+			ref={ref}
+		/>
+	);
 };
 
 export default PptxRenderer;

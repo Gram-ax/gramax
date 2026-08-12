@@ -30,7 +30,6 @@ export function useSortableSections(
 				if (oldIndex !== -1 && newIndex !== -1) {
 					const newSectionKeys = arrayMove(sectionKeys, oldIndex, newIndex);
 
-					// Перестраиваем объект sections в новом порядке
 					const reorderedSections: Record<string, WorkspaceSection> = {};
 					newSectionKeys.forEach((key) => {
 						reorderedSections[key] = sections[key];

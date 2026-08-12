@@ -1,4 +1,4 @@
-import getApp from "@app/browser/app";
+import getApp from "@app/web/app";
 import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvider";
 import Path from "@core/FileProvider/Path/Path";
 import LocalizationRules from "@ext/localization/core/events/LocalizationEvents";
@@ -53,10 +53,10 @@ describe("LocalizationEvents", () => {
 		const { wm } = await app();
 
 		const catalog = await wm.getContextlessCatalog("catalog");
-		expect(catalog.findArticle("catalog/a", [])?.content).toBe("ru");
-		expect(catalog.findArticle("catalog/en/a", [])?.content).toBe("en");
-		expect(catalog.findArticle("catalog/fr/a", [])?.content).toBe("fr");
-		expect(catalog.findArticle("catalog/not-exist", [])?.content).toBeUndefined();
+		expect(await catalog.findArticle("catalog/a", [])?.getContent()).toBe("ru");
+		expect(await catalog.findArticle("catalog/en/a", [])?.getContent()).toBe("en");
+		expect(await catalog.findArticle("catalog/fr/a", [])?.getContent()).toBe("fr");
+		expect(await catalog.findArticle("catalog/not-exist", [])?.getContent()).toBeUndefined();
 	});
 
 	test("рендерит дерево статей и добавляет недостающие языки, если стандартный язык указан и имеется несколько языков", async () => {
@@ -70,10 +70,10 @@ describe("LocalizationEvents", () => {
 		const { wm } = await app();
 
 		const catalog = await wm.getContextlessCatalog("catalog");
-		expect(catalog.findArticle("catalog/a", [])?.content).toBe("ru");
-		expect(catalog.findArticle("catalog/en/a", [])?.content).toBe("en");
-		expect(catalog.findArticle("catalog/fr/a", [])?.content).toBe("fr");
-		expect(catalog.findArticle("catalog/not-exist", [])?.content).toBeUndefined();
+		expect(await catalog.findArticle("catalog/a", [])?.getContent()).toBe("ru");
+		expect(await catalog.findArticle("catalog/en/a", [])?.getContent()).toBe("en");
+		expect(await catalog.findArticle("catalog/fr/a", [])?.getContent()).toBe("fr");
+		expect(await catalog.findArticle("catalog/not-exist", [])?.getContent()).toBeUndefined();
 	});
 
 	test("добавляет стандартный удаляет ненужные языки из .doc-root.yaml supportedLanguages", async () => {

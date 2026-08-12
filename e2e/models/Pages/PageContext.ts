@@ -1,6 +1,6 @@
-import type { Aliases } from "e2e/steps/utils/aliases";
 import type { Locator, Page } from "playwright";
 import config from "../../setup/config";
+import type { Aliases } from "../../steps/utils/aliases";
 import { replaceMultiple, sleep } from "../../steps/utils/utils";
 import { KeyboardContext } from "../Contexts/KeyboardContext";
 import SearcherContext from "../Contexts/SearcherContext";
@@ -27,7 +27,7 @@ export default class PageContext {
 		await this.inner().evaluate(async () => await window.debug?.clearGxLock());
 
 		const url = config.url + this._alias(path, () => replaceMultiple(path, this._alias.bind(this)));
-		if (this.inner().url() == url) return await this.waitForLoad();
+		if (this.inner().url() === url) return await this.waitForLoad();
 		await this.inner().goto(url, { waitUntil: "domcontentloaded" });
 		return this;
 	}
@@ -56,11 +56,11 @@ export default class PageContext {
 	}
 
 	kind(): "home" | "article" {
-		return this.url() == "/" ? "home" : "article";
+		return this.url() === "/" ? "home" : "article";
 	}
 
 	async resetToArticle() {
-		if (this.kind() == "home") {
+		if (this.kind() === "home") {
 			await this._page.locator(`text=Добавить каталог`).first().click();
 			const menu = await this.search().reset().find('[role="menu"]');
 			await menu.locator(`text=Создать новый каталог`).first().click();
@@ -71,13 +71,13 @@ export default class PageContext {
 	}
 
 	asArticle() {
-		if (this.kind() == "home") throw new Error("Not an article");
+		if (this.kind() === "home") throw new Error("Not an article");
 		return new ArticlePageContext(this._page, this._alias, this._aliases, this._info);
 	}
 
 	// FIX ME IF YOU CAN
 	async getCatalogProps() {
-		if (this.kind() == "home") throw new Error("Not an catalog");
+		if (this.kind() === "home") throw new Error("Not an catalog");
 		return await this._page.evaluate(async () => {
 			const app = await window.app;
 			const currentCatalog = await app.wm

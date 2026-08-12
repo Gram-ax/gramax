@@ -4,6 +4,24 @@ import { editorTest } from "@web/fixtures/editor.fixture";
 const IMAGE_FIXTURE = new URL("./data/img.png", import.meta.url);
 
 editorTest.describe("Images", () => {
+	editorTest("copies an inserted image from the article", async ({ editor, basePage, sharedPage }) => {
+		await basePage.copyFileToClipboard(IMAGE_FIXTURE);
+		await editor.press("ControlOrMeta+V");
+
+		const images = sharedPage.getByTestId("image");
+		await expect(images).toHaveCount(1);
+
+		await sharedPage.evaluate(() => navigator.clipboard.writeText("not an image"));
+		await images.first().click();
+		await editor.press("ControlOrMeta+C ArrowRight Enter Enter ControlOrMeta+V");
+
+		await expect(images).toHaveCount(2);
+		await editor.forceSave();
+		await expect(editor.markdown()).resolves.toMatch(
+			/^!\[\]\(\.\/untitled\.jpeg\)\{width=50px height=50px\}\s+!\[\]\(\.\/untitled-\d+\.jpeg\)\{width=50px height=50px\}\s*$/,
+		);
+	});
+
 	editorTest("paste image from clipboard & navigate", async ({ editor, basePage, sharedPage }) => {
 		await editor.type("before");
 		await editor.press("Enter");
@@ -27,7 +45,7 @@ editorTest.describe("Images", () => {
 			`
 before1
 
-![](./new-article.png){width=50px height=50px}
+![](./untitled.jpeg){width=50px height=50px}
 
 2after
 		`,

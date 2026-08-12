@@ -35,11 +35,11 @@ export const setupEnvs = () => {
 	if (process.platform === "darwin") {
 		process.env.LDFLAGS = "-L/opt/homebrew/opt/llvm/lib";
 		process.env.CPPFLAGS = "-I/opt/homebrew/opt/llvm/include";
-		process.env.PATH = "/opt/homebrew/opt/llvm/bin:$(pwd):" + process.env.PATH;
+		process.env.PATH = `/opt/homebrew/opt/llvm/bin:$(pwd):${process.env.PATH}`;
 	}
 
 	if (env.exists("NDK_HOME")) {
-		process.env.PATH = `${env("NDK_HOME")}/toolchains/llvm/prebuilt/darwin-x86_64/bin:` + process.env.PATH;
+		process.env.PATH = `${env("NDK_HOME")}/toolchains/llvm/prebuilt/darwin-x86_64/bin:${process.env.PATH}`;
 	}
 
 	process.env.UPDATE_CHANNEL = channel();

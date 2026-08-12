@@ -1,27 +1,27 @@
-import { browserLoadFont } from "@ext/pdfExport/fontLoaders/browserLoadFont";
-import BrowserCookie from "../../../apps/browser/src/logic/BrowserCookie";
-import BrowserGetImageByPath from "../../../apps/browser/src/logic/BrowserGetImageByPath";
-import BrowserGetImageFromDom from "../../../apps/browser/src/logic/BrowserGetImageFromDom";
-import BrowserGetImageSizeFromImageData from "../../../apps/browser/src/logic/BrowserGetImageSizeFromImageData";
-import BrowserSvgToPng from "../../../apps/browser/src/logic/BrowserSvgToPng";
-import { mermaidExtractText } from "../../../apps/browser/src/mermaid/mermaidExtractText";
-import { getPdfjs } from "../../../apps/browser/src/pdfjs/getPdfjs";
-import { WebWorkerModulithSearchClient } from "../../../apps/browser/src/search/modulith/WebWorkerModulithSearchClient";
+import { webLoadFont } from "@ext/pdfExport/fontLoaders/webLoadFont";
+import WebCookie from "../../../apps/web/src/logic/WebCookie";
+import WebGetImageByPath from "../../../apps/web/src/logic/WebGetImageByPath";
+import WebGetImageFromDom from "../../../apps/web/src/logic/WebGetImageFromDom";
+import WebGetImageSizeFromImageData from "../../../apps/web/src/logic/WebGetImageSizeFromImageData";
+import WebSvgToPng from "../../../apps/web/src/logic/WebSvgToPng";
+import { mermaidExtractText } from "../../../apps/web/src/mermaid/mermaidExtractText";
+import { getPdfjs } from "../../../apps/web/src/pdfjs/getPdfjs";
+import { WebWorkerModulithSearchClient } from "../../../apps/web/src/search/modulith/WebWorkerModulithSearchClient";
 import type { BackendDynamicModules } from "..";
 
 export const getStaticModules = async (): Promise<BackendDynamicModules> => {
 	return Promise.resolve({
-		Cookie: BrowserCookie,
+		Cookie: WebCookie,
 		initWasm: () => Promise.resolve(),
-		svgToPng: BrowserSvgToPng,
-		getImageSizeFromImageData: BrowserGetImageSizeFromImageData,
-		getImageFromDom: BrowserGetImageFromDom,
+		svgToPng: WebSvgToPng,
+		getImageSizeFromImageData: WebGetImageSizeFromImageData,
+		getImageFromDom: WebGetImageFromDom,
 		moveToTrash: () => Promise.resolve(),
 		getDOMParser: () => new DOMParser(),
 		getXMLSerializer: () => new XMLSerializer(),
 		setSessionData: () => Promise.resolve(),
-		pdfLoadFont: browserLoadFont,
-		getImageByPath: BrowserGetImageByPath,
+		pdfLoadFont: webLoadFont,
+		getImageByPath: WebGetImageByPath,
 		mermaidExtractText,
 		getModulithSearchClient: async ({ cacheFileProvider, articleStorageFileProvider }) =>
 			await WebWorkerModulithSearchClient.create({ cacheFileProvider, articleStorageFileProvider }),

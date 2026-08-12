@@ -19,13 +19,14 @@ export const ForTypesField = ({ control, disabled }: ForTypesFieldProps) => (
 		name="forTypes"
 		render={({ field }) => (
 			<FormItem>
-				<FormLabel>{t("enterprise.admin.check.rule-type-label")}</FormLabel>
+				<FormLabel>{t("type")}</FormLabel>
 				<FormControl>
 					<MultiSelect
 						disabled={disabled}
 						loadOptions={() => Promise.resolve({ options: FOR_TYPE_OPTIONS })}
 						onChange={field.onChange}
 						placeholder={t("enterprise.admin.check.rule-types-placeholder")}
+						searchPlaceholder={t("enterprise.admin.search")}
 						value={field.value as Array<{ value: string | number; label: string }>}
 					/>
 				</FormControl>

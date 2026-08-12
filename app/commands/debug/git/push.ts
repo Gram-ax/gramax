@@ -14,7 +14,7 @@ const push: Command<{ catalogName: string }, void> = Command.create({
 
 		const name = await catalog.repo.storage.getSourceName();
 		const sourceData = this._app.rp.getSourceData<GitSourceData>(
-			await this._app.contextFactory.fromBrowser({
+			await this._app.contextFactory.fromWeb({
 				language: resolveLanguage(),
 			}),
 			name,

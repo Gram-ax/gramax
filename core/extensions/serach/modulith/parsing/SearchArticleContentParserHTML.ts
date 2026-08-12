@@ -1,14 +1,20 @@
-import SearchArticleContentParserBase from "@ext/serach/modulith/parsing/SearchArticleContentParserBase";
-import type { ArticleItem, ArticleTableRow, ArticleTableRowData } from "@ics/gx-vector-search";
+import type { ArticleId, ArticleItems } from "@ics/article-search/article";
+import { ArticleItemCollector } from "@ics/article-search/article";
 
-export default class SearchArticleContentParserHTML extends SearchArticleContentParserBase {
-	constructor(private readonly _items: NodeList) {
-		super();
+export default class SearchArticleContentParserHTML {
+	private readonly _collector: ArticleItemCollector<never>;
+
+	constructor(
+		articleId: ArticleId,
+		title: string,
+		private readonly _items: NodeList,
+	) {
+		this._collector = new ArticleItemCollector(articleId, title);
 	}
 
-	async parse(): Promise<ArticleItem[]> {
+	async parse(): Promise<ArticleItems<never>> {
 		await this._parseItems(this._items);
-		return this._children;
+		return this._collector.finish();
 	}
 
 	private async _parseItems(items?: NodeList): Promise<void> {
@@ -24,16 +30,15 @@ export default class SearchArticleContentParserHTML extends SearchArticleContent
 
 		const tag = item.nodeName?.toLowerCase();
 		if (/^h[1-6]$/.test(tag)) {
-			this._addHeader(parseInt(tag[1]), item.textContent.trim());
+			this._collector.enterHeading(item.textContent.trim(), parseInt(tag[1], 10));
 		}
 		switch (tag) {
 			case "p":
 			case "strong":
-				this._addText(item.textContent.trim());
+				this._collector.addText(item.textContent.trim());
 				break;
 			case "li":
-				this._addText(item.textContent.trim());
-				this._addText("\n");
+				this._collector.addText(item.textContent.trim());
 				break;
 			case "ol":
 				await this._parseItems(item.childNodes);
@@ -48,33 +53,10 @@ export default class SearchArticleContentParserHTML extends SearchArticleContent
 	}
 
 	private async _addTable(table: Node): Promise<void> {
-		const rows: ArticleTableRow[] = [];
 		for (const row of table.childNodes ?? []) {
-			const data: ArticleTableRowData[] = [];
 			for (const cell of row.childNodes ?? []) {
-				let cellItems: ArticleItem[] = [];
-				if (cell.childNodes) {
-					cellItems = await new SearchArticleContentParserHTML(cell.childNodes).parse();
-				}
-
-				const cs = (cell as Element).attributes?.getNamedItem("colspan")?.value;
-				const rs = (cell as Element).attributes?.getNamedItem("rowspan")?.value;
-
-				data.push({
-					items: cellItems,
-					colspan: cs ? parseInt(cs) : undefined,
-					rowspan: rs ? parseInt(rs) : undefined,
-				});
+				if (cell.childNodes) await this._parseItems(cell.childNodes);
 			}
-
-			rows.push({
-				data,
-			});
 		}
-
-		this._addItem({
-			type: "table",
-			rows,
-		});
 	}
 }

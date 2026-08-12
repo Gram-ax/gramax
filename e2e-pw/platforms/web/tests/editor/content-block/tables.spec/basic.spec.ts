@@ -87,6 +87,34 @@ editorTest.describe("Table", () => {
 		await editor.assertMarkdownContains("</table>");
 	});
 
+	editorTest("insert table from heading via toolbar", async ({ editor }) => {
+		const tableMd = md`
+			|   |   |   |
+			|---|---|---|
+			|   |   |   |
+			|   |   |   |
+		`;
+
+		await editorTest.step("replace empty heading", async () => {
+			await editor.setMarkdown("## (*)");
+			await editor.clickToolbar("table");
+			await editor.assertMarkdown(tableMd);
+		});
+
+		await editorTest.step("insert after heading with text", async () => {
+			await editor.setMarkdown("## Heading(*)");
+			await editor.clickToolbar("table");
+			await editor.assertMarkdown(md`
+				## Heading
+
+				|   |   |   |
+				|---|---|---|
+				|   |   |   |
+				|   |   |   |
+			`);
+		});
+	});
+
 	editorTest(
 		"Tab in list inside table cell should indent list item instead of navigating to next cell",
 		async ({ editor }) => {

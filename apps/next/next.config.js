@@ -55,10 +55,23 @@ export default withBundleAnalyzer({
 		if (isProduction && uploadSourceMapsToBugsnag) config.plugins.push(new NextSourceMapUploader(bugsnagOptions));
 		config.devtool = isProduction ? "source-map" : "eval-source-map";
 
+		// node: protocol imports are valid Node built-ins on the server — only ignore them in the client bundle.
+		if (!isServer) {
+			config.plugins.push(
+				new webpack.IgnorePlugin({
+					resourceRegExp: /^node:/,
+				}),
+				// The OTel entry point picks its implementation at runtime, so bundling it whole drags the
+				// Node-only `next` variant (bare `async_hooks`) into the client. Bind the client bundle to
+				// the browser implementation instead; the server bundle keeps the runtime pick.
+				new webpack.NormalModuleReplacementPlugin(
+					/@ext\/loggers\/opentelemetry\/registerOtel$/,
+					path.resolve(dirname, "../../core/extensions/loggers/opentelemetry/web/registerOtel.ts"),
+				),
+			);
+		}
+
 		config.plugins.push(
-			new webpack.IgnorePlugin({
-				resourceRegExp: /^node:/,
-			}),
 			new webpack.NormalModuleReplacementPlugin(
 				/@app\/resolveModule\/frontend$/,
 				path.resolve(dirname, "../../app/resolveModule/frontend/next.ts"),
@@ -102,11 +115,11 @@ export default withBundleAnalyzer({
 			"@ext": path.resolve(dirname, "../../core/extensions"),
 
 			"@app": path.resolve(dirname, "../../app"),
-			"./frontend/browser": path.resolve(dirname, "empty.mjs"),
+			"./frontend/web": path.resolve(dirname, "empty.mjs"),
 			"./frontend/tauri": path.resolve(dirname, "empty.mjs"),
 			"./frontend/static": path.resolve(dirname, "empty.mjs"),
 			"./frontend/cli": path.resolve(dirname, "empty.mjs"),
-			"./backend/browser": path.resolve(dirname, "empty.mjs"),
+			"./backend/web": path.resolve(dirname, "empty.mjs"),
 			"./backend/tauri": path.resolve(dirname, "empty.mjs"),
 			"./backend/static": path.resolve(dirname, "empty.mjs"),
 			"./backend/cli": path.resolve(dirname, "empty.mjs"),

@@ -355,6 +355,11 @@ pub fn format_merge_message(repo: &Path, creds: AccessTokenCreds, opts: MergeMes
 	Repo::run_read(repo, creds, |repo| Ok(repo.format_merge_message(opts)?))
 }
 
+#[tracing::instrument(target = TAG, fields(repo = %repo.short()), ret)]
+pub fn has_merge_conflicts(repo: &Path, creds: AccessTokenCreds, branch: &str) -> Result<Vec<PathBuf>> {
+	Repo::run_write(repo, creds, "has_merge_conflicts", |repo| Ok(repo.has_merge_conflicts(branch).healthcheck_if_odb_error(&repo)?))
+}
+
 #[tracing::instrument(target = TAG, fields(repo = %repo.short()), err)]
 pub fn get_content(repo: &Path, path: &Path, oid: Option<&str>) -> Result<String> {
 	Repo::run_read(repo, DummyCreds, |repo| {
@@ -474,9 +479,21 @@ pub fn get_all_commit_authors(repo: &Path) -> Result<Vec<CommitAuthorInfo>> {
 }
 
 #[tracing::instrument(target = TAG, fields(repo = %repo.short()), err)]
-pub fn pull_lfs_objects(repo: &Path, creds: AccessTokenCreds, paths: Vec<PathBuf>, checkout: bool, cancel_token: CancelToken<'_>) -> Result<()> {
+pub fn pull_lfs_objects(
+	repo: &Path,
+	creds: AccessTokenCreds,
+	scope: TreeReadScope,
+	paths: Vec<PathBuf>,
+	checkout: bool,
+	cancel_token: CancelToken<'_>,
+) -> Result<()> {
 	Repo::run_read(repo, creds, |repo| {
-		Ok(repo.pull_lfs_objects_exact(paths, checkout, None, cancel_token)?)
+		if matches!(scope, TreeReadScope::Head) {
+			return Ok(repo.pull_lfs_objects_exact(&paths, PointerSource::Workdir { checkout }, None, cancel_token)?);
+		}
+
+		let scoped = scope.with(&repo)?;
+		Ok(repo.pull_lfs_objects_exact(&paths, PointerSource::Tree(scoped.tree()), None, cancel_token)?)
 	})
 }
 
@@ -485,6 +502,8 @@ pub fn healthcheck(repo: &Path) -> Result<()> {
 	use crate::ext::walk::Walk;
 
 	Repo::run_read(repo, DummyCreds, |repo| {
+		remove_index_lock(repo.repo().path());
+
 		let healthcheck = repo.healthcheck()?;
 
 		if !healthcheck.is_empty() {
@@ -498,6 +517,19 @@ pub fn healthcheck(repo: &Path) -> Result<()> {
 
 		Ok(())
 	})
+}
+
+/// Removes libgit2's own `.git/index.lock` left by a crashed process: unlike `.gx-lock` it never
+/// expires, and every later write fails with `the index is locked; class=Index code=Locked`.
+/// Healthcheck is what the front-end calls on that error, so this is the one place that heals it.
+fn remove_index_lock(git_dir: &Path) {
+	let lock_path = git_dir.join("index.lock");
+
+	match std::fs::remove_file(&lock_path) {
+		Ok(()) => warn!(path = %lock_path.display(), "removed .git/index.lock left by a crashed git process"),
+		Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
+		Err(e) => warn!(err = %e, path = %lock_path.display(), "failed to remove .git/index.lock"),
+	}
 }
 
 pub fn get_config_val(repo: &Path, name: &str) -> Result<Option<String>> {

@@ -124,7 +124,7 @@ const Search = (props: SearchProps) => {
 	const currentArticleLanguage = PageDataContextService.value?.language?.content;
 	const isReadOnly = PageDataContextService.value?.conf?.isReadOnly;
 
-	const { isNext, isStatic, isBrowser, isTauri } = usePlatform();
+	const { isNext, isStatic, isWeb, isTauri } = usePlatform();
 	const vectorSearchEnabled = (isNext && PageDataContextService.value?.conf?.ai?.enabled) ?? false;
 	const isCatalogExist = !!catalogName;
 
@@ -194,7 +194,7 @@ const Search = (props: SearchProps) => {
 	const canUsePropertyFilter = searchMode === "catalog" && searchScope !== "all" && !chatSearch;
 	const hasPropertyFilter = canUsePropertyFilter && filteredProperties.length !== 0;
 	const emptyInput = !query && !hasPropertyFilter;
-	const initiateIndexingOnOpen = isBrowser || isTauri;
+	const initiateIndexingOnOpen = isWeb || isTauri;
 	const articlesLanguage =
 		isCatalogExist && searchMode === "catalog" && searchScope !== "all"
 			? (currentArticleLanguage ?? catalogDefaultLanguage ?? "none")
@@ -227,12 +227,14 @@ const Search = (props: SearchProps) => {
 		}
 	}, []);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: context
 	const updateIndex = useCallback(async () => {
 		await FetchService.fetch<unknown>(
 			apiUrlCreator.getResetSearchDataUrl(searchScope !== "all" ? catalogName : undefined),
 		);
 	}, [apiUrlCreator, catalogName, searchScope]);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: context
 	const loadIndexProgress = useCallback(
 		async (signal: AbortSignal) => {
 			try {
@@ -283,7 +285,8 @@ const Search = (props: SearchProps) => {
 	}, [isOpen, loadIndexProgress]);
 
 	let searchParamsChanged = false;
-	// biome-ignore lint/correctness/useExhaustiveDependencies(searchParamsChanged): always false, never triggers useMemo
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: always false, never triggers useMemo
 	const loadData = useMemo(() => {
 		searchParamsChanged = true;
 
@@ -470,7 +473,7 @@ const Search = (props: SearchProps) => {
 
 			onOpenChange(false);
 			if (!isHomePage && articleInfo.url === currentPathname && articleInfo.searchFragmentInfo) {
-				if (isBrowser || isTauri)
+				if (isWeb || isTauri)
 					void highlightFragmentInEditor(
 						articleInfo.searchFragmentInfo.text,
 						articleInfo.searchFragmentInfo.indexInArticle,
@@ -482,7 +485,7 @@ const Search = (props: SearchProps) => {
 					);
 			}
 		},
-		[isHomePage, currentPathname, isBrowser, isTauri, isStatic, onOpenChange],
+		[isHomePage, currentPathname, isWeb, isTauri, isStatic, onOpenChange],
 	);
 
 	const keydownHandler = useCallback(
@@ -890,7 +893,7 @@ export default styled(Search)`
 
         .article {
           opacity: 0.6;
-          background: var(--color-contextmenu-bg);
+          background: hsl(var(--primary-bg));
         }
       }
 
@@ -902,7 +905,7 @@ export default styled(Search)`
         text-decoration: none !important;
         color: var(--color-primary);
 
-        background: var(--color-contextmenu-bg);
+        background: hsl(var(--primary-bg));
 
         .breadcrumb {
           align-items: baseline;
@@ -1108,7 +1111,7 @@ export default styled(Search)`
     display: flex;
     gap: 1rem;
     width: 100%;
-    background: var(--color-menu-bg);
+    background: hsl(var(--primary-bg));
     font-size: 10px;
     flex-direction: row;
     align-items: baseline;

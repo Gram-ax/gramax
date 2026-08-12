@@ -2,6 +2,8 @@ import { editName } from "@ext/markdown/elements/question/consts";
 import type { JSONContent } from "@tiptap/react";
 
 export const isQuizArticle = (node: JSONContent): boolean => {
+	if (!node) return false;
+
 	if (node.type === editName) {
 		return true;
 	}
@@ -14,6 +16,8 @@ export const isQuizArticle = (node: JSONContent): boolean => {
 };
 
 export const getQuizBlocksCount = (node: JSONContent): number => {
+	if (!node) return 0;
+
 	if (node.type === editName) {
 		const isNull = node.content[node.content.length - 1].attrs.correct === null;
 		return isNull ? 0 : 1;

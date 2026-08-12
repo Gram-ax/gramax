@@ -1,4 +1,3 @@
-import { TriggerAddButtonTemplate } from "@ext/enterprise/components/admin/settings/components/TriggerAddButtonTemplate";
 import {
 	getRulesTableColumns,
 	type RuleRow,
@@ -8,17 +7,16 @@ import {
 	getRuleBadgeInfo,
 	getSingleRuleBadgeInfo,
 } from "@ext/enterprise/components/admin/settings/styleGuide/utils/badgeInfoUtil";
-import { AlertDeleteDialog } from "@ext/enterprise/components/admin/ui-kit/AlertDeleteDialog";
-import { TableComponent } from "@ext/enterprise/components/admin/ui-kit/table/TableComponent";
+import { AddButton } from "@ext/enterprise/components/admin/ui-kit/AddButton";
+import { DeleteSelectedButton } from "@ext/enterprise/components/admin/ui-kit/DeleteSelectedButton";
+import { SelectableTable } from "@ext/enterprise/components/admin/ui-kit/table/SelectableTable";
 import { TableInfoBlock } from "@ext/enterprise/components/admin/ui-kit/table/TableInfoBlock";
-import { TableToolbar } from "@ext/enterprise/components/admin/ui-kit/table/TableToolbar";
-import { TableToolbarTextInput } from "@ext/enterprise/components/admin/ui-kit/table/TableToolbarTextInput";
-import t from "@ext/localization/locale/translate";
+import { useRowSelectionWithData } from "@ext/enterprise/components/admin/ui-kit/table/useRowSelection";
 import { Counter } from "@ui-kit/Counter";
-import { getCoreRowModel, getFilteredRowModel, useReactTable } from "@ui-kit/DataTable";
-import { Icon } from "@ui-kit/Icon";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
-import { useCallback, useMemo, useState } from "react";
+import { useMemo } from "react";
+
+const getRuleRowId = (row: RuleRow) => row.guid;
 
 interface StyleGuideRulesTableProps {
 	title: string;
@@ -30,8 +28,6 @@ interface StyleGuideRulesTableProps {
 }
 
 export function StyleGuideRulesTable({ title, rules, onEdit, onAdd, onToggle, onDelete }: StyleGuideRulesTableProps) {
-	const [rowSelection, setRowSelection] = useState({});
-
 	const tableData = useMemo<RuleRow[]>(
 		() =>
 			rules.map((rule) => ({
@@ -46,87 +42,50 @@ export function StyleGuideRulesTable({ title, rules, onEdit, onAdd, onToggle, on
 
 	const columns = useMemo(() => getRulesTableColumns({ onToggle }), [onToggle]);
 
-	const table = useReactTable({
-		data: tableData,
-		columns,
-		getCoreRowModel: getCoreRowModel(),
-		getFilteredRowModel: getFilteredRowModel(),
-		onRowSelectionChange: setRowSelection,
-		state: {
-			rowSelection,
-		},
-	});
+	const badge = useMemo(() => getRuleBadgeInfo(rules.map((r) => r.getModel())), [rules]);
 
-	const selectedCount = table.getFilteredSelectedRowModel().rows.length;
-
-	const handleDeleteSelectedRules = useCallback(() => {
-		const selectedGuids = table.getFilteredSelectedRowModel().rows.map((row) => row.original.guid);
-		onDelete(selectedGuids);
-		setRowSelection({});
-	}, [onDelete, table]);
-
-	const handleFilterChange = useCallback(
-		(value: string | null) => {
-			table.getColumn("name")?.setFilterValue(value);
-		},
-		[table],
-	);
+	const { rowSelection, setRowSelection, selectedRows } = useRowSelectionWithData(tableData, getRuleRowId);
 
 	return (
 		<div>
 			<TableInfoBlock
 				description={
-					getRuleBadgeInfo(rules.map((r) => r.getModel()))?.tooltip ? (
+					badge.tooltip ? (
 						<Tooltip>
 							<TooltipTrigger asChild>
-								<Counter
-									className="rounded-full px-2"
-									status={getRuleBadgeInfo(rules.map((r) => r.getModel())).status}
-									variant="secondary"
-								>
-									{getRuleBadgeInfo(rules.map((r) => r.getModel())).label}
+								<Counter className="font-medium" size="lg" status={badge.status} variant="text">
+									{badge.label}
 								</Counter>
 							</TooltipTrigger>
-							<TooltipContent>{getRuleBadgeInfo(rules.map((r) => r.getModel()))!.tooltip}</TooltipContent>
+							<TooltipContent className="font-sans font-normal">{badge.tooltip}</TooltipContent>
 						</Tooltip>
 					) : (
-						<Counter
-							className="rounded-full px-2"
-							status={getRuleBadgeInfo(rules.map((r) => r.getModel())).status}
-							variant="secondary"
-						>
-							{getRuleBadgeInfo(rules.map((r) => r.getModel())).label}
+						<Counter className="font-medium" size="lg" status={badge.status} variant="text">
+							{badge.label}
 						</Counter>
 					)
 				}
 				title={title}
 			/>
-			<div>
-				<TableToolbar
-					input={
-						<TableToolbarTextInput
-							onChange={handleFilterChange}
-							placeholder={t("enterprise.admin.check.rules-search-placeholder")}
-							showClearIcon
-							startIcon={<Icon icon="list-filter" />}
-							value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+			<SelectableTable<RuleRow>
+				className="mt-4"
+				columns={columns}
+				data={tableData}
+				getRowId={getRuleRowId}
+				onRowClick={(row) => onEdit(row.guid)}
+				onRowSelectionChange={setRowSelection}
+				rowSelection={rowSelection}
+				searchColumnId="name"
+				toolbarActions={
+					<>
+						<DeleteSelectedButton
+							count={selectedRows.length}
+							onClick={() => void onDelete(selectedRows.map((row) => row.guid))}
 						/>
-					}
-				>
-					<AlertDeleteDialog
-						hidden={!selectedCount}
-						onConfirm={handleDeleteSelectedRules}
-						selectedCount={selectedCount}
-					/>
-					<TriggerAddButtonTemplate className="px-3" onClick={onAdd} variant="outline" />
-				</TableToolbar>
-
-				<TableComponent<RuleRow>
-					columns={columns}
-					onRowClick={(row) => onEdit(row.original.guid)}
-					table={table}
-				/>
-			</div>
+						<AddButton onClick={onAdd} />
+					</>
+				}
+			/>
 		</div>
 	);
 }

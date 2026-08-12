@@ -25,10 +25,11 @@ async function parseContent(
 	requestUrl?: string,
 ) {
 	if (!article) return;
-	const hasContent = !(await article.parsedContent.isNull());
+	const hasParsed = !(await article.parsedContent.isNull());
+	const rawContent = article ? await article.getContent() : "";
 
-	if (article.type === ItemType.article && hasContent) return;
-	if (article.type === ItemType.category && hasContent && !!article.content?.trim?.()) {
+	if (article.type === ItemType.article && hasParsed) return;
+	if (article.type === ItemType.category && hasParsed && rawContent?.trim?.()) {
 		return;
 	}
 
@@ -41,9 +42,9 @@ async function parseContent(
 	await article.parsedContent.write(async () => {
 		const filters = new RuleProvider(ctx).getItemFilters();
 		const content =
-			article.type === ItemType.category && !article.content?.trim?.() && !article.props.template
+			article.type === ItemType.category && !rawContent?.trim?.() && !article.props.template
 				? getChildLinks(article as Category, catalog, filters)
-				: article.content;
+				: rawContent;
 
 		const parsedContent = await parser.parse(content, context, requestUrl);
 		if (!article.props.title) {

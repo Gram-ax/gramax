@@ -79,7 +79,7 @@ const ViewMetricsFilterDropdown: FC<ViewMetricsFilterDropdownProps> = (props) =>
 	return (
 		<DropdownMenu onOpenChange={setIsOpen} open={isOpen}>
 			<FilterDropdownTrigger disabled={disabled} hasActiveFilters={hasActiveFilters} />
-			<DropdownMenuContent align="start" className="min-w-56">
+			<DropdownMenuContent align="start" className="min-w-56 font-sans font-normal">
 				<FilterMultiSelectSubmenu
 					clearText={t("metrics.filters.catalog.clear-selection")}
 					fetchItems={catalogFetcher}

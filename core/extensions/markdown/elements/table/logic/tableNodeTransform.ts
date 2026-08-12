@@ -174,6 +174,13 @@ const getTableData = (node: JSONContent): TableDataExtended | null => {
 		rows,
 		numRows,
 		numCols,
+		sortFilter: {
+			enabled: true,
+		},
+		aggregation: {
+			enabled: false,
+			cells: [],
+		},
 	};
 };
 

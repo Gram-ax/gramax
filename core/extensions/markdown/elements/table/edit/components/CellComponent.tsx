@@ -1,13 +1,20 @@
-import { useTableProps } from "@ext/markdown/elements/table/edit/logic/tablePropsStore";
+import tablePropsStore from "@ext/markdown/elements/table/edit/logic/tablePropsStore";
 import type { SortState } from "@ext/markdown/elements/table/edit/model/tableTypes";
 import FilterAndSortButton from "@ext/markdown/elements/table/render/components/FilterAndSortButton";
 import { NodeViewContent, type NodeViewProps, NodeViewWrapper } from "@tiptap/react";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 
 const FilterAndSortButtonWrapper = ({ tablePos, cellIndex }: { tablePos: number; cellIndex: number }) => {
-	const { columnsValues, onFilterChange, active, canSort, onSortChange } = useTableProps(tablePos) || {};
-	const handleFilterChange = (excluded: string[]) => onFilterChange(cellIndex, excluded);
-	const handleSortChange = (sortState: SortState) => onSortChange(cellIndex, sortState);
+	const { columnsValues, onFilterChange, active, canSort, onSortChange } =
+		tablePropsStore.useFilterAndSortProps(tablePos) || {};
+	const handleFilterChange = useCallback(
+		(excluded: string[]) => onFilterChange?.(cellIndex, excluded),
+		[cellIndex, onFilterChange],
+	);
+	const handleSortChange = useCallback(
+		(sortState: SortState) => onSortChange?.(cellIndex, sortState),
+		[cellIndex, onSortChange],
+	);
 
 	return (
 		columnsValues && (
@@ -28,15 +35,12 @@ const CellComponent = ({ getPos, view }: NodeViewProps) => {
 	const resolvedPos = useMemo(() => view.state.doc.resolve(cellPos), [view, cellPos]);
 
 	const cellIndex = resolvedPos.index(resolvedPos.depth);
-	const rowIndex = resolvedPos.index(resolvedPos.depth - 1);
-	const isFirstRow = rowIndex === 0;
-
-	const tablePos = isFirstRow ? resolvedPos.before(resolvedPos.depth - 1) : 0;
+	const tablePos = resolvedPos.before(resolvedPos.depth - 1);
 
 	return (
 		<NodeViewWrapper>
 			<NodeViewContent />
-			{isFirstRow && <FilterAndSortButtonWrapper cellIndex={cellIndex} tablePos={tablePos} />}
+			<FilterAndSortButtonWrapper cellIndex={cellIndex} tablePos={tablePos} />
 		</NodeViewWrapper>
 	);
 };

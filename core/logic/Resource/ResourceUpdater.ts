@@ -3,7 +3,7 @@ import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog
 import type { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import type ResourceMovements from "@core/Resource/models/ResourceMovements";
 import { convertContentToUiLanguage } from "@ext/localization/locale/translate";
-import { trace } from "@ext/loggers/opentelemetry";
+import { Level, span, trace } from "@ext/loggers/opentelemetry";
 import ParseError from "@ext/markdown/core/Parser/Error/ParseError";
 import type { JSONContent } from "@tiptap/core";
 import type MarkdownFormatter from "../../extensions/markdown/core/edit/logic/Formatter/Formatter";
@@ -22,12 +22,12 @@ export default class ResourceUpdater {
 		private _formatter: MarkdownFormatter,
 	) {}
 
-	@trace()
+	@trace({ level: Level.Internal })
 	async updateOtherArticles(oldPath: Path, absoluteNewBasePath: Path, innerRefs?: ItemRef[]) {
 		await this.updateOtherArticlesBatch([{ oldPath, newPath: absoluteNewBasePath }], innerRefs);
 	}
 
-	@trace()
+	@trace({ level: Level.Internal })
 	async updateOtherArticlesBatch(movements: { oldPath: Path; newPath: Path }[], innerRefs?: ItemRef[]) {
 		if (!movements.length) return;
 
@@ -41,9 +41,17 @@ export default class ResourceUpdater {
 			const oldResources: Path[] = [];
 			const newResources: Path[] = [];
 
-			await parseContent(item, this._catalog, this._rc, this._parser, this._parserContextFactory);
+			try {
+				await parseContent(item, this._catalog, this._rc, this._parser, this._parserContextFactory);
+			} catch (e) {
+				if (!(e instanceof ParseError)) throw e;
+				span()?.addEvent("updateOtherArticles-parseContentFailed", { path: item.ref.path.value });
+				continue;
+			}
 
 			await item.parsedContent.write(async (p) => {
+				if (!p) return p;
+
 				p.parsedContext.getLinkManager().resources.forEach((resource) => {
 					const absolutePath = p.parsedContext.getLinkManager().getAbsolutePath(resource);
 					const newPath = movementMap.get(absolutePath.value);
@@ -69,7 +77,7 @@ export default class ResourceUpdater {
 		}
 	}
 
-	@trace()
+	@trace({ level: Level.Internal })
 	async update(oldArticle: Article, newArticle: Article, innerRefs?: ItemRef[]) {
 		try {
 			await parseContent(oldArticle, this._catalog, this._rc, this._parser, this._parserContextFactory);

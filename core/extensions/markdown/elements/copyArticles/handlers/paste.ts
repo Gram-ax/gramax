@@ -3,7 +3,12 @@ import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import type { ResourceServiceType } from "@core-ui/ContextServices/ResourceService/ResourceService";
 import type { GramaxClipboardData } from "@ext/markdown/elements/copyArticles/handlers/copy";
-import { copyCommentIfNeed, processMarks } from "@ext/markdown/elements/copyArticles/handlers/paste/processMarks";
+import {
+	PastedComments,
+	processMarks,
+	type RestoreCommentProps,
+	restoreComment,
+} from "@ext/markdown/elements/copyArticles/handlers/paste/processMarks";
 import headingPasteFormatter from "@ext/markdown/elements/heading/edit/logic/headingPasteFormatter";
 import { readyToPlace } from "@ext/markdown/elementsUtils/cursorFunctions";
 import { type Attrs, Fragment, type Mark, Node, Slice } from "@tiptap/pm/model";
@@ -42,7 +47,7 @@ interface PasteProps {
 
 interface HandleNodesProps extends Omit<FilterProps, "catalogProps"> {
 	isStorageConnected: boolean;
-	existedComments: string[];
+	comments: PastedComments;
 }
 
 type ClipboardItems = Record<string, string>;
@@ -66,17 +71,12 @@ const createResourceIfNeed = async (node: Node, apiUrlCreator: ApiUrlCreator, re
 	return { ...attrs, src: newName, nodeName: node.type.name };
 };
 
-const handleNodeCommentary = async (
-	node: Node,
-	apiUrlCreator: ApiUrlCreator,
-	copyData: GramaxClipboardData,
-): Promise<Node> => {
+const handleNodeCommentary = async (node: Node, props: Omit<RestoreCommentProps, "id">): Promise<Node> => {
 	if (!node.attrs?.comment?.id) return node;
 
-	const copyComment = await copyCommentIfNeed(node.attrs.comment.id, apiUrlCreator, copyData);
-	if (!copyComment) return node.type.create({ ...node.attrs, comment: { id: null } }, node.content, node.marks);
-
-	return node.type.create({ ...node.attrs, comment: { id: node.attrs.comment.id } }, node.content, node.marks);
+	const id = await restoreComment({ ...props, id: node.attrs.comment.id });
+	// Nothing behind it — clear the attribute so the block doesn't keep the comment styling.
+	return node.type.create({ ...node.attrs, comment: { id: id ?? null } }, node.content, node.marks);
 };
 
 const handleNodes = async (props: HandleNodesProps): Promise<Node> => {
@@ -89,7 +89,7 @@ const handleNodes = async (props: HandleNodesProps): Promise<Node> => {
 		headingAllowed,
 		copyData,
 		isStorageConnected,
-		existedComments,
+		comments,
 	} = props;
 	const newChildren = [];
 
@@ -102,7 +102,12 @@ const handleNodes = async (props: HandleNodesProps): Promise<Node> => {
 			newChild = child.type.create(newAttrs, child.content, child.marks);
 		}
 
-		newChild = await handleNodeCommentary(newChild, apiUrlCreator, copyData);
+		newChild = await handleNodeCommentary(newChild, {
+			apiUrlCreator,
+			copyData,
+			comments,
+			isStorageConnected,
+		});
 
 		if (!headingAllowed && newChild.type.name === "heading") newChild = headingPasteFormatter(view.state, newChild);
 
@@ -111,7 +116,7 @@ const handleNodes = async (props: HandleNodesProps): Promise<Node> => {
 				marks: newChild.marks,
 				apiUrlCreator,
 				copyData,
-				existedComments,
+				comments,
 				isStorageConnected,
 			});
 			newChildren.push(newChild.mark(processedMarks));
@@ -189,7 +194,7 @@ const handleListItem = (view: EditorView, node: Node): Slice => {
 	}
 };
 
-const proceedNodes = async (props: FilterProps) => {
+const proceedNodes = async (props: FilterProps & { comments: PastedComments }) => {
 	const { node, view, catalogProps } = props;
 	const isStorageConnected = catalogProps?.sourceName?.length > 0;
 
@@ -198,17 +203,7 @@ const proceedNodes = async (props: FilterProps) => {
 		return view.state.schema.text(node.text, newMarks);
 	}
 
-	const existedComments: string[] = [];
-	const { doc } = view.state;
-
-	doc.descendants((node: Node) => {
-		node.forEach((childNode: Node) => {
-			const commentMark = childNode.marks.find((mark) => mark.type.name === "comment");
-			if (commentMark) existedComments.push(commentMark.attrs.id as string);
-		});
-	});
-
-	return await handleNodes({ ...props, isStorageConnected, existedComments });
+	return await handleNodes({ ...props, isStorageConnected });
 };
 
 const handleOthers = (view: EditorView, node: Node): Slice => {
@@ -249,6 +244,7 @@ const createNodes = async (props: CreateProps) => {
 	const attrs = await createResourceIfNeed(node, apiUrlCreator, resourceService);
 	if (!attrs.nodeName) return;
 
+	const comments = new PastedComments();
 	const headingAllowed = readyToPlace(view.state, "heading");
 	let newNode = await proceedNodes({
 		node,
@@ -259,6 +255,7 @@ const createNodes = async (props: CreateProps) => {
 		headingAllowed,
 		copyData,
 		catalogProps,
+		comments,
 	});
 
 	const { from, to } = view.state.selection;

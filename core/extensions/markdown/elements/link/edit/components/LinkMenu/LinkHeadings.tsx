@@ -25,7 +25,6 @@ export const LinkHeadings = ({ linkItem, onUpdate }: LinkHeadingsProps) => {
 	const { isOpen, setIsOpen, handleMouseEnter, handleMouseLeave } = useHoverDropdown();
 	const isMobile = isMobileService.value;
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useEffect(() => {
 		if (!isOpen) return;
 		void fetchArticleHeaders();
@@ -63,9 +62,9 @@ export const LinkHeadings = ({ linkItem, onUpdate }: LinkHeadingsProps) => {
 					align="start"
 					className="p-2 px-3 -mt-2 cursor-default"
 					contentClassName="lg:shadow-hard-base"
+					contentStyle={{ maxHeight: "20rem", overflowY: "auto" }}
 					onClick={(event) => event.stopPropagation()}
 					side="right"
-					style={{ maxHeight: "20rem", overflowY: "auto" }}
 				>
 					<DropdownMenuLabel className="text-xs font-normal text-inverse-muted">
 						{t("article-titles")}

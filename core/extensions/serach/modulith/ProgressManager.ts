@@ -1,6 +1,39 @@
 import { AggregateProgress, DynamicAggregateProgress, type ProgressCallback } from "@ics/article-search-utils";
 
-export class ProgressManager {
+export interface ProgressManager {
+	addProgressSubscriber(pc: ProgressCallback): void;
+	removeProgressSubscriber(pc: ProgressCallback): void;
+	addProgress(): unknown;
+	getTotalProgress(): number;
+	getProgressCallback(prid: unknown): ProgressCallback;
+	hasProgresses(): boolean;
+	doneProgress(prid: unknown): void;
+}
+
+export class NullProgressManager implements ProgressManager {
+	private static readonly _instance = new NullProgressManager();
+	static instance() {
+		return this._instance;
+	}
+
+	addProgressSubscriber(_pc: ProgressCallback): void {}
+	removeProgressSubscriber(_pc: ProgressCallback): void {}
+	addProgress(): unknown {
+		return 0;
+	}
+	getTotalProgress(): number {
+		return 1;
+	}
+	getProgressCallback(_prid: unknown): ProgressCallback {
+		return () => {};
+	}
+	hasProgresses(): boolean {
+		return false;
+	}
+	doneProgress(_prid: unknown): void {}
+}
+
+export class DefaultProgressManager implements ProgressManager {
 	private readonly _subscribers = new Set<ProgressCallback>();
 	private readonly _doneProgresses = new Set<unknown>();
 	private readonly _progress = new DynamicAggregateProgress({
@@ -22,10 +55,6 @@ export class ProgressManager {
 		return this._progress.addProgress();
 	}
 
-	setProgress(prid: unknown, value: number): void {
-		this._progress.setProgress(prid, value);
-	}
-
 	getTotalProgress(): number {
 		return this._progress.getTotalProgress();
 	}
@@ -44,10 +73,6 @@ export class ProgressManager {
 			this._doneProgresses.forEach((x) => this._progress.removeProgress(x));
 			this._doneProgresses.clear();
 		}
-	}
-
-	getProgressesCount(): number {
-		return this._progress.getProgressesCount();
 	}
 }
 

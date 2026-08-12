@@ -4,7 +4,6 @@ import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import AuthorInfoCodec from "@core-ui/utils/authorInfoCodec";
-import styled from "@emotion/styled";
 import BranchUpdaterService from "@ext/git/actions/Branch/BranchUpdaterService/logic/BranchUpdaterService";
 import Inbox from "@ext/inbox/components/Inbox";
 import InboxFilter from "@ext/inbox/components/InboxFilter";
@@ -13,16 +12,6 @@ import type { InboxArticle } from "@ext/inbox/models/types";
 import t from "@ext/localization/locale/translate";
 import { Button } from "@ui-kit/Button";
 import { useCallback, useEffect, useRef, useState } from "react";
-
-const ExtensionWrapper = styled.div`
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	padding-left: 1rem;
-	padding-right: 1rem;
-	margin-bottom: 0.5em;
-	margin-top: -0.5em;
-`;
 
 interface InboxTabProps {
 	show: boolean;
@@ -38,6 +27,7 @@ const InboxTab = ({ show }: InboxTabProps) => {
 	const [height, setHeight] = useState(0);
 	const [selectedAuthor, setSelectedAuthor] = useState<string>(pageData.userInfo?.mail);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	const addNewNote = useCallback(async () => {
 		const uniqueID = generateUniqueID();
 		await FetchService.fetch<InboxArticle>(
@@ -60,12 +50,14 @@ const InboxTab = ({ show }: InboxTabProps) => {
 
 		const newItems = await res.json();
 		InboxService.setItems(newItems);
-	}, [apiUrlCreator, pageData.userInfo, selectedAuthor, selectedIds]);
+	}, [selectedAuthor]);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useEffect(() => {
 		if (pageData.userInfo?.mail) setSelectedAuthor(pageData.userInfo.mail);
-	}, [pageData.userInfo]);
+	}, []);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useEffect(() => {
 		const listener = () => {
 			selectedIds.forEach((id) => InboxService.closeNote(id));
@@ -79,9 +71,9 @@ const InboxTab = ({ show }: InboxTabProps) => {
 	}, []);
 
 	return (
-		<TabWrapper contentHeight={height} isTop ref={tabWrapperRef} show={show} title="">
+		<TabWrapper contentHeight={height} isTop ref={tabWrapperRef} show={show}>
 			<>
-				<ExtensionWrapper>
+				<div className="flex items-center justify-between px-4 mb-2 -mt-2">
 					<Button
 						className="p-0 h-auto"
 						disabled={pageData.userInfo?.mail ? pageData.userInfo?.mail !== selectedAuthor : false}
@@ -98,7 +90,7 @@ const InboxTab = ({ show }: InboxTabProps) => {
 						setSelectedAuthor={setSelectedAuthor}
 						show={show}
 					/>
-				</ExtensionWrapper>
+				</div>
 				<Inbox setContentHeight={setHeight} show={show} tabWrapperRef={tabWrapperRef} />
 			</>
 		</TabWrapper>

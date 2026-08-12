@@ -1,5 +1,6 @@
 import type * as core from "@opentelemetry/core";
 import type * as sdk from "@opentelemetry/sdk-trace-base";
+import { isConsoleLoggingEnabled } from "../index";
 import { otelSpanEncoder } from "../span";
 
 export type ConsoleLogExporterOptions = {
@@ -11,8 +12,13 @@ export class ConsoleLogExporter {
 	constructor(private _opts: ConsoleLogExporterOptions = {}) {}
 
 	export(spans: sdk.ReadableSpan[], resultCallback: (result: core.ExportResult) => void): void {
+		if (!isConsoleLoggingEnabled()) {
+			resultCallback({ code: 0 });
+			return;
+		}
+
 		for (const span of spans) {
-			if (!!this._opts.filter && !this._opts.filter?.(span)) continue;
+			if (this._opts.filter && !this._opts.filter?.(span)) continue;
 
 			switch (this._opts.level) {
 				case "info":

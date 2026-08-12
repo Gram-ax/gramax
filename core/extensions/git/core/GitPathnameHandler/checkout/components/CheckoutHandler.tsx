@@ -69,7 +69,7 @@ const CheckoutHandler = ({
 				<AlertDialogHeader>
 					<AlertDialogIcon icon="alert-circle" />
 					<AlertDialogTitle>{t("git.checkout.change-branch")}?</AlertDialogTitle>
-					<AlertDialogDescription className="article bg-transparent">
+					<AlertDialogDescription className="article !bg-transparent">
 						{checkoutProcess ? (
 							<Loader size="lg" />
 						) : (

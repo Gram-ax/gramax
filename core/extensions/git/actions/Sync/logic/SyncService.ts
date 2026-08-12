@@ -8,6 +8,8 @@ import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import tryOpenMergeConflict from "@ext/git/actions/MergeConflictHandler/logic/tryOpenMergeConflict";
 import tryOpenMergeResolver from "@ext/git/actions/MergeConflictHandler/logic/tryOpenMergeResolver";
 import type ClientSyncResult from "@ext/git/core/model/ClientSyncResult";
+import { span, traced } from "@ext/loggers/opentelemetry";
+import runLfsMigrationFlow from "./runLfsMigrationFlow";
 
 export type SyncServiceEvents = Event<"start"> &
 	Event<"finish", { syncData: ClientSyncResult }> &
@@ -78,6 +80,14 @@ export default class SyncService {
 			return;
 		}
 		await ArticleUpdaterService.update(apiUrlCreator);
+		await traced("lfs-migration-flow", async () => {
+			try {
+				await runLfsMigrationFlow(apiUrlCreator);
+			} catch (e) {
+				// LFS settings migration must never break the sync flow; it will be re-prompted on the next sync
+				span()?.addEvent("lfs-migration-failed", { level: "important", error: String(e) });
+			}
+		});
 		void refreshPage();
 	}
 }

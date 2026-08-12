@@ -2,7 +2,7 @@ import type ApiRequest from "@core/Api/ApiRequest";
 import type ApiResponse from "@core/Api/ApiResponse";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import type EnterpriseUser from "@ext/enterprise/EnterpriseUser";
-import { ApplyApiMiddleware } from "apps/next/logic/Api/ApplyMiddleware";
+import { ApplyApiMiddleware } from "../../../logic/Api/ApplyMiddleware";
 
 const DEFAULT_TOKEN_EXPIRES_IN = 30 * 24 * 60 * 60 * 1000; //30 days
 

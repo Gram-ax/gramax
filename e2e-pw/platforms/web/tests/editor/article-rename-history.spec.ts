@@ -7,7 +7,7 @@ editorTest.describe("Article rename – browser history", () => {
 	editorTest(
 		"renaming a new article replaces its history entry instead of adding a new one",
 		async ({ editor, sharedPage, basePage }) => {
-			expect(basePage.url).toContain("new-article");
+			expect(basePage.url).toContain("untitled");
 
 			await editor.type("Renamed Article");
 			await editor.press("End ArrowDown");
@@ -15,20 +15,20 @@ editorTest.describe("Article rename – browser history", () => {
 			await sharedPage.waitForURL(/renamed-article/, { timeout: 15_000 });
 
 			expect(basePage.url).toContain("renamed-article");
-			expect(basePage.url).not.toContain("new-article");
+			expect(basePage.url).not.toContain("untitled");
 
 			await sharedPage.goBack();
 			await sharedPage.waitForLoadState("domcontentloaded");
 
-			expect(basePage.url).not.toContain("new-article");
+			expect(basePage.url).not.toContain("untitled");
 			expect(basePage.url).not.toContain("renamed-article");
 		},
 	);
 
 	editorTest(
-		"URL is updated synchronously after title blur without an intermediate new-article entry",
+		"URL is updated synchronously after title blur without an intermediate untitled entry",
 		async ({ editor, sharedPage, basePage }) => {
-			expect(basePage.url).toContain("new-article");
+			expect(basePage.url).toContain("untitled");
 
 			const historyLengthBefore = await sharedPage.evaluate(() => window.history.length);
 

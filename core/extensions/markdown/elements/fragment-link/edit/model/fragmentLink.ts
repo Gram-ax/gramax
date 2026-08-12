@@ -1,5 +1,3 @@
-import type PageDataContext from "@core/Context/PageDataContext";
-import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import { fragmentLinkHoverPlugin } from "@ext/markdown/elements/fragment-link/edit/logic/FragmentLinkHoverPlugin";
 import addShortcuts from "@ext/markdown/elementsUtils/keyboardShortcuts/addShortcuts";
 import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
@@ -20,13 +18,8 @@ declare module "@tiptap/core" {
 export const FragmentLink = Mark.create({
 	...getExtensionOptions({ schema: fragmentLinkSchema, name: "fragment-link" }),
 
-	addOptions() {
-		return { apiUrlCreator: null as ApiUrlCreator, pageDataContext: null as PageDataContext };
-	},
-
 	addProseMirrorPlugins() {
-		if (!this.options.apiUrlCreator) return [];
-		return [fragmentLinkHoverPlugin(this.editor, this.options.apiUrlCreator, this.options.pageDataContext)];
+		return [fragmentLinkHoverPlugin(this.editor)];
 	},
 
 	inclusive() {

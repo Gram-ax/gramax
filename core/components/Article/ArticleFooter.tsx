@@ -1,12 +1,9 @@
 import ArticleExtensions from "@components/Article/ArticleExtensions";
-import type { ItemLink } from "@ext/navigation/NavigationLinks";
+import { useItemLinks } from "@core-ui/stores/ItemLinksStore/ItemLinksStore.provider";
 import NextPrevious from "@ext/navigation/NextPrevious";
 
-interface ArticleFooterProps {
-	itemLinks: ItemLink[];
-}
-
-const ArticleFooter = ({ itemLinks }: ArticleFooterProps) => {
+const ArticleFooter = () => {
+	const itemLinks = useItemLinks();
 	return (
 		<>
 			<NextPrevious itemLinks={itemLinks} />

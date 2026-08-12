@@ -13,40 +13,31 @@ import InlineProperty from "@ext/markdown/elements/inlineProperty/render/compone
 import BulletList from "@ext/markdown/elements/list/render/BulletList";
 import OrderList from "@ext/markdown/elements/list/render/OrderList";
 import ReadonlyListItem from "@ext/markdown/elements/list/render/ReadonlyListItem";
+import TaskList from "@ext/markdown/elements/list/render/TaskList";
+import RenderBlock from "@ext/markdown/elements/md/render/RenderBlock";
+import RenderInline from "@ext/markdown/elements/md/render/RenderInline";
 import { Question } from "@ext/markdown/elements/question/render/components/Question";
 import TableCell from "@ext/markdown/elements/table/render/components/TableCell";
+import TableRow from "@ext/markdown/elements/table/render/components/TableRow";
 import Unsupported from "@ext/markdown/elements/unsupported/render/component/Unsupported";
 import View from "@ext/markdown/elements/view/render/components/View";
 import type { ReactNode } from "react";
-import Cmd from "../../../../elements/cmd/render/Cmd";
 import Code from "../../../../elements/code/render/component/Code";
 import Cut from "../../../../elements/cut/render/component/Cut";
-import DbDiagram from "../../../../elements/diagramdb/render/DbDiagram";
 import DiagramData from "../../../../elements/diagrams/component/DiagramData";
 import Drawio from "../../../../elements/drawio/render/component/Drawio";
-import Formula from "../../../../elements/formula/render/Formula";
 import Fragment from "../../../../elements/fragment/render/components/Fragment";
 import FragmentLink from "../../../../elements/fragment-link/render/components/FragmentLink";
 import Header from "../../../../elements/heading/render/components/ArticleContentHeader";
 import Icon from "../../../../elements/icon/render/components/Icon";
 import Image from "../../../../elements/image/render/components/Image";
-import Images from "../../../../elements/imgs/render/Images";
-import Include from "../../../../elements/include/render/Include";
-import Issue from "../../../../elements/issue/render/Issue";
-import Kbd from "../../../../elements/kbd/render/Kbd";
 import Link from "../../../../elements/link/render/components/Link";
-import Module from "../../../../elements/module/render/Module";
 import Note from "../../../../elements/note/render/component/Note";
 import OpenApi from "../../../../elements/openApi/render/OpenApi";
-import See from "../../../../elements/see/render/See";
 import Table from "../../../../elements/table/render/components/Table";
-import DbTable from "../../../../elements/tabledb/render/DbTable";
 import Tab from "../../../../elements/tabs/render/component/Tab";
 import Tabs from "../../../../elements/tabs/render/component/Tabs";
-import Term from "../../../../elements/term/render/Term";
 import Video from "../../../../elements/video/render/components/Video";
-import When from "../../../../elements/whowhen/render/When";
-import Who from "../../../../elements/whowhen/render/Who";
 
 // biome-ignore lint/suspicious/noExplicitAny: dynamic component registry requires any
 export default function getComponents(): { [name: string]: (props: any) => ReactNode } {
@@ -54,16 +45,11 @@ export default function getComponents(): { [name: string]: (props: any) => React
 		Br: () => <br />,
 		Link,
 		Color,
-		Formula,
 		code_block: Fence,
 		fragment: Fragment,
 		"Fragment-link": FragmentLink,
 		Code,
-		Alfa: () => <span className="alfa" />,
-		Beta: () => <span className="beta" />,
 		comment: ({ children }: { children: JSX.Element }) => children,
-		Sub: ({ children }: { children: JSX.Element }) => <sub>{children}</sub>,
-		Cmd,
 		Cut,
 		icon: Icon,
 		"inline-property": InlineProperty,
@@ -72,11 +58,6 @@ export default function getComponents(): { [name: string]: (props: any) => React
 		questionAnswer: Answer,
 		question: Question,
 		inlineImage: InlineImage,
-		Issue,
-		Module,
-		Who,
-		When,
-		Kbd,
 		html: Html,
 		inlineHtmlTag: HtmlTag,
 		blockHtmlTag: HtmlTag,
@@ -85,14 +66,11 @@ export default function getComponents(): { [name: string]: (props: any) => React
 		highlight: Highlight,
 		view: View,
 		Image,
-		"Img-h": Images,
-		"Img-v": Images,
-		See,
 		Li: ReadonlyListItem,
 		listItem: ReadonlyListItem,
 		taskItem: ReadonlyListItem,
 		bulletList: BulletList,
-		taskList: BulletList,
+		taskList: TaskList,
 		orderedList: OrderList,
 		openapi: OpenApi,
 		note: Note,
@@ -103,14 +81,13 @@ export default function getComponents(): { [name: string]: (props: any) => React
 		Video,
 		Heading: Header,
 		drawio: Drawio,
-		Term,
 		Error,
 		table: Table,
-		Include,
-		"Db-table": DbTable,
-		"Db-diagram": DbDiagram,
 		diagrams: DiagramData,
 		tableCell: TableCell,
-		tableRow: (props) => <tr {...props} />,
+		tableRow: TableRow,
+		// biome-ignore lint/style/useNamingConvention: expected
+		inlineMd_component: RenderInline,
+		blockMd: RenderBlock,
 	};
 }

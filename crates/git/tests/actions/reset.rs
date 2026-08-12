@@ -94,3 +94,28 @@ fn restore_staged(sandbox: TempDir, #[with(&sandbox)] repo: Repo<TestCreds>) -> 
 
 	Ok(())
 }
+
+#[cfg(unix)]
+#[rstest]
+fn restore_discards_executable_bit(sandbox: TempDir, #[with(&sandbox)] repo: Repo<TestCreds>) -> Result {
+	use std::os::unix::fs::PermissionsExt;
+
+	let root = sandbox.path();
+	let file = root.join("script.sh");
+	fs::write(&file, "echo hi")?;
+	repo.add_all()?;
+	repo.commit_debug()?;
+
+	// chmod +x — mode change only, content untouched.
+	fs::set_permissions(&file, fs::Permissions::from_mode(0o755))?;
+	assert!(repo.repo().status_file(Path::new("script.sh"))?.is_wt_modified());
+
+	// Discard: reset index to HEAD, then restore workdir.
+	repo.restore(["script.sh"].iter(), true)?;
+	repo.restore(["script.sh"].iter(), false)?;
+
+	assert_eq!(fs::metadata(&file)?.permissions().mode() & 0o777, 0o644);
+	assert!(!repo.repo().status_file(Path::new("script.sh"))?.is_wt_modified());
+
+	Ok(())
+}

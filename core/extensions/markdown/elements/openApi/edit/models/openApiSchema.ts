@@ -5,6 +5,7 @@ const openApiSchema = {
 	attrs: {
 		src: { default: null },
 		flag: { default: true },
+		showInfo: { default: true },
 		navigation: { default: true },
 	},
 };

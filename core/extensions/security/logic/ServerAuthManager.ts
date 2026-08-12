@@ -62,10 +62,7 @@ export default class ServerAuthManager extends AuthManager {
 
 		const user = await this._getUser(cookie);
 
-		if (!this._em.getConfig().gesUrl) {
-			this.setUser(cookie, user);
-			return user;
-		}
+		if (!this._em.getConfig().gesUrl) return user;
 
 		const authorizationToken = this._extractAuthorizationToken(headers);
 		if (authorizationToken) {
@@ -75,7 +72,6 @@ export default class ServerAuthManager extends AuthManager {
 			return ticketUser;
 		}
 
-		this.setUser(cookie, user);
 		return user;
 	}
 

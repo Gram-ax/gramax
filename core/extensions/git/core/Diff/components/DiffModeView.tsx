@@ -19,11 +19,16 @@ import {
 	createOnUpdateCallback,
 	createUpdateTitleFunction,
 } from "@core-ui/utils/EditorCallbacks";
+import BranchUpdaterService, {
+	type OnBranchUpdateListener,
+} from "@ext/git/actions/Branch/BranchUpdaterService/logic/BranchUpdaterService";
+import OnBranchUpdateCaller from "@ext/git/actions/Branch/BranchUpdaterService/model/OnBranchUpdateCaller";
+import { PublishEmitter } from "@ext/git/actions/Publish/logic/PublishEmitter";
 import LoadingWithDiffBottomBar from "@ext/git/core/Diff/components/LoadingWithDiffBottomBar";
-import { useDiffViewMode } from "@ext/git/core/Diff/components/store/DiffViewModeStore";
+import { useIsDoublePanel } from "@ext/git/core/Diff/components/store/DiffViewModeStore";
 import { useEditorExtensions } from "@ext/git/core/Diff/components/store/EditorExtensionsStore";
-import DiffExtension from "@ext/git/core/Diff/logic/DiffExtension";
 import useDiff from "@ext/git/core/Diff/logic/hooks/useDiff";
+import { useDiffExtensions } from "@ext/git/core/Diff/logic/hooks/useDiffExtensions";
 import type { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import ArticleMat from "@ext/markdown/core/edit/components/ArticleMat";
 import useContentEditorHooks from "@ext/markdown/core/edit/components/UseContentEditorHooks";
@@ -32,6 +37,8 @@ import { useShouldShowInlineToolbar } from "@ext/markdown/core/edit/logic/hooks/
 import ElementGroups from "@ext/markdown/core/element/ElementGroups";
 import ArticleTitleHelpers from "@ext/markdown/elements/article/edit/ArticleTitleHelpers";
 import { InlineToolbar } from "@ext/markdown/elements/article/edit/helpers/InlineToolbar";
+import { editName as BLOCK_FIELD } from "@ext/markdown/elements/blockContentField/consts";
+import { editName as BLOCK_PROPERTY } from "@ext/markdown/elements/blockProperty/consts";
 import CommentEditorProvider from "@ext/markdown/elements/comment/edit/logic/CommentEditorProvider";
 import useCommentCallbacks from "@ext/markdown/elements/comment/edit/logic/hooks/useCommentCallbacks";
 import Comment from "@ext/markdown/elements/comment/edit/model/comment";
@@ -42,15 +49,14 @@ import OnAddMark from "@ext/markdown/elements/onAdd/OnAddMark";
 import OnDeleteMark from "@ext/markdown/elements/onDocChange/OnDeleteMark";
 import OnDeleteNode from "@ext/markdown/elements/onDocChange/OnDeleteNode";
 import Placeholder from "@ext/markdown/elements/placeholder/placeholder";
-import {
-	useExtendExtensionsWithContext,
-	useUpdateContextInExtensions,
-} from "@ext/markdown/elementsUtils/editExtensionUpdator/ExtensionContextUpdater";
+import useEditorContext from "@ext/markdown/elementsUtils/editorContext/useEditorContext";
 import PropertyService from "@ext/properties/components/PropertyService";
 import { useIsStorageConnected } from "@ext/storage/logic/utils/useStorage";
+import { feature } from "@ext/toggleFeatures/features";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import type { Editor, Extensions } from "@tiptap/core";
 import Document from "@tiptap/extension-document";
+import { DecorationSet } from "@tiptap/pm/view";
 import { EditorContent, EditorContext, type JSONContent, useEditor } from "@tiptap/react";
 import { useEffect, useMemo, useRef } from "react";
 
@@ -58,6 +64,19 @@ const getReadOnlyExtensions = (exts: Extensions) => {
 	const excludeExtensions = ["selectionMenu", "ArticleTitleHelpers"];
 	return exts.filter((e) => !excludeExtensions.includes(e.name));
 };
+
+// block-field/block-property keep their content in the schema only when editable, and the diff
+// has to render it — so they are dropped here and re-added by getTemplateExtensions(false)
+const FILTER_MAIN_EXTENSIONS = [
+	"onDeleteNode",
+	"OnDeleteMark",
+	"OnAddMark",
+	"comment",
+	"diff",
+	"diffLines",
+	BLOCK_FIELD,
+	BLOCK_PROPERTY,
+];
 
 interface DiffModeViewProps {
 	oldContent: JSONContent;
@@ -125,23 +144,31 @@ const DiffModeViewInternal = (props: DiffModeViewProps) => {
 	const apiUrlCreatorRef = useRef(apiUrlCreator);
 	apiUrlCreatorRef.current = apiUrlCreator;
 
-	const { apiUrlCreator: oldDiffArticleApiUrlCreator, isLoading: isOldArticleContextDataLoading } =
-		useGetArticleContextData({
-			articlePath: isAdded || isDelete ? null : oldContextArticlePath,
-			catalogName: isAdded || isDelete ? null : catalogProps.name,
-			scope: oldScope,
-		});
+	const {
+		apiUrlCreator: oldDiffArticleApiUrlCreator,
+		catalogProps: oldDiffArticleCatalogProps,
+		isLoading: isOldArticleContextDataLoading,
+	} = useGetArticleContextData({
+		articlePath: isAdded || isDelete ? null : oldContextArticlePath,
+		catalogName: isAdded || isDelete ? null : catalogProps.name,
+		scope: oldScope,
+	});
 
-	const hasChanges = changeType === FileStatus.modified || changeType === FileStatus.rename;
+	const hasChanges =
+		changeType !== FileStatus.new && changeType !== FileStatus.delete && changeType !== FileStatus.current;
 
-	const UpdatedDiffExtension = useExtendExtensionsWithContext([
-		DiffExtension.configure({
-			isPin: { left: true, right: true },
-			oldScope,
-			newScope,
-			articlePath: oldContextArticlePath,
-		}),
-	])[0] as typeof DiffExtension;
+	const { extensions: newDiffExtensions, onEditorCreate: onNewEditorCreate } = useDiffExtensions({
+		type: "new",
+		oldContent,
+		newContent,
+		isPin: { left: true, right: true },
+		oldScope,
+		newScope,
+		articlePath: oldContextArticlePath,
+		oldApiUrlCreator: oldDiffArticleApiUrlCreator,
+		oldCatalogProps: oldDiffArticleCatalogProps,
+		isOldContextLoading: isOldArticleContextDataLoading,
+	});
 
 	const { onDeleteNodes, onDeleteMarks, onAddMarks } = useContentEditorHooks();
 	const isStorageConnected = useIsStorageConnected();
@@ -152,14 +179,12 @@ const DiffModeViewInternal = (props: DiffModeViewProps) => {
 		onCommentSaved,
 	} = useCommentCallbacks(articlePropsRef);
 
-	const filterMainEditorExtensions = ["onDeleteNode", "OnDeleteMark", "OnAddMark", "comment", "diff"];
-
 	const newEditorExtensionsBase = useMemo(
 		() =>
 			extensions
 				? [
-						...extensions.filter((e) => !filterMainEditorExtensions.includes(e.name)),
-						UpdatedDiffExtension,
+						...extensions.filter((e) => !FILTER_MAIN_EXTENSIONS.includes(e.name)),
+						...newDiffExtensions,
 						OnDeleteNode.configure({ onDeleteNodes }),
 						OnAddMark.configure({ onAddMarks }),
 						OnDeleteMark.configure({ onDeleteMarks }),
@@ -169,13 +194,13 @@ const DiffModeViewInternal = (props: DiffModeViewProps) => {
 							onMarkAdded: onMarkAddedComment,
 							onMarkDeleted: onMarkDeletedComment,
 						}),
-						...(isTemplateInstance ? getTemplateExtensions(readOnly) : []),
+						...getTemplateExtensions(false),
 					]
 				: [
 						...getExtensions({ isTemplateInstance, includeResources: true, includeQuestions: isGES }),
 						Placeholder,
 						Document.extend({ content: `paragraph ${ElementGroups.block}+` }),
-						UpdatedDiffExtension,
+						...newDiffExtensions,
 						Controllers.configure({ editable: isTemplateInstance }),
 						OnDeleteNode.configure({ onDeleteNodes }),
 						OnAddMark.configure({ onAddMarks }),
@@ -194,11 +219,11 @@ const DiffModeViewInternal = (props: DiffModeViewProps) => {
 									newTitle,
 								),
 						}),
-						...(isTemplateInstance ? getTemplateExtensions(readOnly) : []),
+						...getTemplateExtensions(false),
 					],
 		[
 			extensions,
-			UpdatedDiffExtension,
+			newDiffExtensions,
 			onDeleteNodes,
 			onAddMarks,
 			onDeleteMarks,
@@ -206,10 +231,7 @@ const DiffModeViewInternal = (props: DiffModeViewProps) => {
 			isStorageConnected,
 			onMarkAddedComment,
 			onMarkDeletedComment,
-			readOnly,
 			isGES,
-			resourceService,
-			propertyService,
 			router,
 		],
 	);
@@ -219,29 +241,42 @@ const DiffModeViewInternal = (props: DiffModeViewProps) => {
 		[readOnly, newEditorExtensionsBase],
 	);
 
-	const newEditorExtensionsWithContext = useExtendExtensionsWithContext(newEditorExtensions);
+	const newEditorExtensionsWithContext = newEditorExtensions;
+
+	const { extensions: oldDiffExtensions, onEditorCreate: onOldEditorCreate } = useDiffExtensions({
+		type: "old",
+		oldContent,
+		newContent,
+		isPin: { left: true, right: true },
+		oldScope,
+		newScope,
+		articlePath: oldContextArticlePath,
+		oldApiUrlCreator: oldDiffArticleApiUrlCreator,
+		oldCatalogProps: oldDiffArticleCatalogProps,
+		isOldContextLoading: isOldArticleContextDataLoading,
+	});
 
 	const oldEditorExtensionsBase = useMemo(
 		() =>
 			extensions
 				? [
 						...getReadOnlyExtensions(extensions).filter((e) => e.name !== "comment"),
-						UpdatedDiffExtension.configure({ isOldEditor: true }),
+						...oldDiffExtensions,
 						Comment.configure({ appendCommentToBody: true }),
-						...(isTemplateInstance ? getTemplateExtensions(false) : []),
+						...getTemplateExtensions(false),
 					]
 				: [
 						...getExtensions({ isTemplateInstance, includeResources: true, includeQuestions: isGES }),
 						Placeholder,
 						Document.extend({ content: `paragraph ${ElementGroups.block}+` }),
-						UpdatedDiffExtension.configure({ isOldEditor: true }),
+						...oldDiffExtensions,
 						Comment.configure({ appendCommentToBody: true }),
-						...(isTemplateInstance ? getTemplateExtensions(false) : []),
+						...getTemplateExtensions(false),
 					],
-		[extensions, UpdatedDiffExtension, isTemplateInstance, isGES],
+		[extensions, isTemplateInstance, isGES, oldDiffExtensions],
 	);
 
-	const oldEditorExtensionsWithContext = useExtendExtensionsWithContext(oldEditorExtensionsBase);
+	const oldEditorExtensionsWithContext = oldEditorExtensionsBase;
 
 	const newEditor = useEditor(
 		{
@@ -252,6 +287,9 @@ const DiffModeViewInternal = (props: DiffModeViewProps) => {
 					handlePaste(view, event, slice, apiUrlCreatorRef.current, articlePropsRef.current, catalogProps),
 			},
 			editable: !readOnly,
+			onCreate(props) {
+				onNewEditorCreate(props.editor);
+			},
 			onUpdate: ({ editor }) => {
 				if (!editor.isEditable) return;
 				currentOnUpdate?.({
@@ -265,24 +303,29 @@ const DiffModeViewInternal = (props: DiffModeViewProps) => {
 		[newContent],
 	);
 
-	useUpdateContextInExtensions(newEditor);
+	useEditorContext(newEditor);
 
 	const oldContentEditor = useEditor(
 		{
 			extensions: oldEditorExtensionsWithContext,
 			editable: false,
 			content: oldContent,
+			onCreate(props) {
+				onOldEditorCreate(props.editor);
+			},
 		},
 		[oldContent],
 	);
 
-	const diffViewMode = useDiffViewMode();
+	useEditorContext(oldContentEditor);
+
+	const isDoublePanel = useIsDoublePanel();
 
 	useEffect(() => {
-		if (!newEditor?.commands?.updateDiffViewMode) return;
-		newEditor.commands.updateDiffViewMode(diffViewMode, true);
+		if (!newEditor?.commands?.updateIsDoublePanel) return;
+		newEditor.commands.updateIsDoublePanel(isDoublePanel, true);
 		bindEditor(newEditor);
-	}, [diffViewMode, newEditor]);
+	}, [isDoublePanel, newEditor]);
 
 	useEffect(() => {
 		if (!newEditor || typeof window === "undefined" || !window.debug) return;
@@ -335,7 +378,7 @@ const DiffModeViewInternal = (props: DiffModeViewProps) => {
 			<ArticleWithPreviewArticle
 				mainArticle={mainArticleWrapper}
 				previewArticle={
-					diffViewMode !== "wysiwyg-single" && (
+					isDoublePanel && (
 						<MinimizedArticleStyled>
 							<ArticleContextWrapper articlePath={oldContextArticlePath} scope={oldScope}>
 								<EditorContext.Provider value={{ editor: oldContentEditor }}>
@@ -378,6 +421,37 @@ const NewEditorWithDiff = (props: NewEditorWithDiffProps) => {
 			? { newEditor, oldEditor, newApiUrlCreator, oldApiUrlCreator }
 			: { newEditor: null, oldEditor: null, newApiUrlCreator: null, oldApiUrlCreator: null },
 	);
+
+	useEffect(() => {
+		if (isUseDiff) return;
+		[newEditor, oldEditor].forEach((editor) => {
+			if (!editor || editor.isDestroyed) return;
+			editor.chain().updateDiffLinesModel([]).setMeta("updateDiffDecorators", DecorationSet.empty).run();
+		});
+	}, [isUseDiff, newEditor, oldEditor]);
+
+	useEffect(() => {
+		if (!feature("new-diffs")) return;
+
+		const resetBaseline = () => {
+			[newEditor, oldEditor].forEach((editor) => {
+				if (!editor || editor.isDestroyed) return;
+				editor.commands.setDiffBaseline(editor.state.doc.content.toJSON());
+			});
+		};
+
+		const onBranchUpdate: OnBranchUpdateListener = (_, caller) => {
+			if (caller !== OnBranchUpdateCaller.DiscardNoReset) return;
+			resetBaseline();
+		};
+
+		const publishToken = PublishEmitter.events.on("finish", resetBaseline);
+		BranchUpdaterService.addListener(onBranchUpdate);
+		return () => {
+			PublishEmitter.events.off(publishToken);
+			BranchUpdaterService.removeListener(onBranchUpdate);
+		};
+	}, [newEditor, oldEditor]);
 
 	const shouldShow = useShouldShowInlineToolbar();
 

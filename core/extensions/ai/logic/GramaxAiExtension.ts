@@ -6,9 +6,14 @@ import type {
 	AiTranscribeOptions,
 	TiptapGramaxAiOptions,
 } from "@ext/ai/models/types";
+import { getEditorContext } from "@ext/markdown/elementsUtils/editorContext/EditorContext";
 import { Extension } from "@tiptap/core";
 
 declare module "@tiptap/core" {
+	interface Storage {
+		ai: { enabled?: boolean };
+	}
+
 	interface Commands<ReturnType> {
 		aiPrettify: { aiPrettify: (options: AiPrettifyOptions) => ReturnType };
 		aiGenerate: { aiGenerate: (options: AiGenerateOptions) => ReturnType };
@@ -29,10 +34,11 @@ const Ai = Extension.create<TiptapGramaxAiOptions>({
 	},
 
 	addCommands() {
+		const getApiUrlCreator = () => getEditorContext(this.editor).apiUrlCreator;
 		return {
-			aiPrettify: prettify(this.options.apiUrlCreator),
-			aiGenerate: generate(this.options.apiUrlCreator),
-			aiTranscribe: transcribe(this.options.apiUrlCreator),
+			aiPrettify: (options: AiPrettifyOptions) => prettify(getApiUrlCreator())(options),
+			aiGenerate: (options: AiGenerateOptions) => generate(getApiUrlCreator())(options),
+			aiTranscribe: (options: AiTranscribeOptions) => transcribe(getApiUrlCreator())(options),
 			saveSelection: saveSelection,
 			restoreSelection: restoreSelection,
 		};

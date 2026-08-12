@@ -13,13 +13,13 @@ export const editorTest = catalogTest.extend<EditorFixture>({
 	firstEnter: [true, { option: true }],
 	files: {
 		editor: {
-			"new-article.md": "",
+			"untitled.md": "",
 			"doc-root.yml": md`
 				syntax: xml
 			`,
 		},
 	},
-	startUrl: "/-/-/-/-/editor/new-article",
+	startUrl: "/-/-/-/-/editor/untitled",
 
 	editor: async ({ catalogPage, initMd, firstEnter }, use) => {
 		const editor = new ArticleEditorPom(catalogPage);

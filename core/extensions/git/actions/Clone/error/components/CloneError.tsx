@@ -12,7 +12,7 @@ const CloneErrorComponent = ({ error, onCancelClick }: GetErrorComponentProps) =
 		<>
 			<DialogErrorHeader error={error} title={t("clone-fail")} />
 			<DialogBody>
-				<div className="article bg-transparent">
+				<div className="article !bg-transparent">
 					<div>
 						{t("clone-error-desc1")}
 						{error.props.remoteUrl && (

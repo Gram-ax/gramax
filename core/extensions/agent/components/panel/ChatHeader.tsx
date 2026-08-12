@@ -1,62 +1,85 @@
+import { TooltipIconButton } from "@components/Atoms/TooltipIconButton";
+import Method from "@core-ui/ApiServices/Types/Method";
+import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
+import { useDeferApi } from "@core-ui/hooks/useApi";
+import { useAgentChatVisibility } from "@ext/agent/components/hooks/useAgentChatVisibility";
+import { AgentSettingsModal } from "@ext/agent/components/panel/AgentSettingsModal";
+import { ChatDropdown } from "@ext/agent/components/panel/ChatDropdown";
 import { setAgentChatIsOpen } from "@ext/agent/components/store/AgentChatIsOpenStore";
+import { useActiveSessionBrowser } from "@ext/agent/components/store/AgentStore";
 import t from "@ext/localization/locale/translate";
-import { IconButton } from "@ui-kit/Button";
 import { Icon } from "@ui-kit/Icon";
 import { Label } from "@ui-kit/Label";
-import { useState } from "react";
+import { memo, useCallback, useState } from "react";
 import { useApiKey } from "../store/AgentStore";
-import { AgentSettingsModal } from "./AgentSettingsModal";
-import { ChatDropdown } from "./ChatDropdown";
+import { useChatHeaderActions } from "../store/ChatStore";
 
-export type SessionTabItem = {
-	id: string;
-	createdAt?: number;
-};
-
-type Props = {
-	sessions: SessionTabItem[];
-	activeId: string | null;
-	onSelect: (id: string) => void;
-	onClose: (id: string) => void;
-	onNew: () => void;
-	onSaveSettings?: (key: string) => void;
-};
-
-export function ChatHeader({ sessions, activeId, onSelect, onClose, onNew, onSaveSettings }: Props) {
+export const ChatHeader = memo(() => {
+	const { sessions, activeSessionId, onSelectSession, onCloseTab, onNewSession, onSaveSettings } =
+		useChatHeaderActions();
 	const [settingsOpen, setSettingsOpen] = useState(false);
 	const apiKey = useApiKey();
+	const browser = useActiveSessionBrowser();
+	const { showGear, showBrowserReveal } = useAgentChatVisibility();
+	const { call: callReveal } = useDeferApi({});
+
+	const handleReveal = useCallback(() => {
+		if (!activeSessionId) return Promise.resolve();
+
+		return callReveal({
+			url: (api) => api.getAgentBrowserRevealUrl(activeSessionId),
+			opts: {
+				method: Method.POST,
+				mime: MimeTypes.json,
+				consumeError: true,
+			},
+		});
+	}, [activeSessionId, callReveal]);
 
 	return (
 		<>
-			<div className="flex min-h-10 max-w-full min-w-0 items-center gap-0.5 justify-between px-2 pt-2">
+			<div className="flex min-h-10 max-w-full min-w-0 items-center gap-0.5 justify-between px-4 pt-2">
 				<div className="flex items-center gap-2">
 					<Icon icon="wand-sparkles" />
 					<Label>{t("agent.panel-name")}</Label>
 				</div>
 				<div className="flex gap-1">
+					{showBrowserReveal && browser?.active && (
+						<TooltipIconButton
+							className="p-1"
+							icon="globe"
+							iconClassName="size-3.5"
+							onClick={() => void handleReveal()}
+							size="xs"
+							tooltip={t("agent.browser.tooltip")}
+							variant="ghost"
+						/>
+					)}
 					<ChatDropdown
-						activeId={activeId}
-						onClose={onClose}
-						onNew={onNew}
-						onSelect={onSelect}
+						activeId={activeSessionId}
+						onClose={onCloseTab}
+						onNew={onNewSession}
+						onSelect={onSelectSession}
 						sessions={sessions}
 					/>
-					<IconButton
-						className="p-1"
-						icon="settings"
-						iconClassName="size-3.5"
-						onClick={() => setSettingsOpen(true)}
-						size="xs"
-						variant="ghost"
-					/>
-					<IconButton
+					{showGear && (
+						<TooltipIconButton
+							className="p-1"
+							icon="settings"
+							iconClassName="size-3.5"
+							onClick={() => setSettingsOpen(true)}
+							size="xs"
+							tooltip={t("agent.tooltips.settings")}
+							variant="ghost"
+						/>
+					)}
+					<TooltipIconButton
 						className="p-1"
 						icon="x"
 						iconClassName="size-3.5"
-						onClick={() => {
-							setAgentChatIsOpen(false);
-						}}
+						onClick={() => setAgentChatIsOpen(false)}
 						size="xs"
+						tooltip={t("agent.tooltips.close")}
 						variant="ghost"
 					/>
 				</div>
@@ -69,4 +92,4 @@ export function ChatHeader({ sessions, activeId, onSelect, onClose, onNew, onSav
 			/>
 		</>
 	);
-}
+});

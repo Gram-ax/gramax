@@ -7,13 +7,14 @@ import Tooltip from "../Atoms/Tooltip";
 interface GoToArticleProps extends HTMLAttributes<HTMLAnchorElement> {
 	trigger: ReactNode;
 	href: string;
+	query?: { [name: string]: string };
 	distance?: number;
 	containerClassName?: string;
 	onClick?: (e: MouseEvent) => void;
 }
 
 const GoToArticle = (props: GoToArticleProps) => {
-	const { trigger, href, distance = 10, onClick, containerClassName, ...otherProps } = props;
+	const { trigger, href, query, distance = 10, onClick, containerClassName, ...otherProps } = props;
 	const ref = useRef<HTMLAnchorElement>(null);
 
 	const onClickHandler = (e: MouseEvent) => {
@@ -29,7 +30,7 @@ const GoToArticle = (props: GoToArticleProps) => {
 	return (
 		<Tooltip content={t("go-to-article")} distance={distance} hideOnClick={true}>
 			<span className={containerClassName} onClick={onClickHandler}>
-				<Link href={Url.from({ pathname: href })} ref={ref} {...otherProps}>
+				<Link href={Url.from({ pathname: href, query })} ref={ref} {...otherProps}>
 					{trigger}
 				</Link>
 			</span>

@@ -1,3 +1,3 @@
-pub mod parse;
+mod parse;
 
-pub use parse::scan_catalog;
+pub use parse::*;

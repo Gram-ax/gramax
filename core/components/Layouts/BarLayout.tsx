@@ -1,3 +1,4 @@
+// biome-ignore lint/style/noRestrictedImports: idc
 import styled from "@emotion/styled";
 
 const BarLayout = styled(
@@ -27,8 +28,8 @@ const BarLayout = styled(
 
 	${(p) => {
 		return `
-		height: ${!p.height ? "64px" : typeof p.height === "string" ? p.height : p.height + "px"};
-		gap: ${!p.gap ? 0 : typeof p.gap === "string" ? p.gap : p.gap + "px"};
+		height: ${!p.height ? "64px" : typeof p.height === "string" ? p.height : `${p.height}px`};
+		gap: ${!p.gap ? 0 : typeof p.gap === "string" ? p.gap : `${p.gap}px`};
 		 ${
 				!p.padding
 					? ""
@@ -39,7 +40,7 @@ const BarLayout = styled(
 						${p.padding.right ? `padding-right: ${p.padding.right};` : ""}
 						${p.padding.bottom ? `padding-bottom: ${p.padding.bottom};` : ""}
 						${p.padding.left ? `padding-left: ${p.padding.left};` : ""}`
-			};
+};
 		`;
 	}}
 `;

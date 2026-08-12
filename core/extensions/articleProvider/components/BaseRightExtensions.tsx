@@ -27,7 +27,7 @@ const Delete = ({ id, onDelete, providerType, preDelete, confirmDeleteText }: De
 
 	const onConfirm = async () => {
 		if (preDelete && !(await preDelete(id))) return;
-		if (!preDelete && !(await confirm(confirmDeleteText || t("confirm-article-delete")))) return;
+		if (!preDelete && !(await confirm(confirmDeleteText || t("article.actions.delete.article.title")))) return;
 
 		await FetchService.fetch(apiUrlCreator.removeFileInGramaxDir(id, providerType));
 		onDelete(id);
@@ -43,7 +43,7 @@ const BaseRightExtensions = (props: BaseRightExtensionsProps) => {
 	const loadContent = useCallback(async () => {
 		const res = await FetchService.fetch(apiUrlCreator.getFileContentInGramaxDir(id, providerType));
 		if (res.ok) return await res.json();
-	}, [apiUrlCreator, id, providerType]);
+	}, [id, providerType]);
 
 	const saveContent = useCallback(
 		async (content: string) => {
@@ -52,7 +52,7 @@ const BaseRightExtensions = (props: BaseRightExtensionsProps) => {
 
 			onMarkdownChange(id, content);
 		},
-		[apiUrlCreator, id, onMarkdownChange],
+		[id, onMarkdownChange, providerType],
 	);
 
 	return (

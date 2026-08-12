@@ -19,7 +19,7 @@ const getGeneratedText: Command<{ ctx: Context; catalogName: string; command: st
 
 		if (!catalog) return;
 		const promptProvider = catalog.customProviders.promptProvider;
-		const newCommand = promptProvider.getArticle(command)?.content || command;
+		const newCommand = (await promptProvider.getArticle(command)?.getContent()) || command;
 		const data = await this._commands.ai.server.getAiData.do({ ctx, workspacePath: workspace.path() });
 
 		assert(data.token, "AI Server token is required");

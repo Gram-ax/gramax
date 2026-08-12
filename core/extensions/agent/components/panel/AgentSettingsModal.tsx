@@ -21,7 +21,7 @@ type Props = {
 	defaultKey?: string;
 };
 
-export function AgentSettingsModal({ open, onOpenChange, onSave, defaultKey = "" }: Props) {
+export const AgentSettingsModal = ({ open, onOpenChange, onSave, defaultKey = "" }: Props) => {
 	const form = useForm<FormData>({
 		resolver: zodResolver(schema),
 		mode: "onChange",
@@ -64,4 +64,4 @@ export function AgentSettingsModal({ open, onOpenChange, onSave, defaultKey = ""
 			</DialogContent>
 		</Dialog>
 	);
-}
+};

@@ -31,12 +31,9 @@ enum ModalToOpen {
 	TemplateContentWarning = "TemplateContentWarning",
 	PropertySettings = "PropertySettings",
 
-	DocRootMissingModal = "DocRootMissingModal",
-
 	CloudModal = "CloudModal",
 
 	CreateWorkspaceForm = "CreateWorkspaceForm",
-	EditWorkspaceForm = "EditWorkspaceForm",
 
 	MediaPreview = "MediaPreview",
 	FilePreview = "FilePreview",
@@ -50,7 +47,6 @@ enum ModalToOpen {
 	NotificationSettings = "NotificationSettings",
 
 	// Catalog dropdown modals
-	CatalogPropsEditor = "CatalogPropsEditor",
 	Healthcheck = "Healthcheck",
 
 	ActionConfirm = "ActionConfirm",
@@ -64,7 +60,11 @@ enum ModalToOpen {
 
 	TauriGesSignIn = "TauriGesSignIn",
 
+	CreateAccessToken = "CreateAccessToken",
+	ShowAccessToken = "ShowAccessToken",
+
 	GesCloudInitCatalog = "GesCloudInitCatalog",
+	GesCloudUrl = "GesCloudUrl",
 	GesCloudSignIn = "GesCloudSignIn",
 	GesCloudInviteUser = "GesCloudInviteUser",
 	GesCloudInviteMismatch = "GesCloudInviteMismatch",
@@ -72,6 +72,10 @@ enum ModalToOpen {
 	GesCloudSignOut = "GesCloudSignOut",
 
 	AlertConfirm = "AlertConfirm",
+	LfsMigration = "LfsMigration",
+
+	AppSettings = "AppSettings",
+	AgentContextUsageModal = "AgentContextUsageModal",
 }
 
 export default ModalToOpen;

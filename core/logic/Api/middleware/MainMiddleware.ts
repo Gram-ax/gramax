@@ -1,5 +1,4 @@
 import getAppVersion from "@core/utils/getAppVersion";
-import { getWorkspaceGesUrl } from "@ext/enterprise/utils/getWorkspaceEnterpriseConfig";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import NetworkApiError from "@ext/errorHandlers/network/NetworkApiError";
 import t from "@ext/localization/locale/translate";
@@ -17,8 +16,6 @@ export class MainMiddleware extends Middleware {
 
 	async Process(req: ApiRequest, res: ApiResponse): Promise<void> {
 		// await applyCors(req, res);
-		const workspaceConfig = await this._app.wm.maybeCurrent()?.config();
-		const isEnterprise = !!getWorkspaceGesUrl(workspaceConfig);
 		const appVersion = getAppVersion(this._app.conf?.version, this._app.conf?.isRelease);
 		res.statusCode = 200;
 		try {
@@ -38,7 +35,7 @@ export class MainMiddleware extends Middleware {
 					t("app.error.command-failed.title"),
 				);
 			}
-			if (isEnterprise) defaultError.setShowCause(false);
+			if (this._app.conf.hideErrorCause) defaultError.setShowCause(false);
 			if (defaultError.props?.logCause && defaultError.cause) {
 				console.error({ version: appVersion, cause: defaultError.cause });
 			}

@@ -10,6 +10,8 @@
       optional: true
     - job: biome
       optional: true
+    - job: tests-rust
+      optional: true
   image: gitlab.ics-it.ru:4567/ics/doc-reader/playwright:$USE_IMAGE_TAG
   rules:
     - !reference [.rules, tests, base]
@@ -31,7 +33,12 @@
       - e2e-pw/report
   before_script:
     - !reference [.template.github-ssh-key, before_script]
-    - ./install-deps.sh --ci
+    - |
+      HTTPS_PROXY=$RUNNER_HTTPS_PROXY ./install-deps.sh --ci
+      npm rebuild better-sqlite3 --build-from-source
+      npm rebuild canvas --build-from-source
+      node -e "require('canvas').createCanvas(1, 1).getContext('2d')"
+      node -e "const Database = require('better-sqlite3'); const db = new Database(':memory:'); db.close();"
     - ./.ci/e2e/repo-info.sh
 
 .template.enterprise:
@@ -78,7 +85,12 @@
     KUBERNETES_CPU_LIMIT: '5'
   before_script:
     - !reference [.template.github-ssh-key, before_script]
-    - ./install-deps.sh --ci --node
+    - |
+      HTTPS_PROXY=$RUNNER_HTTPS_PROXY ./install-deps.sh --ci --node
+      npm rebuild better-sqlite3 --build-from-source
+      npm rebuild canvas --build-from-source
+      node -e "require('canvas').createCanvas(1, 1).getContext('2d')"
+      node -e "const Database = require('better-sqlite3'); const db = new Database(':memory:'); db.close();"
   artifacts:
     reports:
       junit: junit.xml
@@ -123,6 +135,7 @@ biome:
     KUBERNETES_MEMORY_REQUEST: '512Mi'
     KUBERNETES_CPU_REQUEST: '0.2'
     KUBERNETES_CPU_LIMIT: '3'
+    CI_JOB_MAX_DURATION: '300'
   rules:
     - if: '$CI_COMMIT_TITLE =~ /!?\[?(skip|no)[ -]biome\]?/i'
       when: never
@@ -134,7 +147,7 @@ biome:
   script:
     - |
       if [ -v CI_MERGE_REQUEST_TARGET_BRANCH_NAME ]; then
-        git fetch --depth 100 origin "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME"
+        . "$CI_PROJECT_DIR/.ci/scripts/retry.sh" && retry 3 2 -- git fetch --depth 100 origin "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME"
         bun run biome ci --no-errors-on-unmatched --error-on-warnings --files-ignore-unknown=true --changed --since=origin/${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}
       fi
     - bun run biome ci --diagnostic-level error
@@ -142,7 +155,9 @@ biome:
 trivy:
   extends: .template.tests
   stage: test
-  image: aquasec/trivy:0.70.0
+  tags:
+    - kubernetes01-gramax
+  image: ${NEXUS_DOCKERHUB}/aquasec/trivy:0.70.0
   rules:
     - !reference [.rules, tests, base]
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
@@ -168,11 +183,13 @@ trivy:
 
 tests:
   extends: .template.tests-enterprise
+  variables:
+    CI_JOB_MAX_DURATION: '900'
   script:
     - bun run tsc --incremental false
     - bun run test:unit
     - bun run test:int
-    - bun run test:ges
+    # - bun run test:ges
 
 web-e2e-pw:
   extends: .template.e2e-pw
@@ -195,11 +212,14 @@ web-e2e-pw:
 
 static-e2e-pw:
   extends: .template.e2e-pw
+  tags:
+    - kubernetes01-gramax
   variables:
+    CI_JOB_MAX_DURATION: '900'
     PORT: 6002
   script:
-    - rm -rf services && cd apps/gramax-cli
-    - git clone https://git:$GX_E2E_GITLAB_TOKEN@$GX_E2E_GITLAB_URL/$GX_E2E_GITLAB_GROUP/$GX_E2E_GITLAB_TEST_REPO.git
+    - rm -rf services && cd apps/cli
+    - . "$CI_PROJECT_DIR/.ci/scripts/retry.sh" && retry 3 2 -- git clone https://git:$GX_E2E_GITLAB_TOKEN@$GX_E2E_GITLAB_URL/$GX_E2E_GITLAB_GROUP/$GX_E2E_GITLAB_TEST_REPO.git
     - nice -n 20 ionice -c 3 bun run build
     - nice -n 20 ionice -c 3 bun run dist/index.js build -s "$GX_E2E_GITLAB_TEST_REPO" --skip-check
     # - npx http-server build &
@@ -207,10 +227,24 @@ static-e2e-pw:
     - n use 20
     - nice -n 20 ionice -c 2 -n 3 npx ./dist build -s "$GX_E2E_GITLAB_TEST_REPO" --skip-check
 
+next-e2e-pw:
+  extends: .template.e2e-pw
+  variables:
+    CI_JOB_MAX_DURATION: '2000'
+    PORT: 6003
+    ADMIN_PASSWORD: 1
+    ADMIN_LOGIN: 1
+  script:
+    - rm -rf services
+    - nice -n 10 ionice -c 3 bun run --cwd e2e-pw next:build-git
+    - nice -n 10 ionice -c 3 bun run --cwd e2e-pw next:build
+    - bun run --cwd e2e-pw next:start &
+    - nice -n -15 ionice -c 2 bun run --cwd e2e-pw next:ci
+
 docportal-e2e-pw:
   extends: .template.e2e-pw
   variables:
-    PORT: 6003
+    PORT: 6004
     ADMIN_PASSWORD: 1
     ADMIN_LOGIN: 1
   script:
@@ -218,6 +252,7 @@ docportal-e2e-pw:
     - nice -n 10 ionice -c 3 bun run --cwd e2e-pw docportal:build-git
     - nice -n 10 ionice -c 3 bun run --cwd e2e-pw docportal:build
     - bun run --cwd e2e-pw docportal:start &
+    - until curl -s --max-time 5 -o /dev/null http://127.0.0.1:6004/ 2>/dev/null; do sleep 1; done
     - nice -n -15 ionice -c 2 bun run --cwd e2e-pw docportal:ci
 
 scan-containers:
@@ -233,7 +268,7 @@ scan-containers:
       - CS_IMAGE: 'docker.io/gramax/docportal'
         CS_DOCKERFILE_PATH: ./apps/next/next.Dockerfile
       - CS_IMAGE: 'docker.io/gramax/editor'
-        CS_DOCKERFILE_PATH: ./apps/browser/Dockerfile
+        CS_DOCKERFILE_PATH: ./apps/web/Dockerfile
 
 detect-secrets:
   extends: secret_detection

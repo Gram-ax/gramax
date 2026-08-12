@@ -5,6 +5,7 @@ import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+// biome-ignore lint/style/noRestrictedImports: expected
 import styled from "@emotion/styled";
 import TopBarControllers from "@ext/articleProvider/components/TopBarControllers";
 import type { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
@@ -113,6 +114,7 @@ const TooltipContent = ({ item, articleType, extensions, onUpdate, onClose, opti
 		[onUpdate],
 	);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	const fetchContent = useCallback(async () => {
 		setIsLoading(true);
 		const res = await FetchService.fetch(apiUrlCreator.getEditTreeInGramaxDir(item.id, articleType));
@@ -126,7 +128,7 @@ const TooltipContent = ({ item, articleType, extensions, onUpdate, onClose, opti
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useEffect(() => {
-		fetchContent();
+		void fetchContent();
 	}, []);
 
 	return (
@@ -141,6 +143,7 @@ const TooltipContent = ({ item, articleType, extensions, onUpdate, onClose, opti
 							<SmallEditor
 								articleType={articleType}
 								content={content}
+								disableToolbar
 								extensions={getTooltipExtensions(extensions, options)}
 								id={item.id}
 								inlineToolbarButtons={editorButtons}

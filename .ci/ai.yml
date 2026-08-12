@@ -1,0 +1,148 @@
+review-ai:
+  stage: ai
+  interruptible: false
+  tags:
+    - kubernetes01-gramax
+  image: $CI_REGISTRY_IMAGE/ai:$USE_IMAGE_TAG
+  variables:
+    GIT_STRATEGY: none
+    # Claude refuses --dangerously-skip-permissions as root; CI runs as root.
+    HTTPS_PROXY: $RUNNER_HTTPS_PROXY
+    IS_SANDBOX: '1'
+    GITLAB_HOST: $CI_SERVER_HOST
+    GITLAB_TOKEN: $AI_GITLAB_TOKEN
+    CLAUDE_CODE_OAUTH_TOKEN: $CLAUDE_CODE_OAUTH_TOKEN
+    AI_MODEL: opus
+    AI_PROMPT: 'Review the current merge request following the merge-request skill conventions. Prefer inline comments on the exact lines; use a summary note only for cross-file points. Maintain persistent review context across runs: first run = full review, later runs = resume saved state, read new MR comments, and review only the new commits.'
+  # Persists review memory across runs on the same MR. Artifacts are per-pipeline
+  # and don't survive the next commit's pipeline; cache keyed by MR IID does, so it
+  # is the primitive that gives the AI job cross-run context.
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: manual
+      allow_failure: true
+  cache:
+    key: 'ai-review-${CI_MERGE_REQUEST_IID}'
+    when: on_success
+    paths:
+      - .ai-review/
+    policy: pull-push
+  script:
+    - |
+      set -eu
+
+      export AI_CONTEXT_DIR="$CI_PROJECT_DIR/.ai-review"
+      mkdir -p "$AI_CONTEXT_DIR"
+
+      git config --global url."https://oauth2:${AI_GITLAB_TOKEN}@${CI_SERVER_HOST}/".insteadOf "https://${CI_SERVER_HOST}/"
+
+      git clone --depth 1 "https://${CI_SERVER_HOST}/gx/team-workspace.git" workspace
+      cd workspace
+
+      ./init.sh --depth 1
+
+      git -C gramax fetch origin "$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME"
+      git -C gramax checkout -B "$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME" FETCH_HEAD
+
+      export AI_HEAD_SHA="$(git -C gramax rev-parse HEAD)"
+
+      AI_LAST_REVIEWED_SHA=""
+      [ -f "$AI_CONTEXT_DIR/last-reviewed-sha" ] && AI_LAST_REVIEWED_SHA="$(cat "$AI_CONTEXT_DIR/last-reviewed-sha")"
+
+      if [ -n "$AI_LAST_REVIEWED_SHA" ] && [ -f "$AI_CONTEXT_DIR/review-state.md" ]; then
+        AI_REVIEW_MODE="continue"
+
+        git -C gramax fetch --depth 200 origin "$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME" || true
+
+        git -C gramax cat-file -e "${AI_LAST_REVIEWED_SHA}^{commit}" 2>/dev/null \
+          || git -C gramax fetch origin "$AI_LAST_REVIEWED_SHA" || true
+
+        if ! git -C gramax cat-file -e "${AI_LAST_REVIEWED_SHA}^{commit}" 2>/dev/null; then
+          AI_REVIEW_MODE="fresh"
+          AI_LAST_REVIEWED_SHA=""
+        fi
+      else
+        AI_REVIEW_MODE="fresh"
+      fi
+
+      export AI_LAST_REVIEWED_SHA AI_REVIEW_MODE
+
+      echo "=== AI review mode: ${AI_REVIEW_MODE} (last=${AI_LAST_REVIEWED_SHA:-none} head=${AI_HEAD_SHA}) ==="
+      if [ "$AI_REVIEW_MODE" = continue ]; then
+        echo "--- restored review-state.md (previous run) ---"
+        cat "$AI_CONTEXT_DIR/review-state.md"
+        echo "--- end review-state.md ---"
+      fi
+
+      AI_PROMPT="You're running inside CI in headless mode. Use your ci skill, then do this: ${AI_PROMPT}"
+
+      echo "Running Claude with following prompt:\n${AI_PROMPT}"
+
+      claude --allow-dangerously-skip-permissions --dangerously-skip-permissions \
+        -p "$AI_PROMPT" ${AI_MODEL:+--model "$AI_MODEL"}
+
+      echo "$AI_HEAD_SHA" > "$AI_CONTEXT_DIR/last-reviewed-sha"
+
+  after_script:
+    - gramax/.ci/metrics/push-ci-job-duration-metrics.sh || true
+
+# --- fix-pipelines: manual, diagnose + repair red CI jobs on a branch --------
+# Unlike review-ai (read-only, lean `ai` image), this job must REPRODUCE the
+# harnesses locally — build gramax-core.node, run cargo/jest/Playwright. So it
+# runs on the ouroboros image (claude + rust + bun + Playwright browsers + glab
+# all baked), pulled from the team-workspace registry.
+#
+# Cross-project image pull: the ouroboros image lives in `gx/team-workspace`, a
+# different project. The k8s executor needs registry creds to pull it — set the
+# `DOCKER_AUTH_CONFIG` CI/CD variable (project/group, masked) with a token that
+# can pull `gx/team-workspace/ouroboros`. `AI_GITLAB_TOKEN` must additionally
+# have WRITE scope: the skill pushes CI/test fixes straight to the branch (and
+# opens an MR for app-code fixes on release/develop).
+fix-pipelines-ai:
+  stage: ai
+  interruptible: false
+  tags:
+    - kubernetes01-gramax
+  image: $CI_SERVER_HOST:4567/gx/team-workspace/ouroboros:latest
+  variables:
+    GIT_STRATEGY: none
+    HTTPS_PROXY: $RUNNER_HTTPS_PROXY
+    IS_SANDBOX: '1'
+    GITLAB_HOST: $CI_SERVER_HOST
+    GITLAB_TOKEN: $AI_GITLAB_TOKEN
+    CLAUDE_CODE_OAUTH_TOKEN: $CLAUDE_CODE_OAUTH_TOKEN
+    AI_MODEL: opus
+  rules:
+    # On an MR pipeline: target the MR source branch.
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: manual
+      allow_failure: true
+    # On a branch pipeline (push/web): target that branch — e.g. run it on the
+    # develop or release/* pipeline to fix that branch directly.
+    - if: '$CI_COMMIT_BRANCH'
+      when: manual
+      allow_failure: true
+  script:
+    - |
+      set -eu
+
+      git config --global url."https://oauth2:${AI_GITLAB_TOKEN}@${CI_SERVER_HOST}/".insteadOf "https://${CI_SERVER_HOST}/"
+
+      git clone --depth 1 "https://${CI_SERVER_HOST}/gx/team-workspace.git" workspace
+      cd workspace
+
+      ./init.sh --depth 50
+
+      BRANCH="${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME:-$CI_COMMIT_BRANCH}"
+      git -C gramax fetch origin "$BRANCH"
+      git -C gramax checkout -B "$BRANCH" FETCH_HEAD
+
+      AI_PROMPT="You're running inside CI in headless mode. Use your fix-pipelines skill to diagnose and repair the red CI jobs on branch '${BRANCH}' of the Gramax repo. Triage the failed jobs, reproduce the failing harness locally, verify the fix by re-running it green, then land it per the skill's branch policy."
+
+      echo "Running Claude with following prompt:\n${AI_PROMPT}"
+
+      claude --allow-dangerously-skip-permissions --dangerously-skip-permissions \
+        -p "$AI_PROMPT" ${AI_MODEL:+--model "$AI_MODEL"}
+
+  after_script:
+    - gramax/.ci/metrics/push-ci-job-duration-metrics.sh || true

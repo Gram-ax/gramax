@@ -8,6 +8,7 @@ import { SearchArticleParser } from "@ext/serach/modulith/parsing/SearchArticleP
 import type { ResourceParseClient } from "@ext/serach/modulith/resourceParse/ResourceParseClient";
 import type { ModulithSearchClient } from "@ext/serach/modulith/search/ModulithSearchClient";
 import type { RemoteModulithSearchClient } from "@ext/serach/modulith/search/RemoteModulithSearchClient";
+import type { TableDB } from "@ext/tableDB/table";
 import type WorkspaceManager from "@ext/workspace/WorkspaceManager";
 import { CACHE_DIR, MODULITH_BASE } from "./consts";
 
@@ -20,6 +21,8 @@ export interface CreateModulithServiceArgs {
 	remoteClient?: RemoteModulithSearchClient;
 	immediateIndexing?: boolean;
 	diagramRendererServerUrl?: string;
+	tablesManager: TableDB;
+	resourceSearchEnabled: boolean;
 }
 
 export async function createModulithService({
@@ -31,6 +34,8 @@ export async function createModulithService({
 	remoteClient,
 	immediateIndexing,
 	diagramRendererServerUrl,
+	tablesManager,
+	resourceSearchEnabled,
 }: CreateModulithServiceArgs): Promise<ModulithService> {
 	const sap = new SearchArticleParser({
 		parser,
@@ -38,6 +43,7 @@ export async function createModulithService({
 		resourceParseClient,
 		diagramRendererServerUrl,
 		remoteVersion: remoteClient?.version,
+		tablesManager,
 	});
 	const service = new ModulithService({
 		localClient,
@@ -45,6 +51,7 @@ export async function createModulithService({
 		wm,
 		sap,
 		immediateIndexing,
+		resourceSearchEnabled,
 	});
 
 	return service;

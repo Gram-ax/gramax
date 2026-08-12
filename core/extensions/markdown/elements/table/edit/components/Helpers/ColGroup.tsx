@@ -1,7 +1,8 @@
 import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
 import useWatch from "@core-ui/hooks/useWatch";
+import parsePixels from "@core-ui/utils/parsePixels";
 import type { Node } from "@tiptap/pm/model";
-import { memo, type RefObject, useLayoutEffect, useMemo, useState } from "react";
+import { memo, type RefObject, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 interface ColGroupProps {
 	content?: Node;
@@ -19,6 +20,7 @@ export interface ColInfo {
 }
 
 const TABLE_WRAPPER_PADDINGS = 48; //1.5em + 1.5em
+const TABLE_WIDTH_PROPERTY = "--table-width";
 
 const getColInfo = (colCount?: number) => {
 	const colInfo: ColInfo[] = [];
@@ -30,6 +32,7 @@ const getColInfo = (colCount?: number) => {
 
 const ColGroup = ({ content, parentElement, tableRef, init }: ColGroupProps) => {
 	const articleRef = ArticleRefService.value;
+	const colgroupRef = useRef<HTMLTableColElement>(null);
 	const [colInfo, setColInfo] = useState<ColInfo[]>(init?.colInfo || getColInfo(init?.colCount));
 
 	const getCellWidthFromParent = () => {
@@ -142,6 +145,7 @@ const ColGroup = ({ content, parentElement, tableRef, init }: ColGroupProps) => 
 				if (width) {
 					cols.push(
 						<col
+							// biome-ignore lint/suspicious/noArrayIndexKey: expected
 							key={`${i}-${j}-${width}`}
 							style={{
 								minWidth: `${typeof width === "number" ? `${width}px` : width}`,
@@ -149,16 +153,58 @@ const ColGroup = ({ content, parentElement, tableRef, init }: ColGroupProps) => 
 							}}
 						/>,
 					);
-				} else cols.push(<col key={`${i}-${j}`} />);
+				} else
+					cols.push(
+						<col
+							// biome-ignore lint/suspicious/noArrayIndexKey: expected
+							key={`${i}-${j}`}
+						/>,
+					);
 			}
 		});
 
 		return cols;
 	}, [colInfo, cellWidth]);
 
+	// Safari doesn't recalculate the intrinsic width of a table when the columns change after the
+	// first layout, so a max-content table keeps the widths it got from the cell content. Sizing the
+	// table by the sum of its columns makes the layout the same in every browser. Columns are written
+	// both by this component and by the resizer, so the sum is read from the dom.
+	useLayoutEffect(() => {
+		const colgroup = colgroupRef.current;
+		const table = colgroup?.parentElement;
+		if (!table) return;
+
+		const getTableWidth = () => {
+			let total = 0;
+
+			for (const col of Array.from(colgroup.children) as HTMLElement[]) {
+				const width = parsePixels(col.style.width);
+				if (!width) return null;
+				total += width;
+			}
+
+			return total || null;
+		};
+
+		const syncTableWidth = () => {
+			const tableWidth = getTableWidth();
+
+			if (tableWidth) table.style.setProperty(TABLE_WIDTH_PROPERTY, `${tableWidth}px`);
+			else table.style.removeProperty(TABLE_WIDTH_PROPERTY);
+		};
+
+		syncTableWidth();
+
+		const observer = new MutationObserver(syncTableWidth);
+		observer.observe(colgroup, { attributeFilter: ["style"], childList: true, subtree: true });
+
+		return () => observer.disconnect();
+	}, []);
+
 	return (
 		<>
-			<colgroup>{generatedCols}</colgroup>
+			<colgroup ref={colgroupRef}>{generatedCols}</colgroup>
 			<thead contentEditable="false" style={{ userSelect: "none" }} suppressContentEditableWarning>
 				<tr style={{ visibility: "hidden" }}>
 					{generatedCols.map((_, i) => (

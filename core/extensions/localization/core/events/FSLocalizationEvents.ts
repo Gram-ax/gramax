@@ -9,6 +9,7 @@ import type { Item } from "@core/FileStructue/Item/Item";
 import type { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
 import { addExternalItems } from "@ext/localization/core/addExternalItems";
+import { markUntranslatedItems } from "@ext/localization/core/markUntranslatedItems";
 import assert from "assert";
 import type FileStructure from "../../../../logic/FileStructue/FileStructure";
 import type { FSEvents } from "../../../../logic/FileStructue/FileStructure";
@@ -33,46 +34,53 @@ export default class FSLocalizationEvents implements EventHandlerCollection {
 
 	mount(): void {
 		this._unsubribeTokens.push(
-			this._fs.events.on("catalog-entry-read", this.onCatalogEntryRead.bind(this)),
-			this._fs.events.on("catalog-read", this.onCatalogRead.bind(this)),
-			this._fs.events.on("item-created", this.onItemCreated.bind(this)),
-			this._fs.events.on("item-deleted", this.onItemDeleted.bind(this)),
-			this._fs.events.on("item-moved", this.onItemMoved.bind(this)),
-			this._fs.events.on("item-props-updated", this.onItemPropsUpdated.bind(this)),
-			this._fs.events.on("item-order-updated", this.onItemOrderUpdated.bind(this)),
-			this._fs.events.on("item-filter", this.onItemFilter.bind(this)),
+			this._fs.events.on("catalog-entry-read", this._onCatalogEntryRead.bind(this)),
+			this._fs.events.on("catalog-read", this._onCatalogRead.bind(this)),
+			this._fs.events.on("item-created", this._onItemCreated.bind(this)),
+			this._fs.events.on("item-deleted", this._onItemDeleted.bind(this)),
+			this._fs.events.on("item-moved", this._onItemMoved.bind(this)),
+			this._fs.events.on("item-props-updated", this._onItemPropsUpdated.bind(this)),
+			this._fs.events.on("item-order-updated", this._onItemOrderUpdated.bind(this)),
+			this._fs.events.on("item-filter", this._onItemFilter.bind(this)),
 		);
 	}
 
-	private onItemFilter = ({ catalogProps, item }: EventArgs<FSEvents, "item-filter">) => {
-		if (!catalogProps.language || getExecutingEnvironment() === "browser" || getExecutingEnvironment() === "tauri")
+	private _onItemFilter = ({ catalogProps, item }: EventArgs<FSEvents, "item-filter">) => {
+		if (!catalogProps.language || getExecutingEnvironment() === "web" || getExecutingEnvironment() === "tauri")
 			return true;
 
-		if (item.props.external && item.type == ItemType.article) return false;
-		if (item.props.external && item.type == ItemType.category) {
+		if (item.props.external && item.type === ItemType.article) return false;
+		if (item.props.external && item.type === ItemType.category) {
 			const hasAnyTranslatedArticle = (category: Category) =>
-				category.items.some((item) => item.type == ItemType.article && !item.props.external) ||
-				category.items.filter((i) => i.type == ItemType.category).some(hasAnyTranslatedArticle);
+				category.items.some((item) => item.type === ItemType.article && !item.props.external) ||
+				category.items.filter((i) => i.type === ItemType.category).some(hasAnyTranslatedArticle);
 			return hasAnyTranslatedArticle(item as Category);
 		}
 
 		return true;
 	};
 
-	private onCatalogEntryRead = ({ entry: { props } }: EventArgs<FSEvents, "catalog-entry-read">) => {
+	private _onCatalogEntryRead = ({ entry: { props } }: EventArgs<FSEvents, "catalog-entry-read">) => {
 		if (!props.language) props.language = null;
 		if (!props.supportedLanguages) props.supportedLanguages = [];
 		if (props.language && !props.supportedLanguages.includes(props.language))
 			props.supportedLanguages.push(props.language);
 	};
 
-	private onCatalogRead = async ({ fs, catalog }: EventArgs<FSEvents, "catalog-read">) => {
-		if (!catalog.props.language || catalog.isFpReadOnly) return;
+	private _onCatalogRead = async ({ fs, catalog }: EventArgs<FSEvents, "catalog-read">) => {
+		if (!catalog.props.language) return;
 
-		const filters = [(item: Item) => item.type == ItemType.category];
+		// Must run before the read-only bail-out below: docportal and SSR read the catalog through a
+		// read-only provider, and they are exactly the readers that never build the `external` marker
+		// themselves (see markUntranslatedItems).
+		markUntranslatedItems(catalog);
+
+		if (catalog.isFpReadOnly) return;
+
+		const filters = [(item: Item) => item.type === ItemType.category];
 
 		for (const code of Object.values(ContentLanguage)) {
-			if (code == catalog.props.language) continue;
+			if (code === catalog.props.language) continue;
 
 			const category = catalog.findArticle(`${catalog.name}/${code}`, filters) as Category;
 
@@ -91,7 +99,7 @@ export default class FSLocalizationEvents implements EventHandlerCollection {
 				const msg = `category associated with '${code}' doesn't exists but catalog still supports that language; removing from .doc-root.yaml`;
 				console.warn(msg);
 
-				catalog.props.supportedLanguages = catalog.props.supportedLanguages.filter((l) => l != code);
+				catalog.props.supportedLanguages = catalog.props.supportedLanguages.filter((l) => l !== code);
 				dirty = true;
 			}
 
@@ -99,23 +107,31 @@ export default class FSLocalizationEvents implements EventHandlerCollection {
 		}
 	};
 
-	private onItemDeleted = async ({ catalog, ref, parser }: EventArgs<FSEvents, "item-deleted">) => {
+	private _onItemDeleted = async ({ catalog, ref, parser }: EventArgs<FSEvents, "item-deleted">) => {
 		if (!catalog.props.language) return;
-		await this.applyAll(catalog, false, ref, (ref) => catalog.deleteItem(ref, parser, true));
+		await this._applyAll(catalog, false, ref, (ref) => catalog.deleteItem(ref, parser, true));
 	};
 
-	private onItemCreated = async ({
+	private _onItemCreated = async ({
 		catalog,
 		makeResourceUpdater,
 		parentRef,
 	}: EventArgs<FSEvents, "item-created">) => {
 		if (!catalog.props.language) return;
-		await this.applyAll(catalog, false, parentRef, async (ref) => {
-			await catalog.createArticle(makeResourceUpdater, "\n\n", ref, true);
-		});
+		await this._applyAll(
+			catalog,
+			false,
+			parentRef,
+			async (ref) => {
+				await catalog.createArticle(makeResourceUpdater, "\n\n", ref, true);
+			},
+			{
+				skipLanguageRoot: false,
+			},
+		);
 	};
 
-	private onItemMoved = async ({
+	private _onItemMoved = async ({
 		catalog,
 		from,
 		to,
@@ -127,22 +143,27 @@ export default class FSLocalizationEvents implements EventHandlerCollection {
 		const froms = [];
 		const tos = [];
 
-		await this.applyAll(catalog, false, from, (ref) => {
+		await this._applyAll(catalog, false, from, (ref) => {
 			froms.push(ref);
 		});
 
-		await this.applyAll(catalog, false, to, (ref) => {
+		await this._applyAll(catalog, false, to, (ref) => {
 			tos.push(ref);
 		});
 
-		assert(froms.length == tos.length, "`froms` & `tos` length must be equal");
+		assert(froms.length === tos.length, "`froms` & `tos` length must be equal");
 
 		for (let i = 0; i < froms.length; i++) {
+			// A partially translated catalog is the normal state, so a language may
+			// simply have nothing to move. Without this guard moveItem() trips its
+			// `Item '...' wasn't found in catalog` assert and takes the whole move down.
+			if (!catalog.findItemByItemRef(froms[i])) continue;
+
 			await catalog.moveItem(froms[i], tos[i], makeResourceUpdater, innerRefs, true);
 		}
 	};
 
-	private onItemPropsUpdated = async ({
+	private _onItemPropsUpdated = async ({
 		catalog,
 		item: originalItem,
 		ref: originalRef,
@@ -151,7 +172,7 @@ export default class FSLocalizationEvents implements EventHandlerCollection {
 	}: EventArgs<FSEvents, "item-props-updated">) => {
 		if (!catalog.props.language) return;
 
-		await this.applyAll(catalog, true, originalRef, async (ref, item) => {
+		await this._applyAll(catalog, true, originalRef, async (ref, item) => {
 			if (!item) {
 				const msg = `Item '${ref.path.value}' (original was '${originalRef.path.value}') not found`;
 				throw new Error(msg);
@@ -173,26 +194,31 @@ export default class FSLocalizationEvents implements EventHandlerCollection {
 		});
 	};
 
-	private onItemOrderUpdated = async ({ catalog, item: originalItem }: EventArgs<FSEvents, "item-order-updated">) => {
+	private _onItemOrderUpdated = async ({
+		catalog,
+		item: originalItem,
+	}: EventArgs<FSEvents, "item-order-updated">) => {
 		if (!catalog.props.language) return;
 
-		await this.applyAll(catalog, true, originalItem.ref, async (ref, item) => {
+		await this._applyAll(catalog, true, originalItem.ref, async (_, item) => {
 			if (!item) return;
 			await item.setOrder(originalItem.props.order, true);
+			await item.parent?.sortItems("no-sort");
 		});
 	};
 
-	private applyAll = async (
+	private _applyAll = async (
 		catalog: Catalog,
 		check: boolean,
 		originalRef: ItemRef,
 		callback: (ref: ItemRef, item?: Item) => void | Promise<void>,
+		options: { skipLanguageRoot?: boolean } = {},
 	) => {
 		if (!originalRef) {
 			const rootCategoryPath = catalog.getRootCategoryPath();
 
 			for (const language of catalog.props.supportedLanguages) {
-				if (language == catalog.props.language) continue;
+				if (language === catalog.props.language) continue;
 				const path = rootCategoryPath.join(new Path([language, CATEGORY_ROOT_FILENAME]));
 				await callback({ path, storageId: null }, null);
 			}
@@ -202,7 +228,7 @@ export default class FSLocalizationEvents implements EventHandlerCollection {
 		const rootCategoryPath = catalog.getRootCategoryPath();
 
 		const basePaths = catalog.props.supportedLanguages
-			.filter((l) => l != catalog.props.language)
+			.filter((l) => l !== catalog.props.language)
 			.map((l) => rootCategoryPath.join(new Path(l)));
 
 		const isDefaultLanguage = !basePaths.some((p) => originalRef.path.startsWith(p));
@@ -239,21 +265,21 @@ export default class FSLocalizationEvents implements EventHandlerCollection {
 		const skip = originalRef.path.startsWith(skipPath);
 
 		for (const language of catalog.props.supportedLanguages) {
-			if (language == targetLanguage) continue;
+			if (language === targetLanguage) continue;
 
 			const path =
-				language == catalog.props.language
+				language === catalog.props.language
 					? rootCategoryPath.join(itemPath)
 					: rootCategoryPath.join(new Path(language), itemPath);
 
 			const ref = { path, storageId: originalRef.storageId };
 			let item = catalog.findItemByItemRef(ref);
 
-			if (!item && language == catalog.props.language && skip) continue;
+			if ((options.skipLanguageRoot ?? true) && !item && language === catalog.props.language && skip) continue;
 
 			if (!item && check) {
 				let languageCategoryName = catalog.name;
-				if (catalog.props.language != language) languageCategoryName += "/" + language;
+				if (catalog.props.language !== language) languageCategoryName += `/${language}`;
 
 				const languageCategory = catalog.findArticle(languageCategoryName, []) as Category;
 

@@ -1,13 +1,13 @@
 import { useSettings } from "@ext/enterprise/components/admin/contexts/SettingsContext";
+import { useAdminHeader } from "@ext/enterprise/components/admin/hooks/useAdminHeader";
 import { useHealthCheck } from "@ext/enterprise/components/admin/settings/HealthCheck";
 import useMetricsFilters from "@ext/enterprise/components/admin/settings/metrics/filters";
-import { StickyHeader } from "@ext/enterprise/components/admin/ui-kit/StickyHeader";
+import { Button } from "@ext/enterprise/components/admin/ui-kit/Button";
 import { TabErrorBlock } from "@ext/enterprise/components/admin/ui-kit/TabErrorBlock";
+import { TabInitialLoader } from "@ext/enterprise/components/admin/ui-kit/TabInitialLoader";
 import { Page } from "@ext/enterprise/types/Page";
 import { getAdminPageTitle } from "@ext/enterprise/utils/getAdminPageTitle";
 import t from "@ext/localization/locale/translate";
-import { Button } from "@ui-kit/Button";
-import { Loader } from "@ui-kit/Loader";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
 import { useCallback, useState } from "react";
 import MetricsChart from "../components/chart/MetricsChart";
@@ -20,7 +20,7 @@ import MetricsTable from "./table/MetricsTable";
 const ViewMetricsComponent = () => {
 	const {
 		settings,
-		ensureMetricsLoaded,
+		ensureLoaded,
 		getTabError,
 		isInitialLoading,
 		isRefreshing,
@@ -43,80 +43,75 @@ const ViewMetricsComponent = () => {
 		async (filterUpdate: Parameters<typeof setFilters>[0]) => {
 			setFilters(filterUpdate);
 			setChartData(null);
-			await ensureMetricsLoaded();
+			await ensureLoaded("metrics");
 		},
-		[setFilters, ensureMetricsLoaded],
+		[setFilters, ensureLoaded],
 	);
 
-	if (isInitialLoading("metrics")) {
-		return (
-			<div className="flex items-center justify-center h-full">
-				<Loader style={{ transform: "scale(3)" }} />
-			</div>
-		);
-	}
+	const isContentUnavailable = isInitialLoading("metrics") || Boolean(tabError) || Boolean(healthCheckLoader);
 
-	if (tabError) {
-		return <TabErrorBlock message={tabError.message} onRetry={() => ensureMetricsLoaded()} />;
-	}
+	useAdminHeader({
+		title: (
+			<div className="flex gap-2">
+				{getAdminPageTitle(Page.VIEW_METRICS)}
+				{isHealthy === false && (
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<Button
+								className="p-0 h-auto"
+								size="sm"
+								startIcon="circle-alert"
+								status="error"
+								variant="text"
+							/>
+						</TooltipTrigger>
+						<TooltipContent className="font-sans font-normal">
+							{t("enterprise.admin.errors.database-unavailable")}
+						</TooltipContent>
+					</Tooltip>
+				)}
+			</div>
+		),
+		actions: isContentUnavailable ? undefined : (
+			<div className={`flex justify-between gap-2 ${!isHealthy ? "opacity-50 pointer-events-none" : ""}`}>
+				<ViewMetricsFilterDropdown
+					anonymousFilter={filters.anonymousFilter}
+					disabled={isRefreshing("metrics")}
+					getMetricsCatalogs={getMetricsCatalogs}
+					getMetricsUsers={getMetricsUsers}
+					onAnonymousChange={(anonymousFilter) => handleFilterChange({ anonymousFilter })}
+					onCatalogChange={(catalogs) => handleFilterChange({ selectedCatalogs: catalogs })}
+					onUserChange={(emails) => handleFilterChange({ selectedUserEmails: emails })}
+					selectedCatalogs={filters.selectedCatalogs ?? []}
+					selectedUserEmails={filters.selectedUserEmails}
+				/>
+				<MetricsDateFilter
+					dateRange={{
+						startDate: filters.startDate,
+						endDate: filters.endDate,
+					}}
+					disabled={isRefreshing("metrics")}
+					interval={filters.interval}
+					onChange={(newInterval, startDate, endDate) =>
+						handleFilterChange({
+							interval: newInterval,
+							startDate,
+							endDate,
+						})
+					}
+				/>
+			</div>
+		),
+	});
+
+	if (isInitialLoading("metrics")) return <TabInitialLoader />;
+
+	if (tabError) return <TabErrorBlock code={tabError} onRetry={() => ensureLoaded("metrics")} />;
 
 	if (healthCheckLoader) return healthCheckLoader;
 
 	return (
 		<>
-			<StickyHeader
-				actions={
-					<div className={`flex justify-between gap-2 ${!isHealthy ? "opacity-50 pointer-events-none" : ""}`}>
-						<ViewMetricsFilterDropdown
-							anonymousFilter={filters.anonymousFilter}
-							disabled={isRefreshing("metrics")}
-							getMetricsCatalogs={getMetricsCatalogs}
-							getMetricsUsers={getMetricsUsers}
-							onAnonymousChange={(anonymousFilter) => handleFilterChange({ anonymousFilter })}
-							onCatalogChange={(catalogs) => handleFilterChange({ selectedCatalogs: catalogs })}
-							onUserChange={(emails) => handleFilterChange({ selectedUserEmails: emails })}
-							selectedCatalogs={filters.selectedCatalogs ?? []}
-							selectedUserEmails={filters.selectedUserEmails}
-						/>
-						<MetricsDateFilter
-							dateRange={{
-								startDate: filters.startDate,
-								endDate: filters.endDate,
-							}}
-							disabled={isRefreshing("metrics")}
-							interval={filters.interval}
-							onChange={(newInterval, startDate, endDate) =>
-								handleFilterChange({
-									interval: newInterval,
-									startDate,
-									endDate,
-								})
-							}
-						/>
-					</div>
-				}
-				title={
-					<div>
-						<div className="flex gap-2">
-							{getAdminPageTitle(Page.VIEW_METRICS)}
-							{!isHealthy && (
-								<Tooltip>
-									<TooltipTrigger asChild>
-										<Button
-											className="p-0 h-auto"
-											size="sm"
-											startIcon="circle-alert"
-											status="error"
-											variant="text"
-										/>
-									</TooltipTrigger>
-									<TooltipContent>{t("enterprise.admin.error.database-unavailable")}</TooltipContent>
-								</Tooltip>
-							)}
-						</div>
-					</div>
-				}
-			/>
 			<div className={`flex flex-col min-h-0 h-full gap-6 ${!isHealthy ? "opacity-50 pointer-events-none" : ""}`}>
 				<MetricsChart
 					axisLabelFormat={filters.axisLabelFormat}

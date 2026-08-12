@@ -18,7 +18,11 @@ export const useApplyView = () => {
 			else searchParams.set("view", viewId);
 
 			const search = searchParams.toString();
-			history.replaceState(null, "", window.location.pathname + (search ? `?${search}` : ""));
+			history.replaceState(
+				null,
+				"",
+				window.location.pathname + (search ? `?${search}` : "") + window.location.hash,
+			);
 			refreshPage();
 		},
 		[apiUrlCreator, resolvedViewId],

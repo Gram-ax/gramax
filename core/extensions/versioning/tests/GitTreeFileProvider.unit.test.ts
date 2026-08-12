@@ -60,9 +60,9 @@ describe("GitTreeFileProvider", () => {
 
 	afterAll(async () => await dfp.delete(Path.empty));
 
-	describe("читает файл", () => {
-		describe("без названия репозитория в пути", () => {
-			test("на хеде", async () => {
+	describe("reads file", () => {
+		describe("without repo name in path", () => {
+			test("at HEAD", async () => {
 				const file = await gitfp.read(new Path("file"));
 				expect(file).toBe("text");
 
@@ -73,7 +73,7 @@ describe("GitTreeFileProvider", () => {
 				expect(image).toEqual(await getTestImageBuffer());
 			});
 
-			test("на конкретном коммите", async () => {
+			test("at specific commit", async () => {
 				expect(await gitfp.read(new Path(`:commit-${oid}/file`))).toBe("content");
 				expect(await gitfp.read(new Path(`:commit-${oid}/dir/file2`))).toBe("content2");
 
@@ -81,7 +81,7 @@ describe("GitTreeFileProvider", () => {
 				expect(image).toEqual(await getTestImageBuffer());
 			});
 
-			test("на ветке master", async () => {
+			test("on master branch", async () => {
 				expect(await gitfp.read(new Path(":master/file"))).toBe("text");
 				expect(await gitfp.read(new Path(":master/dir/file2"))).toBe("content2");
 
@@ -89,61 +89,99 @@ describe("GitTreeFileProvider", () => {
 				expect(image).toEqual(await getTestImageBuffer());
 			});
 
-			test("несуществующий файл", async () => {
+			test("non-existent file", async () => {
 				expect(await gitfp.readAsBinary(new Path(`:commit-${oid}/not-exists`))).toBeUndefined();
 				expect(await gitfp.readAsBinary(new Path(":master/not-exists"))).toBeUndefined();
 			});
 		});
 
-		describe("с названием репозитория в пути", () => {
-			test("файл не содержит название репозитория", async () => {
+		describe("with repo name in path", () => {
+			test("file does not contain repo name", async () => {
 				const file = await gitfp.read(new Path("repo:master/file"));
 				expect(file).toBe("text");
 			});
-			test("файл содержит название репозитория", async () => {
+			test("file contains repo name", async () => {
 				const file = await gitfp.read(new Path("repo:master/repo-file"));
 				expect(file).toBe("repo-file content");
 			});
 		});
 
-		describe("с mount path", () => {
-			test("правильно отрезает mount path (без scope)", async () => {
+		describe("with mount path", () => {
+			test("correctly removes mount path (without scope)", async () => {
 				const mountedGitfp = new GitTreeFileProvider(git);
 				mountedGitfp.withMountPath(new Path("process"));
 				const file = await mountedGitfp.read(new Path("process/file"));
 				expect(file).toBe("text");
 			});
 
-			test("правильно отрезает mount path (со scope)", async () => {
+			test("correctly removes mount path (with scope)", async () => {
 				const mountedGitfp = new GitTreeFileProvider(git);
 				mountedGitfp.withMountPath(new Path("process"));
 				const file = await mountedGitfp.read(new Path("process:master/file"));
 				expect(file).toBe("text");
 			});
+
+			test("correctly removes multi-segment mount path (scope in beginning)", async () => {
+				const mountedGitfp = new GitTreeFileProvider(git);
+				mountedGitfp.withMountPath(root.join(repoPath));
+				const file = await mountedGitfp.read(new Path("repo:HEAD/file"));
+				expect(file).toBe("text");
+			});
+
+			test("correctly removes multi-segment mount path (scope=master, deep prefix)", async () => {
+				const mountedGitfp = new GitTreeFileProvider(git);
+				mountedGitfp.withMountPath(root.join(repoPath));
+				const file = await mountedGitfp.read(new Path("repo:master/file"));
+				expect(file).toBe("text");
+			});
+
+			test("correctly removes mount path with subdirectory", async () => {
+				const mountedGitfp = new GitTreeFileProvider(git);
+				mountedGitfp.withMountPath(root.join(repoPath));
+				const file = await mountedGitfp.read(new Path("repo:master/dir/file2"));
+				expect(file).toBe("content2");
+			});
+
+			test("at specific commit with scope in first segment (production-like)", async () => {
+				const mountedGitfp = new GitTreeFileProvider(git);
+				mountedGitfp.withMountPath(root.join(repoPath));
+				const file = await mountedGitfp.read(new Path(`repo:commit-${oid}/file`));
+				expect(file).toBe("content");
+			});
 		});
 	});
 
-	describe("читает директорию", () => {
-		test("на хеде", async () => {
+	describe("reads directory", () => {
+		test("at HEAD", async () => {
 			expect(await gitfp.readdir(Path.empty)).toEqual(expect.arrayContaining(["file", "dir"]));
 			expect(await gitfp.readdir(new Path("dir"))).toEqual(["file2"]);
 		});
 
-		test("на конкретном коммите", async () => {
+		test("at specific commit", async () => {
 			expect(await gitfp.readdir(new Path(`:commit-${oid}`))).toEqual(
 				expect.arrayContaining(["file", "dir", "to-be-deleted"]),
 			);
 			expect(await gitfp.readdir(new Path(`:commit-${oid}/dir`))).toEqual(["file2"]);
 		});
 
-		test("на ветке master", async () => {
+		test("on master branch", async () => {
 			expect(await gitfp.readdir(new Path(":master"))).toEqual(expect.arrayContaining(["file", "dir"]));
 			expect(await gitfp.readdir(new Path(":master/dir"))).toEqual(["file2"]);
 		});
+
+		// A directory absent from the read tree (e.g. a diff scope on a commit that predates the catalog
+		// folder) makes libgit2 raise "does not exist in the given tree". Listing a read-only tree must
+		// degrade to an empty directory rather than throw — otherwise getDiffTree crashes (Bugsnag 69ba676a).
+		test("returns empty for a directory missing from the tree", async () => {
+			expect(await gitfp.readdir(new Path("does-not-exist"))).toEqual([]);
+			expect(await gitfp.readdir(new Path(`:commit-${oid}/does-not-exist`))).toEqual([]);
+			expect(await gitfp.getItems(new Path("does-not-exist"))).toEqual([]);
+			expect(await gitfp.getItems(new Path(`:commit-${oid}/does-not-exist`))).toEqual([]);
+		});
 	});
 
-	describe("проверяет существование файла", () => {
-		test("на хеде", async () => {
+	describe("checks file existence", () => {
+		test("at HEAD", async () => {
 			expect(await gitfp.exists(new Path("file"))).toBe(true);
 			expect(await gitfp.exists(new Path("dir"))).toBe(true);
 			expect(await gitfp.exists(new Path("dir/file2"))).toBe(true);
@@ -151,7 +189,7 @@ describe("GitTreeFileProvider", () => {
 			expect(await gitfp.exists(new Path("to-be-deleted"))).toBe(false);
 		});
 
-		test("на конкретном коммите", async () => {
+		test("at specific commit", async () => {
 			expect(await gitfp.exists(new Path(`:commit-${oid}/file`))).toBe(true);
 			expect(await gitfp.exists(new Path(`:commit-${oid}/dir`))).toBe(true);
 			expect(await gitfp.exists(new Path(`:commit-${oid}/dir/file2`))).toBe(true);
@@ -159,7 +197,7 @@ describe("GitTreeFileProvider", () => {
 			expect(await gitfp.exists(new Path(`:commit-${oid}/not-exists`))).toBe(false);
 		});
 
-		test("на ветке master", async () => {
+		test("on master branch", async () => {
 			expect(await gitfp.exists(new Path(":master/file"))).toBe(true);
 			expect(await gitfp.exists(new Path(":master/dir"))).toBe(true);
 			expect(await gitfp.exists(new Path(":master/dir/file2"))).toBe(true);
@@ -168,8 +206,8 @@ describe("GitTreeFileProvider", () => {
 		});
 	});
 
-	describe("получает stat файла", () => {
-		test("на хеде", async () => {
+	describe("gets file stat", () => {
+		test("at HEAD", async () => {
 			const fileStat = await gitfp.getStat(new Path("file"));
 			expect(fileStat.isFile()).toBe(true);
 			expect(fileStat.isDirectory()).toBe(false);
@@ -180,7 +218,7 @@ describe("GitTreeFileProvider", () => {
 			expect(dirStat.isDirectory()).toBe(true);
 		});
 
-		test("на конкретном коммите", async () => {
+		test("at specific commit", async () => {
 			const fileStat = await gitfp.getStat(new Path(`:commit-${oid}/file`));
 			expect(fileStat.isFile()).toBe(true);
 			expect(fileStat.isDirectory()).toBe(false);
@@ -196,7 +234,7 @@ describe("GitTreeFileProvider", () => {
 			expect(deletedFileStat.size).toBe(0);
 		});
 
-		test("на ветке master", async () => {
+		test("on master branch", async () => {
 			const fileStat = await gitfp.getStat(new Path(":master/file"));
 			expect(fileStat.isFile()).toBe(true);
 			expect(fileStat.isDirectory()).toBe(false);
@@ -207,85 +245,9 @@ describe("GitTreeFileProvider", () => {
 			expect(dirStat.isDirectory()).toBe(true);
 		});
 
-		test("выбрасывает ошибку для несуществующего файла", async () => {
+		test("throws error for non-existent file", async () => {
 			await expect(gitfp.getStat(new Path("non-existent"))).rejects.toThrow();
 			await expect(gitfp.getStat(new Path(":master/non-existent"))).rejects.toThrow();
-		});
-	});
-
-	describe("получает scope и путь для", () => {
-		describe("директории с файлом", () => {
-			test("для HEAD", () => {
-				const scopedPath = GitTreeFileProvider.scoped(new Path("dir/file"), "HEAD");
-
-				const res = GitTreeFileProvider.unscope(scopedPath);
-
-				expect(res.unscoped.value).toBe("dir/file");
-				expect(res.scope).toEqual("HEAD");
-			});
-
-			test("для коммита", () => {
-				const scopedPath = GitTreeFileProvider.scoped(new Path("dir/file"), { commit: "123" });
-
-				const res = GitTreeFileProvider.unscope(scopedPath);
-
-				expect(res.unscoped.value).toBe("dir/file");
-				expect(res.scope).toEqual({ commit: "123" });
-			});
-
-			test("для референса", () => {
-				const scopedPath = GitTreeFileProvider.scoped(new Path("dir/file"), { reference: "123" });
-
-				const res = GitTreeFileProvider.unscope(scopedPath);
-
-				expect(res.unscoped.value).toBe("dir/file");
-				expect(res.scope).toEqual({ reference: "123" });
-			});
-		});
-
-		describe("просто директории", () => {
-			test("для HEAD", () => {
-				const scopedPath = GitTreeFileProvider.scoped(new Path("dir"), "HEAD");
-
-				const res = GitTreeFileProvider.unscope(scopedPath);
-
-				expect(res.unscoped.value).toBe("dir");
-				expect(res.scope).toEqual("HEAD");
-			});
-
-			test("для коммита", () => {
-				const scopedPath = GitTreeFileProvider.scoped(new Path("dir"), { commit: "123" });
-
-				const res = GitTreeFileProvider.unscope(scopedPath);
-
-				expect(res.unscoped.value).toBe("dir");
-				expect(res.scope).toEqual({ commit: "123" });
-			});
-
-			test("для референса", () => {
-				const scopedPath = GitTreeFileProvider.scoped(new Path("dir"), { reference: "123" });
-
-				const res = GitTreeFileProvider.unscope(scopedPath);
-
-				expect(res.unscoped.value).toBe("dir");
-				expect(res.scope).toEqual({ reference: "123" });
-			});
-		});
-	});
-
-	describe("не получает путь без scope", () => {
-		test("для директории с файлом", () => {
-			const unscopedPath = new Path("dir/file");
-			const res = GitTreeFileProvider.unscope(unscopedPath);
-			expect(res.unscoped).toBeNull();
-			expect(res.scope).toBeNull();
-		});
-
-		test("для директории", () => {
-			const unscopedPath = new Path("dir");
-			const res = GitTreeFileProvider.unscope(unscopedPath);
-			expect(res.unscoped).toBeNull();
-			expect(res.scope).toBeNull();
 		});
 	});
 });

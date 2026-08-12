@@ -9,7 +9,7 @@ import type { editName as questionEditName } from "@ext/markdown/elements/questi
 import type { Selection } from "@tiptap/pm/state";
 
 export type Attrs = {
-	level: Level;
+	level?: Level;
 	type?: Exclude<NoteType, "hotfixes">;
 	diagramName?: DiagramType;
 	color?: HIGHLIGHT_COLOR_NAMES;

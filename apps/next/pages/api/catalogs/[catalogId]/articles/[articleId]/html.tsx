@@ -8,14 +8,14 @@ import { TokenValidationMiddleware } from "@core/Api/middleware/TokenValidationM
 import parseContent from "@core/FileStructue/Article/parseContent";
 import { convertContentToUiLanguage } from "@ext/localization/locale/translate";
 import ExceptionsResponse from "@ext/publicApi/ExceptionsResponse";
-import { ApplyApiMiddleware } from "apps/next/logic/Api/ApplyMiddleware";
+import { ApplyApiMiddleware } from "../../../../../../logic/Api/ApplyMiddleware";
 
 export default ApplyApiMiddleware(
 	async function (req: ApiRequest, res: ApiResponse) {
 		const { contextFactory, parser, sitePresenterFactory, parserContextFactory } = this.app;
-		const context = await contextFactory.fromNode({ req, res });
 		const catalogName = req.query.catalogId as string;
 		const articleId = req.query.articleId as string;
+		const context = await contextFactory.fromNode({ req, res });
 		const dataProvider = sitePresenterFactory.fromContext(context);
 		const { article, catalog } = await dataProvider.getArticleByPathOfCatalog([catalogName, articleId], []);
 
@@ -52,4 +52,5 @@ export default ApplyApiMiddleware(
 		new HttpMethodsMiddleware(),
 		new TokenValidationMiddleware(),
 	],
+	{ plugins: { getRoute: (req) => `/${req.query.catalogId}/${req.query.articleId}` } },
 );

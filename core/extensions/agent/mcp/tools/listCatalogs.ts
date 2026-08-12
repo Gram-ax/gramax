@@ -11,6 +11,6 @@ export async function runListCatalogs({ app }: ToolExecutionContext): Promise<To
 		return ok({ catalogs });
 	} catch (e) {
 		const msg = e instanceof Error ? e.message : String(e);
-		return fail(`Catalog list error: ${msg}`);
+		return fail(`Failed to list catalogs: ${msg}`);
 	}
 }

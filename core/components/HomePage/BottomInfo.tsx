@@ -2,7 +2,6 @@ import canShowVersion from "@core/utils/canShowVersion";
 import getAppVersion from "@core/utils/getAppVersion";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import t from "@ext/localization/locale/translate";
-import ToggleFeatures from "@ext/toggleFeatures/components/ToggleFeatures";
 import { useMemo } from "react";
 
 const BottomInfo = () => {
@@ -15,8 +14,7 @@ const BottomInfo = () => {
 	);
 
 	return (
-		<div className="bottom-info flex flex-row flex-wrap items-center justify-between gap-1 py-5">
-			{(!conf?.enterprise?.gesUrl || isLogged) && <ToggleFeatures />}
+		<div className="bottom-info flex flex-row flex-wrap items-center justify-end gap-1 py-5">
 			<div className="text-muted flex items-center gap-2 text-xs whitespace-nowrap">
 				{canShow && <span className="text-muted">{version}</span>}
 				<span className="text-muted">{cred}</span>

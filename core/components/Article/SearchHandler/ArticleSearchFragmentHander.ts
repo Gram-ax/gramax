@@ -16,9 +16,15 @@ function getHighlightFragmentFromUrl() {
 	return { highlightFragment, highlightFragmentIndex };
 }
 
+function getFragmentUsageFromUrl() {
+	if (typeof document === "undefined") return "";
+	return new URL(document.URL).searchParams.get("fragmentUsage") ?? "";
+}
+
 export function highlightFragmentInEditorByUrl() {
 	const { highlightFragment, highlightFragmentIndex } = getHighlightFragmentFromUrl();
 	void highlightFragmentInEditor(highlightFragment, highlightFragmentIndex);
+	void highlightFragmentUsage(getFragmentUsageFromUrl());
 }
 
 export async function highlightFragmentInEditor(highlightFragment: string, highlightFragmentIndex: number) {
@@ -68,13 +74,13 @@ export async function highlightFragmentInEditor(highlightFragment: string, highl
 		},
 		(contentEl) => {
 			// Solution for highlighting the note title.
-			// Note title is input element. Search in findElementToHighlight does not cover these cases (because it searches by `textContent`).
+			// Note title is a `<note-title>` contentEditable node. Search in findElementToHighlight does not cover these cases (because it searches by `textContent`).
 			// This solution is not perfect because it does not consider cases when the note is child of another block. For example, in a list or table.
 			if (contentEl.classList.contains("react-renderer") && contentEl.classList.contains("node-note")) {
-				const inputHeader = contentEl.querySelector<HTMLInputElement>(".admonition .title-editor input");
-				const inputHeaderValue = inputHeader?.value ?? "";
-				const substringCount = findSubstringCountForSearchFragment(inputHeaderValue, highlightFragment);
-				return { substringCount, elWithContentFound: inputHeader };
+				const titleHeader = contentEl.querySelector<HTMLElement>(".admonition .note-title");
+				const titleHeaderValue = titleHeader?.textContent ?? "";
+				const substringCount = findSubstringCountForSearchFragment(titleHeaderValue, highlightFragment);
+				return { substringCount, elWithContentFound: titleHeader };
 			}
 			if (
 				contentEl.classList.contains("react-renderer") &&
@@ -92,6 +98,30 @@ export async function highlightFragmentInEditor(highlightFragment: string, highl
 export function highlightAllFragmentsInDocportalByUrl() {
 	void highlightFragmentInDocportalByUrl();
 	void highlightTextFragmentInDocportalByUrl();
+	void highlightFragmentUsage(getFragmentUsageFromUrl());
+}
+
+export async function highlightFragmentUsage(fragmentId: string) {
+	if (typeof document === "undefined") return;
+	if (!fragmentId) return;
+
+	await waitRenderedElements();
+
+	const usage = Array.from(document.querySelectorAll<HTMLElement>("[data-fragment-id], [data-fragment-link]")).find(
+		(element) => element.dataset.fragmentId === fragmentId || element.dataset.fragmentLink === fragmentId,
+	);
+	if (!usage) return;
+
+	const highlightClassName = "is-found-article-element";
+	highlightElements([usage], (elements) => {
+		for (const element of elements) {
+			element.classList.add(highlightClassName);
+			element.addEventListener("animationend", () => element.classList.remove(highlightClassName), {
+				once: true,
+			});
+		}
+	});
+	usage.scrollIntoView({ block: "center", behavior: "auto" });
 }
 
 export async function highlightFragmentInDocportalByUrl() {

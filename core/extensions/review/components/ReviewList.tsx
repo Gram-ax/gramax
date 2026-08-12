@@ -27,7 +27,7 @@ export const ReviewList = () => {
 
 	return (
 		<div
-			className="flex flex-col overflow-hidden flex-1 mt-auto border-l border-t border-primary-border ml-[-2rem] mr-[-1.2rem] my-4 -mb-8 pt-4 bg-[var(--color-merge-request-bg)] max-h-[60dvh] h-[60dvh] shrink-0"
+			className="flex flex-col overflow-hidden flex-1 mt-auto border-l border-t border-secondary-border ml-[-2rem] mr-[-1.2rem] my-4 -mb-8 pt-4 bg-secondary-bg max-h-[60dvh] h-[60dvh] shrink-0"
 			ref={tabRef}
 		>
 			<div

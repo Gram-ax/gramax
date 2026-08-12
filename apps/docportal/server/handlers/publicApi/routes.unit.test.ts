@@ -1,9 +1,42 @@
-import { ARTICLE_HTML, ARTICLE_RESOURCE, CATALOG_NAVIGATION, CATALOGS, USER_TOKEN } from "./routes";
+import {
+	ARTICLE_HTML,
+	ARTICLE_RESOURCE,
+	CATALOG_NAVIGATION,
+	CATALOGS,
+	USER_TOKEN,
+	WEBHOOK,
+	WEBHOOK_REFRESH,
+} from "./routes";
 
 describe("publicApi routes", () => {
+	describe("WEBHOOK", () => {
+		it("matches /api/webhook", () => {
+			expect(WEBHOOK.test("/api/webhook")).toBe(true);
+		});
+		it("does not match /api/webhook/refresh/name", () => {
+			expect(WEBHOOK.test("/api/webhook/refresh/name")).toBe(false);
+		});
+	});
+
+	describe("WEBHOOK_REFRESH", () => {
+		it("matches /api/webhook/refresh/my-catalog and captures name", () => {
+			const match = "/api/webhook/refresh/my-catalog".match(WEBHOOK_REFRESH);
+			expect(match?.[1]).toBe("my-catalog");
+		});
+		it("does not match empty catalogName", () => {
+			expect(WEBHOOK_REFRESH.test("/api/webhook/refresh/")).toBe(false);
+		});
+		it("does not match extra segment", () => {
+			expect(WEBHOOK_REFRESH.test("/api/webhook/refresh/name/extra")).toBe(false);
+		});
+	});
+
 	describe("USER_TOKEN", () => {
 		it("matches /api/user/token", () => {
 			expect(USER_TOKEN.test("/api/user/token")).toBe(true);
+		});
+		it("matches /api/user/token/ with trailing slash", () => {
+			expect(USER_TOKEN.test("/api/user/token/")).toBe(true);
 		});
 		it("does not match /api/user/token/extra", () => {
 			expect(USER_TOKEN.test("/api/user/token/extra")).toBe(false);
@@ -17,8 +50,8 @@ describe("publicApi routes", () => {
 		it("matches /api/catalogs", () => {
 			expect(CATALOGS.test("/api/catalogs")).toBe(true);
 		});
-		it("does not match /api/catalogs/", () => {
-			expect(CATALOGS.test("/api/catalogs/")).toBe(false);
+		it("matches /api/catalogs/ with trailing slash", () => {
+			expect(CATALOGS.test("/api/catalogs/")).toBe(true);
 		});
 		it("does not match /api/catalogs/my-catalog", () => {
 			expect(CATALOGS.test("/api/catalogs/my-catalog")).toBe(false);
@@ -28,6 +61,9 @@ describe("publicApi routes", () => {
 	describe("CATALOG_NAVIGATION", () => {
 		it("matches /api/catalogs/my-catalog/navigation", () => {
 			expect(CATALOG_NAVIGATION.test("/api/catalogs/my-catalog/navigation")).toBe(true);
+		});
+		it("matches navigation with trailing slash", () => {
+			expect(CATALOG_NAVIGATION.test("/api/catalogs/my-catalog/navigation/")).toBe(true);
 		});
 		it("captures catalogName", () => {
 			const match = "/api/catalogs/my-catalog/navigation".match(CATALOG_NAVIGATION);
@@ -44,6 +80,9 @@ describe("publicApi routes", () => {
 	describe("ARTICLE_HTML", () => {
 		it("matches /api/catalogs/my-catalog/articles/article-id/html", () => {
 			expect(ARTICLE_HTML.test("/api/catalogs/my-catalog/articles/article-id/html")).toBe(true);
+		});
+		it("matches article html with trailing slash", () => {
+			expect(ARTICLE_HTML.test("/api/catalogs/my-catalog/articles/article-id/html/")).toBe(true);
 		});
 		it("captures catalogName and articleId", () => {
 			const match = "/api/catalogs/my-catalog/articles/article-id/html".match(ARTICLE_HTML);
@@ -66,6 +105,11 @@ describe("publicApi routes", () => {
 	describe("ARTICLE_RESOURCE", () => {
 		it("matches /api/catalogs/my-catalog/articles/article-id/resources/image.png", () => {
 			expect(ARTICLE_RESOURCE.test("/api/catalogs/my-catalog/articles/article-id/resources/image.png")).toBe(
+				true,
+			);
+		});
+		it("matches article resource with trailing slash", () => {
+			expect(ARTICLE_RESOURCE.test("/api/catalogs/my-catalog/articles/article-id/resources/image.png/")).toBe(
 				true,
 			);
 		});

@@ -22,7 +22,7 @@ export const SignInDocportal = () => {
 	return <SignInEnterpriseModal authUrl={authUrl} />;
 };
 
-export const SingInBrowser = () => {
+export const SingInWeb = () => {
 	const { isLogged, onLogoutClick } = useSignOut();
 
 	if (isLogged) return <UserAvatar logoutComponent={<SignOut />} onLogoutClick={onLogoutClick} />;

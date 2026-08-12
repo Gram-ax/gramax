@@ -17,7 +17,7 @@ homeTest.describe("Create catalog", () => {
 
 		await homePage.waitForLoad();
 
-		homePage.assertUrl("/-/-/-/-/new-catalog");
-		await homePage.workspace.assertHasCatalogs(["new-catalog"]);
+		homePage.assertUrl("/-/-/-/-/untitled");
+		await homePage.workspace.assertHasCatalogs(["untitled"]);
 	});
 });

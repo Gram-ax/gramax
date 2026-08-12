@@ -1,0 +1,156 @@
+"$schema" = "../gen/schemas/acl-manifests.json"
+
+[default]
+description = "Default permissions for Gramax application commands on local app windows."
+permissions = [
+  "allow-read-env",
+  "allow-quit",
+  "allow-get-user-language",
+  "allow-http-listen-once",
+  "allow-open-in-web",
+  "allow-http-request",
+  "allow-get-settings",
+  "allow-set-settings",
+  "allow-close-current-window",
+  "allow-minimize-window",
+  "allow-new-window",
+  "allow-open-directory",
+  "allow-open-in-explorer",
+  "allow-open-window-with-url",
+  "allow-move-to-trash",
+  "allow-set-menuitem-spellcheck-enabled",
+  "allow-update-check",
+  "allow-update-install",
+  "allow-update-cache-clear",
+  "allow-update-install-by-path",
+  "allow-update-reset-bytes",
+  "allow-restart-app",
+  "allow-history-back-forward-go",
+  "allow-history-back-forward-can-go",
+  "allow-set-language",
+  "allow-set-session-data",
+  "allow-show-print",
+  "allow-set-badge",
+  "allow-collect-logs",
+  "allow-set-otel-level",
+]
+
+[[permission]]
+identifier = "allow-read-env"
+commands.allow = ["read_env"]
+
+[[permission]]
+identifier = "allow-quit"
+commands.allow = ["quit"]
+
+[[permission]]
+identifier = "allow-get-user-language"
+commands.allow = ["get_user_language"]
+
+[[permission]]
+identifier = "allow-http-listen-once"
+commands.allow = ["http_listen_once"]
+
+[[permission]]
+identifier = "allow-open-in-web"
+commands.allow = ["open_in_web"]
+
+[[permission]]
+identifier = "allow-http-request"
+commands.allow = ["http_request"]
+
+[[permission]]
+identifier = "allow-get-settings"
+commands.allow = ["get_settings"]
+
+[[permission]]
+identifier = "allow-set-settings"
+commands.allow = ["set_settings"]
+
+[[permission]]
+identifier = "allow-close-current-window"
+commands.allow = ["close_current_window"]
+
+[[permission]]
+identifier = "allow-minimize-window"
+commands.allow = ["minimize_window"]
+
+[[permission]]
+identifier = "allow-new-window"
+commands.allow = ["new_window"]
+
+[[permission]]
+identifier = "allow-open-directory"
+commands.allow = ["open_directory"]
+
+[[permission]]
+identifier = "allow-open-in-explorer"
+commands.allow = ["open_in_explorer"]
+
+[[permission]]
+identifier = "allow-open-window-with-url"
+commands.allow = ["open_window_with_url"]
+
+[[permission]]
+identifier = "allow-move-to-trash"
+commands.allow = ["move_to_trash"]
+
+[[permission]]
+identifier = "allow-set-menuitem-spellcheck-enabled"
+commands.allow = ["set_menuitem_spellcheck_enabled"]
+
+[[permission]]
+identifier = "allow-update-check"
+commands.allow = ["update_check"]
+
+[[permission]]
+identifier = "allow-update-install"
+commands.allow = ["update_install"]
+
+[[permission]]
+identifier = "allow-update-cache-clear"
+commands.allow = ["update_cache_clear"]
+
+[[permission]]
+identifier = "allow-update-install-by-path"
+commands.allow = ["update_install_by_path"]
+
+[[permission]]
+identifier = "allow-update-reset-bytes"
+commands.allow = ["update_reset_bytes"]
+
+[[permission]]
+identifier = "allow-restart-app"
+commands.allow = ["restart_app"]
+
+[[permission]]
+identifier = "allow-history-back-forward-go"
+commands.allow = ["history_back_forward_go"]
+
+[[permission]]
+identifier = "allow-history-back-forward-can-go"
+commands.allow = ["history_back_forward_can_go"]
+
+[[permission]]
+identifier = "allow-set-language"
+commands.allow = ["set_language"]
+
+[[permission]]
+identifier = "allow-set-session-data"
+commands.allow = ["set_session_data"]
+
+[[permission]]
+identifier = "allow-show-print"
+commands.allow = ["show_print"]
+
+[[permission]]
+identifier = "allow-set-badge"
+commands.allow = ["set_badge"]
+
+[[permission]]
+identifier = "allow-collect-logs"
+commands.allow = ["collect_logs"]
+
+[[permission]]
+identifier = "allow-set-otel-level"
+commands.allow = ["set_otel_level"]

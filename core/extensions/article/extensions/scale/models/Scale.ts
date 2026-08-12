@@ -1,6 +1,6 @@
 import { Extension } from "@tiptap/core";
 
-export const SCALABLE_NODES = ["image", "diagrams", "drawio", "mermaid", "plant-uml"];
+export const SCALABLE_NODES = ["image", "diagrams", "drawio", "mermaid", "plant-uml", "html", "video"];
 
 export const ScaleExtension = Extension.create({
 	name: "scale",

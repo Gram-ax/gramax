@@ -2,10 +2,10 @@
 
 import DiffFileInputCdn from "@components/Atoms/FileInput/DiffFileInput/DiffFileInputCdn";
 import FileInputCdn from "@components/Atoms/FileInput/FileInputCdn";
-import { getPdfjs } from "../../../apps/browser/src/pdfjs/getPdfjs";
 import NextLink from "../../../apps/next/components/Atoms/Link";
 import NextFetcher from "../../../apps/next/logic/Api/NextFetcher";
 import NextRouter from "../../../apps/next/logic/Api/NextRouter";
+import { getPdfjs } from "../../../apps/web/src/pdfjs/getPdfjs";
 import useUrlImage from "../../../core/components/Atoms/Image/useUrlImage";
 import type { DynamicModules } from "..";
 
@@ -26,8 +26,12 @@ const getNextModules = (): DynamicModules => {
 		setBadge: () => undefined,
 		openInExplorer: () => undefined,
 		openWindowWithUrl: () => undefined,
+		gesCloudLogin: () => undefined,
 		openInWeb: (url: string) => (typeof window === "undefined" ? undefined : window.open(url)),
 		getPdfjs,
+		updateCheck: () => undefined,
+		updateInstallFromCache: () => undefined,
+		updateAccept: () => undefined,
 	};
 };
 

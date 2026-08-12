@@ -63,6 +63,7 @@ export const httpFetch = (req: {
 	body?: HttpResponseBody;
 	contentType?: string;
 	status: number;
+	statusText?: string;
 }> => {
 	return invoke("http_request", { req });
 };
@@ -83,9 +84,11 @@ export const historyBackForwardGo = (forward: boolean) => invoke<void>("history_
 
 export const historyBackForwardCanGo = () => invoke<[boolean, boolean]>("history_back_forward_can_go");
 
-export const updateCheck = async (clearCache: boolean) => {
+export type UpdateCheckResult = "up-to-date" | "update-found" | "in-progress";
+
+export const updateCheck = async (clearCache: boolean): Promise<UpdateCheckResult> => {
 	if (clearCache) await invoke<void>("update_cache_clear");
-	await invoke<void>("update_check");
+	return invoke<UpdateCheckResult>("update_check");
 };
 
 export const updateInstall = () => invoke<void>("update_install");

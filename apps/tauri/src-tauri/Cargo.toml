@@ -20,6 +20,7 @@ tauri-plugin-window-state = { workspace = true }
 tauri-plugin-shell = { workspace = true }
 
 plugin-gramax-core = { path = "../plugins/plugin-gramax-core" }
+plugin-browser-session = { path = "../plugins/plugin-browser-session" }
 tauri-otel-context = { path = "../plugins/tauri-otel-context" }
 bugsnag = { path = "../../../crates/bugsnag" }
 gramax-opentelemetry = { path = "../../../crates/opentelemetry" }
@@ -41,9 +42,11 @@ tar = "^0.4.44"
 lzma-rs = "^0.3.0"
 semver = { version = "1.0.18", features = ["serde"] }
 strum = { version = "0.27.0", features = ["derive"] }
-rust-i18n = "3.0.1"
+rust-i18n = { workspace = true }
 sys-locale = "0.3.1"
 reqwest = { workspace = true }
+reqwest_cookie_store = { workspace = true }
+cookie_store = { workspace = true }
 anyhow = "^1.0"
 copy_dir = "0.1.3"
 nanoid = { workspace = true }

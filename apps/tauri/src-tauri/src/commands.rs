@@ -25,6 +25,8 @@ pub fn generate_handler<R: Runtime>(builder: Builder<R>) -> Builder<R> {
 		#[cfg(desktop)]
 		open_in_explorer,
 		#[cfg(desktop)]
+		collect_logs,
+		#[cfg(desktop)]
 		open_window_with_url,
 		#[cfg(desktop)]
 		move_to_trash,
@@ -50,6 +52,20 @@ pub fn generate_handler<R: Runtime>(builder: Builder<R>) -> Builder<R> {
 		set_session_data,
 		#[cfg(target_os = "macos")]
 		show_print,
-		set_badge
+		set_badge,
+		set_otel_level
 	])
+}
+
+#[command]
+fn set_otel_level(level: String) -> std::result::Result<(), String> {
+	let directive = match level.as_str() {
+		"commands" => "error",
+		"important" => "warn",
+		"internal" => "info",
+		"files" => "debug",
+		"full" => "trace",
+		_ => return Err(format!("unknown otel level: {level}")),
+	};
+	crate::logging::reload_filter(directive)
 }

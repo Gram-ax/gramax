@@ -5,6 +5,8 @@ FROM --platform=$BUILDPLATFORM gitlab.ics-it.ru:4567/ics/doc-reader/base-image:$
 
 WORKDIR /app
 
+RUN n install 23
+
 ARG BUGSNAG_API_KEY \
   PRODUCTION \
   BASE_PATH \
@@ -18,9 +20,13 @@ ENV BUGSNAG_API_KEY=${BUGSNAG_API_KEY} \
   BRANCH=${BRANCH} \
   UPLOAD_SOURCE_MAPS_TO_BUGSNAG=${UPLOAD_SOURCE_MAPS_TO_BUGSNAG}
 
+RUN n install 23
+
 COPY . .
 
 RUN ./install-deps.sh --ci --node && \
+  npm rebuild better-sqlite3 --build-from-source && \
+  node -e "const Database = require('better-sqlite3'); const db = new Database(':memory:'); db.close();" && \
   node ./scripts/generateVersion.mjs && \
   npm --prefix apps/next run build && \
   rm -fr .npm ./target ./apps/next/.next/cache ./.git
@@ -50,8 +56,8 @@ ENV PORT=80 \
   AUTO_PULL_INTERVAL=180 \
   AUTO_PULL_TOKEN="" \
   AUTO_PULL_USERNAME="" \
-  SHARE_ACCESS_TOKEN=${SHARE_ACCESS_TOKEN} \
-  COOKIE_SECRET=${COOKIE_SECRET}
+  COOKIE_SECRET=${COOKIE_SECRET} \
+  SHARE_ACCESS_TOKEN=${SHARE_ACCESS_TOKEN} 
 
 RUN mkdir -p $ROOT_PATH
 COPY --from=deps /app .

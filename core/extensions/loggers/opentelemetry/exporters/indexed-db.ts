@@ -4,6 +4,9 @@ import * as idb from "idb";
 import { otelSpanEncoder, type Span } from "../span";
 
 const DB_NAME = "opentelemetry-logs";
+const SESSION_PREFIX = "session-";
+
+export type LogScope = "session" | "today" | "7d" | "all";
 
 export default class IndexedDbExporter implements sdk.SpanExporter {
 	private _db: idb.IDBPDatabase<Span> | null;
@@ -97,6 +100,34 @@ export default class IndexedDbExporter implements sdk.SpanExporter {
 		return buf;
 	}
 
+	async readSessionsByScope(scope: LogScope): Promise<Map<string, Span[]>> {
+		const out = new Map<string, Span[]>();
+		if (!this._db) return out;
+
+		const sessionStores = Array.from(this._db.objectStoreNames).filter((n) => n.startsWith(SESSION_PREFIX));
+
+		let selected: string[];
+		if (scope === "all") {
+			selected = sessionStores;
+		} else if (scope === "session") {
+			selected = sessionStores.filter((n) => n === this._storeName);
+		} else {
+			const allowed = IndexedDbExporter._localDayKeys(scope === "today" ? 1 : 7);
+			selected = sessionStores.filter((n) => {
+				const date = IndexedDbExporter._extractDateFromStoreName(n);
+				return !Number.isNaN(date.getTime()) && allowed.has(IndexedDbExporter._localDayKey(date));
+			});
+		}
+
+		for (const name of selected) {
+			const tx = this._db.transaction(name, "readonly");
+			const spans = (await tx.objectStore(name).getAll()) as Span[];
+			out.set(name, spans);
+		}
+
+		return out;
+	}
+
 	async exportRaw(spans: Span[]): Promise<void> {
 		if (!this._db) return;
 		const tx = this._db.transaction(this._storeName, "readwrite");
@@ -142,11 +173,28 @@ export default class IndexedDbExporter implements sdk.SpanExporter {
 	}
 
 	private static _formatStoreName(date: Date): string {
-		return `session-${date.toISOString()}`;
+		return `${SESSION_PREFIX}${date.toISOString()}`;
 	}
 
 	private static _extractDateFromStoreName(storeName: string): Date {
 		const dateStr = storeName.slice(storeName.indexOf("-") + 1);
 		return new Date(dateStr);
+	}
+
+	private static _localDayKey(date: Date): string {
+		const month = `${date.getMonth() + 1}`.padStart(2, "0");
+		const day = `${date.getDate()}`.padStart(2, "0");
+		return `${date.getFullYear()}-${month}-${day}`;
+	}
+
+	private static _localDayKeys(days: number): Set<string> {
+		const keys = new Set<string>();
+		const today = new Date();
+		for (let i = 0; i < days; i++) {
+			const date = new Date(today);
+			date.setDate(today.getDate() - i);
+			keys.add(IndexedDbExporter._localDayKey(date));
+		}
+		return keys;
 	}
 }

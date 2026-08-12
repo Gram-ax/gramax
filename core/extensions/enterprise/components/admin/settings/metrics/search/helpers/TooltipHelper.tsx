@@ -1,3 +1,4 @@
+// biome-ignore lint/style/noRestrictedImports: TODO: fix
 import styled from "@emotion/styled";
 import { Icon } from "@ui-kit/Icon";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@ui-kit/Tooltip";
@@ -22,7 +23,7 @@ export const MetricsTooltipHelper = ({ label, text }: { label: string; text: str
 						<Icon className="flex-shrink-0" icon="help-circle" />
 					</StyledWrapper>
 				</TooltipTrigger>
-				<TooltipContent>
+				<TooltipContent className="font-sans font-normal">
 					<p className="max-w-xs">{text}</p>
 				</TooltipContent>
 			</Tooltip>

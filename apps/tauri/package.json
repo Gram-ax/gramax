@@ -5,7 +5,8 @@
 	"type": "module",
 	"scripts": {
 		"dev": "vite --host",
-		"build": "vite build",
+		"build-sdk": "bun ../../scripts/plugins/build-sdk.mjs",
+		"build": "bun run build-sdk && vite build",
 		"preview": "vite preview",
 		"tauri": "tauri",
 		"tauri:cli": "cargo install tauri-cli",

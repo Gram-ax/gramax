@@ -1,7 +1,7 @@
 import type { AppConfig } from "@app/config/AppConfig";
 import { getExecutingEnvironment } from "@app/resolveModule/env";
 import type FileProvider from "@core/FileProvider/model/FileProvider";
-import type Path from "@core/FileProvider/Path/Path";
+import Path from "@core/FileProvider/Path/Path";
 import type { CatalogProps } from "@core/FileStructue/Catalog/CatalogProps";
 import type FileStructure from "@core/FileStructue/FileStructure";
 import { XxHash } from "@core/Hash/Hasher";
@@ -46,7 +46,7 @@ type StorageCloneResult = {
 } | null;
 
 export default class StorageProvider {
-	private _currentClonePromises = new Set<Promise<GitStorageCloneResult | null>>();
+	private _currentClonePromises = new Set<Promise<unknown>>();
 	private _maxConcurrent = 3;
 
 	async getStorageByPath(path: Path, fp: FileProvider, config: AppConfig): Promise<Storage> {
@@ -68,11 +68,12 @@ export default class StorageProvider {
 
 		const sharedProgressId = fs.fp.default().rootPath.join(opts.out).toString();
 		const progress = SharedCloneProgressManager.instance.createProgress(sharedProgressId, true);
-		await this._waitUntilFreeSlot();
-		progress.setStarted();
 
 		try {
-			const result = await this._takeSlot(async () => await this._cloneStorageBasedOnType(fs, progress, opts));
+			const result = await this._takeSlot(async () => {
+				progress.setStarted();
+				return await this._cloneStorageBasedOnType(fs, progress, opts);
+			});
 			const isCancelled = result?.isCancelledByUser ?? false;
 			const isCancelledByCallback = await opts.onFinish?.(opts.out, isCancelled);
 			progress.setFinish(isCancelled || isCancelledByCallback);
@@ -89,17 +90,15 @@ export default class StorageProvider {
 
 		const sharedProgressId = repo.absolutePath.toString();
 		const progress = SharedCloneProgressManager.instance.createProgress(sharedProgressId, false);
-		await this._waitUntilFreeSlot();
-		progress.setStartedSilent();
 
 		try {
-			const result = await this._takeSlot(
-				async () =>
-					await repo.recover({
-						data: data.source as GitSourceData,
-						progress,
-					}),
-			);
+			const result = await this._takeSlot(async () => {
+				progress.setStartedSilent();
+				return await repo.recover({
+					data: data.source as GitSourceData,
+					progress,
+				});
+			});
 			const isCancelled = result?.isCancelledByUser ?? false;
 			const isCancelledByCallback = await onFinish?.(repo.absolutePath, isCancelled);
 			progress.setFinish(isCancelled || isCancelledByCallback);
@@ -147,9 +146,9 @@ export default class StorageProvider {
 
 		const id = XxHash.hasher().hash(possibleId).finalize();
 		const hasCancelToken = cancelTokens.some((e) => e === id);
-		const isBrowser = getExecutingEnvironment() === "browser";
+		const isWeb = getExecutingEnvironment() === "web";
 
-		if (!hasCancelToken && !isBrowser) {
+		if (!hasCancelToken && !isWeb) {
 			SharedCloneProgressManager.instance.removeAsInProgress(possibleId);
 			return;
 		}
@@ -182,7 +181,7 @@ export default class StorageProvider {
 			if (p.type === "finish" && p.data.isCancelled) void workspace.removeCatalog(path.toString(), false);
 		});
 
-		if (isBrowser) {
+		if (isWeb) {
 			initProps.isCloning = true;
 			initProps.cloneCancelDisabled = true;
 			progress.startEventWaitTimer(3000);
@@ -195,6 +194,16 @@ export default class StorageProvider {
 			progress.withCancelToken(id);
 			progress[id] = progress.setProgress.bind(progress);
 		}
+	}
+
+	// Clones saved as in-progress for this workspace, as paths relative to its root. A clone that is still
+	// waiting for a free slot has no directory on disk yet, so this list is the only trace it leaves.
+	getSavedClonePaths(fs: FileStructure): Path[] {
+		const root = `${fs.fp.default().rootPath.toString()}/`;
+		return SharedCloneProgressManager.instance
+			.getAllSavedAsInProgress()
+			.filter((e) => e.startsWith(root))
+			.map((e) => new Path(e.slice(root.length)));
 	}
 
 	cleanupProgressCache(fs: FileStructure, entries: Path[]) {
@@ -310,20 +319,22 @@ export default class StorageProvider {
 		progress.setError(new DefaultError(message, e, { showCause: true }, null, title));
 	}
 
-	private async _takeSlot(action: () => Promise<GitStorageCloneResult>): Promise<GitStorageCloneResult> {
-		let promise: Promise<GitStorageCloneResult>;
+	// Waiting and taking the slot have to happen in one method: with a separate wait step every caller
+	// checks the limit before the first of them has registered anything, and the limit never applies.
+	private async _takeSlot<T>(action: () => Promise<T>): Promise<T> {
+		// A slot frees up as soon as any clone settles. A failing clone frees its slot just like a
+		// successful one — without the catch its rejection would spread to everyone waiting here.
+		while (this._currentClonePromises.size >= this._maxConcurrent)
+			await Promise.race(this._currentClonePromises).catch(() => null);
+
+		// Nothing may await between the check above and the registration below.
+		const promise = action();
+		this._currentClonePromises.add(promise);
+
 		try {
-			promise = action();
-			this._currentClonePromises.add(promise);
 			return await promise;
 		} finally {
 			this._currentClonePromises.delete(promise);
-		}
-	}
-
-	private async _waitUntilFreeSlot() {
-		while (this._currentClonePromises.size >= this._maxConcurrent) {
-			await Promise.race(this._currentClonePromises);
 		}
 	}
 }

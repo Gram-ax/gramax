@@ -210,7 +210,7 @@ span.pk .far {
 	gap: 1rem;
 	width: 100%;
 	padding: 0.5rem;
-	background: var(--color-menu-bg);
+	background: hsl(var(--primary-bg));
 	border-radius: var(--radius-x-large);
 }
 
@@ -221,7 +221,7 @@ span.pk .far {
 	z-index: var(--z-index-background);
 	width: 100%;
 	height: 1.5rem;
-	background: var(--color-menu-bg);
+	background: hsl(var(--primary-bg));
 }
 
 .modal .small-code .field {

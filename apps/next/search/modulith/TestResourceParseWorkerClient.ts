@@ -5,7 +5,8 @@ import {
 	type ResourceParseWorker,
 	WorkerResourceParseClientBase,
 } from "@ext/serach/modulith/resourceParse/worker/WorkerResourceParseClientBase";
-import type { ArticleItem } from "@ics/gx-vector-search";
+import type { SearchArticleItems } from "@ext/serach/modulith/SearchArticle";
+import type { ArticleId } from "@ics/article-search/article";
 
 export class TestWorkerResourceParseClient extends WorkerResourceParseClientBase {
 	private _handleInMessage: (msg: ResourceParseWorkerInMessage) => void;
@@ -19,12 +20,14 @@ export class TestWorkerResourceParseClient extends WorkerResourceParseClientBase
 	}
 
 	override async parseResource(
+		articleId: ArticleId,
+		title: string,
 		format: ResourceParseFormat,
 		data: Buffer,
 		progressCallback?: (progress: number) => void,
-	): Promise<ArticleItem[] | null> {
+	): Promise<SearchArticleItems | null> {
 		await this._initHandler();
-		return await super.parseResource(format, data, progressCallback);
+		return await super.parseResource(articleId, title, format, data, progressCallback);
 	}
 
 	protected override _createWorker(): ResourceParseWorker {
@@ -33,12 +36,8 @@ export class TestWorkerResourceParseClient extends WorkerResourceParseClientBase
 				void this._handleInMessage(msg);
 			},
 			terminate: async () => {},
-			addEventListener: () => {
-				throw new Error("Not implemented");
-			},
-			removeEventListener: () => {
-				throw new Error("Not implemented");
-			},
+			addEventListener: () => {},
+			removeEventListener: () => {},
 		};
 	}
 

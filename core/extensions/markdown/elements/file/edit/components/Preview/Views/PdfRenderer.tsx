@@ -1,72 +1,9 @@
-import styled from "@emotion/styled";
 import { useEffect, useRef, useState } from "react";
 import type { RendererProps } from "../FilePreview";
 import "pdfjs-dist/web/pdf_viewer.css";
 import { PDFRenderer } from "@ext/markdown/elements/file/edit/logic/Preview/PDFRenderer";
 
-const Container = styled.div`
-	width: min(95vw, 210mm);
-	height: min(85vh, 297mm);
-	justify-self: center;
-	overflow: auto;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-
-	> div:last-of-type {
-		margin-bottom: 0;
-	}
-`;
-
-const PageWrapper = styled.div`
-	position: relative;
-	margin-bottom: min(2em, 30px);
-	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-	background: white;
-
-	.annotationLayer {
-		position: absolute;
-		left: 0;
-		top: 0;
-		overflow: hidden;
-		pointer-events: none;
-
-		& > * {
-			pointer-events: auto;
-		}
-
-		& > section,
-		& > a {
-			position: absolute;
-		}
-	}
-`;
-
-const PageCanvas = styled.canvas`
-	display: block;
-	max-width: 100%;
-`;
-
-const TextLayer = styled.div`
-	position: absolute;
-	left: 0;
-	top: 0;
-	right: 0;
-	bottom: 0;
-	overflow: hidden;
-	opacity: 0.2;
-	line-height: 1;
-
-	& > span {
-		color: transparent;
-		position: absolute;
-		white-space: pre;
-		cursor: text;
-		transform-origin: 0% 0%;
-	}
-`;
-
-const PdfRenderer = ({ file, onLoad, onError }: RendererProps) => {
+const PdfRenderer = ({ file, onLoad, onError, onMetaChange }: RendererProps) => {
 	const [numPages, setNumPages] = useState<number>(0);
 	const [isReady, setIsReady] = useState<boolean>(false);
 
@@ -94,18 +31,19 @@ const PdfRenderer = ({ file, onLoad, onError }: RendererProps) => {
 				rendererRef.current = renderer;
 				const numPages = await renderer.loadDocument();
 				setNumPages(numPages);
+				onMetaChange?.({ currentPage: 1, pageCount: numPages });
 				setIsReady(true);
 			} catch (err) {
 				onError?.(err);
 			}
 		};
 
-		loadDocument();
+		void loadDocument();
 
 		return () => {
 			renderer?.destroy();
 		};
-	}, [file, onError]);
+	}, [file, onError, onMetaChange]);
 
 	useEffect(() => {
 		if (!isReady || !rendererRef.current) return;
@@ -119,16 +57,50 @@ const PdfRenderer = ({ file, onLoad, onError }: RendererProps) => {
 			}
 		};
 
-		renderPages();
+		void renderPages();
 	}, [isReady, onLoad, onError]);
 
+	useEffect(() => {
+		if (!numPages) return;
+
+		const observer = new IntersectionObserver(
+			(entries) => {
+				const visible = entries
+					.filter((entry) => entry.isIntersecting)
+					.sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+				if (!visible) return;
+
+				const currentPage = Number((visible.target as HTMLElement).dataset.previewPage);
+				if (currentPage) onMetaChange?.({ currentPage });
+			},
+			{ threshold: [0.25, 0.5, 0.75] },
+		);
+
+		pageRefs.current.forEach((pageRef) => {
+			if (pageRef?.canvas) observer.observe(pageRef.canvas);
+		});
+
+		return () => observer.disconnect();
+	}, [numPages, onMetaChange]);
+
 	return (
-		<Container ref={containerRef}>
-			{Array.from({ length: numPages }, (_, index) => {
+		<div
+			className="flex min-h-full w-[min(100%,210mm)] flex-col items-center justify-self-center overflow-visible"
+			ref={containerRef}
+		>
+			{Array.from({ length: numPages }, (_, index) => index + 1).map((pageNumber) => {
+				const index = pageNumber - 1;
+
 				return (
-					<PageWrapper key={`page-${index + 1}`}>
-						<PageCanvas
+					<div
+						className="relative mb-[min(2em,30px)] bg-secondary-bg shadow-soft-xl"
+						data-preview-page={pageNumber}
+						key={`page-${pageNumber}`}
+					>
+						<canvas
+							className="block max-w-full"
 							data-page-num={index}
+							data-preview-page={pageNumber}
 							ref={(el) => {
 								if (el && !pageRefs.current[index]?.canvas) {
 									if (!pageRefs.current[index])
@@ -141,8 +113,8 @@ const PdfRenderer = ({ file, onLoad, onError }: RendererProps) => {
 								}
 							}}
 						/>
-						<TextLayer
-							className="textLayer"
+						<div
+							className="textLayer absolute inset-0 overflow-hidden opacity-20 leading-none [&>span]:absolute [&>span]:cursor-text [&>span]:whitespace-pre [&>span]:text-transparent [&>span]:[transform-origin:0%_0%]"
 							ref={(el) => {
 								if (el && !pageRefs.current[index]?.textLayer) {
 									if (!pageRefs.current[index])
@@ -156,7 +128,7 @@ const PdfRenderer = ({ file, onLoad, onError }: RendererProps) => {
 							}}
 						/>
 						<div
-							className="annotationLayer"
+							className="annotationLayer pointer-events-none absolute left-0 top-0 overflow-hidden [&>*]:pointer-events-auto [&>a]:absolute [&>section]:absolute"
 							ref={(el) => {
 								if (el && !pageRefs.current[index]?.annotationLayer) {
 									if (!pageRefs.current[index])
@@ -169,10 +141,10 @@ const PdfRenderer = ({ file, onLoad, onError }: RendererProps) => {
 								}
 							}}
 						/>
-					</PageWrapper>
+					</div>
 				);
 			})}
-		</Container>
+		</div>
 	);
 };
 

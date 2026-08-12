@@ -4,7 +4,7 @@ import { HomePageWrapper } from "@components/HomePage/Components/HomePageWrapper
 import type { HomePageData } from "@core/SitePresenter/SitePresenter";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { GlobalAudioToolbar } from "@ext/ai/components/Audio/Toolbar";
-import GesBrowserTopMenu from "@ext/enterprise/components/HomePage/GesBrowserTopMenu";
+import GesWebTopMenu from "@ext/enterprise/components/HomePage/GesWebTopMenu";
 import { useSignIn } from "@ext/enterprise/components/SingInOut/hooks/useSignIn";
 import SignInEnterpriseForm from "@ext/enterprise/components/SingInOut/SignInEnterpriseForm";
 import { getGesSignInUrl } from "@ext/enterprise/components/SingInOut/utils/getGesSignInUrl";
@@ -17,7 +17,7 @@ const GesEditorHomePage = ({ data }: { data: HomePageData }) => {
 
 	return (
 		<HomePageWrapper>
-			<GesBrowserTopMenu section={data.section} />
+			<GesWebTopMenu section={data.section} />
 			{!isLogged ? (
 				<div className="flex justify-center items-center h-screen">
 					<SignInEnterpriseForm authUrl={authUrl} {...signInEnterpriseProps} onlySSO />

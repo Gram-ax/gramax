@@ -1,7 +1,7 @@
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 
 // Patterns: "key=value" sticks only for that value, "key=*" sticks for any value
-export const STICKY_QUERY_PARAMS = ["view=*", "mode=markdown"] as const;
+export const STICKY_QUERY_PARAMS = ["view=*", "mode=markdown", "diff=1", "oldScope=*"] as const;
 
 const matchesPattern = (pattern: string, key: string, value: string): boolean => {
 	const eqIndex = pattern.indexOf("=");

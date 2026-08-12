@@ -1,16 +1,19 @@
+import resolveFrontendModule from "@app/resolveModule/frontend";
 import Icon from "@components/Atoms/Icon";
+import { useRouter } from "@core/Api/useRouter";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { useBreakpoint } from "@core-ui/hooks/useBreakpoint";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { cn } from "@core-ui/utils/cn";
+import { relocateToUrl } from "@ext/enterprise/components/SingInOut/hooks/useSignIn";
 import t from "@ext/localization/locale/translate";
 import { Button } from "@ui-kit/Button";
 import { Dialog, DialogContent } from "@ui-kit/Dialog";
 import { ContentDivider } from "@ui-kit/Divider";
 import { useCallback, useState } from "react";
 import { Logo, TopContainerWrapper } from "../../../components/HomePage/Welcome/Editor";
-import { relocateToUrl } from "../../enterprise/components/SingInOut/hooks/useSignIn";
 
 interface SignInGesCloudFormProps {
 	allowContinueWithoutAccount: boolean;
@@ -21,9 +24,15 @@ interface SignInGesCloudFormModalProps extends SignInGesCloudFormProps {
 	onClose: () => void;
 }
 
-function getGesCloudSignInUrl(gesUrl: string, provider: "google" | "yandex", isBrowser: boolean) {
-	const from = encodeURIComponent(isBrowser ? window.location.href : `http://localhost:52054`);
-	return `${gesUrl}/sso/login/${provider}?from=${from}`;
+function getGesCloudSignInUrl(gesUrl: string, provider: "google" | "yandex", isTauri: boolean) {
+	const url = new URL(gesUrl);
+	url.pathname = `/sso/login/${provider}`;
+
+	const from = isTauri ? "http://localhost:52054" : window.location.href;
+	url.searchParams.set("from", from);
+	if (isTauri) url.searchParams.set("useOneTimeCode", "true");
+
+	return url.toString();
 }
 
 export const GesCloudSignInFormModal = (props: SignInGesCloudFormModalProps) => {
@@ -56,18 +65,29 @@ export const SignInGesCloudForm = ({ allowContinueWithoutAccount, className }: S
 	const breakpoint = useBreakpoint();
 	const { url: gesCloudUrl } = PageDataContextService.value.conf.enterpriseCloud;
 	const apiUrlCreator = ApiUrlCreatorService.value;
+	const router = useRouter();
 
-	const yandexAuthUrl = getGesCloudSignInUrl(gesCloudUrl, "yandex", true);
-	const relocateToYandexAuthUrl = useCallback(async () => {
-		await FetchService.fetch(apiUrlCreator.getEnableCloudUrl());
-		relocateToUrl(yandexAuthUrl);
-	}, [apiUrlCreator, yandexAuthUrl]);
+	const { environment } = usePlatform();
+	const isTauri = environment === "tauri";
 
-	const googleAuthUrl = getGesCloudSignInUrl(gesCloudUrl, "google", true);
-	const relocateToGoogleAuthUrl = useCallback(async () => {
-		await FetchService.fetch(apiUrlCreator.getEnableCloudUrl());
-		relocateToUrl(googleAuthUrl);
-	}, [apiUrlCreator, googleAuthUrl]);
+	const executeLogin = useCallback(
+		async (url: string) => {
+			await FetchService.fetch(apiUrlCreator.getEnableCloudUrl());
+			if (isTauri) await resolveFrontendModule("gesCloudLogin")(url, apiUrlCreator, router, gesCloudUrl);
+			else relocateToUrl(url);
+		},
+		[apiUrlCreator, router, isTauri, gesCloudUrl],
+	);
+
+	const yandexAuthUrl = getGesCloudSignInUrl(gesCloudUrl, "yandex", isTauri);
+	const relocateToYandexAuthUrl = useCallback(() => {
+		void executeLogin(yandexAuthUrl);
+	}, [executeLogin, yandexAuthUrl]);
+
+	const googleAuthUrl = getGesCloudSignInUrl(gesCloudUrl, "google", isTauri);
+	const relocateToGoogleAuthUrl = useCallback(() => {
+		void executeLogin(googleAuthUrl);
+	}, [executeLogin, googleAuthUrl]);
 
 	const handleContinueWithoutAccount = useCallback(async () => {
 		await FetchService.fetch(apiUrlCreator.getDisableCloudUrl());

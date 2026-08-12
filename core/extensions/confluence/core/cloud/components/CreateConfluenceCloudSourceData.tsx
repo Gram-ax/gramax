@@ -24,14 +24,14 @@ const CreateConfluenceCloudSourceData = ({
 	onSubmit?: (editProps: ConfluenceCloudSourceData) => void;
 }) => {
 	const page = PageDataContextService.value;
-	const authServiceUrl = PageDataContextService.value.conf.authServiceUrl;
+	const authServiceUrl = PageDataContextService.value.settings?.services?.auth?.endpoint;
 	const [instanceData, setInstanceData] = useState<ConfluenceInstance>(null);
 	const [user, setUser] = useState<SourceUser>(null);
 	const [token, setToken] = useState<Query>(null);
-	const { isBrowser } = usePlatform();
+	const { isWeb } = usePlatform();
 
 	const getInstanceData = async (token: { [queryParam: string]: string }) => {
-		if (!token || !token?.access_token) return;
+		if (!token?.access_token) return;
 		const api = new ConfluenceCloudAPI({
 			sourceType: SourceType.confluenceCloud,
 			token: token.access_token,
@@ -40,7 +40,7 @@ const CreateConfluenceCloudSourceData = ({
 	};
 
 	const loadUser = async (token: { [queryParam: string]: string }) => {
-		if (!token || !token?.access_token) return;
+		if (!token?.access_token) return;
 		const api = makeSourceApi({
 			sourceType: SourceType.confluenceCloud,
 			token: token.access_token,
@@ -50,10 +50,12 @@ const CreateConfluenceCloudSourceData = ({
 		setUser(await api.getUser());
 	};
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: OAuth flow — fetch instance data only when a new token arrives
 	useEffect(() => {
 		void getInstanceData(token);
 	}, [token]);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: OAuth flow — load the user only after instance data arrives
 	useEffect(() => {
 		void loadUser(token);
 	}, [instanceData]);
@@ -81,7 +83,7 @@ const CreateConfluenceCloudSourceData = ({
 						iconFw={false}
 						onClick={async () => {
 							if (token) return;
-							createChildWindow(
+							void createChildWindow(
 								`${authServiceUrl}/confluence?redirect=${page?.domain}${page?.conf.basePath ?? ""}`,
 								450,
 								500,
@@ -89,9 +91,9 @@ const CreateConfluenceCloudSourceData = ({
 								(location) => setToken(parserQuery(location.search)),
 							);
 
-							if (isBrowser) setToken(parserQuery(await waitForTempToken()));
+							if (isWeb) setToken(parserQuery(await waitForTempToken()));
 						}}
-						text={t("log-in") + "Confluence"}
+						text={`${t("log-in")}Confluence`}
 						textSize={TextSize.M}
 					/>
 				)}

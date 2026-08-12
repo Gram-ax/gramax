@@ -27,7 +27,7 @@ resizerTest.describe("Resizer — Mermaid diagram", () => {
 			await dragResizer(60);
 			await editor.forceSave();
 
-			await editor.assertMarkdownContains(/scale="\d+"/);
+			await editor.assertMarkdownContains(/scale="\d+px"/);
 		},
 	);
 });

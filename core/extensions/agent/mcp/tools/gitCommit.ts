@@ -10,16 +10,16 @@ type GitCommitInput = {
 export async function runGitCommit({ app, ctx, input }: ToolExecutionContext): Promise<ToolExecutionResult> {
 	const { filePaths, catalogName, message } = input as GitCommitInput;
 	if (!message.trim()) {
-		return fail("git_commit: message must not be empty");
+		return fail("Commit message must not be empty");
 	}
 
 	try {
 		const catalog = await app.wm.current().getContextlessCatalog(catalogName);
 		if (!catalog?.repo?.gvc) {
-			return fail(`git_commit: git repository not available for catalog: ${catalogName}`);
+			return fail("Git repository not available");
 		}
 		if (!catalog.repo.storage) {
-			return fail("git_commit: storage is required to resolve commit author data");
+			return fail("Storage is required to resolve commit author data");
 		}
 		const sourceData = app.rp.getSourceData(ctx, await catalog.repo.storage.getSourceName());
 		const gvc = catalog.repo.gvc;
@@ -45,7 +45,7 @@ export async function runGitCommit({ app, ctx, input }: ToolExecutionContext): P
 		}
 
 		if (!commitPaths.length) {
-			return fail("git_commit: no changes to commit");
+			return fail("No changes to commit");
 		}
 
 		await gvc.add(commitPaths);
@@ -58,10 +58,9 @@ export async function runGitCommit({ app, ctx, input }: ToolExecutionContext): P
 			committedPaths: commitPaths.map((path) => path.value),
 			pushed: false,
 			mergeRequestCreated: false,
-			refreshPage: true,
 		});
 	} catch (e) {
 		const msg = e instanceof Error ? e.message : String(e);
-		return fail(`git_commit error: ${msg}`);
+		return fail(`Failed to commit changes: ${msg}`);
 	}
 }

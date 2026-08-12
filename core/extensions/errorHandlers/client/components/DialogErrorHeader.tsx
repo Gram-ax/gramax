@@ -8,7 +8,7 @@ export interface DialogErrorHeaderProps {
 	title?: string;
 	icon?: string;
 	color?: string;
-	error?: DefaultError;
+	error?: Pick<DefaultError, "icon" | "isWarning" | "title">;
 }
 
 export const DialogErrorHeader = ({ error, title, icon: iconProps, color }: DialogErrorHeaderProps) => {

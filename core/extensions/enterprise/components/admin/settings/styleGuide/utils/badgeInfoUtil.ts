@@ -1,3 +1,4 @@
+import t from "@ext/localization/locale/translate";
 import type { LgtRule, LlmRule, RuleExample } from "../types";
 
 type BadgeInfo = {
@@ -40,7 +41,9 @@ export function getRuleBadgeInfo(rules: (LgtRule | LlmRule)[]): BadgeInfo {
 	});
 
 	const label = `${fullyPassed.length}/${enabled.length}`;
-	const tooltip = `${fullyPassed.length} из ${enabled.length} пройдено успешно`;
+	const tooltip = t("enterprise.admin.check.passed-tooltip")
+		.replace("{passed}", String(fullyPassed.length))
+		.replace("{total}", String(enabled.length));
 	if (hasFailed) return { status: "error", label, tooltip };
 	if (fullyPassed.length > 0) return { status: "success", label, tooltip };
 	return { status: "default", label: `${enabled.length}` };

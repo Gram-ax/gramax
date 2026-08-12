@@ -27,8 +27,24 @@ pub fn oauth_listen_once<F: FnOnce(&Request) + Send + Sync + 'static>(action: Oa
 
 pub fn start_ping_server<F: Fn(&Request) + Send + Sync + 'static>(on_request: F) {
 	async_runtime::spawn(async move {
-		if let Err(err) = serve_ping(on_request) {
-			error!("ping server died with error: {err:?}");
+		let mut last_error: Option<String> = None;
+		loop {
+			match serve_ping(&on_request) {
+				Ok(()) => {
+					info!("link handler (ping server) stopped cleanly");
+					last_error = None;
+				}
+				Err(err) => {
+					let err_str = err.to_string();
+					if last_error.as_ref() != Some(&err_str) {
+						error!("link handler (ping server) failed to start: {err_str}. Retrying in 30s...");
+						last_error = Some(err_str);
+					} else {
+						debug!("link handler (ping server) retry failed: {err_str}");
+					}
+				}
+			}
+			tokio::time::sleep(Duration::from_secs(30)).await;
 		}
 	});
 }
@@ -73,9 +89,9 @@ fn serve_oauth<F: FnOnce(&Request)>(action: OauthListenOnceAction, on_request: F
 	Ok(())
 }
 
-fn serve_ping<F: Fn(&Request) + Send + Sync + 'static>(on_request: F) -> Result<(), Error> {
+fn serve_ping<F: Fn(&Request) + Send + Sync + 'static>(on_request: &F) -> Result<(), Error> {
 	let server = Server::http(HTTP_PING_SERVER_ADDRESS)?;
-	info!("ping-http-server started at {HTTP_PING_SERVER_ADDRESS}");
+	info!("link handler (ping server) started at {HTTP_PING_SERVER_ADDRESS}");
 
 	while let Ok(req) = server.recv() {
 		on_request(&req);
@@ -93,6 +109,6 @@ fn serve_ping<F: Fn(&Request) + Send + Sync + 'static>(on_request: F) -> Result<
 		req.respond(res)?;
 	}
 
-	info!("ping-http-server died");
+	info!("link handler (ping server) died");
 	Ok(())
 }

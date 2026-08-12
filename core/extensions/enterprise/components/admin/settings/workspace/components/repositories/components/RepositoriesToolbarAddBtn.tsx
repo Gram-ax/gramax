@@ -1,6 +1,7 @@
 import { SelectDisableItem } from "@ext/enterprise/components/admin/settings/components/SelectDisableItem";
-import { TriggerAddButtonTemplate } from "@ext/enterprise/components/admin/settings/components/TriggerAddButtonTemplate";
+import { AddButton } from "@ext/enterprise/components/admin/ui-kit/AddButton";
 import { ModalComponent } from "@ext/enterprise/components/admin/ui-kit/ModalComponent";
+import t from "@ext/localization/locale/translate";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { RenderOptionProps } from "@ui-kit/AsyncSearchSelect";
 import type { ButtonProps } from "@ui-kit/Button";
@@ -96,9 +97,9 @@ export const RepositoryToolbarAddBtn = ({
 	return (
 		<ModalComponent
 			cancelButtonProps={cancelButtonProps}
-			cancelButtonText="Отмена"
+			cancelButtonText={t("enterprise.admin.cancel")}
 			confirmButtonProps={confirmButtonProps}
-			confirmButtonText="Добавить"
+			confirmButtonText={t("add")}
 			isOpen={isModalOpen}
 			modalContent={
 				<Form asChild {...form}>
@@ -107,11 +108,11 @@ export const RepositoryToolbarAddBtn = ({
 							<FormField
 								control={({ field }) => (
 									<MultiSelect
-										emptyText="Репозитории не найдены"
-										errorText="Ошибка поиска"
+										emptyText={t("enterprise.admin.workspace.repositories.add.empty")}
+										errorText={t("enterprise.admin.search-error")}
 										loadOptions={loadOptions}
 										onChange={handleRepositoriesChange}
-										placeholder="Выберите репозитории"
+										placeholder={t("enterprise.admin.workspace.repositories.add.title")}
 										renderOption={(props: RenderOptionProps<SearchSelectOption>) => {
 											if (props.type === "trigger") return;
 											return (
@@ -122,21 +123,22 @@ export const RepositoryToolbarAddBtn = ({
 												/>
 											);
 										}}
+										searchPlaceholder={t("enterprise.admin.search")}
 										value={field.value?.map((value) => ({ value, label: value })) || []}
 									/>
 								)}
-								description="Выберите репозитории для добавления"
+								description={t("enterprise.admin.workspace.repositories.add.description")}
 								layout="vertical"
 								name="repositories"
-								title="Репозитории"
+								title={t("enterprise.admin.workspace.repositories.add.label")}
 							/>
 						</FormStack>
 					</form>
 				</Form>
 			}
 			onOpenChange={setIsModalOpen}
-			title="Выберите репозитории"
-			trigger={<TriggerAddButtonTemplate disabled={disable} />}
+			title={t("enterprise.admin.workspace.repositories.add.title")}
+			trigger={<AddButton disabled={disable} />}
 		/>
 	);
 };

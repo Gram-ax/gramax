@@ -39,7 +39,7 @@ test.describe("Network", () => {
 
 		await homePage.waitForLoad();
 
-		const firstArticle = sharedPage.locator('[data-qa="catalog-navigation-article-link-level-0"]').first();
+		const firstArticle = sharedPage.locator('[data-qa="catalog-navigation-article-link-level-1"]').first();
 		await expect(firstArticle).toBeVisible();
 		await firstArticle.click();
 		await homePage.waitForLoad();

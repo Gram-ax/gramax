@@ -13,15 +13,13 @@ export const inlinePropertyHandler = async (tag: Tag | JSONContent, context: pdf
 	const article = context.parserContext.getArticle();
 	const catalog = context.catalog;
 	const template = catalog.customProviders.templateProvider.getArticle(article.props.template);
-	if (!template) return [];
-
 	const catalogProperties =
-		template.props?.customProperties?.length > 0 ? template.props.customProperties : catalog.props.properties;
+		template?.props?.customProperties?.length > 0 ? template.props.customProperties : catalog.props.properties;
 
 	const resolved = resolveExportScopeProperty(catalog, catalogProperties, article.props?.properties, attrs.bind);
 	if (!resolved) return [];
 
-	const displayValue = getTextByProperty(resolved.property, !!resolved.property.value);
+	const displayValue = getTextByProperty(resolved.property, resolved.exists);
 
 	const content = await paragraphCase(new Tag("p", {}, [displayValue]), context);
 	return content;

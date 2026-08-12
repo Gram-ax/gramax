@@ -1,6 +1,6 @@
 import styled from "@emotion/styled";
 import { Button } from "@ui-kit/Button";
-import type { ExtractComponentGeneric } from "core/ui-kit/lib/extractComponentGeneric";
+import type { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
 
 type TooltipLinkButtonProps = Omit<ExtractComponentGeneric<typeof Button>, "variant">;
 

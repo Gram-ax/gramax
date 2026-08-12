@@ -1,5 +1,5 @@
 {
-	"$schema": "https://biomejs.dev/schemas/2.4.12/schema.json",
+	"$schema": "https://biomejs.dev/schemas/2.4.16/schema.json",
 	"files": {
 		"includes": [
 			"**/*.ts",
@@ -9,16 +9,16 @@
 			"**/*.json",
 			"**/*.css",
 			"!**/*.rs",
-			"!apps/browser/crates/gramax-wasm/**/*.js",
+			"!apps/web/crates/gramax-wasm/**/*.js",
 			"!apps/tauri/src-tauri/src/scripts/**/*.js",
 			"!apps/tauri/plugins/*/permissions/schemas/schema.json",
 			"!core/extensions/VersionControl/DiffHandler/diffMatchLib.js",
 			"!core/extensions/markdown/elements/drawio/logic/diagram-editor.js",
 			"!scripts/static/ensureCustomStyleLast.js",
+			"!scripts/plugins/vendor/**/*.js", // vendored minified third-party bundles
 			"!core/logic/FileProvider/Path/Path.ts",
 			"!apps/next/crates/**/*",
 			"!core/styles/article.css", // it breaks :c
-			"!core/styles/swagger-ui-theme.css",
 			"!core/ui-kit/index.css",
 			"!.cargo/**/*",
 			"!.npm/**/*",
@@ -27,7 +27,11 @@
 			"!**/out/**/*",
 			"!apps/build/**/*",
 			"!services/build/**/*",
-			"!**/gen/**/*"
+			"!**/gen/**/*",
+			"!.worktrees/",
+			"!.worktrees/**/*",
+			"!.claude/worktrees/",
+			"!.claude/worktrees/**/*"
 		]
 	},
 	"formatter": {
@@ -44,6 +48,11 @@
 			"trailingCommas": "all"
 		},
 		"globals": ["Bun", "refreshPage", "jest"]
+	},
+	"css": {
+		"formatter": {
+			"enabled": true
+		}
 	},
 	"linter": {
 		"enabled": true,
@@ -88,7 +97,7 @@
 			},
 			"style": {
 				"noNonNullAssertion": "off",
-				"noParameterAssign": "warn",
+				"noParameterAssign": "info",
 				"noUselessElse": "warn",
 				"useConst": "warn",
 				"useNodejsImportProtocol": "off",

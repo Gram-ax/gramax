@@ -26,7 +26,20 @@ export const fromRaw = (
 	const eq = (targetKlass: number, targetCode: number) => targetKlass === klass && targetCode === code;
 
 	switch (true) {
+		// A full disk surfaces as a Rust io error whose Debug output carries `kind: StorageFull`
+		// (Unix strerror: "No space left on device"). It can wrap almost any git operation (usually a
+		// failed lock-file write on `add`), so match the message first — before any class/code branch —
+		// to keep it from being misread as a broken repository.
+		case message.includes("StorageFull") || message.includes("No space left on device"):
+			return GitErrorCode.NotEnoughDiskSpace;
+
 		case subset === 3:
+			return GitErrorCode.HealthcheckFailed;
+
+		// A locked index (`.git/index.lock`, class=Index/10 + code=Locked/14) breaks the catalog even when
+		// `repo.healthcheck()` finds no bad objects (Rust reports subset=1 then). Classify it as a healthcheck
+		// failure so the repo is marked broken and the recovery modal is shown (GES-80).
+		case eq(10, 14):
 			return GitErrorCode.HealthcheckFailed;
 
 		case eq(20, 11):
@@ -75,6 +88,17 @@ export const fromRaw = (
 			return GitErrorCode.PushRejectedError;
 
 		case eq(2, 0) && !message.includes("file"):
+			return GitErrorCode.NetworkConntectionError;
+
+		// libgit2 GIT_ERROR_NET (class 12) — DNS/connection failures (e.g. "failed to resolve address for <host>").
+		// Specific push net-codes (12/19, 12/21) are matched above; anything else net-class is a connectivity issue.
+		case klass === 12 &&
+			(message.includes("failed to resolve address") ||
+				message.includes("could not resolve") ||
+				message.includes("failed to connect") ||
+				message.includes("failed to send request") ||
+				message.includes("timed out") ||
+				message.includes("connection")):
 			return GitErrorCode.NetworkConntectionError;
 
 		case klass === 14 && message.includes("does not exist in the given tree"):

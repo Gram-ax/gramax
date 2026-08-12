@@ -1,11 +1,10 @@
-import useWatch from "@core-ui/hooks/useWatch";
 import saveSortAndFilter from "@ext/markdown/elements/table/edit/logic/sortAndFilter/saveSortAndFilter";
 import {
 	getSaved,
-	getTableData,
 	restoreOrder,
 	sortRows,
 } from "@ext/markdown/elements/table/edit/logic/sortAndFilter/sortFilterUtils";
+import getTableData from "@ext/markdown/elements/table/edit/logic/tableData/getTableData";
 import type {
 	FilterAndSort,
 	FilterAndSortProps,
@@ -21,30 +20,44 @@ import {
 import { hasActiveEntries } from "@ext/markdown/elements/table/render/logic/sortFilterUtilsRender";
 import type { Editor } from "@tiptap/core";
 import type { Node } from "@tiptap/pm/model";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useLayoutEffect, useMemo, useState } from "react";
 
 const canSortTable = (node: Node) => {
-	const cells = node.children.flatMap((rows) => rows.children);
-	return cells.every(
-		(c) => (!c.attrs.colspan || c.attrs.colspan === 1) && (!c.attrs.rowspan || c.attrs.rowspan === 1),
-	);
+	for (let rowIndex = 0; rowIndex < node.childCount; rowIndex++) {
+		const row = node.child(rowIndex);
+
+		for (let cellIndex = 0; cellIndex < row.childCount; cellIndex++) {
+			const cell = row.child(cellIndex);
+			if ((cell.attrs.colspan && cell.attrs.colspan !== 1) || (cell.attrs.rowspan && cell.attrs.rowspan !== 1)) {
+				return false;
+			}
+		}
+	}
+
+	return true;
 };
 
 const useFilterAndSort = (node: Node, editor: Editor, pos: number): FilterAndSortProps => {
 	const tableData = useMemo(() => getTableData(node), [node]);
-	const canSort = canSortTable(node);
-	const saved = getSaved(node);
+	const sortFilterTableData = tableData?.sortFilter?.enabled ? tableData : null;
+	const canSort = useMemo(() => canSortTable(node), [node]);
+	const saved = useMemo(() => getSaved(node), [node]);
 
 	const [activeFilter, setActiveFilter] = useState<FilterState>(saved.filter ?? {});
 	const [activeSort, setActiveSort] = useState<SortRecord>(saved.sort ?? {});
 	const [sortingOrder, setSortingOrder] = useState<number[]>(saved.sortingOrder ?? []);
 
-	useWatch(() => {
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
+	useLayoutEffect(() => {
 		setActiveFilter(saved.filter);
 		setActiveSort(saved.sort);
-	}, [tableData?.numCols]);
+	}, [sortFilterTableData?.numCols]);
 
 	const sorted = useMemo(() => hasActiveEntries(activeSort), [activeSort]);
+	const active = useMemo(
+		() => ({ filter: activeFilter, sort: activeSort, sortingOrder }),
+		[activeFilter, activeSort, sortingOrder],
+	);
 
 	const saveSortAndFilterCallback = useCallback(
 		(newSortFilter: FilterAndSort) => {
@@ -75,14 +88,14 @@ const useFilterAndSort = (node: Node, editor: Editor, pos: number): FilterAndSor
 	);
 
 	const sortRowsCallback = useCallback(
-		() => sortRows(tableData, activeSort, sortingOrder, editor, pos),
-		[tableData, activeSort, sortingOrder, editor, pos],
+		() => sortRows(sortFilterTableData, activeSort, sortingOrder, editor, pos),
+		[sortFilterTableData, activeSort, sortingOrder, editor, pos],
 	);
 	const restorecallback = useCallback(() => restoreOrder(editor, pos), [editor, pos]);
 
-	useWatchSort(tableData, activeSort, sortRowsCallback, restorecallback);
+	useWatchSort(sortFilterTableData, activeSort, sortRowsCallback, restorecallback);
 
-	const columnsValues = getColumnsValues(tableData);
+	const columnsValues = getColumnsValues(sortFilterTableData);
 
 	const onFilterChange = useCallback(
 		(colIndex: number, excluded: string[]) => {
@@ -95,16 +108,30 @@ const useFilterAndSort = (node: Node, editor: Editor, pos: number): FilterAndSor
 		[saveSortAndFilterCallback, activeFilter],
 	);
 
-	return {
-		tableData,
-		canSort,
-		active: { filter: activeFilter, sort: activeSort, sortingOrder },
-		saved,
-		onFilterChange,
-		onSortChange,
-		sorted,
-		columnsValues,
-	};
+	return useMemo(
+		() => ({
+			tableData: sortFilterTableData,
+			aggregation: tableData?.aggregation,
+			canSort,
+			active,
+			saved,
+			onFilterChange,
+			onSortChange,
+			sorted,
+			columnsValues,
+		}),
+		[
+			sortFilterTableData,
+			tableData?.aggregation,
+			canSort,
+			active,
+			saved,
+			onFilterChange,
+			onSortChange,
+			sorted,
+			columnsValues,
+		],
+	);
 };
 
 export default useFilterAndSort;

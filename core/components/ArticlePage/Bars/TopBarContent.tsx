@@ -5,14 +5,16 @@ import NotificationIcon from "@components/Layouts/LeftNavigationTabs/Notificatio
 import { LeftNavigationTab } from "@components/Layouts/StatusBar/Extensions/ArticleStatusBar/ArticleStatusBar";
 import ButtonLink from "@components/Molecules/ButtonLink";
 import { useRouter } from "@core/Api/useRouter";
-import type { ArticlePageData } from "@core/SitePresenter/types/ArticlePage";
 import Url from "@core-ui/ApiServices/Types/Url";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
+import { useItemLinks } from "@core-ui/stores/ItemLinksStore/ItemLinksStore.provider";
 import { cssMedia } from "@core-ui/utils/cssUtils";
+// biome-ignore lint/style/noRestrictedImports: out of scope
 import styled from "@emotion/styled";
+import AgentNotificationIcon from "@ext/agent/components/skills/AgentNotificationIcon";
 import { promptStore, usePromptStore } from "@ext/ai/components/Tab/PromptStore";
 import FavoriteService from "@ext/article/Favorite/components/FavoriteService";
 import InboxService from "@ext/inbox/components/InboxService";
@@ -26,16 +28,16 @@ import Link from "../../Atoms/Link";
 import Logo from "../../Logo";
 
 interface TopBarContentProps {
-	data: ArticlePageData;
 	isMacDesktop: boolean;
 	currentTab: LeftNavigationTab;
 	className?: string;
 }
 
-const TopBarContent = ({ data, isMacDesktop, currentTab, className }: TopBarContentProps) => {
+const TopBarContent = ({ isMacDesktop, currentTab, className }: TopBarContentProps) => {
 	const { logo, cloudServiceUrl } = PageDataContextService.value.conf;
 	const logoImageUrl = logo.imageUrl;
 	const catalogName = useCatalogPropsStore((state) => state.data.name);
+	const itemLinks = useItemLinks();
 	const isCatalogExist = !!catalogName;
 	const { isStatic, isStaticCli } = usePlatform();
 	const showHomePageButton = (!(isStatic || isStaticCli) || cloudServiceUrl) && !logoImageUrl;
@@ -72,7 +74,7 @@ const TopBarContent = ({ data, isMacDesktop, currentTab, className }: TopBarCont
 	}, [catalogName]);
 
 	return (
-		<div className={className} key={catalogName}>
+		<div className={className} data-testid="left-navigation-top" key={catalogName}>
 			{showHomePageButton && (
 				<Link className="home" dataQa="home-page-button" href={Url.fromRouter(useRouter(), { pathname: "/" })}>
 					<ButtonLink iconCode="grip" textSize={TextSize.L} />
@@ -124,8 +126,9 @@ const TopBarContent = ({ data, isMacDesktop, currentTab, className }: TopBarCont
 						tooltipText={t("ai.ai-prompts")}
 					/>
 				)}
-				<Search isHomePage={false} itemLinks={data.itemLinks} />
-				<CatalogActions currentTab={currentTab} isCatalogExist={isCatalogExist} itemLinks={data.itemLinks} />
+				{currentTab === LeftNavigationTab.AgentSkills && <AgentNotificationIcon isMacDesktop={isMacDesktop} />}
+				<Search isHomePage={false} itemLinks={itemLinks} />
+				<CatalogActions currentTab={currentTab} isCatalogExist={isCatalogExist} itemLinks={itemLinks} />
 			</div>
 		</div>
 	);

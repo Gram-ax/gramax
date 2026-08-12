@@ -67,7 +67,7 @@ export const TruncatedText = ({
 		<TooltipProvider>
 			<Tooltip>
 				<TooltipTrigger asChild>{content}</TooltipTrigger>
-				<TooltipContent>
+				<TooltipContent className="font-sans font-normal">
 					<p className="max-w-md break-words">{text}</p>
 				</TooltipContent>
 			</Tooltip>
@@ -108,9 +108,11 @@ export const SortableHeader = <T extends string = SortByColumn>({
 			) : (
 				<span className="text-muted">{label}</span>
 			)}
-			{isActive && (
-				<Icon className="flex-shrink-0" icon={sortOrder === "asc" ? "arrow-up" : "arrow-down"} size="sm" />
-			)}
+			<Icon
+				className={`flex-shrink-0 text-muted ${isActive ? "" : "opacity-40"}`}
+				icon={isActive ? (sortOrder === "asc" ? "arrow-up" : "arrow-down") : "arrow-up-down"}
+				size="sm"
+			/>
 		</button>
 	);
 };
@@ -134,7 +136,7 @@ export const ColumnHeaderWithTooltip = ({ label, tooltip, align = "center" }: Co
 					<TooltipTrigger asChild>
 						<Icon className="flex-shrink-0 cursor-help" icon="help-circle" size="sm" />
 					</TooltipTrigger>
-					<TooltipContent>
+					<TooltipContent className="font-sans font-normal">
 						<p className="max-w-xs">{tooltip}</p>
 					</TooltipContent>
 				</Tooltip>

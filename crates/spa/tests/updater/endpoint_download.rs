@@ -96,6 +96,80 @@ pub async fn download_linux_deb_with_package_param() -> anyhow::Result<()> {
 
 #[rstest]
 #[tokio::test(flavor = "multi_thread")]
+pub async fn download_exact_version() -> anyhow::Result<()> {
+	let s3 = S3Client::new().await.with_uniq_bucket().await;
+	let mut app = updater(s3.base_url().await);
+
+	prepare_darwin_aarch64(&s3, "1.2.2-2").await?;
+	s3.put("dev/1.1/1-1/darwin-aarch64/gramax.darwin-aarch64.dmg", "old-app").await?;
+
+	let req = make_req("/download/darwin-aarch64?channel=dev&version=1.1.1-1")
+		.method(Method::GET)
+		.body(Body::empty())
+		.unwrap();
+	let res = app.call(req).await.unwrap();
+
+	assert2::check!(res.status() == StatusCode::OK);
+
+	let headers = res.headers().clone();
+	let bytes = to_bytes(res.into_body(), usize::MAX).await?;
+	assert2::check!(bytes == "old-app");
+
+	let cd = headers
+		.get("Content-Disposition")
+		.expect("Content-Disposition header is missing")
+		.to_str()
+		.unwrap();
+
+	assert2::check!(cd.contains("attachment;"));
+	assert2::check!(cd.contains("Gramax.1.1.1-mac-silicon.1.dmg"));
+
+	// no version param still resolves to latest
+	let req = make_req("/download/darwin-aarch64?channel=dev")
+		.method(Method::GET)
+		.body(Body::empty())
+		.unwrap();
+	let res = app.call(req).await.unwrap();
+
+	assert2::check!(res.status() == StatusCode::OK);
+	let bytes = to_bytes(res.into_body(), usize::MAX).await?;
+	assert2::check!(bytes == "app");
+
+	// version=latest behaves like no version param
+	let req = make_req("/download/darwin-aarch64?channel=dev&version=latest")
+		.method(Method::GET)
+		.body(Body::empty())
+		.unwrap();
+	let res = app.call(req).await.unwrap();
+
+	assert2::check!(res.status() == StatusCode::OK);
+	let bytes = to_bytes(res.into_body(), usize::MAX).await?;
+	assert2::check!(bytes == "app");
+
+	Ok(())
+}
+
+#[rstest]
+#[tokio::test(flavor = "multi_thread")]
+pub async fn download_exact_version_returns_404_when_missing() -> anyhow::Result<()> {
+	let s3 = S3Client::new().await.with_uniq_bucket().await;
+	let mut app = updater(s3.base_url().await);
+
+	prepare_darwin_aarch64(&s3, "1.2.2-2").await?;
+
+	let req = make_req("/download/darwin-aarch64?channel=dev&version=9.9.9")
+		.method(Method::GET)
+		.body(Body::empty())
+		.unwrap();
+	let res = app.call(req).await.unwrap();
+
+	assert2::check!(res.status() == StatusCode::NOT_FOUND);
+
+	Ok(())
+}
+
+#[rstest]
+#[tokio::test(flavor = "multi_thread")]
 pub async fn download_returns_404_when_missing() -> anyhow::Result<()> {
 	let s3 = S3Client::new().await.with_uniq_bucket().await;
 	let mut app = updater(s3.base_url().await);

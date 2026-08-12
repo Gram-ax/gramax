@@ -1,3 +1,99 @@
-const OpenApiData = `openapi: "3.0.0"\ninfo:\n  title: Simple API overview\n  version: 2.0.0\ntags:\n  - name: Example\n    description: Example description\n    externalDocs:\n      description: Find out more\n      url: http://swagger.io\npaths:\n  /:\n    get:\n      tags: \n        - Example\n      operationId: listVersionsv2\n      summary: List API versions\n      responses:\n        '200':\n          description: |-\n            200 response\n          content:\n            application/json:\n              examples: \n                foo:\n                  value:\n                    {\n                      "versions": [\n                        {\n                            "status": "CURRENT",\n                            "updated": "2011-01-21T11:33:21Z",\n                            "id": "v2.0",\n                            "links": [\n                                {\n                                    "href": "http://127.0.0.1:8774/v2/",\n                                    "rel": "self"\n                                }\n                            ]\n                        },\n                        {\n                            "status": "EXPERIMENTAL",\n                            "updated": "2013-07-23T11:33:21Z",\n                            "id": "v3.0",\n                            "links": [\n                                {\n                                    "href": "http://127.0.0.1:8774/v3/",\n                                    "rel": "self"\n                                }\n                            ]\n                        }\n                      ]\n                    }\n        '300':\n          description: |-\n            300 response\n          content:\n            application/json: \n              examples: \n                foo:\n                  value: |\n                   {\n                    "versions": [\n                          {\n                            "status": "CURRENT",\n                            "updated": "2011-01-21T11:33:21Z",\n                            "id": "v2.0",\n                            "links": [\n                                {\n                                    "href": "http://127.0.0.1:8774/v2/",\n                                    "rel": "self"\n                                }\n                            ]\n                        },\n                        {\n                            "status": "EXPERIMENTAL",\n                            "updated": "2013-07-23T11:33:21Z",\n                            "id": "v3.0",\n                            "links": [\n                                {\n                                    "href": "http://127.0.0.1:8774/v3/",\n                                    "rel": "self"\n                                }\n                            ]\n                        }\n                    ]\n                   }\n  /v2:\n    get:\n      tags: \n        - Example\n      operationId: getVersionDetailsv2\n      summary: Show API version details\n      responses:\n        '200':\n          description: |-\n            200 response\n          content:\n            application/json: \n              examples:\n                foo:\n                  value:\n                    {\n                      "version": {\n                        "status": "CURRENT",\n                        "updated": "2011-01-21T11:33:21Z",\n                        "media-types": [\n                          {\n                              "base": "application/xml",\n                              "type": "application/vnd.openstack.compute+xml;version=2"\n                          },\n                          {\n                              "base": "application/json",\n                              "type": "application/vnd.openstack.compute+json;version=2"\n                          }\n                        ],\n                        "id": "v2.0",\n                        "links": [\n                          {\n                              "href": "http://127.0.0.1:8774/v2/",\n                              "rel": "self"\n                          },\n                          {\n                              "href": "http://docs.openstack.org/api/openstack-compute/2/os-compute-devguide-2.pdf",\n                              "type": "application/pdf",\n                              "rel": "describedby"\n                          },\n                          {\n                              "href": "http://docs.openstack.org/api/openstack-compute/2/wadl/os-compute-2.wadl",\n                              "type": "application/vnd.sun.wadl+xml",\n                              "rel": "describedby"\n                          },\n                          {\n                            "href": "http://docs.openstack.org/api/openstack-compute/2/wadl/os-compute-2.wadl",\n                            "type": "application/vnd.sun.wadl+xml",\n                            "rel": "describedby"\n                          }\n                        ]\n                      }\n                    }\n        '203':\n          description: |-\n            203 response\n          content:\n            application/json: \n              examples:\n                foo:\n                  value:\n                    {\n                      "version": {\n                        "status": "CURRENT",\n                        "updated": "2011-01-21T11:33:21Z",\n                        "media-types": [\n                          {\n                              "base": "application/xml",\n                              "type": "application/vnd.openstack.compute+xml;version=2"\n                          },\n                          {\n                              "base": "application/json",\n                              "type": "application/vnd.openstack.compute+json;version=2"\n                          }\n                        ],\n                        "id": "v2.0",\n                        "links": [\n                          {\n                              "href": "http://23.253.228.211:8774/v2/",\n                              "rel": "self"\n                          },\n                          {\n                              "href": "http://docs.openstack.org/api/openstack-compute/2/os-compute-devguide-2.pdf",\n                              "type": "application/pdf",\n                              "rel": "describedby"\n                          },\n                          {\n                              "href": "http://docs.openstack.org/api/openstack-compute/2/wadl/os-compute-2.wadl",\n                              "type": "application/vnd.sun.wadl+xml",\n                              "rel": "describedby"\n                          }\n                        ]\n                      }\n                    }\ncomponents:\n  schemas:\n    requestBody:\n      type: object\n      properties:\n        HashDocumentItem:\n          type: string\n        RowVersion:\n          type: string\n        StatusSalesForce:\n          type: string\n        ErrorMessage:\n          type: string\n`;
+const OpenApiData = `openapi: "3.0.0"
+info:
+  title: JSONPlaceholder API
+  version: 1.0.0
+  description: |
+    This is the exact starter specification inserted when a new OpenAPI block is created in Gramax.
+
+    1. \`GET /posts\` returns a public list of example posts and accepts an optional \`userId\` filter.
+    2. \`GET /posts/{id}\` returns one post and requires the post identifier in the path.
+    3. Both operations reuse the \`Post\` schema through internal \`$ref\` links.
+
+    Switch an operation to \`Try it\` to send a read-only GET request directly to the public JSONPlaceholder API. No local mock is involved and the example does not modify remote data.
+servers:
+  - url: https://jsonplaceholder.typicode.com
+    description: JSONPlaceholder public API
+tags:
+  - name: Posts
+    description: Read the public collection of example posts.
+paths:
+  /posts:
+    get:
+      tags:
+        - Posts
+      operationId: listPosts
+      summary: List posts
+      parameters:
+        - name: userId
+          in: query
+          description: Filter posts by author.
+          schema:
+            type: integer
+            default: 1
+      responses:
+        "200":
+          description: Posts returned successfully.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Post"
+              example:
+                - userId: 1
+                  id: 1
+                  title: Example post
+                  body: Example post body
+  /posts/{id}:
+    get:
+      tags:
+        - Posts
+      operationId: getPost
+      summary: Get a post
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Post identifier.
+          schema:
+            type: integer
+            default: 1
+      responses:
+        "200":
+          description: Post returned successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Post"
+              example:
+                userId: 1
+                id: 1
+                title: Example post
+                body: Example post body
+        "404":
+          description: Post not found.
+components:
+  schemas:
+    Post:
+      type: object
+      required:
+        - userId
+        - id
+        - title
+        - body
+      properties:
+        userId:
+          type: integer
+          example: 1
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: Example post
+        body:
+          type: string
+          example: Example post body
+`;
 
 export default OpenApiData;

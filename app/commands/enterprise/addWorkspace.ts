@@ -39,16 +39,6 @@ const addWorkspace: Command<{ ctx: Context; oneTimeCode: string }, UserSettings>
 		const userSettings = await gesApi.getUserSettings(token);
 
 		if (!userSettings) throw new DefaultError(t("enterprise.user-not-found"));
-		if (userSettings.isNotEditor) {
-			throw new DefaultError(
-				t("enterprise.check-if-user-editor-warning"),
-				null,
-				{},
-				true,
-				t("enterprise.access-restricted"),
-			);
-		}
-
 		if (!userSettings.workspace) throw new DefaultError(t("enterprise.config-error"));
 
 		const path = wm.defaultPath().parentDirectoryPath.join(new Path(userSettings.workspace.id)).toString();
@@ -77,6 +67,9 @@ const addWorkspace: Command<{ ctx: Context; oneTimeCode: string }, UserSettings>
 				modules: userSettings.workspace.modules,
 				lastUpdateDate: Date.now(),
 				refreshInterval: enterpriseConfig.refreshInterval,
+			},
+			git: {
+				lfs: enterpriseWorkspace.git?.lfs ?? enterpriseWorkspace.lfs,
 			},
 		};
 
@@ -150,11 +143,11 @@ const addWorkspace: Command<{ ctx: Context; oneTimeCode: string }, UserSettings>
 		};
 
 		if (userSettings.workspace.wordTemplates?.length) {
-			updateTemplates(userSettings.workspace.wordTemplates, this._app.wtm);
+			await updateTemplates(userSettings.workspace.wordTemplates, this._app.wtm);
 		}
 
 		if (userSettings.workspace.pdfTemplates?.length) {
-			updateTemplates(userSettings.workspace.pdfTemplates, this._app.ptm);
+			await updateTemplates(userSettings.workspace.pdfTemplates, this._app.ptm);
 		}
 
 		if (userSettings.workspace.modules) {

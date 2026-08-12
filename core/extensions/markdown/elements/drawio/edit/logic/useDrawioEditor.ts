@@ -1,5 +1,5 @@
 /** biome-ignore-all lint/correctness/useExhaustiveDependencies: it's ok */
-import LanguageService from "@core-ui/ContextServices/Language";
+import { useUiLanguage } from "@core-ui/ContextServices/Language";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import DiagramEditor from "@ext/markdown/elements/drawio/logic/diagram-editor";
@@ -15,6 +15,8 @@ interface UseDrawioEditorParams {
 const useDrawioEditor = ({ diagramsServiceUrl, imgRef, saveCallBack, setImgData }: UseDrawioEditorParams) => {
 	const abortRef = useRef<AbortController>(null);
 
+	const lang = useUiLanguage();
+
 	useEffect(() => () => abortRef.current?.abort(), []);
 
 	const openEditor = useCallback(() => {
@@ -28,7 +30,7 @@ const useDrawioEditor = ({ diagramsServiceUrl, imgRef, saveCallBack, setImgData 
 			null,
 			"modern",
 			null,
-			["splash=0", `lang=${LanguageService.currentUi()}`, "pv=0"],
+			["splash=0", `lang=${lang}`, "pv=0"],
 		);
 		window.history.pushState({}, document.location.href, "");
 

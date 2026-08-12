@@ -270,7 +270,7 @@ fn signature_onelinear_deserialize_test() -> Result {
 		email: "test@test.com".to_string(),
 	};
 	let serialized = serde_yml::to_string(&signature)?;
-	assert_eq!(serialized, "test <test@test.com>\n");
+	assert_eq!(serialized, "test <test@test.com>");
 	let deserialized: SinglelineSignature = serde_yml::from_str(&serialized)?;
 	assert_eq!(deserialized, signature);
 	Ok(())

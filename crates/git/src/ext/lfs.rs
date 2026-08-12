@@ -24,10 +24,20 @@ type OnProgress<'a> = Option<Box<git2_lfs::remote::OnProgress<'a>>>;
 
 const CHUNK_TIME_SPAN: Duration = Duration::from_secs(1);
 
+/// Where the LFS pointers of the requested paths are read from.
+#[derive(Clone, Copy)]
+pub enum PointerSource<'t> {
+	/// Working copy — in a bare repo, the HEAD tree. `checkout` re-checks the pulled paths out.
+	Workdir { checkout: bool },
+	/// Tree of a specific commit, e.g. a historical version. The working copy is never touched.
+	Tree(&'t Tree<'t>),
+}
+
 pub trait Lfs {
 	fn push_lfs_objects(&self, remote: &git2::Remote<'_>, callback: OnProgress, cancel: CancelToken) -> Result<()>;
 
-	fn pull_lfs_objects_exact(&self, files: Vec<PathBuf>, checkout: bool, callback: OnProgress, cancel: CancelToken) -> Result<()>;
+	/// Pulls the objects of exactly `paths`. Paths without a pointer in `source` are skipped.
+	fn pull_lfs_objects_exact(&self, paths: &[PathBuf], source: PointerSource, callback: OnProgress, cancel: CancelToken) -> Result<()>;
 
 	fn pull_lfs_objects_by_tree(&self, tree: &Tree, callback: OnProgress, cancel: CancelToken) -> Result<()>;
 
@@ -77,6 +87,48 @@ pub(crate) fn make_lfs_callback<'a>(callback: RemoteProgressCallback<'a>, cancel
 	});
 
 	Some(callback)
+}
+
+impl<C: ActualCreds> Repo<'_, C> {
+	fn missing_lfs_pointers_in_workdir(&self, paths: &[PathBuf]) -> Vec<Pointer> {
+		self.retain_missing(paths.iter().filter_map(|path| self.0.try_get_dangling_pointer(path).ok().flatten()))
+	}
+
+	fn missing_lfs_pointers_in_tree(&self, tree: &Tree, paths: &[PathBuf]) -> Vec<Pointer> {
+		self.retain_missing(paths.iter().filter_map(|path| {
+			let Ok(entry) = tree.get_path(path) else {
+				info!(target: TAG, "path {} not found in tree; skip", path.display());
+				return None;
+			};
+
+			let blob = entry.to_object(&self.0).ok()?.into_blob().ok()?;
+			Pointer::from_str_short(blob.content())
+		}))
+	}
+
+	fn retain_missing(&self, pointers: impl Iterator<Item = Pointer>) -> Vec<Pointer> {
+		let lfs_objects_path = self.0.path().join("lfs/objects");
+		pointers.filter(|pointer| !lfs_objects_path.join(pointer.path()).exists()).collect()
+	}
+
+	fn checkout_lfs_paths(&self, paths: &[PathBuf]) -> Result<()> {
+		let Some(workdir) = self.0.workdir() else {
+			warn!(target: TAG, "workdir not found; skipping checkout even if `checkout` is true");
+			return Ok(());
+		};
+
+		let mut checkout_opts = CheckoutBuilder::new();
+		checkout_opts.force();
+		paths.iter().for_each(|path| {
+			_ = std::fs::remove_file(workdir.join(path)).inspect_err(|err| warn!(target: TAG, "failed to remove file {}: {}", path.display(), err));
+			checkout_opts.path(path);
+		});
+
+		self
+			.0
+			.checkout_tree(self.0.head()?.peel_to_tree()?.as_object(), Some(&mut checkout_opts))?;
+		Ok(())
+	}
 }
 
 impl<C: ActualCreds> Lfs for Repo<'_, C> {
@@ -152,45 +204,20 @@ impl<C: ActualCreds> Lfs for Repo<'_, C> {
 		Ok(())
 	}
 
-	fn pull_lfs_objects_exact(&self, paths: Vec<PathBuf>, checkout: bool, callback: OnProgress, cancel: CancelToken) -> Result<()> {
-		let lfs_objects_path = self.0.path().join("lfs/objects");
-
-		let pointers = paths
-			.iter()
-			.flat_map(|path| self.0.try_get_dangling_pointer(path.as_path()).map(|p| (path, p)))
-			.filter_map(|p| p.1.map(|ptr| (p.0, ptr)))
-			.collect::<Vec<(&PathBuf, Pointer)>>();
-
-		let pointers_pull_needed = pointers
-			.iter()
-			.map(|p| &p.1)
-			.filter(|p| !lfs_objects_path.join(p.path()).exists())
-			.cloned()
-			.collect::<Vec<Pointer>>();
-
-		info!(target: TAG, paths = ?paths, pointers = ?pointers, pointers_pull_needed = ?pointers_pull_needed, "resolved {} dangling pointers ({} needed to be pulled) of {} provided paths", pointers.len(), pointers_pull_needed.len(), paths.len());
-
-		self.pull_lfs_objects(&pointers_pull_needed, callback, cancel)?;
-
-		if !checkout {
-			return Ok(());
-		}
-
-		let Some(workdir) = self.0.workdir() else {
-			warn!(target: TAG, "workdir not found; skipping checkout even if `checkout` is true");
-			return Ok(());
+	fn pull_lfs_objects_exact(&self, paths: &[PathBuf], source: PointerSource, callback: OnProgress, cancel: CancelToken) -> Result<()> {
+		let missing = match source {
+			PointerSource::Workdir { .. } => self.missing_lfs_pointers_in_workdir(paths),
+			PointerSource::Tree(tree) => self.missing_lfs_pointers_in_tree(tree, paths),
 		};
 
-		let mut checkout_opts = CheckoutBuilder::new();
-		checkout_opts.force();
-		paths.iter().for_each(|path| {
-			_ = std::fs::remove_file(workdir.join(path)).inspect_err(|err| warn!(target: TAG, "failed to remove file {}: {}", path.display(), err));
-			checkout_opts.path(path);
-		});
+		info!(target: TAG, paths = ?paths, missing = ?missing, "resolved {} pointers needing pull of {} provided paths", missing.len(), paths.len());
 
-		self
-			.0
-			.checkout_tree(self.0.head()?.peel_to_tree()?.as_object(), Some(&mut checkout_opts))?;
+		self.pull_lfs_objects(&missing, callback, cancel)?;
+
+		if let PointerSource::Workdir { checkout: true } = source {
+			self.checkout_lfs_paths(paths)?;
+		}
+
 		Ok(())
 	}
 

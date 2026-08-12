@@ -1,13 +1,26 @@
 const { cancelAnimationFrame, requestAnimationFrame } = require("request-animation-frame-polyfill");
 const { TextEncoder, TextDecoder } = require("util");
+const { deserialize, serialize } = require("v8");
 
 global.TextEncoder = TextEncoder;
 global.TextDecoder = TextDecoder;
 
-global.window = {
-	requestAnimationFrame,
-	cancelAnimationFrame,
-};
+// jest-environment-jsdom 29 / jsdom 20 doesn't expose Node's structuredClone global.
+if (typeof globalThis.structuredClone === "undefined") {
+	globalThis.structuredClone = (val) => deserialize(serialize(val));
+}
+
+// jsdom's `window` is unforgeable: the plain assignment that used to stand here never took
+// effect (silently, in sloppy mode) and under bun it throws instead. Replacing it outright is
+// not the fix — react-dom reads `window.HTMLIFrameElement` on every commit. Stub only when
+// there is no window at all.
+if (typeof global.window === "undefined") {
+	Object.defineProperty(global, "window", {
+		value: { requestAnimationFrame, cancelAnimationFrame },
+		writable: true,
+		configurable: true,
+	});
+}
 
 Object.defineProperty(window, "matchMedia", {
 	writable: true,
@@ -39,6 +52,14 @@ if (!process.env.DEBUG_JEST) {
 
 delete process.env.GIT_PROXY_SERVICE_URL;
 
+if (typeof globalThis.ResizeObserver === "undefined") {
+	globalThis.ResizeObserver = class {
+		observe() {}
+		unobserve() {}
+		disconnect() {}
+	};
+}
+
 global.Worker = class {
 	postMessage() {}
 	terminate() {}
@@ -60,3 +81,10 @@ jest.mock("ics-ui-kit/components/dialog", () => ({
 	DialogContent: "div",
 	DialogBody: "div",
 }));
+
+// https://github.com/jsdom/jsdom/pull/3556
+if (!AbortSignal.prototype.throwIfAborted) {
+	AbortSignal.prototype.throwIfAborted = function () {
+		if (this.aborted) throw this.reason;
+	};
+}

@@ -7,6 +7,27 @@ import { Decoration } from "@tiptap/pm/view";
 import type { MouseEvent } from "react";
 import { TableHeaderTypes } from "../model/tableTypes";
 
+const getCellContainer = (row: HTMLElement) => row?.querySelector("td")?.parentElement ?? null;
+
+const isWidgetRow = (row: Element) => row.classList.contains("ProseMirror-widget");
+
+const getDocumentRows = (tableBody: HTMLElement): HTMLTableRowElement[] =>
+	Array.from(tableBody.children).filter((row): row is HTMLTableRowElement => !isWidgetRow(row));
+
+export type TableSizes = {
+	cols: string[];
+	rows: string[];
+	rowIndexes: (number | null)[];
+};
+
+const getStickyHeaderTopPadding = (table: HTMLElement) => {
+	const stickyWrapper = table.closest<HTMLElement>("[data-sticky-wrapper]");
+	if (stickyWrapper?.dataset.stickyRowActive !== "true") return 0;
+
+	const topPadding = window.getComputedStyle(stickyWrapper).getPropertyValue("--sticky-top-padding");
+	return parseFloat(topPadding) || 0;
+};
+
 export const workHeaderType = (
 	currentHeader: TableHeaderTypes,
 	type: TableHeaderTypes.ROW | TableHeaderTypes.COLUMN,
@@ -53,7 +74,7 @@ export const addRowDecoration = (sheet: TableNodeSheet, rowIndex: number, tr: Tr
 	const decorations = [];
 
 	const sheetData = sheet.getSheet();
-	if (!sheetData || !sheetData[0]) return null;
+	if (!sheetData?.[0]) return null;
 
 	const logicalRow = sheet.getRow(rowIndex);
 	if (logicalRow.length === 0) return null;
@@ -101,13 +122,13 @@ export const getTableRowCellsPosition = (sheet: TableNodeSheet, rowIndex: number
 	const positions = [];
 
 	const sheetData = sheet.getSheet();
-	if (!sheetData || !sheetData[0]) return [];
+	if (!sheetData?.[0]) return [];
 
 	const maxColumns = sheetData[0].length;
 
 	for (let columnIndex = 0; columnIndex < maxColumns; columnIndex++) {
 		const cellInfo = positionMap.getCellInfo(rowIndex, columnIndex);
-		if (cellInfo && cellInfo.isMaster) {
+		if (cellInfo?.isMaster) {
 			positions.push({
 				position: cellInfo.position,
 				rowIndex,
@@ -136,7 +157,7 @@ export const getTableColumnCellsPositions = (sheet: TableNodeSheet, columnIndex:
 
 	for (let rowIndex = 0; rowIndex < maxRows; rowIndex++) {
 		const cellInfo = positionMap.getCellInfo(rowIndex, columnIndex);
-		if (cellInfo && cellInfo.isMaster) {
+		if (cellInfo?.isMaster) {
 			positions.push({
 				position: cellInfo.position,
 				rowIndex,
@@ -214,110 +235,96 @@ export const addColumn = (editor: Editor, cellPosition?: number) => {
 	editor.chain().focus(cellPosition).addColumnBefore().setMeta("removeDecoration", true).run();
 };
 
-const findCellByPosition = (event: MouseEvent, parent: HTMLElement): HTMLTableCellElement => {
-	if (!parent || !(parent instanceof HTMLElement)) return;
+type HoveredMouseEvent = Pick<MouseEvent, "clientX" | "clientY" | "target">;
 
-	const { clientX, clientY } = event;
-	const tableRect = parent.getBoundingClientRect();
+const findCellByPosition = (event: HoveredMouseEvent, table?: HTMLTableElement): HTMLTableCellElement | undefined => {
+	if (!(table instanceof HTMLElement)) return;
 
-	const isAbove = clientY < tableRect.top + 10;
-	const isLeft = clientX < tableRect.left + 50;
+	const rect = table.getBoundingClientRect();
+	const x = Math.min(Math.max(event.clientX, rect.left + 1), event.clientX + 50);
+	const y = Math.min(Math.max(event.clientY, rect.top + 1), event.clientY + 20);
 
-	const rows = Array.from(parent.querySelectorAll("tr"));
-	const targetY = isAbove ? tableRect.top : clientY;
-	const targetX = isLeft ? tableRect.left : clientX;
-	let cells = [];
-
-	if (isAbove) cells = Array.from(rows[0].children);
-	if (isLeft) cells = Array.from(rows.map((row) => row.firstElementChild));
-
-	if (!cells.length) return;
-
-	let closestCell: HTMLTableCellElement;
-	let closestDistance = Infinity;
-
-	cells.forEach((cell: HTMLTableCellElement) => {
-		if (!cell) return;
-
-		const cellRect = cell.getBoundingClientRect();
-
-		const closestX = Math.max(cellRect.left, Math.min(targetX, cellRect.right));
-		const closestY = Math.max(cellRect.top, Math.min(targetY, cellRect.bottom));
-
-		const distance = Math.sqrt((closestX - targetX) ** 2 + (closestY - targetY) ** 2);
-
-		if (distance < closestDistance) {
-			closestDistance = distance;
-			closestCell = cell;
-		}
-	});
-
-	if (closestCell) {
-		return closestCell;
-	}
+	const el = document.elementFromPoint(x, y) as HTMLElement | null;
+	return (el?.closest("td, th") as HTMLTableCellElement) ?? undefined;
 };
 
 const getRowIndex = (clientY: number, rows: HTMLElement[], cell: HTMLElement): number => {
-	for (let i = 0; i < rows.length; i++) {
-		const row = rows[i];
-		const rowRect = row.getBoundingClientRect();
-		if (clientY >= rowRect.top && clientY <= rowRect.bottom) {
-			return i;
-		}
+	let lo = 0;
+	let hi = rows.length - 1;
+
+	while (lo <= hi) {
+		const mid = (lo + hi) >> 1;
+		const { top, bottom } = rows[mid].getBoundingClientRect();
+
+		if (clientY < top) hi = mid - 1;
+		else if (clientY > bottom) lo = mid + 1;
+		else return mid;
 	}
 
-	const row = cell.closest("tr");
-	return rows.indexOf(row);
+	const row = cell.closest("tr") as HTMLElement | null;
+	return row ? rows.indexOf(row) : -1;
 };
 
-export const getHoveredData = (event: MouseEvent, parent: HTMLElement): HoveredData => {
+export const getHoveredData = (event: HoveredMouseEvent, table?: HTMLTableElement): HoveredData => {
 	const target = event.target as HTMLElement;
-	let cell: HTMLTableCellElement = target.closest("td, th");
+	let cell = target.closest("td, th") as HTMLTableCellElement | null;
 
-	if (!cell) cell = findCellByPosition(event, parent);
+	if (!cell) cell = findCellByPosition(event, table) ?? null;
 	if (!cell) return { rowIndex: -1, cellIndex: -1 };
 
-	const rows = Array.from(cell.closest("tr").parentElement.children) as HTMLElement[];
-	const rowIndex =
-		cell.rowSpan > 1 ? getRowIndex(event.clientY, rows, cell as HTMLElement) : rows.indexOf(cell.closest("tr"));
+	const tr = cell.closest("tr") as HTMLTableRowElement | null;
+	if (!tr?.parentElement) return { rowIndex: -1, cellIndex: -1 };
+
+	const rows = getDocumentRows(tr.parentElement) as HTMLElement[];
+	const cellContainers = rows.map(getCellContainer);
+	const rowIndex = cell.rowSpan > 1 ? getRowIndex(event.clientY, rows, cell) : rows.indexOf(tr);
+
+	if (rowIndex < 0 || !cellContainers[rowIndex]) return { rowIndex: -1, cellIndex: -1 };
+
+	const targetContainer = cellContainers[rowIndex];
 	const cellIndex = Math.max(
-		Math.min(Array.from(rows[rowIndex].children).indexOf(cell), rows[rowIndex].childElementCount - 1),
+		Math.min(Array.from(targetContainer.children).indexOf(cell), targetContainer.childElementCount - 1),
 		0,
 	);
 
 	let offset = 0;
+	if (
+		cellContainers[0]?.childElementCount === 1 &&
+		cellContainers[0].firstElementChild?.getAttribute("rowSpan") !== "1"
+	)
+		offset = 1;
 
-	if (rows[0].childElementCount === 1 && rows[0].firstElementChild.getAttribute("rowSpan") !== "1") offset = 1;
-
-	return { rowIndex, cellIndex: Math.min(cellIndex, rows[0].childElementCount - offset) };
+	return { rowIndex, cellIndex: Math.min(cellIndex, (cellContainers[0]?.childElementCount ?? 0) - offset) };
 };
 
-export const getTableSizes = (table: HTMLElement): { cols: string[]; rows: string[] } => {
+export const getTableSizes = (table: HTMLTableElement): TableSizes => {
 	const cols = [];
 	const rows = [];
-	const tableBody = table?.lastElementChild;
-	const firstRow = tableBody?.firstElementChild;
-	if (!firstRow || !tableBody) return { cols: [], rows: [] };
+	const rowIndexes = [];
+	const tableBody = table?.tBodies[0];
+	if (!tableBody) return { cols: [], rows: [], rowIndexes: [] };
+
+	const firstRow = getCellContainer(getDocumentRows(tableBody)[0]);
+	if (!firstRow) return { cols: [], rows: [], rowIndexes: [] };
 
 	const hasAggregatedRow = (tableBody.lastElementChild as HTMLTableRowElement).dataset.aggregation === "true";
-	const arrayRows = tableBody?.children
-		? Array.from(tableBody.children).slice(
-				0,
-				hasAggregatedRow ? tableBody.childElementCount - 1 : tableBody.childElementCount,
-			)
-		: [];
+	const allRows = Array.from(tableBody.children) as HTMLTableRowElement[];
+	const arrayRows = hasAggregatedRow ? allRows.slice(0, -1) : allRows;
 	const arrayCols = firstRow?.children ? Array.from(firstRow.children) : [];
+	const stickyHeaderTopPadding = getStickyHeaderTopPadding(table);
 
 	arrayCols.forEach((child: HTMLTableColElement) => {
-		cols.push(child.getBoundingClientRect().width + "px");
+		cols.push(`${child.getBoundingClientRect().width}px`);
 	});
 
+	let documentRowIndex = 0;
 	arrayRows
 		.filter((row: HTMLTableRowElement) => row.childElementCount)
-		.forEach((row: HTMLTableRowElement) => {
-			const height = row.getBoundingClientRect().height;
-			rows.push(height + "px");
+		.forEach((row: HTMLTableRowElement, index) => {
+			const height = Math.max(0, row.getBoundingClientRect().height - (index === 0 ? stickyHeaderTopPadding : 0));
+			rows.push(`${height}px`);
+			rowIndexes.push(isWidgetRow(row) ? null : documentRowIndex++);
 		});
 
-	return { cols, rows };
+	return { cols, rows, rowIndexes };
 };

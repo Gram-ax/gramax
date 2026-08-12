@@ -1,6 +1,6 @@
-import LanguageService from "@core-ui/ContextServices/Language";
 import { VIEW_CHART_COLORS } from "@ext/enterprise/components/admin/settings/metrics/view/chart/viewMetricsConfig";
 import t from "@ext/localization/locale/translate";
+import { getCachedSetting } from "@ext/settings/logic/cachedSettingsStore";
 import type { DesignerConfig, MdtChartsConfig } from "mdt-charts";
 
 const CHART_HEIGHT = 300;
@@ -143,7 +143,7 @@ export const createDesignerConfig = (visibleFields?: MetricField[]): DesignerCon
 		dataFormat: {
 			formatters: (value) => {
 				if (typeof value !== "number") return value?.toString() ?? "";
-				const locale = LanguageService.currentUi();
+				const locale = getCachedSetting("general.language");
 				return new Intl.NumberFormat(locale, {
 					notation: "compact",
 					maximumFractionDigits: 1,

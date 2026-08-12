@@ -1,4 +1,5 @@
 import LucideIconComponent from "@components/Atoms/Icon/LucideIcon";
+// biome-ignore lint/style/noRestrictedImports: will be fixed in the future with new control (like in workspace settings in GES)
 import styled from "@emotion/styled";
 import { PageComponents } from "@ext/enterprise-cloud/components/organizationSettings/PageComponents";
 import GesCloudOrgSettingsPage from "@ext/enterprise-cloud/types/GesCloudOrgSettingsPage";
@@ -91,6 +92,15 @@ function MainContent({ isOpen }: { isOpen: boolean }) {
 											>
 												<Icon icon="users" />
 												<span>{t("enterprise-cloud.org-settings.pages.users")}</span>
+											</SidebarMenuButton>
+										</SidebarMenuItem>
+										<SidebarMenuItem>
+											<SidebarMenuButton
+												isActive={page === GesCloudOrgSettingsPage.TOKENS}
+												onClick={() => tryNavigate(GesCloudOrgSettingsPage.TOKENS)}
+											>
+												<Icon icon="key-round" />
+												<span>{t("enterprise-cloud.org-settings.pages.access-tokens")}</span>
 											</SidebarMenuButton>
 										</SidebarMenuItem>
 									</SidebarMenu>

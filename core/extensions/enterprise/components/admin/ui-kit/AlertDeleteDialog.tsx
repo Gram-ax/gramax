@@ -1,3 +1,5 @@
+import { Button } from "@ext/enterprise/components/admin/ui-kit/Button";
+import { CancelButton } from "@ext/enterprise/components/admin/ui-kit/CancelButton";
 import t from "@ext/localization/locale/translate";
 import {
 	AlertDialog,
@@ -11,7 +13,6 @@ import {
 	AlertDialogTitle,
 	AlertDialogTrigger,
 } from "@ui-kit/AlertDialog";
-import { Button } from "@ui-kit/Button";
 import { Icon } from "@ui-kit/Icon";
 import { DeleteSelectedButton } from "./DeleteSelectedButton";
 
@@ -48,7 +49,7 @@ export const AlertDeleteDialog = ({
 	return (
 		<AlertDialog>
 			<AlertDialogTrigger asChild>
-				<DeleteSelectedButton onClick={() => {}} selectedCount={selectedCount} />
+				<DeleteSelectedButton count={selectedCount} onClick={() => {}} />
 			</AlertDialogTrigger>
 			<AlertDialogContent focus="medium" status="error">
 				<AlertDialogHeader>
@@ -58,9 +59,7 @@ export const AlertDeleteDialog = ({
 				</AlertDialogHeader>
 				<AlertDialogFooter>
 					<AlertDialogPrimitiveCancel asChild>
-						<Button type="button" variant="outline">
-							{t("cancel")}
-						</Button>
+						<CancelButton />
 					</AlertDialogPrimitiveCancel>
 					<AlertDialogPrimitiveAction asChild>
 						<Button onClick={onConfirm} status="error" type="button">

@@ -1,7 +1,7 @@
+/** biome-ignore-all lint/complexity/noStaticOnlyClass: expected */
 import { isDeepestArticle } from "@ext/article/actions/CreateArticle";
-import { trace } from "@ext/loggers/opentelemetry";
+import { Level, trace } from "@ext/loggers/opentelemetry";
 import type { NodeModel } from "@minoru/react-dnd-treeview";
-import hash from "object-hash";
 import type { CategoryLink, ItemLink } from "../../../NavigationLinks";
 
 abstract class DragTreeTransformer {
@@ -9,7 +9,7 @@ abstract class DragTreeTransformer {
 		return 0;
 	}
 
-	@trace()
+	@trace({ level: Level.Full })
 	static getRenderDragNav(items: ItemLink[]): NodeModel<ItemLink>[] {
 		const dragNavItems: NodeModel<ItemLink>[] = [];
 
@@ -50,27 +50,29 @@ abstract class DragTreeTransformer {
 				icon: item.icon,
 				query: item.query,
 				title: item.title,
+				fileName: item.fileName,
 				external: item.external,
 				pathname: item.pathname,
 				isCurrentLink: item.isCurrentLink,
+				options: item.options,
 				status: item.status,
 				items: (item as CategoryLink).items,
 				isExpanded: (item as CategoryLink)?.isExpanded ?? false,
 				existContent: (item as CategoryLink)?.existContent ?? false,
-			} as any,
+			} as ItemLink,
 		};
 	}
 
 	static isModified(draggedItemPath: string, oldNav: NodeModel<ItemLink>[], newNav: NodeModel<ItemLink>[]) {
-		const draggedNodeParent = oldNav.find((item) => item.data?.ref.path == draggedItemPath).parent;
-		const newItemsWithSameParent = newNav.filter((i) => i.parent == draggedNodeParent);
-		const oldItemsWithSameParent = oldNav.filter((i) => i.parent == draggedNodeParent);
+		const draggedNodeParent = oldNav.find((item) => item.data?.ref.path === draggedItemPath)?.parent;
+		const newItemsWithSameParent = newNav.filter((i) => i.parent === draggedNodeParent);
+		const oldItemsWithSameParent = oldNav.filter((i) => i.parent === draggedNodeParent);
 		if (newItemsWithSameParent.length !== oldItemsWithSameParent.length) return true;
 		return newItemsWithSameParent.some((item, i) => item.id !== oldItemsWithSameParent[i].id);
 	}
 
 	private static _getNodeId(item: ItemLink): number | string {
-		return hash({ id: item.ref.path + item.title });
+		return item.ref.path;
 	}
 }
 

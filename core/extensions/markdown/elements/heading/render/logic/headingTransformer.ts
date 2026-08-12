@@ -7,12 +7,10 @@ const headingTransformer = (tag: Child): object | object[] => {
 
 	const title = getHeaderTitle(tag.children);
 
-	const newTag = {
+	return {
 		...tag,
 		attributes: { ...tag.attributes, id: tag.attributes.id ?? getChildTextId(title) },
 	};
-
-	return newTag;
 };
 
 export default headingTransformer;

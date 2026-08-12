@@ -81,7 +81,7 @@ export function SortableSectionItem({ sectionKey, section, onEdit, onDelete }: S
 						<DropdownMenuTrigger asChild>
 							<IconButton icon="more-vertical" variant="ghost" />
 						</DropdownMenuTrigger>
-						<DropdownMenuContent className="w-56">
+						<DropdownMenuContent align="start" className="font-sans font-normal">
 							<DropdownMenuItem onSelect={handleEditClick}>
 								<Icon icon="pencil" />
 								{t("edit2")}

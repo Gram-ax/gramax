@@ -1,4 +1,4 @@
-import ThemeService from "@ext/Theme/components/ThemeService";
+import { useSetting } from "@ext/settings/logic/hooks";
 import type Theme from "@ext/Theme/Theme";
 import { useMemo } from "react";
 
@@ -7,6 +7,6 @@ export type HtmlOptions = {
 };
 
 export const useResolveHtmlOptions = (): HtmlOptions => {
-	const theme = ThemeService.value;
+	const [theme] = useSetting("general.theme");
 	return useMemo(() => ({ theme }), [theme]);
 };

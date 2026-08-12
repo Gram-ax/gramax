@@ -75,11 +75,9 @@ export default (): UserConfig => ({
 					criticalStyle: `<style>${readFileAsString("core/styles/base.css")}</style>`,
 					vars: `<style>${readFileAsString("core/styles/vars.css")}</style>`,
 					themes: `<style>${readFileAsString("core/styles/themes.css")}</style>`,
-					bodyDatasetInjector: `<script>${readFileAsString(
-						"scripts/browser/bodyDatasetInjector.js",
-					)}</script>`,
-					polyfill: `<script>${readFileAsString("scripts/browser/polyfill.js")}</script>`,
-					tryOpenInDesktop: `<script>${readFileAsString("scripts/browser/tryOpenInDesktop.js")}</script>`,
+					bodyDatasetInjector: `<script>${readFileAsString("scripts/web/bodyDatasetInjector.js")}</script>`,
+					polyfill: `<script>${readFileAsString("scripts/web/polyfill.js")}</script>`,
+					tryOpenInDesktop: `<script>${readFileAsString("scripts/web/tryOpenInDesktop.js")}</script>`,
 					ensureCustomStyleLast: `<script>${readFileAsString(
 						"scripts/static/ensureCustomStyleLast.js",
 					)}</script>`,
@@ -126,7 +124,7 @@ export default (): UserConfig => ({
 	},
 
 	define: {
-		"process.version": [], // https://github.com/browserify/browserify-sign/issues/85
+		"process.version": [], // https://github.com/webify/webify-sign/issues/85
 		"process.builtIn": getBuiltInVariables(),
 		"process.env.NODE_DEBUG": false,
 		"process.env.VITE_ENVIRONMENT": JSON.stringify(process.env.VITE_ENVIRONMENT),

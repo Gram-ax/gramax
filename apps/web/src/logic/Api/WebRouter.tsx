@@ -1,0 +1,60 @@
+import type Query from "@core/Api/Query";
+import { parserQuery } from "@core/Api/Query";
+import { Router, type RouterRule } from "@core/Api/Router";
+import Url from "@core-ui/ApiServices/Types/Url";
+import { useRouter } from "wouter";
+import { navigate } from "wouter/use-browser-location";
+import useLocation from "./useLocation";
+
+export default class WebRouter extends Router {
+	private _route: string;
+
+	private constructor(
+		path: string,
+		private _query: Query,
+		private _setPath: (path: string, opts?: { replace?: boolean }) => void,
+		rules: RouterRule[],
+		private _basePath: string,
+	) {
+		super(rules);
+		this._route = path.split("?", 1)[0];
+	}
+
+	get basePath(): string {
+		return this._basePath;
+	}
+
+	get query(): Query {
+		return this._query;
+	}
+
+	get path(): string {
+		return this._route;
+	}
+
+	get hash(): string {
+		return typeof window === "undefined" ? "" : encodeURI(window.location.hash ?? "");
+	}
+
+	pushQuery(query: Query) {
+		this._setPath(Url.fromBasePath("", this._route, query).toString());
+		return this;
+	}
+
+	async pushPath(path: string, query?: Query, options?: { replace?: boolean }) {
+		const transformed = this._transform(path);
+		this._setPath(Url.fromBasePath("", transformed, query).toString(), options);
+	}
+
+	setUrl(url: Url): this {
+		const path = this._transform(url.toString());
+		this._setPath(path);
+		return this;
+	}
+
+	static use(rules: RouterRule[]): Router {
+		const [path, , query] = useLocation();
+		const router = useRouter();
+		return new WebRouter(path, parserQuery(query), navigate, rules, router.base);
+	}
+}

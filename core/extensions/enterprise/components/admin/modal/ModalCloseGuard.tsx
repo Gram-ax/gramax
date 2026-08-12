@@ -1,5 +1,5 @@
 import { useAdminNavigation } from "@ext/enterprise/components/admin/contexts/AdminNavigationContext";
-import { useGuard } from "@ext/enterprise/components/admin/hooks/useGuard";
+import { useGuard } from "@ext/enterprise/components/admin/contexts/GuardProvider";
 import { useCallback, useEffect } from "react";
 
 export const ModalCloseGuard = ({

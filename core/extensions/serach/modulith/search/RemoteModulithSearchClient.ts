@@ -2,12 +2,12 @@ import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import t from "@ext/localization/locale/translate";
 import type { SearchArgs, SearchStreamArgs } from "@ext/serach/ChatBotSearcher";
 import type {
-	SearchArticle,
+	RemoteSearchArticle,
 	SearchArticleArticleMetadata,
+	SearchArticleFilter,
 	SearchArticleKey,
 	SearchArticleMetadata,
 } from "@ext/serach/modulith/SearchArticle";
-import type { UpdateArgs } from "@ext/serach/modulith/search/ModulithSearchClient";
 import type { PropertyFilter } from "@ext/serach/Searcher";
 import {
 	andFilter,
@@ -37,6 +37,12 @@ export interface RemoteModulithSearcherOptions {
 	apiUrl: string;
 	apiKey: string;
 	collectionName: string;
+}
+
+export interface RemoteUpdateArgs {
+	articles: RemoteSearchArticle[];
+	filter?: SearchArticleFilter;
+	progressCallback?: ProgressCallback;
 }
 
 const RAG_PLUGIN_NAME = "@ics/modulith-rag";
@@ -89,7 +95,11 @@ export class RemoteModulithSearchClient {
 		return await this._apiClient.checkAuth();
 	}
 
-	async update({ articles, filter, progressCallback }: UpdateArgs): Promise<void> {
+	async healthcheck() {
+		return await this._apiClient.healthcheck();
+	}
+
+	async update({ articles, filter, progressCallback }: RemoteUpdateArgs): Promise<void> {
 		try {
 			const articlesForRemote = convertArticlesForRemote(articles);
 			const res = await this._apiClient.updateArticles<SearchArticleMetadata, SearchArticleKey | string>(
@@ -226,7 +236,7 @@ export class RemoteModulithSearchClient {
 
 // TODO: add support on AI server side
 //   return metadata on chat requests in links
-function convertArticlesForRemote(articles: SearchArticle[]): SearchArticle[] {
+function convertArticlesForRemote(articles: RemoteSearchArticle[]): RemoteSearchArticle[] {
 	return articles
 		.filter((x) => x.metadata.type === "article")
 		.map((x) => ({

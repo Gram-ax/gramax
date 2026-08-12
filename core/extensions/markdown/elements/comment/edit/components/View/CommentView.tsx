@@ -125,7 +125,7 @@ const CommentView = memo((props: CommentViewProps) => {
 
 			instanceRef.current?.hide();
 		},
-		[saveComment, pageData?.userInfo],
+		[saveComment],
 	);
 
 	const onAddAnswer = useCallback(

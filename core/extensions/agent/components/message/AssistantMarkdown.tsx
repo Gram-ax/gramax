@@ -1,21 +1,24 @@
+import { MinimizedArticleStyled } from "@components/Article/MiniArticle";
+import Anchor from "@components/controls/Anchor";
+import { classNames } from "@components/libs/classNames";
+import ArticleTooltipService from "@core-ui/ContextServices/ArticleTooltip";
+import { cn } from "@core-ui/utils/cn";
 import SimpleMarkdownParser from "@ext/markdown/core/Parser/SimpleMarkdownParser";
 import getComponents from "@ext/markdown/core/render/components/getComponents/getComponents";
 import Renderer from "@ext/markdown/core/render/components/Renderer";
 import type { RenderableTreeNodes } from "@ext/markdown/core/render/logic/Markdoc";
-import { Prose } from "@ui-kit/Prose";
-import { clsx } from "clsx";
 import { useEffect, useMemo, useState } from "react";
 
-const markdownParser = new SimpleMarkdownParser();
+const simpleParser = new SimpleMarkdownParser();
 
 type Props = {
 	text: string;
 	className?: string;
 };
 
-export function AssistantMarkdown({ text, className }: Props) {
+export const AssistantMarkdown = ({ text, className }: Props) => {
 	const [renderTree, setRenderTree] = useState<RenderableTreeNodes | null>(null);
-	const components = useMemo(() => getComponents(), []);
+	const components = useMemo(() => ({ ...getComponents(), a: Anchor }), []);
 
 	useEffect(() => {
 		let disposed = false;
@@ -23,9 +26,10 @@ export function AssistantMarkdown({ text, className }: Props) {
 			setRenderTree(null);
 			return;
 		}
-		void markdownParser
+
+		void simpleParser
 			.parse(text)
-			.then((tree: RenderableTreeNodes) => {
+			.then((tree) => {
 				if (!disposed) {
 					setRenderTree(tree);
 				}
@@ -42,29 +46,31 @@ export function AssistantMarkdown({ text, className }: Props) {
 
 	if (!renderTree) {
 		return (
-			<div className={clsx("whitespace-pre-wrap wrap-break-word text-sm text-primary-fg", className)}>{text}</div>
+			<div
+				className={cn(
+					"whitespace-pre-wrap wrap-break-word text-sm text-primary-fg group-data-[gray]:!text-muted-foreground",
+					className,
+				)}
+			>
+				{text}
+			</div>
 		);
 	}
 
 	return (
-		<div className={clsx("min-w-0 bg-transparent", className)}>
+		<div className="min-w-0 bg-transparent text-sm">
 			<div
-				className={clsx(
-					"min-w-0",
-					"[&_article_p]:m-0",
-					"[&_article_ul]:m-0",
-					"[&_article_ol]:m-0",
-					"[&_article_p]:leading-snug",
-					"[&_article_ul]:leading-snug",
-					"[&_article_ol]:leading-snug",
-					"[&_table]:block",
-					"[&_table]:overflow-x-auto",
-					"[&_table]:max-w-full",
-					className,
-				)}
+				className={cn("article group-data-[gray]:!text-muted-foreground", className)}
+				style={{ background: "transparent" }}
 			>
-				<Prose className="text-sm leading-snug">{Renderer(renderTree, { components })}</Prose>
+				<ArticleTooltipService.Provider>
+					<MinimizedArticleStyled>
+						<div className={classNames("article-body", {}, ["popup-article"])}>
+							{Renderer(renderTree, { components })}
+						</div>
+					</MinimizedArticleStyled>
+				</ArticleTooltipService.Provider>
 			</div>
 		</div>
 	);
-}
+};

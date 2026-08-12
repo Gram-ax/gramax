@@ -1,10 +1,13 @@
-import getApp from "@app/browser/app";
+import getApp from "@app/web/app";
 import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvider";
 import Path from "@core/FileProvider/Path/Path";
 import ArticleParser from "@core/FileStructue/Article/ArticleParser";
 import type { Catalog } from "@core/FileStructue/Catalog/Catalog";
+import type { UpdateItemProps } from "@core/FileStructue/Item/Item";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
 import ResourceUpdater from "@core/Resource/ResourceUpdater";
+import { resolveRootCategory } from "@ext/localization/core/catalogExt";
+import { ContentLanguage } from "@ext/localization/core/model/Language";
 import { resolve } from "path";
 
 process.env.ROOT_PATH = resolve(__dirname, "tests");
@@ -20,8 +23,8 @@ const makeApp = async () => {
 	const app = await getApp();
 	const fp = app.wm.current().getFileProvider();
 	const wm = app.wm.current();
-	const ctx = await app.contextFactory.fromBrowser({
-		language: "ru" as any,
+	const ctx = await app.contextFactory.fromWeb({
+		language: "ru",
 	});
 
 	const makeResourceUpdater = (catalog: Catalog) =>
@@ -42,12 +45,12 @@ supportedLanguages:
 
 		await dfp.write(p("catalog/article.md"), "ru");
 		await dfp.write(p("catalog/category/_index.md"), "ru");
-		await dfp.write(p("catalog/category/new-article.md"), "ru");
+		await dfp.write(p("catalog/category/untitled.md"), "ru");
 
 		await dfp.write(p("catalog/en/_index.md"), "");
 		await dfp.write(p("catalog/en/article.md"), "ru");
 		await dfp.write(p("catalog/en/category/_index.md"), "ru");
-		await dfp.write(p("catalog/en/category/new-article.md"), "ru");
+		await dfp.write(p("catalog/en/category/untitled.md"), "ru");
 
 		await dfp.write(p("catalog/test.md"), "");
 		await dfp.write(p("catalog/category/_index.md"), "");
@@ -78,7 +81,10 @@ supportedLanguages:
 			expect(catalog.findArticle("catalog/en/article", [])).not.toBeNull();
 
 			await catalog.updateItemProps(
-				{ logicPath: useInner ? "catalog/en/article" : "catalog/article", fileName: "article-renamed" } as any,
+				{
+					logicPath: useInner ? "catalog/en/article" : "catalog/article",
+					fileName: "article-renamed",
+				} as unknown as UpdateItemProps,
 				makeResourceUpdater,
 			);
 
@@ -99,14 +105,36 @@ supportedLanguages:
 	});
 
 	describe("перемещает статьи во всех языках", () => {
+		test.each([
+			["основного", false],
+			["дочернего", true],
+		])("сразу обновляет дерево после переноса из %s языка", async (_, useInner) => {
+			const { wm, fp, makeResourceUpdater } = await makeApp();
+			const catalog = await wm.getContextlessCatalog("catalog");
+			const item = catalog.findArticle("catalog/article", []);
+			const itemEn = catalog.findArticle("catalog/en/article", []);
+			const dragged = useInner ? itemEn : item;
+
+			await catalog.moveItem(
+				dragged.ref,
+				fp.getItemRef(dragged.ref.path.getNewName("article-moved")),
+				makeResourceUpdater,
+			);
+
+			expect(catalog.findArticle("catalog/article", [])).toBeNull();
+			expect(catalog.findArticle("catalog/en/article", [])).toBeNull();
+			expect(catalog.findArticle("catalog/article-moved", [])).not.toBeNull();
+			expect(catalog.findArticle("catalog/en/article-moved", [])).not.toBeNull();
+		});
+
 		const doTest = async (useInner: boolean, from: string, to: string) => {
 			const { wm, fp, makeResourceUpdater } = await makeApp();
 
 			const catalog = await wm.getContextlessCatalog("catalog");
 
-			const item = catalog.findArticle("catalog/" + from, []);
+			const item = catalog.findArticle(`catalog/${from}`, []);
 			expect(item).not.toBeNull();
-			const itemEn = catalog.findArticle("catalog/en/" + from, []);
+			const itemEn = catalog.findArticle(`catalog/en/${from}`, []);
 			expect(itemEn).not.toBeNull();
 
 			await catalog.moveItem(
@@ -116,15 +144,15 @@ supportedLanguages:
 			);
 			await catalog.update();
 
-			expect(catalog.findArticle("catalog/" + from, [])).toBeNull();
-			expect(catalog.findArticle("catalog/en/" + from, [])).toBeNull();
+			expect(catalog.findArticle(`catalog/${from}`, [])).toBeNull();
+			expect(catalog.findArticle(`catalog/en/${from}`, [])).toBeNull();
 
-			const renamedItemInner = catalog.findArticle("catalog/en/" + to, []);
+			const renamedItemInner = catalog.findArticle(`catalog/en/${to}`, []);
 			expect(renamedItemInner).not.toBeNull();
 			expect(renamedItemInner.ref.path.value).toEqual(`catalog/en/${to}.md`);
 			expect(await fp.exists(renamedItemInner.ref.path)).toBeTruthy();
 
-			const renamedItem = catalog.findArticle("catalog/" + to, []);
+			const renamedItem = catalog.findArticle(`catalog/${to}`, []);
 			expect(renamedItem).not.toBeNull();
 			expect(renamedItem.ref.path.value).toEqual(`catalog/${to}.md`);
 			expect(await fp.exists(renamedItem.ref.path)).toBeTruthy();
@@ -132,6 +160,30 @@ supportedLanguages:
 
 		test("в основном каталоге", () => doTest(false, "article", "article-moved"));
 		test("в дочернем каталоге", () => doTest(true, "article", "article-moved"));
+	});
+
+	test("сразу пересортировывает родителя языковой пары после изменения order", async () => {
+		const { wm } = await makeApp();
+		const catalog = await wm.getContextlessCatalog("catalog");
+		const ruRoot = resolveRootCategory(catalog, catalog.props, ContentLanguage.ru);
+		const enRoot = resolveRootCategory(catalog, catalog.props, ContentLanguage.en);
+		const ruArticle = catalog.findArticle("catalog/article", []);
+		const ruTest = catalog.findArticle("catalog/test", []);
+		const enArticle = catalog.findArticle("catalog/en/article", []);
+		const enTest = catalog.findArticle("catalog/en/test", []);
+
+		await ruArticle.setOrder(1, true);
+		await ruTest.setOrder(2, true);
+		await enArticle.setOrder(1, true);
+		await enTest.setOrder(2, true);
+		await ruRoot.sortItems("no-sort");
+		await enRoot.sortItems("no-sort");
+
+		await ruTest.setOrderAfter(ruRoot);
+		await ruRoot.sortItems("no-sort");
+
+		expect(ruRoot.items.indexOf(ruTest)).toBeLessThan(ruRoot.items.indexOf(ruArticle));
+		expect(enRoot.items.indexOf(enTest)).toBeLessThan(enRoot.items.indexOf(enArticle));
 	});
 
 	describe("перемещает категории в основном и дочернем каталогах", () => {
@@ -178,7 +230,7 @@ supportedLanguages:
 
 			const catalog = await wm.getContextlessCatalog("catalog");
 			const articleParser = new ArticleParser(
-				await app.contextFactory.fromBrowser({
+				await app.contextFactory.fromWeb({
 					language: null,
 				}),
 				app.parser,
@@ -222,12 +274,12 @@ supportedLanguages:
 			const category = catalog.findArticle("catalog/article", [])?.type;
 			expect(category).toEqual(ItemType.category);
 			expect(await fp.exists(p("catalog/article/_index.md"))).toBeTruthy();
-			expect(await fp.exists(p("catalog/article/new-article.md"))).toBeTruthy();
+			expect(await fp.exists(p("catalog/article/untitled.md"))).toBeTruthy();
 
 			const categoryInner = catalog.findArticle("catalog/en/article", [])?.type;
 			expect(categoryInner).toEqual(ItemType.category);
 			expect(await fp.exists(p("catalog/en/article/_index.md"))).toBeTruthy();
-			expect(await fp.exists(p("catalog/en/article/new-article.md"))).toBeTruthy();
+			expect(await fp.exists(p("catalog/en/article/untitled.md"))).toBeTruthy();
 		};
 
 		test("в основном каталоге", () => doTest(false));
@@ -261,11 +313,36 @@ supportedLanguages:
 			expect(enArticle).not.toBeNull();
 			expect(await fp.exists(p("catalog/en/test.md"))).toBeTruthy();
 
-			expect(enArticle.content).toBe("");
+			expect(await enArticle.getContent()).toBe("");
 
 			const otherArticle = catalog.findArticle("catalog/en/article", []);
 			expect(otherArticle).not.toBeNull();
-			expect(otherArticle.content).toBe("en");
+			expect(await otherArticle.getContent()).toBe("en");
+		});
+
+		test("creates missing default-language article when localized root article props change", async () => {
+			const { wm, fp, makeResourceUpdater } = await makeApp();
+			await fp.delete(p("catalog/untitled.md"));
+			await fp.delete(p("catalog/en/untitled.md"));
+
+			const catalog = await wm.getContextlessCatalog("catalog");
+			const enRoot = resolveRootCategory(catalog, catalog.props, ContentLanguage.en);
+			const enArticle = await catalog.createArticle(makeResourceUpdater, "", enRoot.ref);
+
+			expect(enArticle.logicPath).toBe("catalog/en/untitled");
+			expect(await fp.exists(p("catalog/en/untitled.md"))).toBeTruthy();
+			expect(await fp.exists(p("catalog/untitled.md"))).toBeTruthy();
+
+			await catalog.updateItemProps(
+				{
+					logicPath: enArticle.logicPath,
+					order: 1,
+					description: "created in English",
+				},
+				makeResourceUpdater,
+			);
+
+			expect(await fp.exists(p("catalog/untitled.md"))).toBeTruthy();
 		});
 	});
 
@@ -316,6 +393,35 @@ docroot: docs`,
 
 			expect(await fp.exists(p("catalog-with-docroot/docs/article.md"))).toBeTruthy();
 			expect(await fp.exists(p("catalog-with-docroot/docs/en/article.md"))).toBeTruthy();
+		});
+	});
+
+	// A partially translated catalog is the normal state: `catalog/category/q.md`
+	// has no `catalog/en/category/q.md` counterpart. Moving it must not crash —
+	// onItemMoved mirrors the move into every other language and used to call
+	// catalog.moveItem() on a ref that simply isn't there, tripping the
+	// `Item '...' wasn't found in catalog` assert inside moveItem.
+	describe("перемещает статью, у которой нет пары в другом языке", () => {
+		const doTest = async (from: string, to: string) => {
+			const { wm, fp, makeResourceUpdater } = await makeApp();
+			const catalog = await wm.getContextlessCatalog("catalog");
+
+			const item = catalog.findItemByItemPath(p(from));
+			expect(item).not.toBeNull();
+
+			await catalog.moveItem(item.ref, fp.getItemRef(p(to)), makeResourceUpdater);
+			await catalog.update();
+
+			expect(await fp.exists(p(from))).toBeFalsy();
+			expect(await fp.exists(p(to))).toBeTruthy();
+			expect(catalog.findItemByItemPath(p(to))).not.toBeNull();
+		};
+
+		test("вытаскивает статью из раздела в корень", () => doTest("catalog/category/q.md", "catalog/q.md"));
+
+		test("вытаскивает статью из раздела в корень на втором языке", async () => {
+			await dfp.write(p("catalog/en/category/only-en.md"), "en");
+			await doTest("catalog/en/category/only-en.md", "catalog/en/only-en.md");
 		});
 	});
 });

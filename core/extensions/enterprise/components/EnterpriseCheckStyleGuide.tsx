@@ -1,3 +1,4 @@
+import Icon from "@components/Atoms/Icon";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
@@ -11,7 +12,6 @@ import astToParagraphs from "@ext/StyleGuide/logic/astToParagraphs";
 import { getSuggestionItems } from "@ext/StyleGuide/logic/getSuggestionItems";
 import type { CheckSuggestion } from "@ics/gx-vector-search";
 import { DropdownMenuItem } from "@ui-kit/Dropdown";
-import { Icon } from "@ui-kit/Icon";
 import { toast } from "@ui-kit/Toast";
 
 const EnterpriseCheckStyleGuide = () => {
@@ -26,7 +26,7 @@ const EnterpriseCheckStyleGuide = () => {
 		if (!workspace?.enterprise?.modules?.styleGuide) return;
 		const editor = getEditorStore().editor;
 		if (!editor) return;
-		ModalToOpenService.setValue(ModalToOpen.Loading, { title: "Проверка статьи" });
+		ModalToOpenService.setValue(ModalToOpen.Loading, { title: t("enterprise.admin.check.checking-article") });
 
 		const res = await FetchService.fetch(apiUrlCreator.getArticleEditorContent());
 		if (!res.ok) {
@@ -48,13 +48,13 @@ const EnterpriseCheckStyleGuide = () => {
 		}
 
 		const suggestionItems = getSuggestionItems(result as CheckSuggestion[], paragraphs);
-		editor.commands.setSuggestion(suggestionItems);
+		editor.commands.markSuggestions(suggestionItems);
 		ModalToOpenService.resetValue();
 	};
 
 	return (
 		<DropdownMenuItem onSelect={checkArticle}>
-			<Icon icon="spell-check" />
+			<Icon code="spell-check" />
 			{t("style-guide.check-with-style-guide")}
 		</DropdownMenuItem>
 	);

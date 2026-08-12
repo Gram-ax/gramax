@@ -4,6 +4,7 @@ enum Style {
 	black = "black",
 	green = "green",
 	purple = "purple",
+	teal = "teal",
 	bluePink = "blue-pink",
 	redGreen = "red-green",
 	pinkBlue = "pink-blue",

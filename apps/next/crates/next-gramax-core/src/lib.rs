@@ -58,7 +58,7 @@ pub fn setup_remote_context(span_id: Option<&str>, trace_id: Option<&str>) -> op
 	opentelemetry::Context::current().with_remote_span_context(context).attach()
 }
 
-#[ctor::ctor]
+#[ctor::ctor(unsafe)]
 fn init() {
 	use tracing_subscriber::layer::SubscriberExt;
 	use tracing_subscriber::util::SubscriberInitExt;

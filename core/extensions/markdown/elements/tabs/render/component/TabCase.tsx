@@ -1,6 +1,7 @@
 import ContentEditable from "@components/Atoms/ContentEditable";
 import type { IconCode } from "@components/Atoms/Icon/LucideIcon";
 import { cn } from "@core-ui/utils/cn";
+// biome-ignore lint/style/noRestrictedImports: unable to fix this at now
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import { NodeProperty } from "@ext/properties/components/Helpers/NodeProperty";
@@ -69,7 +70,7 @@ const TabCase = (props: TabCaseProps) => {
 	const wrapperProps = { className: "rounded-md", size: "sm", value: `${idx}` };
 
 	const Trigger = (
-		<div className={cn(className, "case")}>
+		<div className={cn(className, "case", isActive && "active")} data-tab-index={idx}>
 			<Wrapper {...wrapperProps}>
 				{icon && <Icon icon={icon} />}
 				{!isEditing && <TextOverflowTooltip>{name || t("article.no-name")}</TextOverflowTooltip>}
@@ -118,8 +119,6 @@ const TabCase = (props: TabCaseProps) => {
 };
 
 export default styled(TabCase)`
-    overflow: hidden;
-    text-overflow: ellipsis;
     white-space: nowrap;
 	max-width: 100%;
 

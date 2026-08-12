@@ -1,6 +1,6 @@
 import type FileProvider from "@core/FileProvider/model/FileProvider";
+import { PluginsAsset } from "@plugins/core/PluginsAsset";
 import { LogoAsset } from "./assets/LogoAsset";
-import { PluginsAsset } from "./assets/PluginsAsset";
 import { StyleAsset } from "./assets/StyleAsset";
 import { TemplateAsset } from "./assets/TemplateAsset";
 

@@ -17,7 +17,7 @@ class HTMLComponents {
 	private _publicApiUrlCreator: PublicApiUrlCreator;
 
 	constructor(
-		private _requestUrl: string,
+		private _requestUrl: string | undefined,
 		context: ParserContext,
 	) {
 		this._publicApiUrlCreator = new PublicApiUrlCreator(
@@ -51,7 +51,7 @@ class HTMLComponents {
 	}
 
 	private _addRequestUrl = (src: string) => {
-		return src.slice(0, 4) === "http" ? src : this._requestUrl + Path.empty.join(new Path(src)).value;
+		return src.slice(0, 4) === "http" ? src : (this._requestUrl ?? "") + Path.empty.join(new Path(src)).value;
 	};
 
 	public getNullComponent(name: unSupportedElements) {

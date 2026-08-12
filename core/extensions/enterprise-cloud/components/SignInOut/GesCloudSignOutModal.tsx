@@ -2,6 +2,7 @@ import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import t from "@ext/localization/locale/translate";
 import type { ClientWorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
 import {
@@ -30,10 +31,16 @@ const SignOutGesCloud = ({ workspaceConfig, onClose }: SignOutEnterpriseProps) =
 		if (!open) onClose();
 	};
 
+	const { environment } = usePlatform();
+
 	const removeWorkspace = async () => {
-		ModalToOpenService.setValue(ModalToOpen.Loading);
+		const modalId = ModalToOpenService.addModal(ModalToOpen.Loading);
 		await FetchService.fetch(apiUrlCreator.getLogoutGesCloudUrl(workspaceConfig.path));
+
+		ModalToOpenService.removeModal(modalId);
 		onOpenChange(false);
+
+		if (environment === "tauri") await refreshPage();
 	};
 
 	return (
@@ -48,7 +55,7 @@ const SignOutGesCloud = ({ workspaceConfig, onClose }: SignOutEnterpriseProps) =
 					<AlertDialogAction
 						onClick={() => {
 							onOpenChange(false);
-							removeWorkspace();
+							void removeWorkspace();
 						}}
 						type="button"
 						variant="primary"

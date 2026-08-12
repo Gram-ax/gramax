@@ -1,3 +1,344 @@
+:root {
+	/* Zinc palette */
+	--tailwind-colors-zinc-50: 0 0% 98%;
+	--tailwind-colors-zinc-100: 240 5% 96%;
+	--tailwind-colors-zinc-200: 240 6% 90%;
+	--tailwind-colors-zinc-300: 240 5% 84%;
+	--tailwind-colors-zinc-400: 240 5% 65%;
+	--tailwind-colors-zinc-500: 240 4% 46%;
+	--tailwind-colors-zinc-600: 240 5% 34%;
+	--tailwind-colors-zinc-700: 240 5% 26%;
+	--tailwind-colors-zinc-800: 240 4% 16%;
+	--tailwind-colors-zinc-900: 240 6% 10%;
+	--tailwind-colors-zinc-950: 240 10% 4%;
+
+	/* Status: red */
+	--tailwind-colors-red-50: 0 86% 97%;
+	--tailwind-colors-red-100: 0 93% 94%;
+	--tailwind-colors-red-200: 0 96% 89%;
+	--tailwind-colors-red-300: 0 94% 82%;
+	--tailwind-colors-red-500: 0 84% 60%;
+	--tailwind-colors-red-600: 0 72% 51%;
+	--tailwind-colors-red-700: 0 74% 42%;
+	--tailwind-colors-red-800: 0 70% 35%;
+	--tailwind-colors-red-900: 0 63% 31%;
+	--tailwind-colors-red-950: 0 75% 15%;
+
+	/* Status: amber */
+	--tailwind-colors-amber-500: 38 92% 50%;
+	--tailwind-colors-amber-600: 32 95% 44%;
+	--tailwind-colors-amber-700: 26 90% 37%;
+
+	/* Status: orange */
+	--tailwind-colors-orange-50: 33 100% 96%;
+	--tailwind-colors-orange-100: 34 100% 92%;
+	--tailwind-colors-orange-200: 32 98% 83%;
+	--tailwind-colors-orange-300: 31 97% 72%;
+
+	/* Status: yellow */
+	--tailwind-colors-yellow-800: 32 81% 29%;
+	--tailwind-colors-yellow-900: 28 73% 26%;
+	--tailwind-colors-yellow-950: 26 83% 14%;
+
+	/* Status: green */
+	--tailwind-colors-green-50: 138 76% 97%;
+	--tailwind-colors-green-100: 141 84% 93%;
+	--tailwind-colors-green-200: 141 79% 85%;
+	--tailwind-colors-green-300: 142 77% 73%;
+	--tailwind-colors-green-500: 142 71% 45%;
+	--tailwind-colors-green-600: 142 76% 36%;
+	--tailwind-colors-green-700: 142 72% 29%;
+	--tailwind-colors-green-800: 143 64% 24%;
+	--tailwind-colors-green-900: 144 61% 20%;
+	--tailwind-colors-green-950: 145 80% 10%;
+
+	/* Status: purple */
+	--tailwind-colors-purple-50: 270 100% 98%;
+	--tailwind-colors-purple-500: 271 91% 65%;
+	--tailwind-colors-purple-700: 272 72% 47%;
+	--tailwind-colors-purple-950: 274 87% 21%;
+
+	/* Status: sky */
+	--tailwind-colors-sky-50: 204 100% 97%;
+	--tailwind-colors-sky-100: 204 94% 94%;
+	--tailwind-colors-sky-200: 201 94% 86%;
+	--tailwind-colors-sky-300: 199 95% 74%;
+	--tailwind-colors-sky-500: 199 89% 48%;
+	--tailwind-colors-sky-600: 200 98% 39%;
+	--tailwind-colors-sky-700: 201 96% 32%;
+	--tailwind-colors-sky-800: 201 90% 27%;
+	--tailwind-colors-sky-900: 202 80% 24%;
+	--tailwind-colors-sky-950: 204 80% 16%;
+
+	/* Base white */
+	--tailwind-colors-base-white: 0 0% 100%;
+
+	/* ICS UI Kit token overrides — zinc theme (light) */
+	--primary-accent: 240 6% 10%;
+	--primary-accent-hover: 240 4% 16%;
+	--primary-fg: 240 6% 10%;
+	--primary-border: 240 5% 84%;
+	--primary-bg: 0 0% 97%;
+	--primary-bg-hover: 240 6% 90%;
+	--secondary-accent: 240 6% 10%;
+	--secondary-fg: 240 5% 26%;
+	--secondary-border: 240 6% 90%;
+	--secondary-bg: 0 0% 100%;
+	--secondary-bg-hover: 240 5% 93%;
+	--tertiary-accent: 240 4% 46%;
+	--muted: 240 4% 46%;
+	--sidebar-bg: 0 0% 97%;
+
+	/* Inverse (light) */
+	--inverse-primary-bg: var(--tailwind-colors-zinc-900);
+	--inverse-secondary-bg: var(--tailwind-colors-zinc-800);
+	--inverse-hover: var(--tailwind-colors-zinc-700);
+	--inverse-active: var(--tailwind-colors-zinc-600);
+	--inverse-border: var(--tailwind-colors-zinc-700);
+	--inverse-muted: var(--tailwind-colors-zinc-400);
+	--inverse-secondary-fg: var(--tailwind-colors-zinc-200);
+	--inverse-primary-fg: var(--tailwind-colors-zinc-50);
+
+	/* Status purple (light) */
+	--status-purple: var(--tailwind-colors-purple-700);
+	--status-purple-primary-bg: var(--tailwind-colors-purple-100);
+	--status-purple-bg: var(--tailwind-colors-purple-50);
+
+	/* Status error (light) */
+	--status-error: var(--tailwind-colors-red-700);
+	--status-error-fg: var(--tailwind-colors-red-700);
+	--status-error-hover: var(--tailwind-colors-red-600);
+	--status-error-primary-border: var(--tailwind-colors-red-300);
+	--status-error-secondary-border: var(--tailwind-colors-red-200);
+	--status-error-primary-bg: var(--tailwind-colors-red-100);
+	--status-error-bg: var(--tailwind-colors-red-50);
+	--status-error-bg-hover: var(--tailwind-colors-red-100);
+
+	/* Status warning (light) */
+	--status-warning: var(--tailwind-colors-amber-700);
+	--status-warning-fg: var(--tailwind-colors-amber-700);
+	--status-warning-hover: var(--tailwind-colors-amber-600);
+	--status-warning-primary-border: var(--tailwind-colors-orange-300);
+	--status-warning-secondary-border: var(--tailwind-colors-orange-200);
+	--status-warning-primary-bg: var(--tailwind-colors-orange-100);
+	--status-warning-bg: var(--tailwind-colors-orange-50);
+	--status-warning-bg-hover: var(--tailwind-colors-orange-100);
+
+	/* Status success (light) */
+	--status-success: var(--tailwind-colors-green-700);
+	--status-success-fg: var(--tailwind-colors-green-700);
+	--status-success-hover: var(--tailwind-colors-green-600);
+	--status-success-primary-border: var(--tailwind-colors-green-300);
+	--status-success-secondary-border: var(--tailwind-colors-green-200);
+	--status-success-primary-bg: var(--tailwind-colors-green-100);
+	--status-success-bg: var(--tailwind-colors-green-50);
+	--status-success-bg-hover: var(--tailwind-colors-green-100);
+
+	/* Status info (light) */
+	--status-info: var(--tailwind-colors-sky-700);
+	--status-info-fg: var(--tailwind-colors-sky-700);
+	--status-info-hover: var(--tailwind-colors-sky-600);
+	--status-info-primary-border: var(--tailwind-colors-sky-300);
+	--status-info-secondary-border: var(--tailwind-colors-sky-200);
+	--status-info-primary-bg: var(--tailwind-colors-sky-100);
+	--status-info-bg: var(--tailwind-colors-sky-50);
+	--status-info-bg-hover: var(--tailwind-colors-sky-100);
+
+	/* Status default (light) */
+	--status-default: var(--tailwind-colors-zinc-900);
+	--status-default-hover: var(--tailwind-colors-zinc-800);
+	--status-default-muted: var(--tailwind-colors-zinc-400);
+	--status-default-border: var(--tailwind-colors-zinc-700);
+	--status-default-bg-hover: var(--tailwind-colors-zinc-200);
+	--status-default-bg: var(--tailwind-colors-zinc-100);
+	--status-default-fg: var(--tailwind-colors-zinc-50);
+
+	/* Alpha (light) — base 240 5% 96% */
+	--alpha-90: 240 5% 96% / 90%;
+	--alpha-80: 240 5% 96% / 80%;
+	--alpha-high-80: 240 6% 10% / 80%;
+	--alpha-70: 240 5% 96% / 70%;
+	--alpha-60: 240 5% 96% / 60%;
+	--alpha-50: 240 5% 96% / 50%;
+	--alpha-40: 240 5% 96% / 40%;
+	--alpha-30: 240 5% 96% / 30%;
+	--alpha-20: 240 5% 96% / 20%;
+	--alpha-10: 240 5% 96% / 10%;
+	--alpha-05-hover: 240 5% 96% / 10%;
+	--alpha-accent-primary: 240 5% 96% / 10%;
+	--alpha-accent-secondary: 240 5% 96% / 10%;
+
+	/* Palette (light) */
+	--peony: 340 100% 91%;
+	--garnet: 0 100% 91%;
+	--cinnamon: 16 100% 89%;
+	--caramel: 28 100% 86%;
+	--hazel: 37 100% 84%;
+	--honey: 44 98% 82%;
+	--lemon: 54 100% 81%;
+	--olive: 66 67% 78%;
+	--sage: 87 71% 81%;
+	--mint: 120 71% 85%;
+	--bazil: 149 81% 81%;
+	--spruce: 165 84% 77%;
+	--aqua: 174 86% 75%;
+	--azure: 180 84% 73%;
+	--tiffany: 186 100% 75%;
+	--marine: 189 100% 77%;
+	--turquoise: 194 100% 80%;
+	--frost: 202 100% 85%;
+	--bosphorus: 216 100% 89%;
+	--lavender: 247 100% 92%;
+	--orchid: 276 100% 90%;
+	--lilac: 296 100% 89%;
+	--plume: 305 100% 88%;
+	--velvet: 320 100% 87%;
+
+	/* Chart (light) */
+	--chart-1: 173 58% 39%;
+	--chart-2: 12 76% 61%;
+	--chart-3: 197 37% 24%;
+	--chart-4: 43 74% 66%;
+	--chart-5: 27 87% 67%;
+
+	/* Secondary accent (light) */
+	/* biome-ignore lint/suspicious/noDuplicateCustomProperties: Preserve the existing Gramax UIKIT token override verbatim. */
+	--secondary-accent: 240 6% 10%;
+}
+
+.dark {
+	/* ICS UI Kit token overrides — zinc theme (dark) */
+	--primary-accent: var(--tailwind-colors-zinc-50);
+	--primary-accent-hover: var(--tailwind-colors-zinc-200);
+	--primary-fg: var(--tailwind-colors-zinc-50);
+	--primary-bg: var(--tailwind-colors-zinc-900);
+	--primary-bg-hover: var(--tailwind-colors-zinc-700);
+	--primary-border: var(--tailwind-colors-zinc-600);
+	--secondary-accent: var(--tailwind-colors-zinc-50);
+	--secondary-fg: var(--tailwind-colors-zinc-200);
+	--secondary-bg: 0 0% 7%;
+	--secondary-bg-hover: var(--tailwind-colors-zinc-800);
+	--secondary-border: var(--tailwind-colors-zinc-700);
+	--tertiary-accent: var(--tailwind-colors-zinc-400);
+	--muted: var(--tailwind-colors-zinc-400);
+	--sidebar-bg: var(--tailwind-colors-zinc-900);
+
+	/* Inverse (dark) */
+	--inverse-primary-bg: var(--tailwind-colors-zinc-50);
+	--inverse-secondary-bg: var(--tailwind-colors-zinc-100);
+	--inverse-hover: var(--tailwind-colors-zinc-200);
+	--inverse-active: var(--tailwind-colors-zinc-300);
+	--inverse-border: var(--tailwind-colors-zinc-200);
+	--inverse-muted: var(--tailwind-colors-zinc-500);
+	--inverse-secondary-fg: var(--tailwind-colors-zinc-700);
+	--inverse-primary-fg: var(--tailwind-colors-zinc-900);
+
+	/* Status purple (dark) */
+	--status-purple: var(--tailwind-colors-purple-500);
+	--status-purple-primary-bg: var(--tailwind-colors-purple-950);
+	--status-purple-bg: var(--tailwind-colors-zinc-800);
+
+	/* Status error (dark) */
+	--status-error: var(--tailwind-colors-red-700);
+	--status-error-fg: var(--tailwind-colors-red-500);
+	--status-error-hover: var(--tailwind-colors-red-500);
+	--status-error-primary-border: var(--tailwind-colors-red-800);
+	--status-error-secondary-border: var(--tailwind-colors-red-900);
+	--status-error-primary-bg: var(--tailwind-colors-red-950);
+	--status-error-bg: var(--tailwind-colors-zinc-800);
+	--status-error-bg-hover: var(--tailwind-colors-red-950);
+
+	/* Status warning (dark) */
+	--status-warning: var(--tailwind-colors-amber-600);
+	--status-warning-fg: var(--tailwind-colors-amber-500);
+	--status-warning-hover: var(--tailwind-colors-amber-500);
+	--status-warning-primary-border: var(--tailwind-colors-yellow-800);
+	--status-warning-secondary-border: var(--tailwind-colors-yellow-900);
+	--status-warning-primary-bg: var(--tailwind-colors-yellow-950);
+	--status-warning-bg: var(--tailwind-colors-zinc-800);
+	--status-warning-bg-hover: var(--tailwind-colors-yellow-950);
+
+	/* Status success (dark) */
+	--status-success: var(--tailwind-colors-green-600);
+	--status-success-fg: var(--tailwind-colors-green-500);
+	--status-success-hover: var(--tailwind-colors-green-500);
+	--status-success-primary-border: var(--tailwind-colors-green-800);
+	--status-success-secondary-border: var(--tailwind-colors-green-900);
+	--status-success-primary-bg: var(--tailwind-colors-green-950);
+	--status-success-bg: var(--tailwind-colors-zinc-800);
+	--status-success-bg-hover: var(--tailwind-colors-green-950);
+
+	/* Status info (dark) */
+	--status-info: var(--tailwind-colors-sky-600);
+	--status-info-fg: var(--tailwind-colors-sky-500);
+	--status-info-hover: var(--tailwind-colors-sky-500);
+	--status-info-primary-border: var(--tailwind-colors-sky-800);
+	--status-info-secondary-border: var(--tailwind-colors-sky-900);
+	--status-info-primary-bg: var(--tailwind-colors-sky-950);
+	--status-info-bg: var(--tailwind-colors-zinc-800);
+	--status-info-bg-hover: var(--tailwind-colors-sky-950);
+
+	/* Status default (dark) */
+	--status-default: var(--tailwind-colors-zinc-50);
+	--status-default-hover: var(--tailwind-colors-zinc-100);
+	--status-default-muted: var(--tailwind-colors-zinc-500);
+	--status-default-border: var(--tailwind-colors-zinc-200);
+	--status-default-bg-hover: var(--tailwind-colors-zinc-700);
+	--status-default-bg: var(--tailwind-colors-zinc-800);
+	--status-default-fg: var(--tailwind-colors-zinc-900);
+
+	/* Alpha (dark) — base 240 6% 10% */
+	--alpha-90: 240 6% 10% / 90%;
+	--alpha-80: 240 6% 10% / 80%;
+	--alpha-high-80: 240 5% 96% / 80%;
+	--alpha-70: 240 6% 10% / 70%;
+	--alpha-60: 240 6% 10% / 60%;
+	--alpha-50: 240 6% 10% / 50%;
+	--alpha-40: 240 6% 10% / 40%;
+	--alpha-30: 240 6% 10% / 30%;
+	--alpha-20: 240 6% 10% / 20%;
+	--alpha-10: 240 6% 10% / 10%;
+	--alpha-03-hover: 240 6% 10% / 10%;
+	--alpha-accent-primary: 240 6% 10% / 10%;
+	--alpha-accent-secondary: 240 6% 10% / 10%;
+
+	/* Palette (dark) */
+	--peony: 340 35% 47%;
+	--garnet: 0 35% 48%;
+	--cinnamon: 15 35% 43%;
+	--caramel: 29 35% 39%;
+	--hazel: 38 35% 36%;
+	--honey: 44 35% 35%;
+	--lemon: 49 52% 36%;
+	--olive: 67 35% 32%;
+	--sage: 87 35% 33%;
+	--mint: 120 34% 34%;
+	--bazil: 149 35% 34%;
+	--spruce: 165 35% 34%;
+	--aqua: 174 35% 33%;
+	--azure: 180 35% 33%;
+	--tiffany: 187 35% 35%;
+	--marine: 190 35% 35%;
+	--turquoise: 195 35% 37%;
+	--frost: 201 35% 39%;
+	--bosphorus: 217 35% 45%;
+	--lavender: 247 35% 53%;
+	--orchid: 275 35% 49%;
+	--lilac: 296 35% 45%;
+	--plume: 305 35% 45%;
+	--velvet: 320 35% 46%;
+
+	/* Chart (dark) */
+	--chart-1: 220 70% 50%;
+	--chart-2: 340 75% 55%;
+	--chart-3: 30 80% 55%;
+	--chart-4: 280 65% 60%;
+	--chart-5: 160 60% 45%;
+
+	/* Secondary accent (dark) */
+	--colors-secondary-accent: 0 0% 98%;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

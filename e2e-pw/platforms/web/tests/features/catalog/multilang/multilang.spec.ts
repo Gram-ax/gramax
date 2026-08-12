@@ -4,12 +4,12 @@ import { editorTest } from "@web/fixtures/editor.fixture";
 
 editorTest.use({
 	files: {
-		"new-catalog": {
-			"new-article.md": "# New Article\n",
+		untitled: {
+			"untitled.md": "# New Article\n",
 			"doc-root.yml": "title: New Catalog\n",
 		},
 	},
-	startUrl: "/-/-/-/-/new-catalog/new-article",
+	startUrl: "/-/-/-/-/untitled/untitled",
 	isolated: false,
 	firstEnter: false,
 });
@@ -23,6 +23,9 @@ editorTest.describe("Multilanguage", () => {
 			await actions.open();
 			const configureItem = await actions.findItemByTitle("Configure catalog");
 			await configureItem.click();
+
+			catalogPage.modal.getByText("Languages and Versions").click();
+
 			const languageSelect = new Select(
 				sharedPage,
 				catalogPage.modal.getByRole("combobox").filter({ hasText: "English" }),
@@ -44,11 +47,11 @@ editorTest.describe("Multilanguage", () => {
 		await sharedPage.getByText("Add language").click();
 		await sharedPage.getByText("English").click();
 		await catalogPage.waitForLoad();
-		catalogPage.assertUrl("/-/-/-/-/new-catalog/en/new-article");
+		catalogPage.assertUrl("/-/-/-/-/untitled/en/untitled");
 	});
 
 	editorTest("Edits English article title and content", async ({ catalogPage, editor }) => {
-		await catalogPage.goto("/-/-/-/-/new-catalog/en/new-article");
+		await catalogPage.goto("/-/-/-/-/untitled/en/untitled");
 		await catalogPage.waitForLoad();
 		await editor.setMarkdown("# test\n\nen");
 		await catalogPage.waitForLoad();
@@ -60,7 +63,7 @@ editorTest.describe("Multilanguage", () => {
 			await sharedPage.locator('[data-qa="switch-content-language"]').click();
 			await sharedPage.getByTestId("dropdown-content").getByText("Русский").click();
 			await catalogPage.waitForLoad();
-			catalogPage.assertUrl("/-/-/-/-/new-catalog/new-article");
+			catalogPage.assertUrl("/-/-/-/-/untitled/untitled");
 
 			await editor.setMarkdown("# test\n\nru");
 			await editor.assertMarkdownContains("ru");

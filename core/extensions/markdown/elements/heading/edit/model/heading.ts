@@ -1,5 +1,6 @@
 import { getResultByActionData } from "@core-ui/ContextServices/ButtonStateService/hooks/useCurrentAction";
-import { getNodeNameFromCursor } from "@core-ui/ContextServices/ButtonStateService/hooks/useType";
+import { getFilteredActions } from "@core-ui/ContextServices/ButtonStateService/hooks/useType";
+import { getActiveNodesFromSelection } from "@core-ui/ContextServices/ButtonStateService/utils/getActiveNodesFromSelection";
 import listItemToHeading from "@ext/markdown/elements/heading/edit/logic/listItemToHeading";
 import getChildTextId from "@ext/markdown/elements/heading/logic/getChildTextId";
 import { stopExecution } from "@ext/markdown/elementsUtils/cursorFunctions";
@@ -7,6 +8,7 @@ import { callOrReturn, InputRule, mergeAttributes, Node } from "@tiptap/core";
 import { handleAltNumbers } from "../logic/keymaps/handleAltNumbers";
 import { handleBackspace } from "../logic/keymaps/handleBackspace";
 import { handleEnter } from "../logic/keymaps/handleEnter";
+import updateId from "../plugins/updateId";
 
 export type Level = 1 | 2 | 3 | 4 | 5 | 6;
 
@@ -23,6 +25,8 @@ declare module "@tiptap/core" {
 	}
 }
 
+export const AVAILABLE_LEVELS = [2, 3, 4, 5, 6] as Level[];
+
 const Heading = Node.create<HeadingOptions>({
 	name: "heading",
 
@@ -31,7 +35,7 @@ const Heading = Node.create<HeadingOptions>({
 	defining: true,
 
 	addOptions() {
-		return { levels: [2, 3, 4, 5, 6] };
+		return { levels: AVAILABLE_LEVELS };
 	},
 
 	addAttributes() {
@@ -52,10 +56,14 @@ const Heading = Node.create<HeadingOptions>({
 	},
 
 	renderHTML({ node }) {
-		const id = node.attrs.isCustomId ? node.attrs.id : getChildTextId(node.textContent);
+		const id = node.attrs.id ?? getChildTextId(node.textContent);
 		const hasLevel = this.options.levels.includes(node.attrs.level);
 		const level = hasLevel ? node.attrs.level : this.options.levels[0];
 		return [`h${level}`, mergeAttributes({ id }), 0];
+	},
+
+	addProseMirrorPlugins() {
+		return [updateId(this.editor)];
 	},
 
 	addCommands() {
@@ -105,7 +113,9 @@ const Heading = Node.create<HeadingOptions>({
 						const isInsideListItem = Start.depth >= 2 && Start.node(2).type.name === "listItem";
 						if (isInsideListItem) return null;
 
-						const { actions, headingLevel } = getNodeNameFromCursor(state);
+						const nodes = getActiveNodesFromSelection(state);
+						const actions = getFilteredActions(nodes);
+						const headingLevel = nodes.find(({ node }) => node.type.name === "heading")?.node.attrs.level;
 
 						const { disabled } = getResultByActionData({
 							actions,

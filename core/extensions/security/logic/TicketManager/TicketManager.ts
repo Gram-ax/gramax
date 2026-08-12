@@ -2,6 +2,7 @@ import type { EnterpriseConfig } from "@app/config/AppConfig";
 import { Encoder } from "@ext/encoder/Encoder";
 import EnterpriseUser from "@ext/enterprise/EnterpriseUser";
 import t from "@ext/localization/locale/translate";
+import { Level, trace } from "@ext/loggers/opentelemetry";
 import TokenValidationError from "@ext/publicApi/TokenValidationError";
 import TicketUser from "@ext/security/logic/TicketManager/TicketUser";
 import type IPermission from "../Permission/IPermission";
@@ -13,6 +14,7 @@ export class TicketManager {
 		this._encoder = new Encoder();
 	}
 
+	@trace({ level: Level.Important, omitArgs: true })
 	checkShareTicket(ticket: string) {
 		const st = this._checkShareTicket(ticket);
 		const user = new TicketUser();
@@ -28,10 +30,12 @@ export class TicketManager {
 		return user;
 	}
 
+	@trace({ level: Level.Important, omitArgs: true })
 	checkUserTicket(ticket: string, enterpriseConfig: EnterpriseConfig) {
 		return this._checkUserTicket(ticket, enterpriseConfig);
 	}
 
+	@trace({ level: Level.Important, omitResult: true })
 	getShareTicket(catalogName: string, permission: IPermission, date: Date): string {
 		if (!this._shareAccessToken) throw new Error(t("share-access-token-not-installed"));
 		return this._encoder.encode(
@@ -40,6 +44,7 @@ export class TicketManager {
 		);
 	}
 
+	@trace({ level: Level.Important, omitArgs: true, omitResult: true })
 	getUserToken(user: EnterpriseUser, expiresAt: Date): string {
 		if (!this._shareAccessToken) throw new Error(t("share-access-token-not-installed"));
 		return this._encoder.encode(this._generateUserSharedDatas(user, expiresAt), this._shareAccessToken);
@@ -72,7 +77,7 @@ export class TicketManager {
 	}
 
 	private _parseUserSharedDatas(datas: string[]) {
-		if (!datas || datas.length !== 2) throw new TokenValidationError("Invalid token");
+		if (datas?.length !== 2) throw new TokenValidationError("Invalid token");
 		const [token, date] = datas;
 		return { token, date };
 	}

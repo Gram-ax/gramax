@@ -21,6 +21,7 @@ pub struct ParamsQuery {
 	#[serde(default)]
 	pub channel: Channel,
 	pub package: Option<Package>,
+	pub version: Option<Version>,
 }
 
 #[derive(Deserialize, Debug)]

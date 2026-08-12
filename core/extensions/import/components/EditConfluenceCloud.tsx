@@ -21,18 +21,20 @@ import { useLayoutEffect, useState } from "react";
 
 const EditConfluenceCloudForm = ({ onSubmit }: { onSubmit: (data: ConfluenceCloudSourceData) => void }) => {
 	const { setPrimaryButton } = useSetFooterButton();
-	const { isBrowser } = usePlatform();
+	const { isWeb } = usePlatform();
 	const {
 		domain,
-		conf: { authServiceUrl, basePath },
+		settings,
+		conf: { basePath },
 	} = PageDataContext.value;
+	const authServiceUrl = settings?.services?.auth?.endpoint;
 
 	const [instanceData, setInstanceData] = useState<ConfluenceInstance>(null);
 	const [user, setUser] = useState<SourceUser>(null);
 	const [token, setToken] = useState<Query>(null);
 
 	const getInstanceData = async (token: { [queryParam: string]: string }) => {
-		if (!token || !token?.access_token) return;
+		if (!token?.access_token) return;
 		const api = new ConfluenceCloudAPI({
 			sourceType: SourceType.confluenceCloud,
 			token: token.access_token,
@@ -42,7 +44,7 @@ const EditConfluenceCloudForm = ({ onSubmit }: { onSubmit: (data: ConfluenceClou
 	};
 
 	const procceedAuth = async (token: Query) => {
-		if (!token || !token?.access_token) return;
+		if (!token?.access_token) return;
 		setToken(token);
 
 		const instanceData = await getInstanceData(token);
@@ -62,11 +64,11 @@ const EditConfluenceCloudForm = ({ onSubmit }: { onSubmit: (data: ConfluenceClou
 			(location) => procceedAuth(parserQuery(location.search)),
 		);
 
-		if (isBrowser) procceedAuth(parserQuery(await waitForTempToken()));
+		if (isWeb) await procceedAuth(parserQuery(await waitForTempToken()));
 	};
 
 	const loadUser = async (instanceData: ConfluenceInstance, token: { [queryParam: string]: string }) => {
-		if (!token || !token?.access_token) return;
+		if (!token?.access_token) return;
 		const api = makeSourceApi({
 			sourceType: SourceType.confluenceCloud,
 			token: token.access_token,
@@ -76,6 +78,7 @@ const EditConfluenceCloudForm = ({ onSubmit }: { onSubmit: (data: ConfluenceClou
 		return await api.getUser();
 	};
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: footer button re-syncs on auth state only
 	useLayoutEffect(() => {
 		const handleAddRepo = () => {
 			if (token) {

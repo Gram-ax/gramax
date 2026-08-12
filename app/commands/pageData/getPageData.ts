@@ -14,6 +14,13 @@ const getPageData: Command<PageDataParams, PageProps> = Command.create({
 	async do(props: PageDataParams) {
 		return await resolvePageData(this._commands, this._app.wm, props);
 	},
+
+	params(ctx, q) {
+		const path = q.path;
+		const mode = q.mode;
+		const diff = q.diff;
+		return { ctx, path, mode, diff };
+	},
 });
 
 export default getPageData;

@@ -1,5 +1,6 @@
 import type Context from "@core/Context/Context";
 import { Encoder } from "@ext/encoder/Encoder";
+import { Level, trace } from "@ext/loggers/opentelemetry";
 import type WorkspaceManager from "@ext/workspace/WorkspaceManager";
 import type { AiServerConfig } from "../models/types";
 
@@ -26,11 +27,13 @@ export class AiDataProvider {
 		}
 	}
 
+	@trace({ level: Level.Important, omitArgs: true })
 	removeEditorAiData(ctx: Context, workspacePath: string) {
 		const name = this._getCompleteName(workspacePath);
 		if (ctx.cookie.exist(name)) ctx.cookie.remove(name);
 	}
 
+	@trace({ level: Level.Important, omitArgs: true })
 	setEditorAiData(ctx: Context, workspacePath: string, data: AiServerConfig) {
 		const encoded = this._encode(data);
 		ctx.cookie.set(this._getCompleteName(workspacePath), encoded);

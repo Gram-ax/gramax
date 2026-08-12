@@ -7,10 +7,19 @@ import type ApiRequest from "./ApiRequest";
 import type ApiResponse from "./ApiResponse";
 
 export const apiUtils = {
+	// Rewrite-reached routes (/robots.txt, /sitemap.xml) can be handed a bare
+	// ServerResponse without the NextApiResponse `.send` helper, so `res.send`
+	// throws `TypeError: res.send is not a function` (Bugsnag 698339579…). Fall
+	// back to `.end` (guaranteed by the ApiResponse contract) in that case.
+	send(res: ApiResponse, body: unknown) {
+		if (typeof res.send === "function") res.send(body);
+		else res.end(typeof body === "string" ? body : JSON.stringify(body));
+	},
+
 	sendError(res: ApiResponse, error: DefaultError, code = 500) {
 		res.statusCode = code;
 		res.setHeader("Content-type", "application/json");
-		res.send({
+		apiUtils.send(res, {
 			isWarning: error.isWarning,
 			message: error.message,
 			stack: error.stack,
@@ -72,19 +81,19 @@ export const apiUtils = {
 	sendPlainText(res: ApiResponse, text: string) {
 		res.statusCode = 200;
 		res.setHeader("Content-type", "text/plain");
-		res.send(text);
+		apiUtils.send(res, text);
 	},
 
 	sendCss(res: ApiResponse, text: string) {
 		res.statusCode = 200;
 		res.setHeader("Content-type", "text/css");
-		res.send(text);
+		apiUtils.send(res, text);
 	},
 
 	sendJson(res: ApiResponse, json: unknown) {
 		res.statusCode = 200;
 		res.setHeader("Content-type", "application/json");
-		res.send(json);
+		apiUtils.send(res, json);
 	},
 
 	sendDiagram(res: ApiResponse, diagram: { content: string; mime: MimeTypes }) {

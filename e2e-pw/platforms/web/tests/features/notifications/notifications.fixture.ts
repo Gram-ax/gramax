@@ -82,7 +82,7 @@ export const notificationsTest = catalogTest.extend<EnterpriseFixture>({
 		});
 
 		await sharedPage.reload({ waitUntil: "domcontentloaded" });
-		await sharedPage.locator('[data-qa="catalog-navigation-article-link-level-0"]').first().waitFor();
+		await sharedPage.locator('[data-qa="catalog-navigation-article-link-level-1"]').first().waitFor();
 
 		await use(sharedPage);
 
@@ -109,9 +109,9 @@ export const notificationsTest = catalogTest.extend<EnterpriseFixture>({
 	},
 
 	editMenu: async ({ enterprisePage }, use) => {
-		const articleItem = enterprisePage.locator('[data-qa="catalog-navigation-article-link-level-0"]').first();
+		const articleItem = enterprisePage.locator('[data-qa="catalog-navigation-article-link-level-1"]').first();
 		await articleItem.hover();
-		await articleItem.locator(".right-extensions button").first().click();
+		await articleItem.getByTestId("article-actions").click();
 		const dropdownContent = enterprisePage.getByTestId("dropdown-content");
 		await expect(dropdownContent).toBeVisible();
 
@@ -128,9 +128,9 @@ export const notificationsTest = catalogTest.extend<EnterpriseFixture>({
 
 	openNotificationDialog: async ({ enterprisePage }, use) => {
 		await use(async () => {
-			const articleItem = enterprisePage.locator('[data-qa="catalog-navigation-article-link-level-0"]').first();
+			const articleItem = enterprisePage.locator('[data-qa="catalog-navigation-article-link-level-1"]').first();
 			await articleItem.hover();
-			await articleItem.locator(".right-extensions button").first().click();
+			await articleItem.getByTestId("article-actions").click();
 			const dropdownContent = enterprisePage.getByTestId("dropdown-content");
 			await expect(dropdownContent).toBeVisible();
 			await dropdownContent.getByRole("menuitem", { name: "Edit notifications" }).click();

@@ -7,9 +7,18 @@ export const getMainBranch = (user: User, catalog: ReadonlyCatalog) => {
 	return (user as EnterpriseUser).getEnterpriseInfo().catalogsProps?.[catalog?.name]?.mainBranch ?? "";
 };
 
-export const isCurrentBranchMain = async (user: User, catalog: ReadonlyCatalog) => {
+export const isMainBranchProtected = (user: User, catalog: ReadonlyCatalog) => {
+	if (user.type !== "enterprise") return false;
 	const mainBranch = getMainBranch(user, catalog);
-	if (!mainBranch) return false;
+	return (
+		(user as EnterpriseUser).getEnterpriseInfo().catalogsProps?.[catalog?.name]?.mainBranchProtected ??
+		Boolean(mainBranch)
+	);
+};
+
+export const isCurrentBranchProtected = async (user: User, catalog: ReadonlyCatalog) => {
+	const mainBranch = getMainBranch(user, catalog);
+	if (!mainBranch || !isMainBranchProtected(user, catalog)) return false;
 
 	try {
 		const branch = await catalog?.repo?.gvc?.getCurrentBranch?.();

@@ -1,6 +1,6 @@
 import { env, getExecutingEnvironment } from "@app/resolveModule/env";
 import assert from "assert";
-import getStaticFeatures from "../../../apps/gramax-cli/src/logic/initialDataUtils/getStaticFeatures";
+import getStaticFeatures from "../../../apps/cli/src/logic/initialDataUtils/getStaticFeatures";
 
 export enum FeatureTarget {
 	none = 0,
@@ -103,14 +103,14 @@ export const setFeature = (name: keyof typeof features, value: boolean) => {
 
 export const setFeatureList = (enabled?: (keyof typeof features)[]) => {
 	assert(
-		getExecutingEnvironment() !== "browser" && getExecutingEnvironment() !== "tauri",
+		getExecutingEnvironment() !== "web" && getExecutingEnvironment() !== "tauri",
 		"Not supported in browser & tauri environment",
 	);
 	loadFeatures(enabled);
 };
 
 const target: Record<ReturnType<typeof getExecutingEnvironment>, FeatureTarget> = {
-	browser: FeatureTarget.web,
+	web: FeatureTarget.web,
 	tauri: FeatureTarget.desktop,
 	next: FeatureTarget.docportal,
 	static: FeatureTarget.static,
@@ -122,6 +122,8 @@ const target: Record<ReturnType<typeof getExecutingEnvironment>, FeatureTarget> 
 export const feature = (name: keyof typeof features): boolean => {
 	return cachedFeatures[name]?.isEnabled || false;
 };
+
+export const currentFeatureTarget = (): FeatureTarget => target[getExecutingEnvironment()];
 
 export const features = {
 	cloud: {
@@ -141,40 +143,6 @@ export const features = {
 		targets: FeatureTarget.web | FeatureTarget.desktop,
 		default: false,
 	},
-	"compress-images": {
-		title: {
-			ru: "Сжатие изображений",
-			en: "Image Compression",
-		},
-		desc: {
-			ru: "Автоматическое сжатие и конвертация изображений",
-			en: "Automatically compress and convert images",
-		},
-		url: {
-			ru: null,
-			en: null,
-		},
-		icon: "image",
-		targets: FeatureTarget.web | FeatureTarget.desktop,
-		default: false,
-	},
-	"opentelemetry-logs": {
-		title: {
-			ru: "Подробное логирование",
-			en: "Verbose Logging",
-		},
-		desc: {
-			ru: "Выводится в F12 → Console → Debug",
-			en: "Logs are exported to F12 → Console → Debug",
-		},
-		url: {
-			ru: null,
-			en: null, // Waiting for translation
-		},
-		icon: "library-big",
-		targets: FeatureTarget.all,
-		default: env("BRANCH") === "develop",
-	},
 	"native-fs": {
 		title: {
 			ru: "Rust-based File Structure",
@@ -189,7 +157,6 @@ export const features = {
 		default: env("BRANCH") === "develop",
 	},
 	"agent-chat": {
-		status: "in-dev",
 		title: {
 			ru: "Чат с агентом",
 			en: "Chat with agent",
@@ -204,6 +171,43 @@ export const features = {
 		},
 		icon: "chat",
 		targets: FeatureTarget.web | FeatureTarget.desktop,
+		default: false,
+	},
+	"ges-cloud": {
+		status: "in-dev",
+		title: {
+			ru: "GES Cloud",
+			en: "GES Cloud",
+		},
+		desc: {
+			ru: "Хранение и публикация документов в облаке",
+			en: "Storage and publication of documents in the cloud",
+		},
+		url: {
+			ru: null,
+			en: null,
+		},
+		icon: "cloud",
+		targets: FeatureTarget.desktop,
+		default: false,
+	},
+	"new-diffs": {
+		title: {
+			ru: "Улучшенная подсветка изменений",
+			en: "Improved change highlighting",
+		},
+		desc: {
+			ru: "Новый движок сравнения: вместо построчного diff — точная подсветка правок в оформленной статье, вплоть до отдельного слова. Настраивается в разделе «Сравнение»",
+			en: "New comparison engine: precise edit highlighting inside the formatted article instead of a line-by-line diff, down to individual words. Configurable in the Compare section",
+		},
+
+		url: {
+			ru: null,
+			en: null,
+		},
+		icon: "diff",
+		status: "beta",
+		targets: FeatureTarget.none,
 		default: false,
 	},
 } as const satisfies FeatureList;

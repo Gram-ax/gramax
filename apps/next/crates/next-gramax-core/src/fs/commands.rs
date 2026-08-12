@@ -3,6 +3,7 @@ use std::path::PathBuf;
 use napi::bindgen_prelude::Buffer;
 
 use gramaxcore::commands as core;
+use gramaxcore::scan::catalog::CatalogTreeDto;
 use gramaxcore::scan::workspace::ScanOpts;
 use gramaxcore::scan::workspace::WorkspaceEntryDto;
 use gramaxcore::Error as CoreError;
@@ -95,4 +96,23 @@ pub fn scan_workspace(scope: String, path: String, opts: String) -> Output {
 	let parsed_opts = serde_json::from_str::<ScanOpts>(&opts).map_err(|e| CoreError::Other(e.to_string()));
 	let scope_parsed = parse_scope(&scope).map_err(CoreError::from);
 	scope_parsed.and_then(|s| parsed_opts.and_then(|o| core::scan_workspace(s, path.as_ref(), &o))) as Result<Vec<WorkspaceEntryDto>, CoreError>
+}
+
+#[napi_async]
+pub fn scan_catalog(scope: String, path: String, docroot_rel: Option<String>, opts: String) -> Output {
+	let parsed_opts = serde_json::from_str::<ScanOpts>(&opts).map_err(|e| CoreError::Other(e.to_string()));
+	let scope_parsed = parse_scope(&scope).map_err(CoreError::from);
+	let docroot = docroot_rel.map(PathBuf::from);
+	scope_parsed.and_then(|s| parsed_opts.and_then(|o| core::scan_catalog(s, path.as_ref(), docroot.as_deref(), &o))) as Result<CatalogTreeDto, CoreError>
+}
+
+// FS watcher is desktop-only. Next provides noop bindings so JS resolver does not crash.
+#[napi_async]
+pub fn watch_workspace(_scope: String, _root: String, _opts: String) -> Output {
+	Ok(0u32) as Result<u32, CoreError>
+}
+
+#[napi_async]
+pub fn unwatch_workspace(_id: u32) -> Output {
+	Ok(()) as Result<(), CoreError>
 }

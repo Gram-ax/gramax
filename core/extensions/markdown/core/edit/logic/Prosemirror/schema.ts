@@ -40,6 +40,7 @@ import * as listSchema from "@ext/markdown/elements/list/edit/models/listSchema"
 import blockMd from "@ext/markdown/elements/md/model/blockMdSchema";
 import inlineMdComponent from "@ext/markdown/elements/md/model/inlineMdSchema";
 import note from "@ext/markdown/elements/note/edit/model/noteSchema";
+import noteTitle from "@ext/markdown/elements/note/edit/model/noteTitleSchema";
 import openApiSchema from "@ext/markdown/elements/openApi/edit/models/openApiSchema";
 import paragraphSchema from "@ext/markdown/elements/paragraph/editor/model/paragraphSchema";
 import questionSchema from "@ext/markdown/elements/question/edit/models/questionSchema";
@@ -127,6 +128,7 @@ export const getSchema = (additionalSchema?: Record<string, any>, modifiers?: Sc
 			icon,
 			cut,
 			note,
+			noteTitle,
 			unsupported,
 			html: htmlSchema,
 			view: viewSchema,

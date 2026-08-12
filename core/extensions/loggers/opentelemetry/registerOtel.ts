@@ -4,6 +4,6 @@ export const registerOtel = async (): Promise<void> => {
 	if (getExecutingEnvironment() === "next" || getExecutingEnvironment() === "cli") {
 		await (await import("./next/registerOtel")).registerOtel();
 	} else {
-		await (await import("./browser/registerOtel")).registerOtel();
+		await (await import("./web/registerOtel")).registerOtel();
 	}
 };

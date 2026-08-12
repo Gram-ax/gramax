@@ -38,6 +38,11 @@ const getHomePageData: Command<HomePageDataParams, { data: HomePageData; context
 			context,
 		};
 	},
+
+	params(ctx, q) {
+		const path = q.path;
+		return { ctx, path };
+	},
 });
 
 export default getHomePageData;

@@ -1,6 +1,6 @@
-import { getPdfjs } from "../../../apps/browser/src/pdfjs/getPdfjs";
-import Link from "../../../apps/gramax-cli/src/Components/Atoms/Link";
-import StaticRouter from "../../../apps/gramax-cli/src/logic/api/StaticRouter";
+import Link from "../../../apps/cli/src/Components/Atoms/Link";
+import StaticRouter from "../../../apps/cli/src/logic/api/StaticRouter";
+import { getPdfjs } from "../../../apps/web/src/pdfjs/getPdfjs";
 import useUrlImage from "../../../core/components/Atoms/Image/useUrlImage";
 import type { DynamicModules } from "..";
 
@@ -23,7 +23,11 @@ export const getCliModules = (): DynamicModules => {
 		openInExplorer: () => undefined,
 		openWindowWithUrl: () => undefined,
 		openInWeb: () => undefined,
+		gesCloudLogin: () => undefined,
 		getPdfjs,
+		updateCheck: () => undefined,
+		updateInstallFromCache: () => undefined,
+		updateAccept: () => undefined,
 	};
 };
 

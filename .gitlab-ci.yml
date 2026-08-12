@@ -1,9 +1,21 @@
 stages:
-  - renovate
   - build-images
+  - ai
   - test
   - build
   - sync
+
+default:
+  after_script:
+    - !reference [.ci-job-duration-metrics, after_script]
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+      - stuck_or_timeout_failure
+      - scheduler_failure
+      - api_failure
+      - unknown_failure
 
 include:
   - template: Security/Secret-Detection.gitlab-ci.yml
@@ -14,6 +26,7 @@ include:
   - local: .ci/build.yml
   - local: .ci/build-apps.yml
   - local: .ci/sync.yml
+  - local: .ci/ai.yml
 
 workflow:
   auto_cancel:

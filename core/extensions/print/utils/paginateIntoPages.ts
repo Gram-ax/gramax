@@ -12,9 +12,10 @@ import type { ControlInfo } from "@ext/print/utils/pagination/types";
 import { throwIfAborted } from "./pagination/abort";
 import PagePaginator from "./pagination/PagePaginator";
 import { createPage, PAGE_CLASS } from "./pagination/pageElements";
+import { waitForPrintTemplateImages } from "./pagination/printTemplateImages";
 import type { ProgressTracker } from "./pagination/progress";
 import { createProgressTracker } from "./pagination/progress";
-import { createChunkScheduler, nextFrame } from "./pagination/scheduling";
+import { createChunkScheduler, nextFrame, waitForNextPaint } from "./pagination/scheduling";
 import { getTitlePageContent, TITLE_PAGE_CLASS } from "./pagination/titlePage";
 import { initTocPageContent } from "./tocPage/initTocPageContent";
 
@@ -22,7 +23,7 @@ async function paginateIntoPages(
 	source: HTMLElement,
 	pages: HTMLElement,
 	params: PdfPrintParams,
-	printableContent: PrintableContent<ArticlePreview>,
+	printableContent: PrintableContent<ArticlePreview> & { template?: string },
 	onDone?: VoidFunction,
 	onProgress?: (progress: PdfExportProgress) => void,
 	options: PaginateIntoPagesOptions = {},
@@ -34,8 +35,8 @@ async function paginateIntoPages(
 
 	throwIfAborted(signal);
 
-	if ((document as any).fonts?.ready) {
-		await (document as any).fonts.ready;
+	if (document.fonts?.ready) {
+		await document.fonts.ready;
 	}
 	throwIfAborted(signal);
 
@@ -71,10 +72,14 @@ async function paginateIntoPages(
 		nodeDimension,
 	};
 
-	const paginator = new PagePaginator(source, { paginationInfo, pages, controlInfo });
+	const paginator = new PagePaginator(source, {
+		paginationInfo,
+		pages,
+		controlInfo,
+	});
 	await paginator.paginateNode(currentPage);
 
-	if (params.tocPage) initTocPageContent(pages, printableContent.items, params.titlePage);
+	if (params.tocPage) initTocPageContent(pages, printableContent.items, params.titlePage, params.tocPageTitle);
 	throwIfAborted(signal);
 
 	if (params.titlePage) {
@@ -88,6 +93,12 @@ async function paginateIntoPages(
 		await yieldTick();
 		throwIfAborted(signal);
 	}
+
+	if (document.fonts?.ready) {
+		await document.fonts.ready;
+	}
+	await waitForPrintTemplateImages(printableContent.template ?? "", signal);
+	await waitForNextPaint(signal);
 
 	onProgress?.({
 		stage: "exporting",

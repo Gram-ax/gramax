@@ -6,12 +6,18 @@ export const useGotoRevision = () => {
 	const router = useRouter();
 	const { call: gotoRevision } = useDeferApi<string, string>({
 		onDone: (pathname) => {
-			router.pushPath(pathname);
+			const hasCommitOid = pathname.includes("commit-") || pathname.includes("dif-");
+			if (hasCommitOid) {
+				router.pushPath(pathname, { diff: "1" });
+			} else {
+				router.pushPath(pathname);
+			}
 		},
 	});
 
 	return useCallback(
-		(commitOid: string) => gotoRevision({ url: (api) => api.getPathnameToRevision(commitOid) }),
+		(commitOid: string, oldCommitOid?: string) =>
+			gotoRevision({ url: (api) => api.getPathnameToRevision(commitOid, oldCommitOid) }),
 		[gotoRevision],
 	);
 };

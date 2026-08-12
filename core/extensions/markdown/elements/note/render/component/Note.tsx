@@ -26,7 +26,6 @@ export const noteIcons: { [note in NoteType]: string } = {
 interface NoteProps {
 	type?: NoteType;
 	title?: string;
-	titleEditor?: (expanded: boolean) => ReactElement;
 	children?: ReactElement;
 	collapsed?: string | boolean;
 	className?: string;
@@ -36,23 +35,12 @@ interface NoteProps {
 }
 
 const Note = (props: NoteProps): ReactElement => {
-	const {
-		type = NoteType.note,
-		title,
-		className,
-		children,
-		collapseCallback,
-		titleEditor,
-		disableRender,
-		isPrint,
-	} = props;
+	const { type = NoteType.note, title, className, children, collapseCallback, disableRender, isPrint } = props;
 	const collapsed = props.collapsed && !isPrint;
 	const [expanded, dispatchExpanded] = useState(!collapsed);
 
 	const toggleExpanded = (e: MouseEvent<HTMLElement>) => {
 		e.preventDefault();
-		const target = e.target as HTMLElement;
-		if (target.tagName === "INPUT") return;
 		collapseCallback?.(!expanded);
 		dispatchExpanded((p) => !p);
 	};
@@ -63,15 +51,15 @@ const Note = (props: NoteProps): ReactElement => {
 	}, [collapsed]);
 
 	const clickable = !expanded || collapsed;
-	const hasTitle = title || titleEditor;
 
 	return (
 		<div
 			className={classNames("admonition", {}, [
 				`admonition-${type}`,
-				`admonition-${hasTitle ? "column" : "row"}`,
+				`admonition-${title ? "column" : "row"}`,
 				className,
 			])}
+			data-component="note"
 		>
 			<div
 				className={classNames("admonition-heading", { expanded: !expanded })}
@@ -88,9 +76,7 @@ const Note = (props: NoteProps): ReactElement => {
 					)}
 				</div>
 				<div className="titleWrapper" contentEditable={false} suppressContentEditableWarning={true}>
-					<div className={classNames("title", { clickable: clickable && !titleEditor })}>
-						{titleEditor?.(expanded) || title}
-					</div>
+					<div className={classNames("title", { clickable })}>{title}</div>
 				</div>
 			</div>
 			<div className="admonition-content">

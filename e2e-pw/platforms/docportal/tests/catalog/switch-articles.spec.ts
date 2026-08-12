@@ -18,7 +18,7 @@ test.describe("switch articles", () => {
 			await page.getByRole("button", { name: humanName }).click();
 			await basePage.waitForLoad();
 
-			const articles = page.getByRole("list").filter({ hasText: anchor }).getByRole("link");
+			const articles = page.locator("[data-qa^='catalog-navigation-']").filter({ hasText: anchor });
 
 			let count = await articles.count();
 

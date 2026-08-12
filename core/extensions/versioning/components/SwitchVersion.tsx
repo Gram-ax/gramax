@@ -19,7 +19,7 @@ import {
 import { useCallback, useEffect, useState } from "react";
 
 const SwitchVersion = () => {
-	const { isTauri, isBrowser } = usePlatform();
+	const { isTauri, isWeb } = usePlatform();
 	const catalogName = useCatalogPropsStore((s) => s.data.name);
 	const { resolvedVersions, resolvedVersion } = useCatalogPropsStore(
 		(state) => ({
@@ -45,6 +45,10 @@ const SwitchVersion = () => {
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useEffect(() => {
+		// resolvedVersion changing means the switch finished — stop the spinner. The `on-did-command`
+		// listener above only fires on platforms that go through the command bus (web/tauri); the
+		// docportal fetches page data directly and never emits it, so rely on the store change here.
+		setIsLoading(false);
 		reset();
 		if (!resolvedVersions?.length) return;
 		void getBranch();
@@ -61,7 +65,7 @@ const SwitchVersion = () => {
 			setIsLoading(true);
 			const validatedName = name === branch?.name ? null : name;
 
-			if (!isTauri && !isBrowser) {
+			if (!isTauri && !isWeb) {
 				router.pushPath(addScopeToPath(router.path, validatedName));
 				return;
 			}

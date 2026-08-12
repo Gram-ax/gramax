@@ -6,14 +6,13 @@ import "../../../core/styles/chain-icon.css";
 import ContextProviders from "@components/ContextProviders";
 import OpenGraph from "@components/OpenGraph/OpenGraph";
 import type { PageProps } from "@components/Pages/models/Pages";
-import Language from "@core-ui/ContextServices/Language";
 import getPageTitle from "@core-ui/getPageTitle";
 import { defaultRefreshPage } from "@core-ui/utils/initGlobalFuncs";
 import { NotificationsInit } from "@ext/enterprise/notifications/NotificationsInit";
 import ErrorBoundary from "@ext/errorHandlers/client/components/ErrorBoundary";
+import { useApplyTheme } from "@ext/Theme/utils";
 import { setFeatureList } from "@ext/toggleFeatures/features";
 import { usePluginEvent } from "@plugins/api/events";
-import { usePluginLoader } from "@plugins/hooks/usePluginLoader";
 import { Toaster } from "@ui-kit/Toast";
 import { TooltipProvider } from "@ui-kit/Tooltip";
 import Error from "next/error";
@@ -39,14 +38,8 @@ export default function App({
 
 	const router = useRouter();
 
+	useApplyTheme();
 	const basePath = pageProps?.context?.conf?.basePath ?? "";
-
-	usePluginLoader({
-		basePath: basePath ?? "",
-		workspacePath: pageProps.context?.workspace?.current,
-		gesUrl: pageProps?.context?.conf?.enterprise?.gesUrl,
-		enabled: !!pageProps.context,
-	});
 
 	usePluginEvent("app:open", { ...pageProps, path: router.asPath });
 	usePluginEvent("app:close");
@@ -60,25 +53,26 @@ export default function App({
 	return (
 		<>
 			<Head>
-				<title>{getPageTitle(isArticle, pageProps.data)}</title>
+				<title>{getPageTitle(pageProps)}</title>
 				<link href={iconPath} rel="icon" />
 				{isArticle && isReadonlyArticle && (
 					<OpenGraph domain={pageProps.context.domain} openGraphData={pageProps.data.openGraphData} />
 				)}
+				{isArticle && pageProps?.data?.articleProps?.description && (
+					<meta content={pageProps.data.articleProps.description} name="description" />
+				)}
 			</Head>
-			<Language.Init>
-				<TooltipProvider>
-					<Toaster />
-					<ContextProviders pageProps={pageProps} platform="next" refreshPage={defaultRefreshPage}>
-						<>
-							<NotificationsInit pageProps={pageProps} />
-							<ErrorBoundary context={pageProps.context}>
-								<Component {...pageProps} />
-							</ErrorBoundary>
-						</>
-					</ContextProviders>
-				</TooltipProvider>
-			</Language.Init>
+			<TooltipProvider>
+				<Toaster />
+				<ContextProviders pageProps={pageProps} platform="next" refreshPage={defaultRefreshPage}>
+					<>
+						<NotificationsInit pageProps={pageProps} />
+						<ErrorBoundary context={pageProps.context}>
+							<Component {...pageProps} />
+						</ErrorBoundary>
+					</>
+				</ContextProviders>
+			</TooltipProvider>
 		</>
 	);
 }

@@ -5,7 +5,7 @@ const getTextByProperty = (property: Property, existsInArticle: boolean = false)
 	const isFlag = property.type === PropertyTypes.flag;
 	if (!existsInArticle && !isFlag) return "";
 
-	return isFlag ? (existsInArticle ? t("yes") : t("no")) : existsInArticle ? property.value?.join(", ") : "";
+	return isFlag ? (existsInArticle ? t("yes") : t("no")) : (property.value?.join(", ") ?? "");
 };
 
 export default getTextByProperty;

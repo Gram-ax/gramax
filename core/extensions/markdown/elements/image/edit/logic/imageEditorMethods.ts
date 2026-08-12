@@ -6,7 +6,7 @@ const getPixels = (num: number, percent: number) => {
 	return (num * percent) / 100;
 };
 
-export const calculateScale = (imageContainer: HTMLDivElement, imageSize: { w: number; h: number }, crop: Crop) => {
+export const calculateScale = (_imageContainer: HTMLDivElement, imageSize: { w: number; h: number }, crop: Crop) => {
 	const windowWidth = window.innerWidth;
 	const windowHeight = window.innerHeight;
 
@@ -49,7 +49,7 @@ export const getCroppedCanvas = async (
 		const image = new Image();
 		const buffer = originalBuffer || null;
 		const type = resolveFileKind(buffer);
-		image.src = buffer ? "data:" + type + ";base64," + buffer.toString("base64") : realSrc;
+		image.src = buffer ? `data:${type};base64,${buffer.toString("base64")}` : realSrc;
 
 		return new Promise((resolve) => {
 			image.onload = () => {
@@ -64,6 +64,9 @@ export const getCroppedCanvas = async (
 				context.drawImage(image, x, y, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
 
 				canvas.toBlob((blob) => resolve(blob), resolveFileKind(buffer));
+			};
+			image.onerror = () => {
+				resolve(undefined);
 			};
 		});
 	}
@@ -86,8 +89,8 @@ export function cropImage(props: cropImageProps) {
 	image.style.maxWidth = "unset";
 	image.style.maxHeight = "unset";
 
-	image.style.left = -cropX * scale + "px";
-	image.style.top = -cropY * scale + "px";
+	image.style.left = `${-cropX * scale}px`;
+	image.style.top = `${-cropY * scale}px`;
 
 	image.style.transform = `scale(${scale})`;
 	image.style.transformOrigin = "top left";
@@ -226,10 +229,10 @@ export const handleMove = (props: HandleMoveProps) => {
 			main.style.top = `calc(${main.style.top} - ${marginTop}px)`;
 
 			const computedStyle = getComputedStyle(main);
-			const leftPercent = (parseInt(computedStyle.left) / imageContainerRect.width) * 100;
-			const topPercent = (parseInt(computedStyle.top) / imageContainerRect.height) * 100;
-			const widthPercent = (parseInt(main.style.width) / imageContainerRect.width) * 100;
-			const heightPercent = (parseInt(main.style.height) / imageContainerRect.height) * 100;
+			const leftPercent = (parseInt(computedStyle.left, 10) / imageContainerRect.width) * 100;
+			const topPercent = (parseInt(computedStyle.top, 10) / imageContainerRect.height) * 100;
+			const widthPercent = (parseInt(main.style.width, 10) / imageContainerRect.width) * 100;
+			const heightPercent = (parseInt(main.style.height, 10) / imageContainerRect.height) * 100;
 
 			main.style.marginTop = `${marginTop}px`;
 			main.style.marginLeft = `${marginLeft}px`;
@@ -296,10 +299,10 @@ export const objectMove = (props: ObjectMoveProps) => {
 			object.style.top = `calc(${object.style.top} - ${marginTop}px)`;
 
 			const computedStyle = getComputedStyle(object);
-			const leftPercent = (parseInt(computedStyle.left) / containerRect.width) * 100;
-			const topPercent = (parseInt(computedStyle.top) / containerRect.height) * 100;
-			const widthPercent = (parseInt(object.style.width) / containerRect.width) * 100;
-			const heightPercent = (parseInt(object.style.height) / containerRect.height) * 100;
+			const leftPercent = (parseInt(computedStyle.left, 10) / containerRect.width) * 100;
+			const topPercent = (parseInt(computedStyle.top, 10) / containerRect.height) * 100;
+			const widthPercent = (parseInt(object.style.width, 10) / containerRect.width) * 100;
+			const heightPercent = (parseInt(object.style.height, 10) / containerRect.height) * 100;
 
 			object.style.marginTop = `${marginTop}px`;
 			object.style.marginLeft = `${marginLeft}px`;

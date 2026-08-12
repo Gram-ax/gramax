@@ -13,7 +13,7 @@ import usePrintHandler from "@ext/print/usePrintHandler";
 const closeIfChild = () => {
 	if (typeof window === "undefined") return;
 
-	if (window.opener && getExecutingEnvironment() === "browser") {
+	if (window.opener && getExecutingEnvironment() === "web") {
 		window?.opener?.onLoadApp?.(window.location);
 	}
 

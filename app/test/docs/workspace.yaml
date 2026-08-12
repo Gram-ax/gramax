@@ -1,2 +1,13 @@
 name: Gramax
 icon: layers
+groups: null
+sections: null
+enterprise:
+  lastUpdateDate: null
+enterpriseCloud:
+  url: null
+settings:
+  services:
+    git-proxy: https://develop.gram.ax/git-proxy
+    auth: https://gram.ax/auth
+    diagram-renderer: https://app.gram.ax/diagram-renderer

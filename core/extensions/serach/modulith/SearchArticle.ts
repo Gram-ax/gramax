@@ -1,6 +1,7 @@
 import { ContentLanguage } from "@ext/localization/core/model/Language";
-import type { Article, ArticleFilter } from "@ics/article-search/article";
+import type { Article, ArticleFilter, ArticleItems } from "@ics/article-search/article";
 import type { FieldsToArrayPaths } from "@ics/article-search-utils";
+import type { Article as RemoteArticle } from "@ics/gx-vector-search";
 
 export type ArticleLanguage = ContentLanguage | "none";
 
@@ -39,7 +40,17 @@ export type SearchArticleMetadata =
 	| SearchArticleCatalogMetadata
 	| SearchArticleFileMetadata;
 
-export type SearchArticle = Article<SearchArticleMetadata>;
+export type SearchDiagramItemMetadata = {
+	type: "diagram";
+	diagramType: string;
+};
+
+export type SearchArticleItemMetadata = SearchDiagramItemMetadata | undefined;
+
+export type SearchArticleItems = ArticleItems<SearchArticleItemMetadata>;
+
+export type SearchArticle = Article<SearchArticleMetadata, SearchArticleItemMetadata>;
+export type RemoteSearchArticle = RemoteArticle<SearchArticleArticleMetadata>;
 
 export type SearchArticleKey = FieldsToArrayPaths<SearchArticleMetadata>;
 export type SearchArticleFilter = ArticleFilter<SearchArticleKey>;

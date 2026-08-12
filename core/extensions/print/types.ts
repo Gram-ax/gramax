@@ -9,6 +9,7 @@ export interface PdfPrintParams {
 	tocPage: boolean;
 	titleNumber: boolean;
 	template?: string;
+	tocPageTitle?: string;
 }
 
 export type PdfExportStage = "exporting" | "printing" | "cancelled";

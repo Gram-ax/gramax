@@ -1,0 +1,10 @@
+{
+	"identifier": "browser-session",
+	"description": "Allows remote pages opened in agent browser windows to send snapshot results and debug logs back to the host app.",
+	"local": false,
+	"remote": {
+		"urls": ["http://*/*", "https://*/*"]
+	},
+	"windows": ["browser-session-*"],
+	"permissions": ["plugin-browser-session:allow-resolve-request", "plugin-browser-session:allow-debug-log"]
+}

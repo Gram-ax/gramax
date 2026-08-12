@@ -1,5 +1,6 @@
+import type { IconCode } from "@components/Atoms/Icon/LucideIcon";
 import t from "@ext/localization/locale/translate";
-import { isMarkdownText } from "@ext/markdown/elements/pasteMarkdown/handlePasteMarkdown";
+import { isMarkdownText } from "@ext/markdown/elements/pasteMarkdown/logic/handlePasteMarkdown";
 import PropertyServiceProvider from "@ext/properties/components/PropertyService";
 import type { Property, PropertyValue } from "@ext/properties/models";
 import { isComplexProperty } from "@ext/templates/models/properties";
@@ -83,7 +84,7 @@ export const AddProperty = ({ properties, disabled, onChange }: AddPropertyProps
 						key={property.id}
 						onSelect={() => onCheckboxChange(property)}
 					>
-						{property.icon ? <Icon icon={property.icon} /> : <div className="w-4 h-4" />}
+						{property.icon ? <Icon icon={property.icon as IconCode} /> : <div className="w-4 h-4" />}
 						{property.name}
 					</DropdownMenuCheckboxItem>
 				))}

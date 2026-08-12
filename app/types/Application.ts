@@ -5,10 +5,12 @@ import type Hash from "@core/Hash/HashItemProvider";
 import type ResourceUpdaterFactory from "@core/Resource/ResourceUpdaterFactory";
 import type CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
 import type SitePresenterFactory from "@core/SitePresenter/SitePresenterFactory";
+import type AgentManager from "@ext/agent/core/agentManager";
 import type { AiDataProvider } from "@ext/ai/logic/AiDataProvider";
 import type EnterpriseManager from "@ext/enterprise/EnterpriseManager";
 import type { GesCloudManager } from "@ext/enterprise-cloud/GesCloudManager";
 import type GitRepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
+import type { HealthcheckRegistry } from "@ext/healthcheck/HealthCheckRegistry";
 import type Logger from "@ext/loggers/Logger";
 import type MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
 import type MarkdownParser from "@ext/markdown/core/Parser/Parser";
@@ -16,7 +18,7 @@ import type ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/P
 import type AuthManager from "@ext/security/logic/AuthManager";
 import type { TicketManager } from "@ext/security/logic/TicketManager/TicketManager";
 import type SearcherManager from "@ext/serach/SearcherManager";
-import type ThemeManager from "@ext/Theme/ThemeManager";
+import type SettingsResolver from "@ext/settings/logic/SettingsResolver";
 import type { TableDB } from "@ext/tableDB/table";
 import type { PdfTemplateManager } from "@ext/wordExport/PdfTemplateManager";
 import type { WordTemplateManager } from "@ext/wordExport/WordTemplateManager";
@@ -28,7 +30,6 @@ interface Application {
 	hashes: Hash;
 	logger: Logger;
 	am: AuthManager;
-	tm: ThemeManager;
 	parser: MarkdownParser;
 	tablesManager: TableDB;
 	rp: GitRepositoryProvider;
@@ -43,7 +44,10 @@ interface Application {
 	sitePresenterFactory: SitePresenterFactory;
 	resourceUpdaterFactory: ResourceUpdaterFactory;
 	customArticlePresenter: CustomArticlePresenter;
+	settings: SettingsResolver;
 	enterpriseCloudManager: GesCloudManager;
+	agentManager: AgentManager;
+	healthcheckRegistry?: HealthcheckRegistry;
 	conf: {
 		basePath: Path;
 		version: string;
@@ -53,6 +57,7 @@ interface Application {
 		isReadOnly: boolean;
 		isProduction: boolean;
 		disableSeo: boolean;
+		hideErrorCause: boolean;
 
 		bugsnagApiKey: string;
 
@@ -69,6 +74,10 @@ interface Application {
 		allowedOrigins?: string[];
 
 		portalAi: { enabled: boolean };
+
+		search: {
+			resourceSearchEnabled: boolean;
+		};
 
 		forceUiLangSync: boolean;
 	};

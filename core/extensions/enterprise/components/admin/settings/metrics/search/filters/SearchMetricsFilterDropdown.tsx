@@ -45,7 +45,7 @@ const SearchMetricsFilterDropdown: FC<SearchMetricsFilterDropdownProps> = ({
 	return (
 		<DropdownMenu onOpenChange={setIsOpen} open={isOpen}>
 			<FilterDropdownTrigger disabled={disabled} hasActiveFilters={selectedCatalogs.length > 0} />
-			<DropdownMenuContent align="start" className="min-w-56">
+			<DropdownMenuContent align="start" className="min-w-56 font-sans font-normal">
 				<FilterMultiSelectSubmenu
 					clearText={t("metrics.filters.catalog.clear-selection")}
 					fetchItems={catalogFetcher}

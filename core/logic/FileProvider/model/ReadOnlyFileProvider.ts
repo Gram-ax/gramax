@@ -7,6 +7,7 @@ export default interface ReadOnlyFileProvider {
 	get rootPath(): Path;
 	get isReadOnly(): boolean;
 	get isFallbackOnRoot(): boolean;
+	get kind(): "git" | "disk";
 
 	withMountPath: (path: Path) => void;
 	isRootPathExists: () => Promise<boolean>;

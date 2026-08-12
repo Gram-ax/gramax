@@ -4,15 +4,21 @@ import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import useMediaQuery from "@core-ui/hooks/useMediaQuery";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
+import { useItemLinksStore } from "@core-ui/stores/ItemLinksStore/ItemLinksStore.provider";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import CreateArticle from "@ext/article/actions/CreateArticle";
 import PermissionService from "@ext/security/logic/Permission/components/PermissionService";
-import { configureCatalogPermission, editCatalogContentPermission } from "@ext/security/logic/Permission/Permissions";
+import {
+	configureCatalogPermission,
+	editCatalogContentPermission,
+	readPermission,
+} from "@ext/security/logic/Permission/Permissions";
 import ExtensionBarLayout from "../../ExtensionBarLayout";
 import ArticleStatusBar from "../../StatusBar/Extensions/ArticleStatusBar/ArticleStatusBar";
 import PinToggleArrowIcon from "./PinToggleArrowIcon";
 
 const LeftNavigationBottom = ({ data, closeNavigation }: { data: ArticlePageData; closeNavigation?: () => void }) => {
+	const lastRootItem = useItemLinksStore((state) => state?.itemLinks?.at(-1));
 	const { catalogName, sourceName, resolvedVersion } = useCatalogPropsStore(
 		(state) => ({
 			catalogName: state.data?.name,
@@ -29,14 +35,16 @@ const LeftNavigationBottom = ({ data, closeNavigation }: { data: ArticlePageData
 	const isStaticOrStaticCli = isStatic || isStaticCli;
 
 	const canConfigureCatalog = PermissionService.useCheckPermission(configureCatalogPermission, workspacePath);
-	const canReadContentCatalog = PermissionService.useCheckPermission(
+	const canEditContentCatalog = PermissionService.useCheckPermission(
 		editCatalogContentPermission,
 		workspacePath,
 		catalogName,
 	);
+	const canReadContentCatalog = PermissionService.useCheckPermission(readPermission, workspacePath, catalogName);
 	const canSeeStatusBar =
 		!isStaticOrStaticCli &&
-		((isNext && canConfigureCatalog) || (!isNext && (canReadContentCatalog || !sourceName))) &&
+		((isNext && canConfigureCatalog) ||
+			(!isNext && (canEditContentCatalog || canReadContentCatalog || !sourceName))) &&
 		!resolvedVersion;
 
 	return (
@@ -44,7 +52,16 @@ const LeftNavigationBottom = ({ data, closeNavigation }: { data: ArticlePageData
 			<ExtensionBarLayout
 				height={34}
 				leftExtensions={
-					isCatalogExist ? [<CreateArticle key={0} onCreate={closeNavigation} root={data.rootRef} />] : null
+					isCatalogExist
+						? [
+								<CreateArticle
+									after={lastRootItem}
+									key={0}
+									onCreate={closeNavigation}
+									root={data.rootRef}
+								/>,
+							]
+						: null
 				}
 				padding={{
 					left: leftNavIsOpen ? "14px" : "0",

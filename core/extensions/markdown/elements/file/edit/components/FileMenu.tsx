@@ -22,7 +22,7 @@ interface FileMenuProps {
 }
 
 const FileMenu = ({ onDelete, resourcePath, aiEnabled }: FileMenuProps) => {
-	const { isTauri, isBrowser, isStatic } = usePlatform();
+	const { isTauri, isWeb, isStatic } = usePlatform();
 	const workspace = WorkspaceService.current();
 	const path = new Path(window.decodeURIComponent(resourcePath));
 	const isMediaFile = aiEnabled && ALLOWED_MEDIA_EXTENSIONS_AI.includes(path.extension.toLowerCase());
@@ -76,9 +76,7 @@ const FileMenu = ({ onDelete, resourcePath, aiEnabled }: FileMenuProps) => {
 					/>
 					<div className="divider" />
 					{isMediaFile && <FileTranscription path={path} />}
-					{(isBrowser || isStatic) && (
-						<Button icon="download" onClick={download} tooltipText={t("download")} />
-					)}
+					{(isWeb || isStatic) && <Button icon="download" onClick={download} tooltipText={t("download")} />}
 					{isTauri && (
 						<Button
 							icon="external-link"

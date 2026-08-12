@@ -85,30 +85,30 @@ export abstract class Builder {
 
 	async process(): Promise<void> {
 		assert(
-			await this.isWebPresent(),
+			await this._isWebPresent(),
 			"you have to build web first; didn't find web assets in apps-build-artifacts/web",
 		);
 
-		this.log("building");
-		await this.build();
+		this._log("building");
+		await this._build();
 
-		this.log("collecting artifacts");
+		this._log("collecting artifacts");
 		await this.cleanArtifactsDir();
-		await this.package();
+		await this._package();
 
 		if (this.isSigningSupported && this.opts.useSign) {
-			this.log("signing necessary built artifacts");
-			await this.sign();
+			this._log("signing necessary built artifacts");
+			await this._sign();
 		} else {
-			this.log("skipped signing any of artifacts");
+			this._log("skipped signing any of artifacts");
 		}
 
 		if (this.isSigningSupported && this.opts.useSignVerify) {
-			this.log("verifying necessary signed artifacts");
-			await this.verify();
-			this.log("verified necessary signed artifacts");
+			this._log("verifying necessary signed artifacts");
+			await this._verify();
+			this._log("verified necessary signed artifacts");
 		} else {
-			this.log("skipped verifying any of artifacts");
+			this._log("skipped verifying any of artifacts");
 		}
 
 		if (this._artifacts.length > 0) {
@@ -121,12 +121,12 @@ export abstract class Builder {
 
 	protected abstract get isSigningSupported(): boolean;
 
-	protected abstract build(): Promise<void>;
-	protected abstract package(): Promise<void>;
-	protected abstract sign(): Promise<void>;
-	protected abstract verify(): Promise<void>;
+	protected abstract _build(): Promise<void>;
+	protected abstract _package(): Promise<void>;
+	protected abstract _sign(): Promise<void>;
+	protected abstract _verify(): Promise<void>;
 
-	protected createTauriConfig(): string {
+	protected _createTauriConfig(): string {
 		const updatehost = this.opts.updateHost
 			? this.opts.updateHost
 			: this.opts.updateChannel === "prod"
@@ -160,11 +160,11 @@ export abstract class Builder {
 		});
 	}
 
-	protected log(...params: any[]): void {
+	protected _log(...params: unknown[]): void {
 		console.info(`(${this.platform}):`, ...params);
 	}
 
-	protected async artifact(opts: CreateArtifactOptions): Promise<void> {
+	protected async _artifact(opts: CreateArtifactOptions): Promise<void> {
 		if ("tar" in opts && opts.tar) return await this._tar(opts);
 
 		const from = "filename" in opts && opts.filename ? path.join(opts.srcdir, opts.filename) : opts.srcdir;
@@ -174,7 +174,7 @@ export abstract class Builder {
 		await fs.cp(from, to, { recursive: true });
 
 		const size = await sizeOf(to);
-		this.log("artifact", "name" in opts ? opts.name : "(whole dir)", `created`, `size=${size}`, `src=${from}`);
+		this._log("artifact", "name" in opts ? opts.name : "(whole dir)", `created`, `size=${size}`, `src=${from}`);
 		this._artifacts.push(to);
 	}
 
@@ -187,11 +187,11 @@ export abstract class Builder {
 
 		const tarSize = await sizeOf(out);
 
-		this.log("tar artifact", opts.name, `created`, `size=${tarSize}`, `src=${path.join(opts.srcdir, from)}`);
+		this._log("tar artifact", opts.name, `created`, `size=${tarSize}`, `src=${path.join(opts.srcdir, from)}`);
 		this._artifacts.push(out);
 	}
 
-	protected async isWebPresent(): Promise<boolean> {
+	protected async _isWebPresent(): Promise<boolean> {
 		if (this.platform === "web") return true;
 
 		const webdir = this.webdir;
@@ -200,7 +200,7 @@ export abstract class Builder {
 		const readdir = await fs.readdir(webdir);
 		if (!readdir.includes("index.html")) return false;
 
-		this.log("found web assets in", webdir);
+		this._log("found web assets in", webdir);
 		return true;
 	}
 

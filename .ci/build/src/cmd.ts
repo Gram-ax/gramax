@@ -5,6 +5,14 @@ import fs from "fs/promises";
 import { join } from "path";
 import { parseArgs } from "util";
 import * as b from "./builder";
+import {
+	formatPublishedVersionsList,
+	listPublishedVersions,
+	parsePublishedVersion,
+	removePublishedVersion,
+	resolveSetTargets,
+	setPublishedVersion,
+} from "./publishedVersions";
 import * as s from "./sign";
 import * as u from "./upload";
 import { channel, env, isCi, project, version, versionShort } from "./util";
@@ -16,7 +24,7 @@ export type MakeConfigOptions = {
 export const makeConfig = (override: Partial<b.BuildOptions>, opts: MakeConfigOptions): b.BuildOptions => {
 	const { skipSign } = opts;
 
-	const validatedOverride = Object.fromEntries(Object.entries(override).filter(([k, v]) => Boolean(v)));
+	const validatedOverride = Object.fromEntries(Object.entries(override).filter(([, v]) => Boolean(v)));
 
 	if (env.optional("IS_MERGE_REQUEST") === "true") {
 		return {
@@ -250,6 +258,20 @@ export const makeIcons = async () => {
 };
 
 export const printVersion = async () => {
+	const subcommand = process.argv[3];
+
+	switch (subcommand) {
+		case "list":
+			await listVersions();
+			return;
+		case "remove":
+			await removeVersion();
+			return;
+		case "set":
+			await setVersion();
+			return;
+	}
+
 	const args = parseArgs({
 		args: process.argv.slice(3),
 		allowPositionals: true,
@@ -265,4 +287,108 @@ export const printVersion = async () => {
 
 	const v = version(args.positionals?.join("-").replaceAll(" ", "-").trim());
 	console.log(v);
+};
+
+const versionChannel = (value: string | boolean | undefined) => {
+	assert(typeof value !== "boolean", "--channel requires a value");
+	return value || channel();
+};
+
+const listVersions = async () => {
+	const help = "usage: version list [--channel <channel>] [--release <release>]";
+
+	const args = parseArgs({
+		args: process.argv.slice(4),
+		allowPositionals: true,
+		options: {
+			channel: { type: "string" },
+			release: { type: "string" },
+		},
+	});
+
+	assert(args.positionals.length === 0, help);
+
+	const selectedChannel = versionChannel(args.values.channel);
+	const releases = await listPublishedVersions({
+		channel: selectedChannel,
+		release: args.values.release,
+	});
+
+	console.log(formatPublishedVersionsList(selectedChannel, releases));
+};
+
+const removeVersion = async () => {
+	const help = "usage: version remove <ver> [--channel <channel>] [--force]";
+
+	const args = parseArgs({
+		args: process.argv.slice(4),
+		allowPositionals: true,
+		options: {
+			channel: { type: "string" },
+			force: { type: "boolean" },
+		},
+	});
+
+	assert(args.positionals.length === 1, help);
+
+	const removableVersion = args.positionals[0];
+	assert(removableVersion, help);
+	parsePublishedVersion(removableVersion);
+
+	const selectedChannel = versionChannel(args.values.channel);
+	const plan = await removePublishedVersion({
+		channel: selectedChannel,
+		version: removableVersion,
+		force: !!args.values.force,
+	});
+
+	if (plan.blockingPointers.length > 0) {
+		console.error(`version ${removableVersion} is still referenced by latest pointers:`);
+		for (const pointer of plan.blockingPointers) console.error(`  ${pointer.path} -> ${pointer.version}`);
+		process.exit(1);
+	}
+
+	if (!args.values.force) {
+		console.log(`dry-run: ${plan.keys.length} objects would be removed from ${selectedChannel}`);
+		for (const key of plan.keys) console.log(`  ${key}`);
+		console.log("rerun with --force to delete these objects");
+		return;
+	}
+
+	console.log(`removed ${plan.keys.length} objects from ${selectedChannel}`);
+	for (const key of plan.keys) console.log(`  ${key}`);
+};
+
+const setVersion = async () => {
+	const help = "usage: version set <ver> [--channel <channel>] [--global] [--inner]";
+
+	const args = parseArgs({
+		args: process.argv.slice(4),
+		allowPositionals: true,
+		options: {
+			channel: { type: "string" },
+			global: { type: "boolean" },
+			inner: { type: "boolean" },
+		},
+	});
+
+	assert(args.positionals.length === 1, help);
+
+	const nextVersion = args.positionals[0];
+	assert(nextVersion, help);
+	parsePublishedVersion(nextVersion);
+
+	const selectedChannel = versionChannel(args.values.channel);
+	const targets = resolveSetTargets({
+		global: !!args.values.global,
+		inner: !!args.values.inner,
+	});
+	const paths = await setPublishedVersion({
+		channel: selectedChannel,
+		version: nextVersion,
+		targets,
+	});
+
+	console.log(`set ${paths.length} latest pointers to ${nextVersion} in ${selectedChannel}`);
+	for (const pointerPath of paths) console.log(`  ${pointerPath}`);
 };

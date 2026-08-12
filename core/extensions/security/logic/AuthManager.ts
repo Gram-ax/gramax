@@ -1,4 +1,5 @@
 // import type EnterpriseUser from "@ext/enterprise/EnterpriseUser";
+import { Level, trace } from "@ext/loggers/opentelemetry";
 import type ApiRequest from "../../../logic/Api/ApiRequest";
 import type ApiResponse from "../../../logic/Api/ApiResponse";
 import type Cookie from "../../cookie/Cookie";
@@ -23,6 +24,7 @@ export default abstract class AuthManager {
 	abstract mailSendOTP(req: ApiRequest, res: ApiResponse): Promise<void>;
 	abstract mailLoginOTP(req: ApiRequest, res: ApiResponse): Promise<void>;
 
+	@trace({ level: Level.Important, omitArgs: true })
 	setUser(cookie: Cookie, user: User, expires?: number): void {
 		cookie.set(this._COOKIE_USER, JSON.stringify(user.toJSON()), expires);
 	}

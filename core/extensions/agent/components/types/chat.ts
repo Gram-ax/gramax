@@ -1,23 +1,8 @@
-export type SuggestionState = "loading" | "generated" | "waiting_for_approval" | "applied" | "rejected";
-
-export type MessageKind =
-	| "explanation"
-	| "suggestion"
-	| "status"
-	| "loading"
-	| "error"
-	| "user"
-	| "permission"
-	| "tool_call"
-	| "tool_result";
-
-export type PermissionAction =
-	| { type: "delete_file"; path: string }
-	| { type: "edit_file"; path: string }
-	| { type: "run_command"; command: string; cwd?: string }
-	| { type: "install_packages"; packages: string[] };
-
-export type PermissionStatus = "pending" | "approved" | "rejected";
+import type { AgentBrowserSessionMeta } from "@ext/agent/browser/browserHost";
+import type { AgentErrorType, AgentWarningType } from "@ext/agent/core/agentError";
+import type { AgentAttachment } from "@ext/agent/core/attachmentStore";
+import type { AgentEvent } from "@ext/agent/core/events";
+import type { AgentUsage } from "@ext/agent/core/session";
 
 export type DiffLineType = "add" | "del" | "context" | "hunk";
 
@@ -47,24 +32,101 @@ export type CatalogDiff = {
 	diff: CatalogDiffHunk[];
 };
 
-export type ChatMessage = {
+type ChatMessageBase = {
 	id: string;
-	kind: MessageKind;
-	title?: string;
-	description?: string;
-	diff?: DiffBlock;
-	diffs?: DiffBlock[];
-	suggestionState?: SuggestionState;
-	statusText?: string;
-	userText?: string;
-	permissionAction?: PermissionAction;
-	permissionStatus?: PermissionStatus;
-	toolName?: string;
-	toolCallId?: string;
-	toolArguments?: Record<string, unknown>;
-	toolResultIsError?: boolean;
-	toolResultTs?: number;
-	toolResultContentPreview?: string;
-	toolResultFullLength?: number;
+	ts?: number;
+};
+
+type ToolMessageBase = ChatMessageBase & {
+	toolName: string;
+	toolCallId: string;
+};
+
+export type UserChatMessage = ChatMessageBase & {
+	kind: "user";
+	userText: string;
+	attachments?: AgentAttachment[];
+};
+
+export type AssistantChatMessage = ChatMessageBase & {
+	kind: "assistant";
+	description: string;
+	isLoading?: boolean;
+};
+
+export type ErrorMessage = ChatMessageBase & {
+	kind: "error";
+	statusText: string;
+	errorType?: AgentErrorType;
+};
+
+export type WarningMessage = ChatMessageBase & {
+	kind: "warning";
+	statusText: string;
+	warningType?: AgentWarningType;
+};
+
+export type CancelledMessage = ChatMessageBase & { kind: "cancelled" };
+
+export type TurnDurationMessage = ChatMessageBase & { kind: "turn_duration" };
+
+export type ToolCallMessage = ToolMessageBase & {
+	kind: "tool_call";
+	toolArguments: Record<string, unknown>;
+	toolItemTitle?: string;
 	toolDiff?: DiffBlock;
+};
+
+export type ToolResultMessage = ToolMessageBase & {
+	kind: "tool_result";
+	toolResultIsError: boolean;
+	toolResultTs: number;
+	toolResultContent?: string;
+	toolResultContentPreview: string;
+	toolResultFullLength: number;
+};
+
+export type ChatMessage =
+	| UserChatMessage
+	| AssistantChatMessage
+	| ErrorMessage
+	| WarningMessage
+	| CancelledMessage
+	| TurnDurationMessage
+	| ToolCallMessage
+	| ToolResultMessage;
+
+export type AgentDraftAttachment = {
+	name: string;
+	mime: string;
+	size: number;
+	content: string;
+};
+
+export type AgentDraftSnapshot = {
+	text: string;
+	selectedSkillName: string | null;
+	updatedAt: number;
+	attachments?: AgentDraftAttachment[];
+};
+
+export type SessionTabItem = {
+	id: string;
+	title: string;
+	createdAt?: number;
+	hasUserMessage?: boolean;
+};
+
+export type SessionStatePayload = {
+	id?: string;
+	title?: string;
+	error?: string;
+	processing?: boolean;
+	events?: AgentEvent[];
+	openCatalogName?: string | null;
+	openItemPath?: string | null;
+	cancelled?: boolean;
+	lastError?: string | null;
+	usage?: AgentUsage;
+	browser?: AgentBrowserSessionMeta;
 };

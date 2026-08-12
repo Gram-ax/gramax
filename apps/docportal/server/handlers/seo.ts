@@ -13,7 +13,7 @@ const seo = async (serverContext: ServerContext) => {
 	const basePath = app.conf.basePath ?? "";
 
 	if (path.pathname === "/sitemap.xml") {
-		const sitemapIndex = await sg.generateSitemapIndex(`${ctx.domain}${basePath}/sitemap`);
+		const sitemapIndex = await sg.generateSitemapIndex(`${ctx.domain}${basePath}/api/sitemap`);
 		return new Response(sitemapIndex, { headers: { "Content-Type": "application/xml" } });
 	}
 
@@ -22,8 +22,8 @@ const seo = async (serverContext: ServerContext) => {
 		return new Response(robots, { headers: { "Content-Type": "text/plain" } });
 	}
 
-	if (path.pathname.startsWith("/sitemap/")) {
-		const catalogName = path.pathname.split("/")[2];
+	if (path.pathname.startsWith("/api/sitemap/")) {
+		const catalogName = path.pathname.split("/")[3];
 		const catalog = await workspace.getContextlessCatalog(catalogName);
 		if (!catalog || typeof catalog.getItems !== "function") {
 			return new Response("Not Found", { status: 404 });

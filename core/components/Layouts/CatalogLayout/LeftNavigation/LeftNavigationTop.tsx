@@ -2,7 +2,6 @@ import { TextSize } from "@components/Atoms/Button/Button";
 import NavigationTabsService from "@components/Layouts/LeftNavigationTabs/NavigationTabsService";
 import { LeftNavigationTab } from "@components/Layouts/StatusBar/Extensions/ArticleStatusBar/ArticleStatusBar";
 import ButtonLink from "@components/Molecules/ButtonLink";
-import type { ArticlePageData } from "@core/SitePresenter/types/ArticlePage";
 import IsMacService from "@core-ui/ContextServices/IsMac";
 import SidebarsIsOpenService from "@core-ui/ContextServices/Sidebars/SidebarsIsOpenContext";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
@@ -10,7 +9,10 @@ import useMediaQuery from "@core-ui/hooks/useMediaQuery";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import { cssMedia } from "@core-ui/utils/cssUtils";
+// biome-ignore lint/style/noRestrictedImports: out of scope
 import styled from "@emotion/styled";
+import AgentSkillService from "@ext/agent/components/skills/AgentSkillService";
+import AgentSkillTab from "@ext/agent/components/skills/Tab/AgentSkillTab";
 import PromptTab from "@ext/ai/components/Tab/PromptTab";
 import FavoriteArticlesTab from "@ext/article/Favorite/components/FavoriteArticlesTab";
 import BranchUpdaterService from "@ext/git/actions/Branch/BranchUpdaterService/logic/BranchUpdaterService";
@@ -26,11 +28,11 @@ import BarLayout from "../../BarLayout";
 
 const PADDING = "0.875rem";
 
-const LeftNavigationTop = ({ data, className }: { data: ArticlePageData; className?: string }) => {
+const LeftNavigationTop = ({ className }: { className?: string }) => {
 	const leftNavIsOpen = SidebarsIsOpenService.value.left;
 	const catalogNotFound = useCatalogPropsStore((state) => state.data.notFound);
 	const narrowMedia = useMediaQuery(cssMedia.JSnarrow);
-	const { isTauri, isBrowser, isStaticCli } = usePlatform();
+	const { isTauri, isWeb, isStaticCli } = usePlatform();
 	const { topTab } = NavigationTabsService.value;
 
 	const isMacDesktop = IsMacService.value && isTauri;
@@ -49,7 +51,7 @@ const LeftNavigationTop = ({ data, className }: { data: ArticlePageData; classNa
 
 			if (caller === OnBranchUpdateCaller.Init || caller === OnBranchUpdateCaller.CheckoutToNewCreatedBranch)
 				return;
-			[FragmentService, TemplateService].forEach((context) => context.closeItem());
+			[AgentSkillService, FragmentService, TemplateService].forEach((context) => context.closeItem());
 		};
 
 		BranchUpdaterService.addListener(onBranchChange);
@@ -76,14 +78,15 @@ const LeftNavigationTop = ({ data, className }: { data: ArticlePageData; classNa
 							textSize={TextSize.L}
 						/>
 					)}
-					<TopBarContent currentTab={topTab} data={data} isMacDesktop={isMacDesktop} />
+					<TopBarContent currentTab={topTab} isMacDesktop={isMacDesktop} />
 				</div>
 			</BarLayout>
-			{(isTauri || isBrowser) && !catalogNotFound && (
+			{(isTauri || isWeb) && !catalogNotFound && (
 				<>
 					<InboxTab show={topTab === LeftNavigationTab.Inbox} />
 					<TemplateTab show={topTab === LeftNavigationTab.Template} />
 					<FragmentsTab show={topTab === LeftNavigationTab.Fragments} />
+					<AgentSkillTab show={topTab === LeftNavigationTab.AgentSkills} />
 					<PromptTab show={topTab === LeftNavigationTab.Prompt} />
 				</>
 			)}

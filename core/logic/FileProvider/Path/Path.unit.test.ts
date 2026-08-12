@@ -434,6 +434,18 @@ describe("Path правильно", () => {
 				new Path("folder/file.ext"),
 			);
 		});
+		test("возвращает null для соседней директории с общим префиксом имени", () => {
+			// "rootFolder" is a sibling of "root", not a child — a shared name prefix
+			// must not be treated as containment.
+			expect(new Path("root").subDirectory(new Path("rootFolder/file.ext"))).toBeNull();
+			expect(new Path("ws/cat").subDirectory(new Path("ws/cat-evil/secret.md"))).toBeNull();
+		});
+		test("возвращает пустой путь для совпадающих путей", () => {
+			expect(new Path("root").subDirectory(new Path("root"))).toEqual(new Path(""));
+		});
+		test("возвращает весь путь, когда базовый путь пустой", () => {
+			expect(new Path("").subDirectory(new Path("a/b"))).toEqual(new Path("a/b"));
+		});
 	});
 
 	describe("получает новое имя", () => {

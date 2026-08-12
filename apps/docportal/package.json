@@ -5,9 +5,9 @@
 	"type": "module",
 	"private": true,
 	"scripts": {
-		"start": "bun run dist/index.js",
+		"start": "bun run dist/index.js --port=$PORT",
 		"run": "bun run build && bun run start",
-		"dev": "VITE_ENVIRONMENT=docportal bun watch.ts",
+		"dev": "VITE_ENVIRONMENT=docportal bun watch.ts --port=$PORT",
 		"build": "VITE_ENVIRONMENT=docportal bun ./build/server.ts && bun ./build/client.ts"
 	},
 	"dependencies": {

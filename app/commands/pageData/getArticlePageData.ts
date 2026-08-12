@@ -1,3 +1,4 @@
+import { ResponseKind } from "@app/types/ResponseKind";
 import type PageDataContext from "@core/Context/PageDataContext";
 import type { ArticlePageData } from "@core/SitePresenter/types/ArticlePage";
 import type { ArticlePageDataParams } from "@core/SitePresenter/types/PageDataParams";
@@ -8,10 +9,19 @@ const getArticlePageData: Command<ArticlePageDataParams, { data: ArticlePageData
 	Command.create({
 		path: "page/getArticlePageData",
 
+		kind: ResponseKind.json,
+
 		flags: ["otel-omit-result"],
 
 		async do(props: ArticlePageDataParams) {
 			return resolveArticlePageData(this._app, this._commands, props);
+		},
+
+		params(ctx, q) {
+			const path = q.path;
+			const mode = q.mode;
+			const diff = q.diff;
+			return { ctx, path, mode, diff };
 		},
 	});
 

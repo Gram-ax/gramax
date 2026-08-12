@@ -1,4 +1,5 @@
 import StatusBarElement from "@components/Layouts/StatusBar/StatusBarElement";
+// biome-ignore lint/style/noRestrictedImports: will be fixed in future
 import styled from "@emotion/styled";
 import PullPushCounter from "@ext/git/actions/Sync/components/PullPushCounter";
 import t from "@ext/localization/locale/translate";
@@ -36,7 +37,7 @@ const SyncLayout = (props: SyncLayoutProps) => {
 			<StatusBarElement
 				className="sync-icons"
 				disable={disabled}
-				iconClassName={`rotate-icon${syncProccess ? " rotate" : ""}`}
+				iconClassName={syncProccess ? "animate-spin" : ""}
 				iconCode="refresh-cw"
 				iconStrokeWidth="1.6"
 				onClick={onClick}
@@ -59,11 +60,5 @@ export default styled(SyncLayout)`
 
 	.sync-icons {
 		height: 100%;
-	}
-
-	.rotate-icon.rotate {
-		i {
-			animation: spinner 1.5s linear infinite;
-		}
 	}
 `;

@@ -7,6 +7,7 @@ export class StderrJsonExporter implements sdk.SpanExporter {
 		for (const span of spans) {
 			process.stderr.write(`${JSON.stringify(otelSpanEncoder.fromReadableSpan(span))}\n`);
 		}
+
 		resultCallback({ code: 0 });
 	}
 

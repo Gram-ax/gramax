@@ -1,12 +1,14 @@
 import LazyDiffFileInputTauri from "@components/Atoms/FileInput/DiffFileInput/LazyDiffFileInput";
 import LazyFileInputTauri from "@components/Atoms/FileInput/LazyFileInput";
-import TauriLink from "../../../apps/browser/src/components/Atoms/Link";
-import useUrlObjectImage2 from "../../../apps/browser/src/hooks/useUrlObjectImage";
-import TauriRouter from "../../../apps/browser/src/logic/Api/BrowserRouter";
-import getBrowserFetchService from "../../../apps/browser/src/logic/Api/getBrowserFetchService";
-import { getPdfjs } from "../../../apps/browser/src/pdfjs/getPdfjs";
+import { postUpdateAcceptance, UpdateAcceptance } from "../../../apps/tauri/src/update/updateEvents";
 import * as tauriCommands from "../../../apps/tauri/src/window/commands";
 import enterpriseLogin from "../../../apps/tauri/src/window/enterpriseLogin";
+import TauriLink from "../../../apps/web/src/components/Atoms/Link";
+import useUrlObjectImage2 from "../../../apps/web/src/hooks/useUrlObjectImage";
+import getWebFetchService from "../../../apps/web/src/logic/Api/getWebFetchService";
+import TauriRouter from "../../../apps/web/src/logic/Api/WebRouter";
+import { getPdfjs } from "../../../apps/web/src/pdfjs/getPdfjs";
+import gesCloudLogin from "../../../core/extensions/enterprise-cloud/desktop/gesCloudLogin";
 import type { DynamicModules } from "..";
 
 export const getTauriModules = (): DynamicModules => {
@@ -14,9 +16,10 @@ export const getTauriModules = (): DynamicModules => {
 		Link: TauriLink,
 		Router: TauriRouter,
 		useImage: useUrlObjectImage2,
-		Fetcher: getBrowserFetchService(),
+		Fetcher: getWebFetchService(),
 		openChildWindow: tauriCommands.openChildWindow,
 		enterpriseLogin,
+		gesCloudLogin,
 		FileInput: LazyFileInputTauri,
 		DiffFileInput: LazyDiffFileInputTauri,
 		openDirectory: tauriCommands.openDirectory,
@@ -26,6 +29,9 @@ export const getTauriModules = (): DynamicModules => {
 		openWindowWithUrl: tauriCommands.openWindowWithUrl,
 		openInWeb: tauriCommands.openInWeb,
 		getPdfjs,
+		updateCheck: tauriCommands.updateCheck,
+		updateInstallFromCache: tauriCommands.updateInstallByPath,
+		updateAccept: () => postUpdateAcceptance(UpdateAcceptance.Accepted),
 	};
 };
 

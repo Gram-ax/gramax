@@ -98,6 +98,7 @@ describe("Экранирование символа `$`", () => {
 								text: "$a$",
 								tag: [
 									{
+										// biome-ignore lint/style/useNamingConvention: markdoc AST node type discriminator
 										$$mdtype: "Tag",
 										name: "Formula",
 									},
@@ -230,5 +231,49 @@ describe("Парсинг ссылок с различными символами
 		const testParseMarkdown = await new MarkdownFormatter().render(editTree);
 		const parsedMarkdown = "[https://regex101.com/\\*\\~\\[\\]\\_\\$%7B%3C](https://regex101.com/*~[]_$%7B%3C)";
 		expect(testParseMarkdown).toEqual(parsedMarkdown);
+	});
+});
+
+describe("Экранирование символа `_` внутри слова", () => {
+	const paragraph = (text: string): JSONContent => ({
+		type: "doc",
+		content: [{ type: "paragraph", content: [{ type: "text", text }] }],
+	});
+
+	test("Подчёркивание внутри кириллического слова не экранируется", async () => {
+		const testParseMarkdown = await new MarkdownFormatter().render(paragraph("сло_во"));
+		expect(testParseMarkdown).toEqual("сло_во");
+	});
+
+	test("Несколько подчёркиваний в кириллическом слове не экранируются", async () => {
+		const testParseMarkdown = await new MarkdownFormatter().render(paragraph("два_три_четыре"));
+		expect(testParseMarkdown).toEqual("два_три_четыре");
+	});
+
+	test("Подчёркивание внутри латинского слова по-прежнему не экранируется", async () => {
+		const testParseMarkdown = await new MarkdownFormatter().render(paragraph("foo_bar"));
+		expect(testParseMarkdown).toEqual("foo_bar");
+	});
+
+	test("Ведущее подчёркивание по-прежнему экранируется", async () => {
+		const testParseMarkdown = await new MarkdownFormatter().render(paragraph("_слово"));
+		expect(testParseMarkdown).toEqual("\\_слово");
+	});
+});
+
+describe("Экранирование маркеров нумерованного списка в начале абзаца", () => {
+	const paragraph = (text: string): JSONContent => ({
+		type: "doc",
+		content: [{ type: "paragraph", content: [{ type: "text", text }] }],
+	});
+
+	test(`Абзац, начинающийся с "1)", экранируется чтобы не стать списком`, async () => {
+		const testParseMarkdown = await new MarkdownFormatter().render(paragraph("1) hello"));
+		expect(testParseMarkdown).toEqual("1\\) hello");
+	});
+
+	test(`Абзац, начинающийся с "1.", по-прежнему экранируется`, async () => {
+		const testParseMarkdown = await new MarkdownFormatter().render(paragraph("1. hello"));
+		expect(testParseMarkdown).toEqual("1\\. hello");
 	});
 });

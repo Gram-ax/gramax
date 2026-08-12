@@ -1,3 +1,6 @@
+/** biome-ignore-all lint/correctness/useExhaustiveDependencies: honestly i've no idea */
+/** biome-ignore-all lint/suspicious/noExplicitAny: no idea */
+
 import type { GetPluginsResponse } from "@app/commands/workspace/assets/plugins/getPlugins";
 import CustomLogoDriver from "@core/utils/CustomLogoDriver";
 import FetchService from "@core-ui/ApiServices/FetchService";
@@ -10,7 +13,7 @@ import useUpdateEffect from "@core-ui/hooks/useUpdateEffect";
 import { useWatchClient } from "@core-ui/hooks/useWatch";
 import useTrigger from "@core-ui/triggers/useTrigger";
 import t from "@ext/localization/locale/translate";
-import ThemeService from "@ext/Theme/components/ThemeService";
+import { useSetting } from "@ext/settings/logic/hooks";
 import Theme from "@ext/Theme/Theme";
 import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 import { clearAllPlugins, loadPlugins, makePluginReady } from "@plugins/store";
@@ -183,7 +186,7 @@ class WorkspaceAssetsService implements ContextService {
 		const { updateStyle } = useStyleManager();
 		const workspace = WorkspaceService.current() || { path: undefined };
 		const { forceUpdateLogoInStorage } = updateCustomLogo(workspace.path);
-		const theme = ThemeService.value;
+		const [theme] = useSetting("general.theme");
 
 		const { logo: logoDark, refreshLogo: refreshDarkLogo } = useLogoManager(workspace.path, Theme.dark);
 		const { logo: logoLight, refreshLogo: refreshLightLogo } = useLogoManager(workspace.path, Theme.light);

@@ -21,7 +21,7 @@ const saveAll = async (category: Category) => {
 	await category.save();
 
 	for (const item of category.items) {
-		if (item.type == ItemType.category) {
+		if (item.type === ItemType.category) {
 			await saveAll(item as Category);
 		} else {
 			await item.save();
@@ -34,10 +34,12 @@ const getTargetPath = (fromBase: Path, toBase: Path, ownerItem: Item): Path => {
 	return toBase.join(fromBase.subDirectory(ownerPath));
 };
 
-const getTargetLogicPath = (fromRoot: Category, toRoot: Category, ownerItem: Item): string => {
-	const base = toRoot.ref.path.parentDirectoryPath.removeExtraSymbols.value;
-	return `${base}${ownerItem.logicPath.substring(fromRoot.logicPath.length)}`;
-};
+// The result is compared against `item.logicPath`, so the base must be a logic path too.
+// A file path would only coincide with it when the catalog folder name equals the catalog
+// name and `.doc-root.yaml` lies at the catalog root; with a docroot subfolder the file path
+// carries an extra segment, nothing matches, and every already-translated item looks missing.
+const getTargetLogicPath = (fromRoot: Category, toRoot: Category, ownerItem: Item): string =>
+	`${toRoot.logicPath}${ownerItem.logicPath.substring(fromRoot.logicPath.length)}`;
 
 const addExternalItemsInternal = async (
 	fromRoot: Category,
@@ -53,7 +55,9 @@ const addExternalItemsInternal = async (
 		? fromRoot.items.filter((item) => !ignore.includes(item.getFileName()))
 		: fromRoot.items;
 
-	for (const item of toRoot.items) {
+	// Iterate a snapshot: the body splices orphans out of toRoot.items, and a
+	// for-of over the live array would skip the element after each removal.
+	for (const item of [...toRoot.items]) {
 		const ownerItem = filteredOwnerItems.find((f) => getTargetLogicPath(fromRoot, toRoot, f) === item.logicPath);
 
 		if (!ownerItem) {

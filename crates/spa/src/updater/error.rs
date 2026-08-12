@@ -25,9 +25,6 @@ pub enum UpdaterError {
 	#[error("failed to fetch update: {}", report(&.0))]
 	FailedToFetchUpdate(#[from] ArtifactUpdateError),
 
-	#[error("file not found at upstream s3 server: {0}")]
-	S3NotFound(String),
-
 	#[error(transparent)]
 	InvalidPlatformPackagePair(#[from] PackageError),
 
@@ -80,7 +77,6 @@ impl IntoResponse for UpdaterError {
 		let status = match self {
 			UpdaterError::UpdateNotFound { .. } => axum::http::StatusCode::NOT_FOUND,
 			UpdaterError::InstallerNotFound(_) => axum::http::StatusCode::NOT_FOUND,
-			UpdaterError::S3NotFound(_) => axum::http::StatusCode::NOT_FOUND,
 			UpdaterError::FailedToFetchUpdate(_) => axum::http::StatusCode::BAD_GATEWAY,
 			UpdaterError::Parse(_) => axum::http::StatusCode::INTERNAL_SERVER_ERROR,
 			UpdaterError::InvalidPlatformPackagePair(_) => axum::http::StatusCode::BAD_REQUEST,

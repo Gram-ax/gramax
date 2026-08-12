@@ -1,0 +1,340 @@
+.sticky-table-wrapper[data-sticky-row-active="true"]
+	> .width-wrapper-container
+	> .width-wrapper
+	> .scrollableContent
+	> div[data-table-wrapper]
+	> :is(table[data-header="row"], table[data-header="both"]) {
+	margin-top: var(--sticky-table-margin-top);
+}
+
+.sticky-table-wrapper[data-sticky-row-active="true"]
+	> .width-wrapper-container
+	> .width-wrapper
+	> .scrollableContent
+	> div[data-table-wrapper]
+	> :is(table[data-header="row"], table[data-header="both"])
+	> tbody
+	> tr:first-of-type {
+	position: fixed;
+	top: var(--sticky-header-top);
+	z-index: 2;
+	display: grid;
+	grid-template-columns: var(--sticky-grid-template-columns);
+	width: var(--sticky-header-width);
+	padding: var(--sticky-top-padding) var(--sticky-side-padding) 0;
+	margin-left: var(--sticky-negative-side-padding);
+	overflow-x: scroll;
+	scrollbar-width: none;
+	background: var(--sticky-bg-color);
+}
+
+.sticky-table-wrapper[data-sticky-row-active="true"]
+	> .width-wrapper-container
+	> .width-wrapper
+	> .scrollableContent
+	> div[data-table-wrapper]
+	> :is(table[data-header="row"], table[data-header="both"])
+	> tbody
+	> tr:first-of-type::-webkit-scrollbar {
+	display: none;
+}
+
+.sticky-table-wrapper[data-sticky-row-active="true"]
+	> .width-wrapper-container
+	> .width-wrapper
+	> .scrollableContent
+	> div[data-table-wrapper]
+	> :is(table[data-header="row"], table[data-header="both"])
+	> tbody
+	> tr:first-of-type
+	> :is(td, th) {
+	border-top: 1.25px solid var(--color-table-border);
+	border-bottom: 1.25px solid var(--color-table-border);
+}
+
+.sticky-table-wrapper[data-sticky-row-active="true"]
+	> .width-wrapper-container
+	> .width-wrapper
+	> .scrollableContent
+	> div[data-table-select-all-container] {
+	position: fixed;
+	top: var(--sticky-helpers-top);
+	left: unset;
+	z-index: 3;
+	padding-left: var(--sticky-helpers-left);
+}
+
+.sticky-table-wrapper[data-sticky-row-active="true"]
+	> .width-wrapper-container
+	> .width-wrapper
+	> .scrollableContent
+	> .top-shadow-container {
+	position: fixed;
+	top: var(--sticky-top-shadow-top);
+	z-index: 2;
+	width: var(--sticky-header-width);
+	height: var(--sticky-scroll-shadow-size);
+	padding: 0 1.5em;
+	overflow: hidden;
+	pointer-events: none;
+}
+
+.sticky-table-wrapper[data-sticky-row-active="true"]
+	> .width-wrapper-container
+	> .width-wrapper
+	> .scrollableContent
+	> .top-shadow-container
+	> .top-shadow {
+	width: var(--sticky-client-width);
+	height: 100%;
+}
+
+.sticky-table-wrapper:is([data-sticky-row-active="true"], [data-sticky-col-active="true"])
+	> .width-wrapper-container
+	> .width-wrapper
+	> .scrollableContent
+	> .table-actions {
+	z-index: 3;
+}
+
+.sticky-table-wrapper[data-sticky-row-active="true"]
+	> .width-wrapper-container
+	> .width-wrapper
+	> .scrollableContent
+	> .table-actions
+	> .table-controller
+	> .controls-container-horizontal {
+	justify-content: unset;
+	width: var(--sticky-header-width);
+	height: 100%;
+	overflow-x: hidden;
+	overflow-y: hidden;
+	pointer-events: none;
+}
+
+.sticky-table-wrapper[data-sticky-row-active="true"] > .width-wrapper-container > .width-wrapper > .top-block {
+	position: fixed;
+	top: var(--sticky-header-top);
+	z-index: 2;
+	width: var(--sticky-header-width);
+	height: var(--sticky-top-padding);
+	background: var(--sticky-bg-color);
+}
+
+.sticky-table-wrapper[data-sticky-row-active="true"]
+	> .width-wrapper-container
+	> .width-wrapper:has(
+		> .scrollableContent > div[data-table-wrapper] > :is(table[data-header="row"], table[data-header="both"])
+	)
+	.controls-container-horizontal {
+	position: fixed;
+	top: var(--sticky-helpers-top);
+	left: unset;
+	padding: 0 var(--sticky-side-padding);
+	> .plus-actions-container.plus-actions-container:first-of-type,
+	> .plus-actions-container.plus-actions-container[data-col-number="0"] {
+		left: 0em;
+	}
+}
+
+.sticky-table-wrapper[data-sticky-row-active="true"]
+	> .width-wrapper-container
+	> .width-wrapper
+	> .scrollableContent::-webkit-scrollbar {
+	z-index: 3;
+}
+
+.sticky-table-wrapper[data-sticky-row-active="true"]
+	> .width-wrapper-container
+	> .width-wrapper
+	> .scrollableContent
+	> .table-actions
+	> .table-controller
+	> .controls-container-horizontal
+	> .plus-actions-container:first-of-type,
+.sticky-table-wrapper[data-sticky-row-active="true"]
+	> .width-wrapper-container
+	> .width-wrapper
+	> .scrollableContent
+	> .table-actions
+	> .table-controller
+	> .controls-container-horizontal
+	> .plus-actions-container[data-col-number="0"] {
+	left: 0;
+}
+
+.sticky-table-wrapper[data-sticky-row-active="true"]
+	> .width-wrapper-container
+	> .width-wrapper
+	> .scrollableContent
+	> .table-actions
+	> .table-controller
+	> .controls-container-vertical
+	> .plus-actions-container:first-of-type {
+	> div {
+		position: fixed;
+		top: var(--sticky-first-vertical-plus-div-top);
+		left: unset;
+		margin-left: var(--sticky-helpers-left);
+	}
+	> button {
+		position: fixed;
+		top: var(--sticky-first-vertical-plus-icon-top);
+		left: unset;
+		margin-left: var(--sticky-helpers-left);
+	}
+}
+
+.sticky-table-wrapper[data-sticky-row-active="true"]
+	> .width-wrapper-container
+	> .width-wrapper
+	> .scrollableContent
+	> .table-actions
+	> .table-controller
+	> .controls-container-vertical
+	> .plus-actions-container:nth-of-type(2)
+	> div {
+	position: fixed;
+	top: var(--sticky-second-vertical-plus-div-top);
+	left: unset;
+	margin-left: var(--sticky-helpers-left);
+}
+
+.sticky-table-wrapper[data-sticky-col-active="true"]
+	> .width-wrapper-container
+	> .width-wrapper
+	> .scrollableContent
+	> div[data-table-wrapper]
+	> :is(table[data-header="column"], table[data-header="both"]) {
+	> tbody > tr > td[data-sticky-first-column-cell],
+	> tfoot > tr > td:first-of-type {
+		position: sticky;
+		left: var(--sticky-side-padding);
+		z-index: 1;
+		background-color: var(--sticky-bg-color);
+	}
+
+	> tbody > tr > td[data-sticky-after-first-column-cell],
+	> tfoot > tr > td:nth-of-type(2) {
+		border-left: none;
+	}
+
+	> tbody > tr:has(> td:hover) > td[data-sticky-first-column-cell],
+	> tfoot > tr:has(> td:hover) > td:first-of-type {
+		background-color: var(--color-table-row-hover);
+	}
+}
+
+.sticky-table-wrapper[data-sticky-col-active="true"][data-sticky-row-active="true"]
+	> .width-wrapper-container
+	> .width-wrapper
+	> .scrollableContent
+	> div[data-table-wrapper]
+	> :is(table[data-header="column"], table[data-header="both"])
+	> tbody
+	> tr:first-of-type
+	> td:first-of-type {
+	left: 0;
+	width: 100%;
+}
+
+.sticky-table-wrapper[data-sticky-col-active="true"] > .width-wrapper-container > .width-wrapper > .shadow-box.left {
+	/* biome-ignore lint/complexity/noImportantStyles: override inline */
+	width: var(--sticky-side-padding) !important;
+	/* biome-ignore lint/complexity/noImportantStyles: override inline */
+	background-color: var(--sticky-bg-color) !important;
+}
+
+.sticky-table-wrapper[data-sticky-col-active="true"]
+	> .width-wrapper-container
+	> .width-wrapper:has(> .shadow-box.left:not([data-width="0"]))
+	> .scrollableContent {
+	> .left-shadow-container {
+		position: absolute;
+		top: 0;
+		width: var(--sticky-client-width);
+		height: 100%;
+		pointer-events: none;
+		user-select: none;
+
+		> .left-shadow {
+			position: sticky;
+			left: var(--sticky-left-shadow-left);
+			z-index: 2;
+			width: var(--sticky-scroll-shadow-size);
+			height: var(--sticky-left-shadow-height);
+			margin-top: 1.25em;
+			pointer-events: none;
+			user-select: none;
+		}
+	}
+}
+
+.sticky-table-wrapper[data-sticky-col-active="true"]
+	> .width-wrapper-container
+	> .width-wrapper
+	> .scrollableContent
+	> .table-actions {
+	width: var(--sticky-client-width);
+}
+
+.sticky-table-wrapper[data-sticky-col-active="true"]
+	> .width-wrapper-container
+	> .width-wrapper
+	> .scrollableContent
+	> .table-actions
+	> .table-controller {
+	width: 100%;
+	height: 0;
+}
+
+.sticky-table-wrapper[data-sticky-col-active="true"]
+	> .width-wrapper-container
+	> .width-wrapper
+	> .scrollableContent
+	> .table-actions
+	> .table-controller
+	.controls-container-vertical {
+	position: sticky;
+	width: fit-content;
+	padding-top: var(--sticky-controls-vertical-top);
+}
+
+.sticky-table-wrapper[data-sticky-col-active="true"]
+	> .width-wrapper-container
+	> .width-wrapper
+	> .scrollableContent
+	> .table-actions
+	> .table-controller
+	> .controls-container-horizontal
+	> .plus-actions-container:first-of-type,
+.sticky-table-wrapper[data-sticky-col-active="true"]
+	> .width-wrapper-container
+	> .width-wrapper
+	> .scrollableContent
+	> .table-actions
+	> .table-controller
+	> .controls-container-horizontal
+	> .plus-actions-container[data-col-number="0"] {
+	position: sticky;
+	left: var(--sticky-side-padding);
+}
+
+.sticky-table-wrapper[data-sticky-col-active="true"]
+	> .width-wrapper-container
+	> .width-wrapper
+	> .scrollableContent
+	> div[data-table-select-all-container] {
+	width: var(--sticky-client-width);
+}
+
+.sticky-table-wrapper[data-sticky-col-active="true"]
+	> .width-wrapper-container
+	> .width-wrapper
+	> .scrollableContent
+	> div[data-table-select-all-container]
+	> div[data-qa="table-select-all"] {
+	position: sticky;
+	left: var(--sticky-helpers-left);
+	width: 0;
+}

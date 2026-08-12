@@ -1,3 +1,6 @@
+import { useRouter } from "@core/Api/useRouter";
+import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
+import useWatch from "@core-ui/hooks/useWatch";
 import ExactResourceViewWithContent, {
 	type UseResourceArticleViewType,
 } from "@ext/git/actions/Publish/logic/ExactResourceViewWithContent";
@@ -5,16 +8,13 @@ import resolveResourceTypeByExtension from "@ext/git/actions/Publish/logic/utils
 import LoadingWithDiffBottomBar from "@ext/git/core/Diff/components/LoadingWithDiffBottomBar";
 import {
 	setDiffEnabled,
+	setDisabledDoublePanel,
 	setDoublePanelLocked,
 	setSideBarData,
 	setSourceTextLocked,
-	updateDiffViewMode,
-	updateDisabledViewModes,
-	useDiffViewMode,
 } from "@ext/git/core/Diff/components/store/DiffViewModeStore";
 import useFetchDiffData from "@ext/git/core/Diff/logic/hooks/useFetchDiffData";
 import { useResetArticleView } from "@ext/git/core/Diff/logic/hooks/useResetArticleView";
-import type { DiffViewMode } from "@ext/git/core/Diff/logic/model/DiffView";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -27,13 +27,18 @@ const ExactResourceView = (props: Omit<UseResourceArticleViewType, "newContent" 
 	const ext = resourcePath.extension;
 	const type = resolveResourceTypeByExtension(ext);
 
+	const isMountedRef = useRef(false);
 	const [isLoading, setIsLoading] = useState(type !== "image" && type !== "unknown");
 	const [newContent, setNewContent] = useState<string>(null);
 	const [oldContent, setOldContent] = useState<string>(null);
 
-	const diffModeViewRef = useRef<DiffViewMode>(null);
-	const diffModeView = useDiffViewMode();
-	diffModeViewRef.current = diffModeView;
+	const router = useRouter();
+
+	useWatch(() => {
+		if (!isMountedRef.current) return;
+		ArticleViewService.setDefaultView();
+		ArticleViewService.useArticleDefaultStyles = true;
+	}, [router.path]);
 
 	const fetchDiffData = useFetchDiffData({
 		isAdded,
@@ -62,9 +67,7 @@ const ExactResourceView = (props: Omit<UseResourceArticleViewType, "newContent" 
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useEffect(() => {
-		const previousDiffViewMode = diffModeViewRef.current;
-		const isWysiwyg = previousDiffViewMode === "wysiwyg-single" || previousDiffViewMode === "wysiwyg-double";
-
+		isMountedRef.current = true;
 		setDiffEnabled(true);
 		setSourceTextLocked(type === "text");
 		setDoublePanelLocked(type !== "text" || isDeleted);
@@ -83,14 +86,7 @@ const ExactResourceView = (props: Omit<UseResourceArticleViewType, "newContent" 
 				deleted: undefined,
 			},
 		});
-		updateDisabledViewModes(
-			type === "text"
-				? ["wysiwyg-double", "wysiwyg-single"]
-				: ["double-panel", "wysiwyg-double", "wysiwyg-single", "single-panel"],
-		);
-
-		if (type === "text" && isWysiwyg) updateDiffViewMode("single-panel");
-		if (type === "image") updateDiffViewMode("wysiwyg-single");
+		setDisabledDoublePanel(type !== "text");
 
 		if (type !== "image") void getNewData();
 
@@ -98,8 +94,7 @@ const ExactResourceView = (props: Omit<UseResourceArticleViewType, "newContent" 
 			setSourceTextLocked(false);
 			setDoublePanelLocked(false);
 			setDiffEnabled(false);
-			updateDisabledViewModes([]);
-			updateDiffViewMode(diffModeViewRef.current);
+			setDisabledDoublePanel(false);
 			setSideBarData(null);
 		};
 	}, []);

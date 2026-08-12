@@ -1,6 +1,7 @@
 import Tooltip from "@components/Atoms/Tooltip";
 import SourceDataService from "@core-ui/ContextServices/SourceDataService";
 import styled from "@emotion/styled";
+import { useIsEnterprise } from "@ext/enterprise/utils/useIsEnterprise";
 import { useValidateSource } from "@ext/git/actions/Source/logic/useValidateSource";
 import t from "@ext/localization/locale/translate";
 import CreateStorage from "@ext/storage/components/CreateStorage";
@@ -30,6 +31,7 @@ const InvalidSourceWarning = ({ small, source, modalTrigger = true }: InvalidSou
 	const data = removeSourceTokenIfInvalid(source || useSourceData());
 	const sourceDatas = SourceDataService.value;
 	const validateSource = useValidateSource();
+	const isEnterprise = useIsEnterprise();
 
 	const trigger = (
 		<Tooltip content={t("storage-not-connected")}>
@@ -37,7 +39,7 @@ const InvalidSourceWarning = ({ small, source, modalTrigger = true }: InvalidSou
 		</Tooltip>
 	);
 
-	if (!modalTrigger) return trigger;
+	if (!modalTrigger || isEnterprise) return trigger;
 
 	return (
 		<CreateStorage

@@ -1,7 +1,9 @@
+import type { IconCode } from "@components/Atoms/Icon/LucideIcon";
 import CatalogLogoService from "@core-ui/ContextServices/CatalogLogoService/Context";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import t from "@ext/localization/locale/translate";
+import IconComponent from "@ext/markdown/elements/icon/render/components/Icon";
 import { useState } from "react";
 
 export const ActionLogo = () => {
@@ -27,7 +29,23 @@ export const ActionLogo = () => {
 export const CatalogLogo = ({ catalogName }: { catalogName?: string }) => {
 	const { logo } = CatalogLogoService.value();
 	const { isStaticCli } = usePlatform();
-	if (!logo || isStaticCli) return null;
+	if (isStaticCli) return null;
 
-	return <img alt={catalogName} src={logo} />;
+	if (!logo) return null;
+	if ("iconCode" in logo)
+		return (
+			<IconComponent
+				className="w-[1.625rem] box-content shrink-0"
+				code={logo.iconCode as IconCode}
+				color={logo.iconColor}
+				data-testid="catalog-logo-icon"
+			/>
+		);
+	if ("emoji" in logo)
+		return (
+			<span className="text-xl leading-none shrink-0 pr-[10px]" data-testid="catalog-logo-emoji">
+				{logo.emoji}
+			</span>
+		);
+	return <img alt={catalogName} data-testid="catalog-logo-image" src={logo.src} />;
 };

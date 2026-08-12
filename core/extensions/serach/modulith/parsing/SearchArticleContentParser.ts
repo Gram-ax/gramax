@@ -3,207 +3,142 @@ import Path from "@core/FileProvider/Path/Path";
 import { extractTextsMermaid } from "@ext/serach/modulith/parsing/extractTextsMermaid";
 import { extractTextsSvg } from "@ext/serach/modulith/parsing/extractTextsSvg";
 import { plantUmlToSvg } from "@ext/serach/modulith/parsing/plantUmlToSvg";
-import SearchArticleContentParserBase from "@ext/serach/modulith/parsing/SearchArticleContentParserBase";
-import type { ArticleItem, ArticleTableRow, ArticleTableRowData } from "@ics/gx-vector-search";
+import {
+	SearchArticleContentParserJSONBase,
+	type SearchArticleContentParserJSONBaseOptions,
+} from "@ext/serach/modulith/parsing/SearchArticleContentParserJSONBase";
+import type {
+	ArticleLanguage,
+	SearchArticleItemMetadata,
+	SearchArticleItems,
+} from "@ext/serach/modulith/SearchArticle";
+import { getLocalizedString } from "@ext/serach/modulith/utils/getLocalizedString";
+import type { Table } from "@ext/tableDB/table";
+import type { ArticleId } from "@ics/article-search/article";
+import { ArticleItemCollector } from "@ics/article-search/article";
 import type { JSONContent } from "@tiptap/core";
-import { SemVer } from "semver";
 
-const REMOTE_VERSION_0_0_7 = new SemVer("0.0.7");
-
-export interface SearchArticleContentParserOptions {
-	items: JSONContent[];
-	getFragmentItems: (id: string) => Promise<JSONContent[] | undefined>;
-	getPropertyValue: (id: string) => string | undefined;
-	getLinkId: (fileName: Path) => string | undefined;
-	readResource?: (src: string) => Promise<string | undefined>;
+export interface SearchArticleContentParserOptions extends SearchArticleContentParserJSONBaseOptions {
+	articleId: ArticleId;
+	title: string;
 	diagramRendererServerUrl?: string;
-	remoteVersion?: SemVer;
+	getDbDiagramTexts?: (src: string, tags: string, primary: string) => Promise<string[] | undefined>;
+	getLinkId: (fileName: Path) => string | undefined;
+	lang: ArticleLanguage;
 }
 
-export default class SearchArticleContentParser extends SearchArticleContentParserBase {
-	constructor(private readonly _options: SearchArticleContentParserOptions) {
-		super();
+export default class SearchArticleContentParser extends SearchArticleContentParserJSONBase<SearchArticleContentParserOptions> {
+	private readonly _collector: ArticleItemCollector<SearchArticleItemMetadata>;
+
+	constructor(options: SearchArticleContentParserOptions) {
+		super(options);
+		this._collector = new ArticleItemCollector(options.articleId, options.title);
 	}
 
-	async parse(): Promise<ArticleItem[]> {
+	async parse(): Promise<SearchArticleItems> {
 		await this._parseItems(this._options.items);
-		return this._children;
+		return this._collector.finish();
 	}
 
-	private async _parseItems(items?: JSONContent[]): Promise<void> {
-		if (!items) return;
-
-		for (const item of items) {
-			try {
-				await this._parseItem(item);
-			} catch (error) {
-				console.warn(`Error in SearchArticleContentParser._parseItem: ${error.message}`, item);
-			}
-		}
+	protected _addText(text: string): void {
+		if (!text?.length) return;
+		this._collector.addText(text);
 	}
 
-	private async _parseItem(item: JSONContent): Promise<void> {
-		if (!item) return;
-
-		switch (item.type) {
-			case "paragraph": {
-				const buffer = [];
-
-				item.content?.forEach((x) => {
-					if (x.type === "text" && x.marks?.length > 0) {
-						const filePath = x.marks.find((y) => y.type === "file")?.attrs.resourcePath;
-						if (filePath != null) {
-							this._addText(buffer.join(""));
-							buffer.length = 0;
-
-							const fileName = new Path(filePath);
-							const link = this._options.getLinkId(fileName);
-							if (link != null) {
-								this._addItem({
-									type: "embedded-link",
-									title: x.text ?? "",
-									link,
-								});
-
-								return;
-							}
-						}
-					}
-
-					const text = this._getText(x);
-					buffer.push(text);
-				});
-
-				if (buffer.length > 0) {
-					this._addText(buffer.join(""));
-				}
-				break;
-			}
-			case "heading":
-				this._addHeader(item.attrs.level, this._jsonToString(item));
-				break;
-			case "code_block":
-				this._addText(this._jsonToString(item));
-				break;
-			case "table":
-				await this._addTable(item);
-				break;
-			case "note":
-				await this._addNote(item);
-				break;
-			case "bulletList":
-			case "orderedList":
-				await this._parseItems(item.content?.flatMap((x) => x.content));
-				break;
-			case "tab":
-				await this._addTab(item);
-				break;
-			case "fragment":
-				await this._addFragment(item);
-				break;
-			case "diagrams": {
-				if (item.attrs?.diagramName === DiagramType.mermaid) {
-					await this._addDiagramTexts(item, item.attrs.diagramName, (definition) =>
-						extractTextsMermaid(definition),
-					);
-				}
-				if (item.attrs?.diagramName === DiagramType["plant-uml"]) {
-					await this._addDiagramTexts(item, item.attrs.diagramName, async (definition) => {
-						const svgContent = await plantUmlToSvg(definition, this._options.diagramRendererServerUrl);
-						return extractTextsSvg(svgContent);
-					});
-				}
-				break;
-			}
-			case "drawio": {
-				// Drawio diagrams are not indexed for remote search for now
-				if (this._options.remoteVersion) break;
-
-				await this._addDiagramTexts(item, "drawio", (definition) => extractTextsSvg(definition));
-				break;
-			}
-			case "horizontal_rule":
-			case "openapi":
-			case "blockMd":
-			case "image":
-			case "video":
-			case "view":
-			case "html":
-				break;
-			default:
-				await this._parseItems(item.content);
-				break;
-		}
+	protected _handleHeading(title: string, level?: number): void {
+		this._collector.enterHeading(title ?? "", level ?? this._collector.curLevel() + 1);
 	}
 
-	private async _addNote(note: JSONContent): Promise<void> {
-		this._enterBlock({
-			type: "block",
-			items: [],
-			title: note.attrs.title,
-		});
-
+	protected async _handleNote(note: JSONContent): Promise<void> {
+		this._collector.enterBlock(note.attrs?.title ?? "");
 		await this._parseItems(note.content);
-		this._exitBlock();
+		this._collector.exitBlock();
 	}
 
-	private async _addTab(tab: JSONContent): Promise<void> {
-		this._enterBlock({
-			type: "block",
-			items: [],
-			title: tab.attrs?.name,
-		});
-
+	protected async _handleTab(tab: JSONContent): Promise<void> {
+		this._collector.enterBlock(tab.attrs?.title ?? "");
 		await this._parseItems(tab.content);
-		this._exitBlock();
+		this._collector.exitBlock();
 	}
 
-	private async _addFragment(fragment: JSONContent): Promise<void> {
-		if (!fragment.attrs?.id) return;
-
-		const items = await this._options.getFragmentItems(fragment.attrs.id);
-		await this._parseItems(items);
-	}
-
-	private async _addTable(table: JSONContent): Promise<void> {
-		const rows: ArticleTableRow[] = [];
+	protected async _handleTable(table: JSONContent): Promise<void> {
 		for (const row of table.content ?? []) {
-			const data: ArticleTableRowData[] = [];
 			for (const cell of row.content ?? []) {
-				let cellItems: ArticleItem[] = [];
 				if (cell.content) {
-					cellItems = await new SearchArticleContentParser({
-						...this._options,
-						items: cell.content,
-					}).parse();
+					await this._parseItems(cell.content);
 				}
+			}
+		}
+	}
 
-				data.push({
-					items: cellItems,
-					colspan: cell.attrs.colspan,
-					rowspan: cell.attrs.rowspan,
-				});
+	protected async _handleParagraph(item: JSONContent): Promise<void> {
+		const buffer = [];
+
+		item.content?.forEach((x) => {
+			if (x.type === "text" && x.marks?.length > 0) {
+				const filePath = x.marks.find((y) => y.type === "file")?.attrs.resourcePath;
+				if (filePath != null) {
+					this._addText(buffer.join(""));
+					buffer.length = 0;
+
+					const fileName = new Path(filePath);
+					const link = this._options.getLinkId(fileName);
+					if (link != null) {
+						this._collector.addEmbLink(x.text ?? "", link);
+						return;
+					}
+				}
 			}
 
-			rows.push({
-				data,
+			buffer.push(this._getText(x));
+		});
+
+		if (buffer.length > 0) this._addText(buffer.join(""));
+	}
+
+	protected async _handleDiagrams(item: JSONContent): Promise<void> {
+		if (item.attrs?.diagramName === DiagramType.mermaid) {
+			await this._addDiagramTexts(item, item.attrs.diagramName, (def) => extractTextsMermaid(def));
+		}
+		if (item.attrs?.diagramName === DiagramType["plant-uml"]) {
+			await this._addDiagramTexts(item, item.attrs.diagramName, async (def) => {
+				const svg = await plantUmlToSvg(def, this._options.diagramRendererServerUrl);
+				return extractTextsSvg(svg);
 			});
 		}
+	}
 
-		this._addItem({
-			type: "table",
-			rows,
+	protected async _handleDrawio(item: JSONContent): Promise<void> {
+		await this._addDiagramTexts(item, "drawio", (def) => extractTextsSvg(def));
+	}
+
+	protected async _handleBlockMd(item: JSONContent): Promise<void> {
+		const tag = item.attrs?.tag?.[0];
+		if (!tag) return;
+
+		if (tag.name === "Db-diagram") {
+			await this._addDbDiagram(tag.attributes);
+		} else if (tag.name === "Db-table") {
+			this._addDbTable(tag.attributes?.object as Table);
+		}
+	}
+
+	private _addDbTable(object: Table): void {
+		if (!object) return;
+		this._addText(object.code);
+		const title = object.title ? getLocalizedString(object.title, this._options.lang) : null;
+		if (title) this._addText(title);
+		const description = object.description ? getLocalizedString(object.description, this._options.lang) : null;
+		if (description) this._addText(description);
+
+		object.fields.forEach((x) => {
+			this._addText(x.code);
+			this._addText(x.sqlType);
+			const fieldTitle = x.title ? getLocalizedString(x.title, this._options.lang) : null;
+			const fieldDescription = x.description ? getLocalizedString(x.description, this._options.lang) : null;
+			const combined = `${fieldTitle ?? ""} ${fieldDescription ?? ""}`.trim();
+			if (combined) this._addText(combined);
 		});
-	}
-
-	private _jsonToString(json: JSONContent): string {
-		return json.content?.map((x) => this._getText(x)).join("") ?? "";
-	}
-
-	private _getText(item: JSONContent) {
-		return item.type === "inline-property" && item.attrs.bind
-			? (this._options.getPropertyValue(item.attrs.bind) ?? item.text)
-			: item.text;
 	}
 
 	private async _addDiagramTexts(
@@ -211,55 +146,26 @@ export default class SearchArticleContentParser extends SearchArticleContentPars
 		diagramType: string,
 		resolveDisplayTexts: (definition: string) => Promise<string[]>,
 	): Promise<void> {
-		const definition = await resolveDiagramDefinition(item, this._options.readResource);
+		const definition = await this._resolveDiagramDefinition(item);
 		const title = item.attrs?.title != null ? String(item.attrs.title).trim() : "";
+		const displayTexts = definition ? await resolveDisplayTexts(definition) : [];
 
-		if (!this._options.remoteVersion) {
-			const displayTexts = definition ? await resolveDisplayTexts(definition) : [];
-			this._addItem({
-				type: "diagram",
-				diagramType,
-				title,
-				items: displayTexts.map((text) => ({
-					type: "text",
-					text,
-				})),
-			});
-			return;
-		}
-
-		if (this._options.remoteVersion.compare(REMOTE_VERSION_0_0_7) < 0) {
-			if (title) this._addText(title);
-			if (!definition) return;
-			this._addText(definition);
-			return;
-		}
-
-		if (!definition) return;
-		this._addItem({
-			type: "diagram",
-			diagramType: item.attrs?.diagramName,
-			title,
-			items: [
-				{
-					type: "text",
-					text: definition,
-				},
-			],
-		});
+		this._addDiagram(title, diagramType, displayTexts);
 	}
-}
 
-async function resolveDiagramDefinition(
-	node: JSONContent,
-	readDiagramFile: (src: string) => Promise<string | undefined>,
-): Promise<string> {
-	const inline = typeof node.attrs?.content === "string" ? node.attrs.content.trim() : "";
-	if (inline) return inline;
+	private async _addDbDiagram(attributes: Record<string, string>): Promise<void> {
+		const src = attributes?.src;
+		if (!src || !this._options.getDbDiagramTexts) return;
+		const texts = await this._options.getDbDiagramTexts(src, attributes?.tags ?? "", attributes?.primary ?? "");
+		if (!texts) return;
+		this._addDiagram("", "Db-diagram", texts);
+	}
 
-	const src = node.attrs?.src;
-	if (typeof src !== "string" || !src.trim()) return "";
-
-	const fromFile = await readDiagramFile(src);
-	return (fromFile ?? "").trim();
+	private _addDiagram(title: string, diagramType: string, texts: string[]) {
+		this._collector.enterBlock(title, { type: "diagram", diagramType });
+		texts.forEach((x) => {
+			this._addText(x);
+		});
+		this._collector.exitBlock();
+	}
 }

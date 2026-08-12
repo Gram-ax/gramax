@@ -16,6 +16,7 @@ export default class MdParser {
 	private _dashRegExp: RegExp;
 	private _idRegExp: RegExp;
 	private _brRegExp: RegExp;
+	private _kbdRegExp: RegExp;
 	private _emptyParagraphRegExp: RegExp;
 	private _findHtmlRegExp: RegExp;
 	private _findHtmlTagRegExp: RegExp;
@@ -50,6 +51,7 @@ export default class MdParser {
 		this._dashRegExp = this._createIgnoreRegExp(String.raw`.?-->.?|\\--|.?--[-]+|[^\\\n\r]?(--)`);
 		this._idRegExp = this._createIgnoreRegExp(String.raw`[[{] ?(#.*?) ?[\]}]`);
 		this._brRegExp = this._createIgnoreRegExp(String.raw`(<br>|<br\/>)`);
+		this._kbdRegExp = this._createIgnoreRegExp(String.raw`<kbd>([\s\S]*?)<\/kbd>`);
 		this._backDashRegExp = this._createIgnoreRegExp(String.raw`(—)`);
 		this._backArrowRegExp = this._createIgnoreRegExp(String.raw`(→)`);
 		this._findHtmlRegExp = this._createBlockCodeIgnoreRegExp(String.raw`(^[^\n]*)\[html.*]([\s\S]*?)\[\/html\]`);
@@ -78,6 +80,7 @@ export default class MdParser {
 		newContent = this._propertyParser(newContent);
 		newContent = this._formulaParser(newContent);
 		newContent = this._brParser(newContent);
+		newContent = this._kbdParser(newContent);
 		newContent = this._emptyParagraphParser(newContent);
 		newContent = this._htmlParser(newContent);
 		return newContent;
@@ -151,6 +154,12 @@ export default class MdParser {
 		);
 	}
 
+	private _kbdParser(content: string): string {
+		return content.replaceAll(this._kbdRegExp, (str: string, text: string) =>
+			text !== undefined && this._tags.kbd ? this._parse(["kbd", text], this._tags.kbd) : str,
+		);
+	}
+
 	private _squareBracketsParser(content: string): string {
 		return content.replaceAll(this._squareRegExp, (str: string, group: string, hasOpenBracket: string) => {
 			let newGroup = group;
@@ -194,9 +203,10 @@ export default class MdParser {
 				const group = secondGroup;
 				if (!group) return _;
 				const space = " ".repeat(firstGroup.length);
-				return `${firstGroup}{%html mode="${
-					/\[html:(.*?)\]/.exec(_)?.[1] || "iframe"
-				}" %}\n${space}\`\`\`\n${secondGroup}\n${space}\`\`\`\n${space}{%/html%}`;
+				// Legacy attributes are positional: [html:<mode>:<scale>]
+				const [mode, scale] = (/\[html:?([^\]]*)\]/.exec(_)?.[1] ?? "").split(":");
+				const attrs = `mode="${mode || "iframe"}"${scale ? ` scale="${scale}"` : ""}`;
+				return `${firstGroup}{%html ${attrs} %}\n${space}\`\`\`\n${secondGroup}\n${space}\`\`\`\n${space}{%/html%}`;
 			},
 		);
 

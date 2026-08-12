@@ -1,3 +1,4 @@
+import { apiUtils } from "@core/Api/apiUtils";
 import { MainMiddleware } from "@core/Api/middleware/MainMiddleware";
 import type Query from "@core/Api/Query";
 import HiddenRules from "@core/FileStructue/Rules/HiddenRules/HiddenRule";
@@ -16,7 +17,7 @@ export default ApplyApiMiddleware(
 		);
 		res.setHeader("Content-Type", "application/xml; charset=utf-8");
 		res.setHeader("Access-Control-Allow-Origin", "*");
-		res.send(sitemapIndex);
+		apiUtils.send(res, sitemapIndex);
 	},
 	[new MainMiddleware()],
 );

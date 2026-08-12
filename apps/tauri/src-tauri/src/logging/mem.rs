@@ -227,7 +227,10 @@ pub fn init_mem_watching<R: Runtime>(app: &AppHandle<R>) -> Result<()> {
 }
 
 pub fn force_find_processes<R: Runtime>(app: &AppHandle<R>) -> Result<()> {
-	let watcher = app.state::<Arc<Mutex<WatchedProcesses<R>>>>();
+	let Some(watcher) = app.try_state::<Arc<Mutex<WatchedProcesses<R>>>>() else {
+		warn!("no watcher state found, skipping force_find_processes");
+		return Ok(());
+	};
 	watcher.lock().unwrap().need_update = true;
 	Ok(())
 }

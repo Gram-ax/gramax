@@ -5,8 +5,9 @@ import { classNames } from "@components/libs/classNames";
 import ArticleContextWrapper from "@core-ui/ScopedContextWrapper/ArticleContextWrapper";
 import getIsSafari from "@core-ui/utils/isSafari";
 import { css } from "@emotion/react";
+// biome-ignore lint/style/noRestrictedImports: will be removed soon
 import styled from "@emotion/styled";
-import DiffExtension from "@ext/git/core/Diff/logic/DiffExtension";
+import OldDiffExtension from "@ext/git/core/Diff/logic/DiffExtension";
 import type { DiffLineType } from "@ext/git/core/Diff/logic/model/DiffLine";
 import type { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import t from "@ext/localization/locale/translate";
@@ -14,13 +15,17 @@ import getExtensions from "@ext/markdown/core/edit/logic/getExtensions";
 import ElementGroups from "@ext/markdown/core/element/ElementGroups";
 import CommentEditorProvider from "@ext/markdown/elements/comment/edit/logic/CommentEditorProvider";
 import Comment from "@ext/markdown/elements/comment/edit/model/comment";
+import { feature } from "@ext/toggleFeatures/features";
+import { DiffExtension } from "@gaurussel/tiptap-diff-utility";
 import Document from "@tiptap/extension-document";
-import { type Decoration, DecorationSet } from "@tiptap/pm/view";
 import { EditorContent, type JSONContent, useEditor } from "@tiptap/react";
+import { type Decoration, DecorationSet } from "prosemirror-view";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 interface ProsemirrorDiffLineContentProps {
 	oldContent: JSONContent;
+	newContent: JSONContent;
+	/** @deprecated used only by the legacy diff renderer (feature flag `new-diffs` off) */
 	oldDecorations: Decoration[];
 	oldScope: TreeReadScope;
 	type: Exclude<DiffLineType, "added" | "comment">;
@@ -64,7 +69,9 @@ export const HeaderText = styled.span`
 const isSafari = getIsSafari();
 
 const ProsemirrorDiffLineContent = (props: ProsemirrorDiffLineContentProps) => {
-	const { oldContent, oldDecorations, onDiscard, oldScope, type, articlePath } = props;
+	const { oldContent, newContent, oldDecorations, onDiscard, oldScope, type, articlePath } = props;
+
+	const newDiffsEnabled = feature("new-diffs");
 
 	const extensions = useMemo(() => [...getExtensions(), Comment.configure({ appendCommentToBody: true })], []);
 
@@ -72,7 +79,12 @@ const ProsemirrorDiffLineContent = (props: ProsemirrorDiffLineContentProps) => {
 		{
 			extensions: [
 				...extensions,
-				DiffExtension.configure({ isOldEditor: true }),
+				newDiffsEnabled
+					? DiffExtension.configure({
+							baseline: newContent,
+							mode: type === "breadcrumb" ? "unified" : "deletions",
+						})
+					: OldDiffExtension.configure({ isOldEditor: true }),
 				Document.configure({ content: `paragraph ${ElementGroups.block}+` }),
 			],
 			content: oldContent,
@@ -82,9 +94,10 @@ const ProsemirrorDiffLineContent = (props: ProsemirrorDiffLineContentProps) => {
 	);
 
 	useEffect(() => {
+		if (newDiffsEnabled) return;
 		if (!editor || editor.isDestroyed) return;
 		editor.commands.setMeta("updateDiffDecorators", DecorationSet.create(editor.state.doc, oldDecorations));
-	}, [editor, oldDecorations]);
+	}, [editor, oldDecorations, newDiffsEnabled]);
 
 	const [tooltipVisible, setTooltipVisible] = useState(false);
 	const timeoutRef = useRef<NodeJS.Timeout>(null);
@@ -119,7 +132,7 @@ const ProsemirrorDiffLineContent = (props: ProsemirrorDiffLineContentProps) => {
 
 	return (
 		<ArticleContextWrapper articlePath={articlePath} scope={oldScope}>
-			<div className={classNames("article", {}, ["tooltip-article"])}>
+			<div className={classNames("article bg-[var(--color-article-bg)]", {}, ["tooltip-article"])}>
 				<Header>
 					<HeaderText>
 						{type === "modified"

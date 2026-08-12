@@ -40,7 +40,7 @@ git2 = { git = "https://github.com/gram-ax/git2-rs.git", rev = "3dec92bd17fc81b2
 ] }
 git2-lfs = { git = "https://github.com/gram-ax/git2-lfs.git", rev = "0ac7b74c6f5d7ceb247e48e1bf182b282d03ab98", default-features = false }
 
-[target.'cfg(any(target_os = "linux", target_os = "android"))'.dependencies]
+[target.'cfg(any(target_os = "macos", target_os = "linux", target_os = "android"))'.dependencies]
 git2 = { git = "https://github.com/gram-ax/git2-rs.git", rev = "3dec92bd17fc81b2d76c15919028b2de868dbacb", default-features = false, features = [
   "https",
   "ssh",
@@ -52,7 +52,7 @@ git2-lfs = { git = "https://github.com/gram-ax/git2-lfs.git", rev = "0ac7b74c6f5
   "git2-use-openssl",
 ] }
 
-[target.'cfg(any(target_os = "windows", target_os = "macos"))'.dependencies]
+[target.'cfg(any(target_os = "windows"))'.dependencies]
 git2 = { git = "https://github.com/gram-ax/git2-rs.git", rev = "3dec92bd17fc81b2d76c15919028b2de868dbacb", default-features = false, features = [
   "https",
   "ssh",

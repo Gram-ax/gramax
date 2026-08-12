@@ -28,6 +28,12 @@ const getMovements = <T>(oldNav: NodeModel<T>[], newNav: NodeModel<T>[]): Moveme
 	return movements;
 };
 
+export const findMovement = <T>(
+	oldNav: NodeModel<T>[],
+	newNav: NodeModel<T>[],
+	isDragged: (node: NodeModel<T>) => boolean,
+): Movement<T> | undefined => getMovements(oldNav, newNav).find(({ moveItem }) => isDragged(moveItem));
+
 const buildTree = <T>(nodes: NodeModel<T>[]): TreeNode<T>[] => {
 	const idToNodeMap = new Map<number | string, TreeNode<T>>();
 

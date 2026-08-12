@@ -1,23 +1,23 @@
 import { cn } from "@core-ui/utils/cn";
 import { type Cell, flexRender } from "@ui-kit/DataTable";
 import { TableCell } from "@ui-kit/Table";
-import { columnTdClassName, TABLE_COLUMN_CODE_DEFAULT } from "./TableComponent";
+import { columnWidthStyle } from "./columnWidthStyle";
 
 type TableCellComponentProps<T> = {
 	cell: Cell<T, unknown>;
-	idx: number;
 	onClick?: (e: React.MouseEvent<HTMLTableCellElement>) => void;
 };
 
-export function TableCellComponent<T>({ cell, idx, onClick }: TableCellComponentProps<T>) {
+export function TableCellComponent<T>({ cell, onClick }: TableCellComponentProps<T>) {
 	return (
 		<TableCell
 			className={cn(
-				columnTdClassName[cell.column.id as keyof typeof columnTdClassName] ||
-					columnTdClassName[TABLE_COLUMN_CODE_DEFAULT],
-				idx === 0 ? " pl-3" : "",
+				// biome-ignore lint/complexity/useLiteralKeys: idc
+				cell.column.columnDef.meta?.["cellClassName"],
+				"overflow-hidden whitespace-nowrap text-ellipsis",
 			)}
 			onClick={onClick}
+			style={columnWidthStyle(cell.column.columnDef.size)}
 		>
 			{flexRender(cell.column.columnDef.cell, cell.getContext())}
 		</TableCell>

@@ -1,5 +1,5 @@
 import type { NodeModel } from "@minoru/react-dnd-treeview";
-import getMovements, { type Movement } from "./getMovements";
+import getMovements, { findMovement, type Movement } from "./getMovements";
 
 const parseMovements = (movements: Movement[]) =>
 	movements.map(
@@ -12,6 +12,29 @@ const parseMovements = (movements: Movement[]) =>
 const getTestMovements = (oldNav: NodeModel[], newNav: NodeModel[]) => parseMovements(getMovements(oldNav, newNav));
 
 describe("getMovements распознает перемещение", () => {
+	test("выбирает только перетаскиваемый элемент из нескольких изменений дерева", () => {
+		const oldNav: NodeModel[] = [
+			{ id: 0, parent: null, text: "Root" },
+			{ id: 1, parent: 0, text: "Dragged" },
+			{ id: 2, parent: 0, text: "Other" },
+			{ id: 3, parent: 0, text: "Folder" },
+		];
+		const newNav: NodeModel[] = [
+			{ id: 0, parent: null, text: "Root" },
+			{ id: 1, parent: 3, text: "Dragged" },
+			{ id: 2, parent: 3, text: "Other" },
+			{ id: 3, parent: 0, text: "Folder" },
+		];
+
+		const movement = findMovement(oldNav, newNav, (node) => node.id === 1);
+
+		expect(movement).toBeDefined();
+		if (!movement) return;
+		expect(parseMovements([movement])).toEqual([
+			"Элемент Dragged переместить с Root/Dragged на Root/Folder/Dragged",
+		]);
+	});
+
 	describe("файла", () => {
 		test("c корня в папку", () => {
 			const oldNav: NodeModel[] = [

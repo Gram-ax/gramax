@@ -7,7 +7,7 @@
 		"test:next": "cucumber-js -f junit:junit.next.xml -f progress-bar -t \"(@next or @next-only) and not @enterprise\"",
 		"test:static": "cucumber-js -f junit:junit.static.xml -f progress-bar -t \"@static and not @enterprise\"",
 		"test:enterprise": "cucumber-js -f junit:junit.enterprise.xml -f progress-bar -t \"@enterprise\"",
-		"dev": "npm --prefix ../apps/browser run dev"
+		"dev": "npm --prefix ../apps/web run dev"
 	},
 	"dependencies": {
 		"@cucumber/cucumber": "^10.8.0",

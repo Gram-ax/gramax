@@ -1,6 +1,6 @@
 import useWatch from "@core-ui/hooks/useWatch";
+import { Button } from "@ext/enterprise/components/admin/ui-kit/Button";
 import t from "@ext/localization/locale/translate";
-import { Button } from "@ui-kit/Button";
 import {
 	DropdownMenu,
 	DropdownMenuCheckboxItem,
@@ -81,7 +81,7 @@ export const QuizFilterDropdown = (props: QuizFilterDropdownProps) => {
 					{trigger} {selectedCount > 0 ? `(${selectedCount})` : ""}
 				</Button>
 			</DropdownMenuTrigger>
-			<DropdownMenuContent align="start">
+			<DropdownMenuContent align="start" className="font-sans font-normal">
 				{!multiple ? (
 					<DropdownMenuRadioGroup onValueChange={onValueChange} value={selectedOptions[0]}>
 						{options.map((option) => (

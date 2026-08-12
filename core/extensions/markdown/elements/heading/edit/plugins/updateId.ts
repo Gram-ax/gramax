@@ -1,6 +1,6 @@
+import UpdateHeadingId from "@ext/markdown/elements/heading/edit/views/UpdateHeadingId";
 import type { Editor } from "@tiptap/core";
 import { Plugin, PluginKey } from "prosemirror-state";
-import UpdateHeadingId from "../views/UpdateHeadingId";
 
 function updateId(editor: Editor): Plugin {
 	return new Plugin({

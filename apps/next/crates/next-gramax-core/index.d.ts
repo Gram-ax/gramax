@@ -146,7 +146,7 @@ export declare function mv(scope: string, from: string, to: string, spanId?: str
 
 export declare function new_branch(repoPath: string, name: string, spanId?: string | undefined | null, traceId?: string | undefined | null): Promise<unknown>
 
-export declare function pull_lfs_objects(repoPath: string, creds: AccessTokenCreds, paths: Array<string>, checkout: boolean, cancelToken: number, spanId?: string | undefined | null, traceId?: string | undefined | null): Promise<AsyncOutput>
+export declare function pull_lfs_objects(repoPath: string, creds: AccessTokenCreds, scope: TreeReadScope, paths: Array<string>, checkout: boolean, cancelToken: number, spanId?: string | undefined | null, traceId?: string | undefined | null): Promise<AsyncOutput>
 
 export declare function push(repoPath: string, creds: AccessTokenCreds, spanId?: string | undefined | null, traceId?: string | undefined | null): Promise<AsyncOutput>
 
@@ -197,6 +197,8 @@ export declare function restore(repoPath: string, staged: boolean, paths: Array<
 
 export declare function rmfile(scope: string, path: string, spanId?: string | undefined | null, traceId?: string | undefined | null): Promise<unknown>
 
+export declare function scan_catalog(scope: string, path: string, docrootRel: string | undefined | null, opts: string, spanId?: string | undefined | null, traceId?: string | undefined | null): Promise<unknown>
+
 export declare function scan_workspace(scope: string, path: string, opts: string, spanId?: string | undefined | null, traceId?: string | undefined | null): Promise<unknown>
 
 export declare function set_config_val(repoPath: string, name: string, val: ConfigValue, spanId?: string | undefined | null, traceId?: string | undefined | null): Promise<unknown>
@@ -225,5 +227,9 @@ export declare const enum TreeReadScopeObjectType {
   Commit = 'Commit',
   Reference = 'Reference'
 }
+
+export declare function unwatch_workspace(id: number, spanId?: string | undefined | null, traceId?: string | undefined | null): Promise<unknown>
+
+export declare function watch_workspace(scope: string, root: string, opts: string, spanId?: string | undefined | null, traceId?: string | undefined | null): Promise<unknown>
 
 export declare function write_file(scope: string, path: string, content: Buffer, compress?: string | undefined | null, spanId?: string | undefined | null, traceId?: string | undefined | null): Promise<unknown>

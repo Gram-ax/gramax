@@ -1,9 +1,6 @@
 import { useExternalLink } from "@core-ui/hooks/useExternalLink";
-import useMediaQuery from "@core-ui/hooks/useMediaQuery";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import { cn } from "@core-ui/utils/cn";
-import { cssMedia } from "@core-ui/utils/cssUtils";
-import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import {
 	LinkMenuArticleChooser,
@@ -24,18 +21,8 @@ interface EditLinkMenuProps {
 	onUpdate: (relativePath: string, newHref: string) => void;
 }
 
-const StyledCommand = styled(Command)`
-	width: 18.75rem;
-	max-height: min(18.75rem, 60vh);
-
-	&.mobile {
-		width: 100%;
-	}
-`;
-
 export const EditLinkMenu = memo((props: EditLinkMenuProps) => {
 	const { defaultValue, catalogName: initialCatalogName, hasError, setMode, onDelete, onUpdate } = props;
-	const isMobile = useMediaQuery(cssMedia.JSnarrow);
 	const { catalogName } = useCatalogPropsStore((state) => {
 		return {
 			catalogName: state.data?.name,
@@ -67,14 +54,14 @@ export const EditLinkMenu = memo((props: EditLinkMenuProps) => {
 	const changeMode = useCallback(
 		(mode: LinkMenuMode) => {
 			setMode(mode);
-			if (!defaultValue || !defaultValue.length || hasError) onDelete();
+			if (!defaultValue?.length || hasError) onDelete();
 		},
 		[setMode, onDelete, defaultValue, hasError],
 	);
 
 	return (
-		<StyledCommand
-			className={cn("rounded-lg lg:shadow-hard-base", isMobile && "mobile")}
+		<Command
+			className={cn("w-full md:w-72 max-h-[min(18.75rem,60vh)] rounded-lg lg:shadow-hard-base")}
 			onValueChange={setSelectedCommand}
 			role="toolbar"
 			shouldFilter={false}
@@ -93,6 +80,7 @@ export const EditLinkMenu = memo((props: EditLinkMenuProps) => {
 					<LinkMenuArticleChooser
 						catalogName={selectedCatalogName}
 						isCurrentCatalog={isCurrentCatalog}
+						onCurrentOptionValue={setSelectedCommand}
 						onUpdate={onUpdate}
 						searchValue={value}
 					/>
@@ -140,6 +128,6 @@ export const EditLinkMenu = memo((props: EditLinkMenuProps) => {
 					</div>
 				)}
 			</CommandList>
-		</StyledCommand>
+		</Command>
 	);
 });

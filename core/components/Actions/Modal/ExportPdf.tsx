@@ -41,6 +41,11 @@ const localStorageProvider = {
 
 const ExportPdf = (props: ExportPdfProps) => {
 	const { templates, onClose, isCategory, catalogProps, itemRefPath, apiUrlCreator } = props;
+	const savedProps = localStorageProvider.getProps();
+	const defaultValues = {
+		...savedProps,
+		template: templates.includes(savedProps.template) ? savedProps.template : undefined,
+	};
 	const {
 		open,
 		isExporting,
@@ -54,7 +59,7 @@ const ExportPdf = (props: ExportPdfProps) => {
 	} = useExportPdf({ onClose });
 	const exportAbortRef = useRef<AbortController | null>(null);
 	const type = !itemRefPath ? "catalog" : isCategory ? "category" : "article";
-	const [useTemplate, setUseTemplate] = useState(false);
+	const [useTemplate, setUseTemplate] = useState(Boolean(defaultValues.template));
 
 	const schema = z.object({
 		titlePage: z.boolean(),
@@ -65,7 +70,7 @@ const ExportPdf = (props: ExportPdfProps) => {
 
 	const form = useForm<z.infer<typeof schema>>({
 		resolver: zodResolver(schema),
-		defaultValues: localStorageProvider.getProps(),
+		defaultValues,
 		mode: "onChange",
 	});
 
@@ -94,13 +99,17 @@ const ExportPdf = (props: ExportPdfProps) => {
 		}
 
 		void form.handleSubmit(async (params: PdfPrintParams) => {
+			const exportParams = {
+				...params,
+				template: useTemplate && templates.includes(params.template) ? params.template : undefined,
+			};
 			exportAbortRef.current?.abort();
 			cancelTaskRef.current?.();
 
 			const exportController = new AbortController();
 			exportAbortRef.current = exportController;
 
-			localStorageProvider.setProps(params);
+			localStorageProvider.setProps(exportParams);
 			setIsExporting(true);
 			handleProgress({ stage: "exporting", ratio: 0 });
 			await nextFrame();
@@ -129,7 +138,7 @@ const ExportPdf = (props: ExportPdfProps) => {
 					onComplete={handleComplete}
 					onError={handleError}
 					onProgress={handleProgress}
-					params={params}
+					params={exportParams}
 				/>
 			));
 		})(event);
@@ -188,7 +197,11 @@ const ExportPdf = (props: ExportPdfProps) => {
 													disabled={isExporting}
 													label={t("export.pdf.form.template")}
 													name="useTemplate"
-													onCheckedChange={(checked) => setUseTemplate(!!checked)}
+													onCheckedChange={(checked) => {
+														const shouldUseTemplate = !!checked;
+														setUseTemplate(shouldUseTemplate);
+														if (!shouldUseTemplate) form.setValue("template", undefined);
+													}}
 												/>
 											)}
 										</div>
@@ -206,7 +219,7 @@ const ExportPdf = (props: ExportPdfProps) => {
 																<SelectTrigger
 																	onClear={
 																		field.value
-																			? () => field.onChange(null)
+																			? () => field.onChange(undefined)
 																			: undefined
 																	}
 																	type="button"

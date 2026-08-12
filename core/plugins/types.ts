@@ -7,6 +7,15 @@ import type { MarkSpec, NodeSpec } from "@tiptap/pm/model";
 
 import type { ReactElement } from "react";
 
+export type PluginAssetKind = "style";
+
+export interface PluginAssetFile {
+	path: string;
+	kind: PluginAssetKind;
+	mimeType: "text/css";
+	content: string;
+}
+
 export enum ExtensionType {
 	MarkSchema = "markSchema",
 	NodeSchema = "nodeSchema",
@@ -28,6 +37,8 @@ export interface PluginMetadata {
 	name: string;
 	version: string;
 	entryPoint: string;
+	serverOnly?: boolean;
+	styles?: string[];
 	platform?: PlatformEnvironmentKey[];
 	description?: string;
 	author?: string;
@@ -46,6 +57,7 @@ export interface PluginConfig {
 	metadata: PluginMetadata;
 	script: string;
 	locale?: Record<string, Record<string, string>>;
+	assets?: PluginAssetFile[];
 }
 
 export interface ExtensionRegistryInterface {

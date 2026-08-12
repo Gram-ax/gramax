@@ -1,8 +1,8 @@
 import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import FetchService from "@core-ui/ApiServices/FetchService";
 import { getEnterpriseWorkspaceEditData } from "@ext/enterprise/components/SingInOut/utils/getEnterpriseWorkspaceEditData";
 import { EnterpriseAuthResult } from "@ext/enterprise/types/EnterpriseAuthResult";
 import { useEffect, useState } from "react";
-import { fetchEnterpriseWorkspaceEdit } from "../components/SingInOut/utils/fetchEnterpriseWorkspaceEdit";
 
 export type EnterpriseWorkspaceEditData = {
 	permitted: boolean;
@@ -40,3 +40,16 @@ export function useEnterpriseWorkspaceEdit(opts: {
 
 	return getEnterpriseWorkspaceEditData(response, gesUrl);
 }
+
+export const fetchEnterpriseWorkspaceEdit = async (
+	workspacePath: string,
+	apiUrlCreator: ApiUrlCreator,
+): Promise<EnterpriseAuthResult> => {
+	try {
+		const res = await FetchService.fetch(apiUrlCreator.getCheckEditEnterpriseWorkspaceUrl(workspacePath));
+		const json = res.ok ? await res.json() : null;
+		return (json?.status as EnterpriseAuthResult) ?? EnterpriseAuthResult.Error;
+	} catch {
+		return EnterpriseAuthResult.Error;
+	}
+};

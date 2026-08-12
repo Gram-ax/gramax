@@ -14,7 +14,7 @@ import { UserToolbarInviteBtn } from "../components/UserToolbarInviteBtn";
 import { getGesCloudUsersTableColumns } from "./config/GesCloudUsersTableConfig";
 import type { GesCloudMember } from "./types/GesCloudUsersComponentTypes";
 
-const GES_CLOUD_FREE_PLAN_MEMBER_LIMIT = 5;
+const GES_CLOUD_FREE_PLAN_MEMBER_LIMIT = 100;
 
 const GesCloudUsersComponent = () => {
 	const { url: gesCloudUrl } = PageDataContextService.value.conf.enterpriseCloud;

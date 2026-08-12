@@ -1,10 +1,13 @@
 import type { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
-import { type ArticlePropsStore, createArticlePropsStore } from "@core-ui/stores/ArticlePropsStore/ArticlePropsStore";
-import { createContext, type ReactNode, useContext, useEffect, useRef } from "react";
+import useWatch from "@core-ui/hooks/useWatch";
+import {
+	type ArticlePropsStore,
+	type ArticlePropsStoreApi,
+	createArticlePropsStore,
+} from "@core-ui/stores/ArticlePropsStore/ArticlePropsStore";
+import { createContext, type ReactNode, useContext, useRef } from "react";
 import { shallow } from "zustand/shallow";
 import { useStoreWithEqualityFn } from "zustand/traditional";
-
-type ArticlePropsStoreApi = ReturnType<typeof createArticlePropsStore>;
 
 const ArticlePropsStoreContext = createContext<ArticlePropsStoreApi | undefined>(undefined);
 
@@ -20,11 +23,10 @@ export const ArticlePropsStoreProvider = ({ children, data }: ArticlePropsStoreP
 		storeRef.current = createArticlePropsStore({ data });
 	}
 
-	useEffect(() => {
-		storeRef.current?.setState({ data });
+	useWatch(() => {
+		storeRef.current.setState({ data });
 	}, [data]);
 
-	if (storeRef.current === null) return null;
 	return <ArticlePropsStoreContext.Provider value={storeRef.current}>{children}</ArticlePropsStoreContext.Provider>;
 };
 

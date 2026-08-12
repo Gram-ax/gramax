@@ -4,6 +4,7 @@
 	"local": true,
 	"windows": ["gramax-window-*"],
 	"permissions": [
+		"default",
 		"core:window:default",
 		"core:event:default",
 		"core:webview:default",
@@ -12,6 +13,7 @@
 		"core:webview:allow-set-webview-zoom",
 		"core:webview:allow-print",
 		"plugin-gramax-core:default",
+		"plugin-browser-session:default",
 		"shell:allow-open"
 	]
 }

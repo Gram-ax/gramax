@@ -1,4 +1,6 @@
-FROM node:20-alpine
+ARG NEXUS_DOCKERHUB
+
+FROM ${NEXUS_DOCKERHUB}/node:20-alpine
 
 WORKDIR /app/reader
 ENV PORT 80

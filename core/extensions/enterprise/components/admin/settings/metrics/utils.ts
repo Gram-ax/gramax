@@ -1,18 +1,12 @@
-import LanguageService from "@core-ui/ContextServices/Language";
 import t from "@ext/localization/locale/translate";
+import { getCachedSetting } from "@ext/settings/logic/cachedSettingsStore";
 import dayjs from "dayjs";
 import "dayjs/locale/ru";
 
 export type PresetInterval = "day" | "yesterday" | "thisWeek" | "week" | "last28Days" | "month" | "lastMonth" | "year";
 export type MetricsInterval = PresetInterval | "custom";
 
-const DEFAULT_PAGE_SIZE = 50;
-
-export const getPageSize = (): number => {
-	return DEFAULT_PAGE_SIZE;
-};
-
-export const PAGE_SIZE = getPageSize();
+export const PAGE_SIZE = 50;
 
 const PRESET_INTERVALS: readonly PresetInterval[] = [
 	"day",
@@ -30,7 +24,7 @@ export const isPresetInterval = (interval: MetricsInterval): interval is PresetI
 };
 
 export const getDateRangeForInterval = (interval: PresetInterval): { startDate: string; endDate: string } => {
-	const language = LanguageService.currentUi();
+	const language = getCachedSetting("general.language");
 	const now = dayjs().locale(language);
 	let startDate: dayjs.Dayjs;
 	let endDate: dayjs.Dayjs;
@@ -77,7 +71,7 @@ export const getDateRangeForInterval = (interval: PresetInterval): { startDate: 
 };
 
 export const getDisplayText = (startDate: string, endDate: string): string => {
-	const language = LanguageService.currentUi();
+	const language = getCachedSetting("general.language");
 	const start = dayjs(startDate).locale(language);
 	const end = dayjs(endDate).subtract(1, "day").locale(language);
 	return `${t("metrics.data-for")} ${start.format("DD.MM")} - ${end.format("DD.MM, YYYY")}`;

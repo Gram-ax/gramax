@@ -37,9 +37,8 @@ editorTest.describe("Basic Text", () => {
 		await monaco.click();
 		await monaco.focus();
 
-		await editor.press("ControlOrMeta+A Backspace");
+		await editor.press("End Shift+Home Backspace");
 		await editor.forceSave();
-
 		await editor.assertMarkdown("");
 	});
 });

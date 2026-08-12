@@ -2,15 +2,15 @@ import resolveModule from "@app/resolveModule/frontend";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
+import { useSetting } from "@ext/settings/logic/hooks";
 import CloudApi from "@ext/static/logic/CloudApi";
 import getCloudLoginByLocation from "@ext/static/logic/getCloudLoginByLocation";
-import ThemeService from "@ext/Theme/components/ThemeService";
 import Theme from "@ext/Theme/Theme";
 import { useState } from "react";
 
-const useGetCatalogTitleLogo = (catalogName: string, deps: Array<any> = []) => {
+const useGetCatalogTitleLogo = (catalogName: string, deps: Array<unknown> = []) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
-	const theme = ThemeService.value;
+	const [theme] = useSetting("general.theme");
 	const { isStatic } = usePlatform();
 
 	const cloudServiceUrl = PageDataContextService.value?.conf.cloudServiceUrl;

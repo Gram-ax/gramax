@@ -1,4 +1,4 @@
-/** biome-ignore-all lint/suspicious/noExplicitAny: it's ok */
+/** biome-ignore-all lint/suspicious/noExplicitAny: it's oks */
 /** biome-ignore-all lint/complexity/noStaticOnlyClass: expected */
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { type Dispatch, type ReactElement, type SetStateAction, Suspense, useState } from "react";

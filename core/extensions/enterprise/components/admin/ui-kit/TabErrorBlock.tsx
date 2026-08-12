@@ -1,21 +1,27 @@
+import RichText from "@components/Atoms/RichText/RichText";
+import { useSettings } from "@ext/enterprise/components/admin/contexts/SettingsContext";
+import type { GesErrorCode } from "@ext/enterprise/errors/GesError";
+import { getGesErrorDescription, getGesErrorTitle } from "@ext/enterprise/errors/getGesErrorText";
 import t from "@ext/localization/locale/translate";
 import { Alert, AlertButton, AlertDescription, AlertIcon, AlertTitle } from "@ui-kit/Alert";
 
 interface TabErrorBlockProps {
-	title?: string;
-	message: string;
+	code: GesErrorCode;
 	onRetry?: () => void;
 	className?: string;
 }
 
-export function TabErrorBlock({ title = t("error"), message, onRetry, className }: TabErrorBlockProps) {
+export function TabErrorBlock({ code, onRetry, className }: TabErrorBlockProps) {
+	const { gesUrl } = useSettings();
 	return (
-		<div className={className ?? "p-6"}>
+		<div className={className}>
 			<Alert focus="high" status="error">
 				<AlertIcon icon="alert-circle" />
-				<AlertTitle>{title}</AlertTitle>
-				<AlertDescription>{message}</AlertDescription>
-				{onRetry && <AlertButton onClick={onRetry}>{t("try-again")}</AlertButton>}
+				<AlertTitle>{getGesErrorTitle(code)}</AlertTitle>
+				<AlertDescription>
+					<RichText text={getGesErrorDescription(code, gesUrl)} />
+				</AlertDescription>
+				{onRetry && <AlertButton onClick={onRetry}>{t("enterprise.admin.retry")}</AlertButton>}
 			</Alert>
 		</div>
 	);

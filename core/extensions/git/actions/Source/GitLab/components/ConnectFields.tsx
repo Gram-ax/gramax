@@ -10,11 +10,11 @@ import type GitlabSourceAPI from "../logic/GitlabSourceAPI";
 interface ConnectFieldsProps {
 	source: GitSourceData;
 	placeholder?: string;
-	onChange?: (value: any) => void;
+	onChange?: (value: { path: string; lastActivity?: string }) => void;
 }
 
 const ConnectFields = ({ source, placeholder, ...rest }: ConnectFieldsProps) => {
-	const authServiceUrl = PageDataContextService.value.conf.authServiceUrl;
+	const authServiceUrl = PageDataContextService.value.settings?.services?.auth?.endpoint;
 	const [groups, setGroups] = useState<string[]>([]);
 	const sourceApi = useMakeSourceApi(source, authServiceUrl) as GitlabSourceAPI;
 
@@ -31,7 +31,7 @@ const ConnectFields = ({ source, placeholder, ...rest }: ConnectFieldsProps) => 
 		<LazySearchSelect
 			{...rest}
 			onChange={(value) => {
-				rest.onChange?.({ path: value, lastActivity: undefined });
+				rest.onChange?.({ path: String(value), lastActivity: undefined });
 			}}
 			options={groups.map((group) => ({
 				label: group,

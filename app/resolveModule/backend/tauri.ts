@@ -1,14 +1,14 @@
-import { browserLoadFont } from "@ext/pdfExport/fontLoaders/browserLoadFont";
-import TauriGetImageByPath from "../../../apps/browser/src/logic/BrowserGetImageByPath";
-import TauriGetImageFromDom from "../../../apps/browser/src/logic/BrowserGetImageFromDom";
-import TauriGetImageSizeFromImageData from "../../../apps/browser/src/logic/BrowserGetImageSizeFromImageData";
-import TauriSvgToPng from "../../../apps/browser/src/logic/BrowserSvgToPng";
-import { mermaidExtractText } from "../../../apps/browser/src/mermaid/mermaidExtractText";
-import { getPdfjs } from "../../../apps/browser/src/pdfjs/getPdfjs";
-import { WebWorkerResourceParseClient } from "../../../apps/browser/src/search/modulith/WebResourceParseWorkerClient";
-import { WebWorkerModulithSearchClient } from "../../../apps/browser/src/search/modulith/WebWorkerModulithSearchClient";
+import { webLoadFont } from "@ext/pdfExport/fontLoaders/webLoadFont";
 import TauriCookie from "../../../apps/tauri/src/cookie/TauriCookie";
 import * as tauriCommands from "../../../apps/tauri/src/window/commands";
+import TauriGetImageByPath from "../../../apps/web/src/logic/WebGetImageByPath";
+import TauriGetImageFromDom from "../../../apps/web/src/logic/WebGetImageFromDom";
+import TauriGetImageSizeFromImageData from "../../../apps/web/src/logic/WebGetImageSizeFromImageData";
+import TauriSvgToPng from "../../../apps/web/src/logic/WebSvgToPng";
+import { mermaidExtractText } from "../../../apps/web/src/mermaid/mermaidExtractText";
+import { getPdfjs } from "../../../apps/web/src/pdfjs/getPdfjs";
+import { WebWorkerResourceParseClient } from "../../../apps/web/src/search/modulith/WebResourceParseWorkerClient";
+import { WebWorkerModulithSearchClient } from "../../../apps/web/src/search/modulith/WebWorkerModulithSearchClient";
 import type { BackendDynamicModules } from "..";
 
 export const getTauriModules = async (): Promise<BackendDynamicModules> => {
@@ -22,7 +22,7 @@ export const getTauriModules = async (): Promise<BackendDynamicModules> => {
 		getDOMParser: () => new DOMParser(),
 		getXMLSerializer: () => new XMLSerializer(),
 		setSessionData: tauriCommands.setSessionData,
-		pdfLoadFont: browserLoadFont,
+		pdfLoadFont: webLoadFont,
 		getImageByPath: TauriGetImageByPath,
 		mermaidExtractText,
 		getModulithSearchClient: async ({ cacheFileProvider, articleStorageFileProvider }) =>

@@ -20,7 +20,7 @@ const getPrettifiedText: Command<{ ctx: Context; catalogName: string; command: s
 
 			if (!catalog) return;
 			const promptProvider = catalog.customProviders.promptProvider;
-			const newCommand = promptProvider.getArticle(command)?.content || command;
+			const newCommand = (await promptProvider.getArticle(command)?.getContent()) || command;
 
 			const data = await this._commands.ai.server.getAiData.do({ ctx, workspacePath: workspace.path() });
 

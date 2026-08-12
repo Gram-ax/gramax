@@ -9,14 +9,15 @@ import debounceFunction from "@core-ui/debounceFunction";
 import { CatalogStoreProvider } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import ProseMirrorDiffLineComponent from "@ext/git/core/Diff/components/ProseMirrorDiffLine";
 import ProsemirrorAstDiffTransformer from "@ext/git/core/Diff/logic/astTransformer/ProseMirrorAstDiffTransformer";
-import type { DiffViewMode } from "@ext/git/core/Diff/logic/model/DiffView";
 import type { ProseMirrorDiffLine } from "@ext/git/core/Diff/logic/model/ProseMirrorDiffLine";
 import type { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
+import { getEditorContext } from "@ext/markdown/elementsUtils/editorContext/EditorContext";
+import { feature } from "@ext/toggleFeatures/features";
 import { type Editor, Extension } from "@tiptap/core";
 import type { PluginView } from "@tiptap/pm/state";
+import { DecorationSet } from "@tiptap/pm/view";
 import { TooltipProvider } from "@ui-kit/Tooltip";
 import { Plugin, PluginKey } from "prosemirror-state";
-import { DecorationSet } from "prosemirror-view";
 import type { MutableRefObject } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
@@ -31,7 +32,7 @@ export interface DiffExtensionProps {
 	isPin: SidebarsIsPinValue;
 	oldScope: TreeReadScope;
 	newScope: TreeReadScope;
-	diffViewMode: DiffViewMode;
+	isDoublePanel: boolean;
 	pageDataContext: PageDataContext;
 	catalogProps: ClientCatalogProps;
 }
@@ -42,14 +43,18 @@ export interface DiffExtensionStore {
 	isPin: SidebarsIsPinValue;
 	oldScope: TreeReadScope;
 	newScope: TreeReadScope;
-	diffViewMode: DiffViewMode;
+	isDoublePanel: boolean;
 }
 
 declare module "@tiptap/core" {
+	interface Storage {
+		diffLines: DiffExtensionStore;
+	}
+
 	interface Commands<ReturnType> {
-		diff: {
+		diffLines: {
 			updateDiffLinesModel: (diffLines: ProseMirrorDiffLine[]) => ReturnType;
-			updateDiffViewMode: (diffViewMode: DiffViewMode, triggerUpdate?: boolean) => ReturnType;
+			updateIsDoublePanel: (isDoublePanel: boolean, triggerUpdate?: boolean) => ReturnType;
 			updateIsPin: (isPin: SidebarsIsPinValue, triggerUpdate?: boolean) => ReturnType;
 		};
 	}
@@ -60,7 +65,6 @@ class DiffLines implements PluginView {
 	private readonly _deletedDiffLineHeight = 5;
 
 	private _article: HTMLDivElement;
-	private _articleRef: HTMLDivElement;
 
 	private static _editorRenderData: Map<Editor, { root: Root; element: HTMLElement }[]> = new Map();
 	private _onEditorDestroyBounded: () => void;
@@ -68,17 +72,16 @@ class DiffLines implements PluginView {
 
 	constructor(
 		private _editor: Editor,
-		articleRef: MutableRefObject<HTMLDivElement>,
-		private _apiUrlCreator: ApiUrlCreator,
-		private _pageDataContext: PageDataContext,
-		private _catalogProps: ClientCatalogProps,
 		private _articlePath: string,
 	) {
 		this._article = document.getElementById("article") as HTMLDivElement;
-		this._articleRef = articleRef.current;
 		this._onEditorDestroyBounded = this._onEditorDestroy.bind(this);
 		this._editor.on("destroy", this._onEditorDestroyBounded);
-		this._extensionStore = this._editor.storage.diff;
+		this._extensionStore = this._editor.storage.diffLines;
+	}
+
+	private _articleRef(): HTMLDivElement {
+		return getEditorContext(this._editor).articleRef?.current;
 	}
 
 	update() {
@@ -92,18 +95,17 @@ class DiffLines implements PluginView {
 	private _update() {
 		if (this._editor.isDestroyed) return;
 
-		const diffViewMode = this._extensionStore.diffViewMode;
+		const isDoublePanel = this._extensionStore.isDoublePanel;
 
-		const diffLines =
-			diffViewMode === "wysiwyg-single"
-				? this._extensionStore.diffLines
-				: this._extensionStore.diffLines.filter((x) => x.type !== "deleted");
+		const diffLines = isDoublePanel
+			? this._extensionStore.diffLines.filter((x) => x.type !== "deleted")
+			: this._extensionStore.diffLines;
 
 		let renderData = this._getRenderData();
 
-		if (diffLines.length > renderData.length) {
+		if (diffLines?.length > renderData?.length) {
 			this._addNewRenderData(diffLines.length - renderData.length);
-		} else if (diffLines.length < renderData.length) {
+		} else if (diffLines?.length < renderData?.length) {
 			this._removeOldRenderData(renderData.length - diffLines.length);
 		}
 
@@ -114,12 +116,13 @@ class DiffLines implements PluginView {
 			const diffLine = diffLines[idx];
 			const uniqueKey = `${diffLine.pos.from}-${diffLine.pos.to}`;
 
+			const { apiUrlCreator, pageDataContext, catalogProps } = getEditorContext(this._editor);
 			rootData.root.render(
 				<TooltipProvider>
-					<PageDataContextService.Provider value={this._pageDataContext}>
-						<CatalogStoreProvider data={this._catalogProps}>
-							<ApiUrlCreatorService.Provider value={this._apiUrlCreator}>
-								<ArticleRefService.Provider value={this._articleRef}>
+					<PageDataContextService.Provider value={pageDataContext}>
+						<CatalogStoreProvider data={catalogProps}>
+							<ApiUrlCreatorService.Provider value={apiUrlCreator}>
+								<ArticleRefService.Provider value={this._articleRef()}>
 									<ProseMirrorDiffLineComponent
 										articlePath={this._articlePath}
 										diffLine={diffLine}
@@ -150,12 +153,12 @@ class DiffLines implements PluginView {
 	private _getTop(diffLine: ProseMirrorDiffLine) {
 		if (diffLine.type === "deleted") {
 			const coordTop = this._editor.view.coordsAtPos(diffLine.insertAfter + 1).bottom; // +1 to include the last character
-			return coordTop + this._articleRef.scrollTop;
+			return coordTop + this._articleRef().scrollTop;
 		}
 
 		const coordTop = this._editor.view.coordsAtPos(diffLine.pos.from).top;
 
-		return coordTop + this._articleRef.scrollTop - this._diffLinesStratchPixels;
+		return coordTop + this._articleRef().scrollTop - this._diffLinesStratchPixels;
 	}
 
 	private _getHeight(diffLine: ProseMirrorDiffLine) {
@@ -168,7 +171,7 @@ class DiffLines implements PluginView {
 
 	private _getLeft(diffLine: ProseMirrorDiffLine) {
 		const isComment = diffLine.type === "comment";
-		const isPin = this._extensionStore.isPin;
+		const isPin = this._extensionStore?.isPin;
 		const leftOffest = isComment ? "7px" : "2px";
 		return isPin.left ? leftOffest : `calc(30px + ${leftOffest})`;
 	}
@@ -213,7 +216,7 @@ class DiffLines implements PluginView {
 }
 
 const DiffExtension = Extension.create<DiffExtensionProps, DiffExtensionStore>({
-	name: "diff",
+	name: "diffLines",
 
 	addOptions() {
 		return {
@@ -226,7 +229,7 @@ const DiffExtension = Extension.create<DiffExtensionProps, DiffExtensionStore>({
 			catalogProps: null,
 			oldScope: undefined,
 			newScope: undefined,
-			diffViewMode: null,
+			isDoublePanel: false,
 		};
 	},
 
@@ -237,7 +240,7 @@ const DiffExtension = Extension.create<DiffExtensionProps, DiffExtensionStore>({
 			diffLines: [],
 			oldScope: this.options.oldScope,
 			newScope: this.options.newScope,
-			diffViewMode: this.options.diffViewMode,
+			isDoublePanel: this.options.isDoublePanel,
 		};
 	},
 
@@ -246,20 +249,20 @@ const DiffExtension = Extension.create<DiffExtensionProps, DiffExtensionStore>({
 			updateDiffLinesModel:
 				(diffLines) =>
 				({ editor }) => {
-					editor.storage.diff.diffLines = diffLines;
+					editor.storage.diffLines.diffLines = diffLines;
 					return true;
 				},
-			updateDiffViewMode:
-				(diffViewMode, triggerUpdate = true) =>
+			updateIsDoublePanel:
+				(isDoublePanel, triggerUpdate = true) =>
 				({ editor }) => {
-					editor.storage.diff.diffViewMode = diffViewMode;
+					editor.storage.diffLines.isDoublePanel = isDoublePanel;
 					if (triggerUpdate) editor.commands.focus(undefined, { scrollIntoView: false });
 					return true;
 				},
 			updateIsPin:
 				(isPin, triggerUpdate = true) =>
 				({ editor }) => {
-					editor.storage.diff.isPin = isPin;
+					editor.storage.diffLines.isPin = isPin;
 					if (triggerUpdate) editor.commands.focus(undefined, { scrollIntoView: false });
 					return true;
 				},
@@ -267,43 +270,37 @@ const DiffExtension = Extension.create<DiffExtensionProps, DiffExtensionStore>({
 	},
 
 	addProseMirrorPlugins() {
-		const inlineDiffDecorators = new Plugin({
-			key: new PluginKey("inlineDiffDecorators"),
-			state: {
-				init() {
-					return DecorationSet.empty;
-				},
-				apply(tr, set) {
-					const addDecoration = tr.getMeta("updateDiffDecorators");
-					if (addDecoration) return addDecoration;
-					return set;
-				},
-			},
-			props: {
-				decorations(state) {
-					return this.getState(state);
-				},
-			},
-		});
+		const inlineDiffDecorators = !feature("new-diffs")
+			? new Plugin({
+					key: new PluginKey("inlineDiffDecorators"),
+					state: {
+						init() {
+							return DecorationSet.empty;
+						},
+						apply(tr, set) {
+							const addDecoration = tr.getMeta("updateDiffDecorators");
+							if (addDecoration) return addDecoration;
+							return set;
+						},
+					},
+					props: {
+						decorations(state) {
+							return this.getState(state);
+						},
+					},
+				})
+			: undefined;
 
-		if (this.editor.storage.diff.isOldEditor) return [inlineDiffDecorators];
+		if (this.editor.storage.diffLines.isOldEditor) return [inlineDiffDecorators].filter(Boolean);
 		return [
 			new Plugin({
 				key: new PluginKey("diff-lines"),
 				view: () => {
-					const diffLines = new DiffLines(
-						this.editor,
-						this.options.articleRef,
-						this.options.apiUrlCreator,
-						this.options.pageDataContext,
-						this.options.catalogProps,
-						this.options.articlePath,
-					);
-					return diffLines;
+					return new DiffLines(this.editor, this.options.articlePath);
 				},
 			}),
 			inlineDiffDecorators,
-		];
+		].filter(Boolean);
 	},
 });
 

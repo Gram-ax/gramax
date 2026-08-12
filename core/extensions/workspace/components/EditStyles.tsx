@@ -1,6 +1,6 @@
 import FileInput from "@components/Atoms/FileInput/FileInput";
 import PureLink, { LinkTheme } from "@components/Atoms/PureLink";
-import LanguageService from "@core-ui/ContextServices/Language";
+import { useUiLanguage } from "@core-ui/ContextServices/Language";
 import t from "@ext/localization/locale/translate";
 import { Button } from "@ui-kit/Button";
 import { Dialog, DialogBody, DialogContent, DialogTrigger } from "@ui-kit/Dialog";
@@ -18,7 +18,7 @@ interface EditStylesProps {
 const useModalDescription = () => {
 	const mainText = t("workspace.css-configuration-instruction") || "";
 	const linkText = t("workspace.instruction");
-	const lang = LanguageService.currentUi();
+	const lang = useUiLanguage();
 	const isRuLang = lang === "ru";
 
 	const textOnTwoParts = mainText.split("{{instruction}}");

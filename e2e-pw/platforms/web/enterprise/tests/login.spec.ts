@@ -2,7 +2,7 @@ import { expect } from "playwright/test";
 import { enterpriseTest } from "../fixtures/enterprise.fixture";
 
 enterpriseTest.use({
-	experimentalFeatures: ["opentelemetry-logs"],
+	verboseLogging: true,
 });
 
 enterpriseTest.describe("SSO", () => {

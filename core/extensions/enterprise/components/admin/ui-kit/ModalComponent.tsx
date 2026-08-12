@@ -1,3 +1,4 @@
+import { cn } from "@core-ui/utils/cn";
 import type { ButtonProps } from "@ui-kit/Button";
 import type { UiKitButtonProps } from "@ui-kit/Button/Button";
 import {
@@ -8,6 +9,7 @@ import {
 	DialogHeaderTemplate,
 	DialogTrigger,
 } from "@ui-kit/Dialog";
+import type { ModalContentSize } from "@ui-kit/Dialog/DialogContent";
 
 interface ModalComponentProps {
 	isOpen?: boolean;
@@ -21,6 +23,7 @@ interface ModalComponentProps {
 	confirmButtonProps?: ButtonProps;
 	cancelButtonProps?: ButtonProps;
 	modalContentClassName?: string;
+	size?: ModalContentSize;
 }
 
 export const ModalComponent = ({
@@ -35,11 +38,16 @@ export const ModalComponent = ({
 	confirmButtonProps,
 	cancelButtonProps,
 	modalContentClassName,
+	size,
 }: ModalComponentProps) => {
 	return (
 		<Dialog onOpenChange={onOpenChange} open={isOpen}>
 			<DialogTrigger asChild>{trigger}</DialogTrigger>
-			<DialogContent className={modalContentClassName}>
+			<DialogContent
+				className={cn("font-sans font-normal", modalContentClassName)}
+				overlayType={"dimmed"}
+				size={size}
+			>
 				{(title || description) && (
 					<DialogHeaderTemplate className="pb-0 lg:pb-0 border-b-0" description={description} title={title} />
 				)}

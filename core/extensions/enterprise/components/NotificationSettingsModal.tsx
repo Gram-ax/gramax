@@ -4,21 +4,16 @@ import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import SourceDataService from "@core-ui/ContextServices/SourceDataService";
 import type { GroupsSettings } from "@ext/enterprise/components/admin/settings/groups/types/GroupsComponentTypes";
+import { Button } from "@ext/enterprise/components/admin/ui-kit/Button";
+import { CancelButton } from "@ext/enterprise/components/admin/ui-kit/CancelButton";
 import EnterpriseApi from "@ext/enterprise/EnterpriseApi";
 import EnterpriseService from "@ext/enterprise/EnterpriseService";
 import type { ArticleNotificationSettings } from "@ext/enterprise/notifications/types";
 import { NotificationState } from "@ext/enterprise/notifications/types";
 import { getEnterpriseSourceData } from "@ext/enterprise/utils/getEnterpriseSourceData";
 import t from "@ext/localization/locale/translate";
-import { traced } from "@ext/loggers/opentelemetry";
+import { Level, traced } from "@ext/loggers/opentelemetry";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Button } from "@ui-kit/Button";
-import { Field } from "@ui-kit/Field";
-import { Form, FormSectionTitle, FormStack } from "@ui-kit/Form";
-import { Label } from "@ui-kit/Label";
-import { MultiSelect } from "@ui-kit/MultiSelect";
-import { RadioGroup, RadioGroupItem } from "@ui-kit/RadioGroup";
-import type { SearchSelectOption } from "@ui-kit/SearchSelect";
 import {
 	Dialog,
 	DialogBody,
@@ -27,7 +22,13 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-} from "ics-ui-kit/components/dialog";
+} from "@ui-kit/Dialog";
+import { Field } from "@ui-kit/Field";
+import { Form, FormSectionTitle, FormStack } from "@ui-kit/Form";
+import { Label } from "@ui-kit/Label";
+import { MultiSelect } from "@ui-kit/MultiSelect";
+import { RadioGroup, RadioGroupItem } from "@ui-kit/RadioGroup";
+import type { SearchSelectOption } from "@ui-kit/SearchSelect";
 import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -74,6 +75,7 @@ const NotificationSettingsModal = ({ initialIsOpen = true, onClose, itemRefPath 
 		},
 	});
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: apiUrlCreator is a reactive context service, refetch must follow it
 	useEffect(() => {
 		const fetchNotifications = async () => {
 			const response = await FetchService.fetch(apiUrlCreator.getNotifications(itemRefPath));
@@ -96,8 +98,8 @@ const NotificationSettingsModal = ({ initialIsOpen = true, onClose, itemRefPath 
 
 		const loadGroups = async () => {
 			try {
-				const result = await traced("NotificationSettingsModal.loadGroups", () =>
-					enterpriseService.getGroupsConfig(token),
+				const result = await traced("NotificationSettingsModal.loadGroups", { level: Level.Internal }, () =>
+					enterpriseService.getConfig("groups", token),
 				);
 				if (result.data) {
 					setAllGroups(result.data);
@@ -146,7 +148,7 @@ const NotificationSettingsModal = ({ initialIsOpen = true, onClose, itemRefPath 
 		async ({ searchQuery }: { searchQuery: string }) => {
 			if (!token || !searchQuery?.trim()) return { options: [] };
 			try {
-				const users = await traced("NotificationSettingsModal.loadUserOptions", () =>
+				const users = await traced("NotificationSettingsModal.loadUserOptions", { level: Level.Internal }, () =>
 					enterpriseApi.getUsers(searchQuery, token),
 				);
 				return {
@@ -224,7 +226,7 @@ const NotificationSettingsModal = ({ initialIsOpen = true, onClose, itemRefPath 
 									control={() => (
 										<MultiSelect
 											emptyText={t("enterprise.admin.resources.groups.not-found")}
-											errorText={t("enterprise.admin.resources.groups.error-search")}
+											errorText={t("enterprise.admin.search-error")}
 											loadOptions={loadGroupOptions}
 											onChange={(value) =>
 												form.setValue("groups", value as z.infer<typeof formSchema>["groups"])
@@ -239,8 +241,8 @@ const NotificationSettingsModal = ({ initialIsOpen = true, onClose, itemRefPath 
 								<Field
 									control={() => (
 										<MultiSelect
-											emptyText={t("enterprise.admin.search.users.emptyText")}
-											errorText={t("enterprise.admin.search.users.errorText")}
+											emptyText={t("enterprise.admin.users.users-not-found")}
+											errorText={t("enterprise.admin.search-error")}
 											loadMode="input"
 											loadOptions={loadUserOptions}
 											minInputLength={1}
@@ -259,9 +261,7 @@ const NotificationSettingsModal = ({ initialIsOpen = true, onClose, itemRefPath 
 						</DialogBody>
 						<DialogFooter className="border-t-0 pt-0 lg:pt-0 flex justify-end gap-2">
 							<DialogClose asChild>
-								<Button type="button" variant="outline">
-									{t("cancel")}
-								</Button>
+								<CancelButton />
 							</DialogClose>
 							<Button type="submit">{t("save")}</Button>
 						</DialogFooter>

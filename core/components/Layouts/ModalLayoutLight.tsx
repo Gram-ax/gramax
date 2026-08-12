@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/style/noRestrictedImports: this file will be deleted in future */
 import styled from "@emotion/styled";
 import type { ReactNode } from "react";
 
@@ -14,7 +15,7 @@ export default styled(ModalLayoutLight)`
 	align-items: center;
 	flex-direction: column;
 	border-radius: var(--radius-x-large);
-	background: var(--color-contextmenu-bg);
+	background: hsl(var(--primary-bg));
 
 	.form {
 		width: 100%;

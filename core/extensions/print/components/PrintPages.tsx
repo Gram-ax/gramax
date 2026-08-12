@@ -2,17 +2,21 @@ import type { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
 import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import useWatch from "@core-ui/hooks/useWatch";
 import { CatalogStoreProvider } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
+// biome-ignore lint/style/noRestrictedImports: PDF print layout still relies on dynamic scoped Emotion styles.
 import styled from "@emotion/styled";
+import t from "@ext/localization/locale/translate";
 import getComponents from "@ext/markdown/core/render/components/getComponents/getComponents";
 import { ArticlePrintPreview } from "@ext/print/components/ArticlePrintPreview";
 import type { StartPaginationFunction } from "@ext/print/components/hooks/usePaginationTask";
 import { useGetItems } from "@ext/print/components/useGetItems";
 import type { PdfExportProgress, PdfPrintParams } from "@ext/print/types";
+import { waitForPrintableContent } from "@ext/print/utils/pagination/nodeHandlers";
 import PagePaginator from "@ext/print/utils/pagination/PagePaginator";
 import { memo, useCallback, useEffect, useMemo, useRef } from "react";
 
-const StyledPrintBody = styled.div<{ title: string; titlePageExist: boolean }>`
+const StyledPrintBody = styled.div<{ title: string; titlePageExist: boolean; tocPageTitle: string }>`
 	--title: "${(p) => p.title}";
+	--toc-page-title: "${(p) => p.tocPageTitle}";
 
 	counter-reset: page 0;
 	.page {
@@ -85,8 +89,13 @@ const PrintPages = memo(
 			if (renderDivRef.current) PagePaginator.setUsablePageWidth(renderDivRef.current);
 		}, [renderDivRef.current]);
 
-		const handleLastRender = useCallback(() => {
+		const handleLastRender = useCallback(async () => {
 			if (!renderDivRef.current || !printDivRef.current || printableContent.items.length === 0) return;
+			if (exportSignal?.aborted) return;
+
+			// React reports the article as rendered the moment it has created the elements; a block whose
+			// content arrives later is still empty then, and measuring now would size pages against a skeleton.
+			await waitForPrintableContent(renderDivRef.current, exportSignal);
 			if (exportSignal?.aborted) return;
 
 			onProgress({
@@ -114,7 +123,7 @@ const PrintPages = memo(
 									<ArticlePrintPreview
 										components={components}
 										item={item}
-										key={i + item.title}
+										key={item.logicPath}
 										onRender={
 											i === printableContent.items.length - 1 ? handleLastRender : undefined
 										}
@@ -129,6 +138,7 @@ const PrintPages = memo(
 					ref={printDivRef}
 					title={printableContent.title}
 					titlePageExist={params.titlePage}
+					tocPageTitle={params.tocPageTitle ?? t("export.pdf.tocPageTitle")}
 				/>
 			</div>
 		);

@@ -6,7 +6,7 @@ import type GitSourceApi from "@ext/git/actions/Source/GitSourceApi";
 import { makeSourceApi } from "@ext/git/actions/Source/makeSourceApi";
 import type { CancelToken } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import getUrlFromGitStorageData from "@ext/git/core/GitStorage/utils/getUrlFromGitStorageData";
-import { trace } from "@ext/loggers/opentelemetry";
+import { Level, trace } from "@ext/loggers/opentelemetry";
 import SourceDataCtx, { type ProxiedSourceDataCtx } from "@ext/storage/logic/SourceDataProvider/logic/SourceDataCtx";
 import assert from "assert";
 import type FileProvider from "../../../../logic/FileProvider/model/FileProvider";
@@ -47,7 +47,7 @@ export default class GitStorage implements Storage {
 		this._gitRepository.events.on("fetch", ({ force }) => this._events.emit("fetch", { storage: this, force }));
 	}
 
-	@trace()
+	@trace({ level: Level.Full })
 	static async isInit(fp: FileProvider, path: Path): Promise<boolean> {
 		const git = new GitCommands(fp, path);
 		const isInit = await git.isInit();
@@ -65,7 +65,7 @@ export default class GitStorage implements Storage {
 		return git.getAllCancelTokens();
 	}
 
-	@trace()
+	@trace({ level: Level.Internal })
 	static async clone({
 		fs,
 		data,
@@ -96,7 +96,7 @@ export default class GitStorage implements Storage {
 		}
 	}
 
-	@trace()
+	@trace({ level: Level.Internal })
 	static async init(repositoryPath: Path, fp: FileProvider, data: GitStorageData, authServiceUrl?: string) {
 		const sourceApi = makeSourceApi(data.source, authServiceUrl) as GitSourceApi;
 		assert(sourceApi, "sourceApi is missing");
@@ -143,7 +143,7 @@ export default class GitStorage implements Storage {
 		return parsedUrl.group;
 	}
 
-	@trace()
+	@trace({ level: Level.Full })
 	async getDefaultBranch(source: GitSourceData): Promise<Branch | null> {
 		if (!this._cachedDefaultBranch) this._cachedDefaultBranch = await this._gitRepository.getDefaultBranch(source);
 		return this._cachedDefaultBranch;
@@ -165,7 +165,7 @@ export default class GitStorage implements Storage {
 		};
 	}
 
-	@trace()
+	@trace({ level: Level.Full })
 	async getShareData(source: GitSourceData, branch: string, filePath: Path): Promise<GitShareData> {
 		return {
 			name: await this.getName(),
@@ -238,7 +238,7 @@ export default class GitStorage implements Storage {
 		return { storage: this, relativePath: path };
 	}
 
-	@trace()
+	@trace({ level: Level.Internal })
 	async fetch(source: GitSourceData, force = false, lock = true) {
 		try {
 			await this._gitRepository.fetch(source, force, lock);
@@ -249,7 +249,7 @@ export default class GitStorage implements Storage {
 		await this.updateSyncCount();
 	}
 
-	@trace()
+	@trace({ level: Level.Full })
 	async update() {
 		await this._initRepositoryUrl();
 		await this.updateSyncCount();

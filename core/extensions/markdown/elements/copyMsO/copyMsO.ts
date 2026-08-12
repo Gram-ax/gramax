@@ -1,5 +1,6 @@
 import { getExecutingEnvironment } from "@app/resolveModule/env";
 import TransformerMsO from "@ext/markdown/elements/copyMsO/transfomerMsO";
+import { getEditorContext } from "@ext/markdown/elementsUtils/editorContext/EditorContext";
 import { Extension } from "@tiptap/core";
 import { Plugin } from "@tiptap/pm/state";
 
@@ -11,8 +12,7 @@ const CopyMsO = Extension.create({
 	},
 
 	addProseMirrorPlugins() {
-		const articleProps = this.options.articleProps;
-		const apiUrlCreator = this.options.apiUrlCreator;
+		const editor = this.editor;
 		const isTauri = getExecutingEnvironment() === "tauri";
 
 		return [
@@ -23,6 +23,7 @@ const CopyMsO = Extension.create({
 						const html = event.clipboardData?.getData("text/html");
 						if (!html) return false;
 
+						const { articleProps, apiUrlCreator } = getEditorContext(editor);
 						const transformer = new TransformerMsO(articleProps, apiUrlCreator, isTauri, view);
 						if (!transformer.canTransform(html)) return false;
 
@@ -32,6 +33,7 @@ const CopyMsO = Extension.create({
 					transformPastedHTML(html: string) {
 						if (!html || isTauri) return html;
 
+						const { articleProps, apiUrlCreator } = getEditorContext(editor);
 						const transformer = new TransformerMsO(articleProps, apiUrlCreator, false, null);
 						if (transformer.canTransform(html)) {
 							return transformer.parseFromHTMLSync(html);

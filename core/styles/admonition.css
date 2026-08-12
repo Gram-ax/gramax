@@ -47,6 +47,10 @@
 	width: calc(100% - var(--heading-row-width-admonition));
 }
 
+.admonition-row .admonition-content .note-title ~ * {
+	margin-left: calc(-1 * var(--heading-row-width-admonition));
+}
+
 .admonition-heading {
 	display: flex;
 	align-items: center;
@@ -63,11 +67,15 @@
 	align-items: center;
 	justify-content: start;
 	width: 100%;
+	min-width: 0;
 }
 
 .admonition-heading .titleWrapper .title {
 	display: flex;
 	width: 100%;
+	min-width: 0;
+	word-break: break-word;
+	overflow-wrap: anywhere;
 }
 
 .admonition-heading .admonition-icon {
@@ -119,12 +127,12 @@
 }
 
 .admonition-lab {
-	background: var(--color-purple-50);
-	border-color: var(--color-purple-700);
+	background: hsl(var(--status-purple-bg));
+	border-color: hsl(var(--status-purple));
 }
 .admonition-lab .admonition-heading *,
 .admonition-lab .title strong {
-	color: var(--color-purple-700);
+	color: hsl(var(--status-purple));
 }
 
 .admonition-tip {
@@ -210,6 +218,39 @@
 
 .admonition-content > *:first-child {
 	margin-top: 0 !important;
+}
+
+.admonition-content .note-title {
+	display: block;
+	margin-bottom: 0.7em;
+	font-weight: 500;
+	line-height: 1.5em;
+	word-break: break-word;
+	overflow-wrap: anywhere;
+}
+
+.admonition-collapsed .admonition-content .note-title ~ * {
+	display: none;
+}
+
+.admonition-quote .note-title,
+.admonition-hotfixes .note-title {
+	color: hsl(var(--status-default));
+}
+.admonition-lab .note-title {
+	color: var(--color-purple-700);
+}
+.admonition-tip .note-title {
+	color: hsl(var(--status-success));
+}
+.admonition-info .note-title {
+	color: hsl(var(--status-info));
+}
+.admonition-note .note-title {
+	color: hsl(var(--status-warning));
+}
+.admonition-danger .note-title {
+	color: hsl(var(--status-error));
 }
 
 .admonition-content .resource-caption {

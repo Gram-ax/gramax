@@ -71,6 +71,54 @@ pub async fn update_download_url_via_latest_update() -> anyhow::Result<()> {
 }
 
 #[rstest]
+pub fn list_objects_url_for_base_at_bucket_root() {
+	let base = S3BaseUrl("http://s3.example.com/bucket".parse().unwrap());
+	let channel = base.channel(Channel::Dev);
+
+	assert_eq!(channel.list_key_prefix(), "dev/");
+	assert_eq!(
+		channel.list_objects_url(None, false, None).as_str(),
+		"http://s3.example.com/bucket?list-type=2&prefix=dev%2F"
+	);
+	assert_eq!(
+		channel.list_objects_url(None, false, Some("token-1")).as_str(),
+		"http://s3.example.com/bucket?list-type=2&prefix=dev%2F&continuation-token=token-1"
+	);
+	assert_eq!(
+		channel.list_objects_url(None, true, None).as_str(),
+		"http://s3.example.com/bucket?list-type=2&prefix=dev%2F&delimiter=%2F"
+	);
+	assert_eq!(
+		channel.list_objects_url(Some("2026.7/"), false, None).as_str(),
+		"http://s3.example.com/bucket?list-type=2&prefix=dev%2F2026.7%2F"
+	);
+}
+
+#[rstest]
+pub fn list_objects_url_for_base_inside_bucket_path() {
+	let base = S3BaseUrl("http://s3.example.com/bucket/gramax".parse().unwrap());
+	let channel = base.channel(Channel::Prod);
+
+	assert_eq!(channel.list_key_prefix(), "gramax/prod/");
+	assert_eq!(
+		channel.list_objects_url(None, false, None).as_str(),
+		"http://s3.example.com/bucket?list-type=2&prefix=gramax%2Fprod%2F"
+	);
+}
+
+#[rstest]
+pub fn list_objects_url_for_base_without_path() {
+	let base = S3BaseUrl("http://bucket.s3.example.com".parse().unwrap());
+	let channel = base.channel(Channel::Dev);
+
+	assert_eq!(channel.list_key_prefix(), "dev/");
+	assert_eq!(
+		channel.list_objects_url(None, false, None).as_str(),
+		"http://bucket.s3.example.com/?list-type=2&prefix=dev%2F"
+	);
+}
+
+#[rstest]
 #[tokio::test(flavor = "multi_thread")]
 pub async fn update_latest_versions_fails_not_all_packages_are_present() -> anyhow::Result<()> {
 	let s3 = S3Client::new().await.with_uniq_bucket().await;

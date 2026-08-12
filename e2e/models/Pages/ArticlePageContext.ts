@@ -1,5 +1,5 @@
-import type { Aliases } from "e2e/steps/utils/aliases";
 import type { Page } from "playwright";
+import type { Aliases } from "../../steps/utils/aliases";
 import type { ReplaceAlias } from "../World";
 import PageContext, { type PageInfo } from "./PageContext";
 
@@ -16,13 +16,13 @@ export default class ArticlePageContext extends PageContext {
 		await this.forceSave();
 		return await this._page.evaluate(async ([path1, path2]) => {
 			const app = await window.app;
-			const ctx = await app.contextFactory.fromBrowser({
+			const ctx = await app.contextFactory.fromWeb({
 				language: window.debug?.RouterPathProvider?.parsePath(window.location.pathname)?.language || "ru",
 			});
 			const presenter = app.sitePresenterFactory.fromContext(ctx);
 			return (
-				(await presenter.getArticleByPathOfCatalog(path1)).article?.content ??
-				(await presenter.getArticleByPathOfCatalog(path2)).article?.content
+				(await (await presenter.getArticleByPathOfCatalog(path1)).article?.getContent()) ??
+				(await (await presenter.getArticleByPathOfCatalog(path2)).article?.getContent())
 			);
 		}, path);
 	}
@@ -44,7 +44,7 @@ export default class ArticlePageContext extends PageContext {
 		await this._page.evaluate(
 			async ({ path, content, shouldClear }) => {
 				const app = await window.app;
-				const ctx = await app.contextFactory.fromBrowser({ language: "ru" });
+				const ctx = await app.contextFactory.fromWeb({ language: "ru" });
 				const presenter = app.sitePresenterFactory.fromContext(ctx);
 				const data =
 					(await presenter.getArticleByPathOfCatalog(path[0], [])).article ??
@@ -75,7 +75,7 @@ export default class ArticlePageContext extends PageContext {
 		return await this._page.evaluate(
 			async ({ path }) => {
 				const app = await window.app;
-				const ctx = await app.contextFactory.fromBrowser({ language: "ru" });
+				const ctx = await app.contextFactory.fromWeb({ language: "ru" });
 				const presenter = app.sitePresenterFactory.fromContext(ctx);
 				const data =
 					(await presenter.getArticleByPathOfCatalog(path[0], [])).article ??

@@ -1,46 +1,12 @@
 import assert from "assert";
-import { S3Client, semver } from "bun";
+import { semver } from "bun";
 import fs from "fs/promises";
 import path from "path";
-import { artifactsDir, env, releaseOffset, sizeOf } from "./util";
-
-const allowedFiles = {
-	"windows-x86_64": {
-		nsis: ["gramax.windows-x86_64.exe", "gramax.windows-x86_64.setup.exe", "gramax.windows-x86_64.setup.exe.sig"],
-	},
-	"darwin-x86_64": {
-		dmg: [
-			"gramax.darwin-x86_64.dmg",
-			"gramax.darwin-x86_64.update.tar.gz",
-			"gramax.darwin-x86_64.update.tar.gz.sig",
-		],
-	},
-	"darwin-aarch64": {
-		dmg: [
-			"gramax.darwin-aarch64.dmg",
-			"gramax.darwin-aarch64.update.tar.gz",
-			"gramax.darwin-aarch64.update.tar.gz.sig",
-		],
-	},
-	"linux-x86_64": {
-		appimage: ["gramax.linux-x86_64.appimage", "gramax.linux-x86_64.appimage.sig"],
-		deb: ["gramax.linux-x86_64.deb", "gramax.linux-x86_64.deb.sig"],
-		rpm: ["gramax.linux-x86_64.rpm", "gramax.linux-x86_64.rpm.sig"],
-	},
-	android: {
-		apk: ["gramax.android.apk"],
-	},
-	ios: {
-		ipa: ["gramax.ios.ipa"],
-	},
-} as const;
+import { allowedFiles } from "./publishedVersions";
+import { createS3Bucket, toS3Key } from "./s3";
+import { artifactsDir, releaseOffset, sizeOf } from "./util";
 
 export const upload = async (channel: string, version: string) => {
-	const accessKeyId = env("S3_ACCESS_KEY");
-	const secretAccessKey = env("S3_SECRET_KEY");
-	const endpoint = env("S3_HOST");
-	const bucket = env("S3_BASE_PATH");
-
 	const [major, minor, patch] = version.split(".", 3);
 
 	const v1 = `${major}.${minor}`;
@@ -48,12 +14,7 @@ export const upload = async (channel: string, version: string) => {
 
 	assert(v2 !== undefined, "invalid version");
 
-	const s3 = new S3Client({
-		accessKeyId,
-		secretAccessKey,
-		endpoint,
-		bucket,
-	});
+	const s3 = createS3Bucket();
 
 	let uploadedCount = 0;
 
@@ -68,8 +29,8 @@ export const upload = async (channel: string, version: string) => {
 			const innerLatest = path.join(channel, v1, "latest", `gramax.${platform}.${pack}.version`);
 
 			const uploadLatest = async (latestPath: string) => {
-				const serverVersion = await s3
-					.file(latestPath)
+				const serverVersion = await s3.client
+					.file(toS3Key(s3.base, latestPath))
 					.text()
 					.catch((e) => {
 						console.warn(`failed to get version from ${latestPath}: ${e}; using 0.0.0 instead`);
@@ -77,7 +38,7 @@ export const upload = async (channel: string, version: string) => {
 					});
 
 				if (semver.order(serverVersion, version) < 0) {
-					await s3.write(latestPath, version);
+					await s3.client.write(toS3Key(s3.base, latestPath), version);
 					console.log(`uploaded latest ${latestPath}: ${version}`);
 				} else {
 					const msg = `on-server version ${serverVersion} (${platform}, ${pack}) >= ${version}, skipping uploading new file to ${latestPath}`;
@@ -99,7 +60,7 @@ export const upload = async (channel: string, version: string) => {
 
 				const stream = Bun.file(filepath);
 				console.log(`uploading ${displayName} -> ${s3path} (${size})`);
-				await s3.write(s3path, stream);
+				await s3.client.write(toS3Key(s3.base, s3path), stream);
 
 				uploadedCount++;
 			}

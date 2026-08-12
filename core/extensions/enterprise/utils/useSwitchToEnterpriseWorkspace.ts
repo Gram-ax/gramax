@@ -5,7 +5,7 @@ import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { useEffect } from "react";
 
 const useSwitchToEnterpriseWorkspace = (isFirstLoad: boolean) => {
-	const { isBrowser } = usePlatform();
+	const { isWeb } = usePlatform();
 	const activeGesUrl = PageDataContextService.value.conf?.activeGesUrl;
 	const workspaces = WorkspaceService.workspaces();
 	const workspacePath = activeGesUrl
@@ -16,10 +16,10 @@ const useSwitchToEnterpriseWorkspace = (isFirstLoad: boolean) => {
 	});
 
 	useEffect(() => {
-		if (!isFirstLoad || !workspacePath || !isBrowser) return;
+		if (!isFirstLoad || !workspacePath || !isWeb) return;
 
 		void switchWorkspace?.();
-	}, [isFirstLoad, workspacePath, isBrowser, switchWorkspace]);
+	}, [isFirstLoad, workspacePath, isWeb, switchWorkspace]);
 };
 
 export default useSwitchToEnterpriseWorkspace;

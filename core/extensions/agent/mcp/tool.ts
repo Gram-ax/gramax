@@ -1,34 +1,30 @@
 import type { CommandTree } from "@app/commands";
 import type Application from "@app/types/Application";
 import type Context from "@core/Context/Context";
-import type { ChatCompletionToolDefinition } from "../llm/agentLlmChatCompletions";
-import { getAgentToolsRegistry } from "./registry";
 
 export type ToolExecutionResult = {
 	ok: boolean;
 	data?: unknown;
 	error?: string;
+	refreshPage?: boolean;
 };
 
-export function ok(data: unknown): ToolExecutionResult {
-	return { ok: true, data, error: undefined };
+export function ok(data: unknown, refreshPage = false): ToolExecutionResult {
+	return { ok: true, data, error: undefined, refreshPage };
 }
 
-export function fail(error: string): ToolExecutionResult {
-	return { ok: false, error, data: undefined };
+export function fail(error: string, data?: unknown): ToolExecutionResult {
+	return { ok: false, error, data };
 }
-
-export type ToolSession = {
-	getTools(): Promise<ChatCompletionToolDefinition[]>;
-	callTool(name: string, args: unknown, openItemPath?: string | null): Promise<ToolExecutionResult>;
-};
 
 export type ToolExecutionContext = {
 	input: unknown;
 	app: Application;
 	ctx: Context;
 	commands: CommandTree;
-	openItemPath?: string | null;
+	sessionId?: string;
+	openCatalogName?: string;
+	openItemPath?: string;
 };
 
 export type ToolDefinition = {
@@ -42,29 +38,3 @@ export type ToolDefinition = {
 	};
 	execute: (context: ToolExecutionContext) => Promise<ToolExecutionResult>;
 };
-
-export function findTool(name: string) {
-	return getAgentToolsRegistry().find((t) => t.name === name);
-}
-
-export async function executeTool(
-	name: string,
-	input: unknown,
-	app: Application,
-	ctx: Context,
-	commandTree: unknown,
-	openItemPath?: string | null,
-): Promise<ToolExecutionResult> {
-	const tool = findTool(name);
-	if (!tool) {
-		return fail(`Unknown tool: ${name}`);
-	}
-	const context: ToolExecutionContext = {
-		input,
-		app,
-		ctx,
-		commands: commandTree as ToolExecutionContext["commands"],
-		openItemPath,
-	};
-	return tool.execute(context);
-}

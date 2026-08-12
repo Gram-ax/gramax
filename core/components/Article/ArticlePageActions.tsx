@@ -1,17 +1,19 @@
 // biome-ignore lint/style/noRestrictedImports: tailwind migration is out of scope
 import styled from "@emotion/styled";
+import { useAgentChatVisibility } from "@ext/agent/components/hooks/useAgentChatVisibility";
 import ChatToggleButton from "@ext/agent/components/panel/ChatToggleButton";
 import ThemeToggle from "@ext/Theme/components/ThemeToggle";
-import { feature } from "@ext/toggleFeatures/features";
 import type { HTMLAttributes } from "react";
 
 export type ArticlePageActionsProps = HTMLAttributes<HTMLDivElement>;
 
 const ArticlePageActions = (props: ArticlePageActionsProps) => {
+	const { showToggle } = useAgentChatVisibility();
+
 	return (
 		<div {...props} data-qa="top-menu">
 			<ThemeToggle />
-			{feature("agent-chat") && <ChatToggleButton />}
+			{showToggle && <ChatToggleButton />}
 		</div>
 	);
 };

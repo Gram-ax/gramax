@@ -1,5 +1,4 @@
-import { classNames } from "@components/libs/classNames";
-import styled from "@emotion/styled";
+import { cn } from "@core-ui/utils/cn";
 import type { ChangeEvent, FC, ReactNode } from "react";
 
 export interface ListItemProps {
@@ -15,10 +14,7 @@ const TaskItemView: FC<ListItemProps> = (props) => {
 	const { checked, className, onChangeHandler, isReadOnly, children } = props;
 
 	return (
-		<li
-			className={classNames("task-item", { "readonly-task-item": isReadOnly }, [className])}
-			data-checked={checked}
-		>
+		<li className={cn("task-item", className)} data-checked={checked}>
 			<label contentEditable={false}>
 				<input checked={checked} onChange={onChangeHandler} readOnly={isReadOnly} type="checkbox" />
 			</label>
@@ -27,44 +23,12 @@ const TaskItemView: FC<ListItemProps> = (props) => {
 	);
 };
 
-const StyledTaskItemView = styled(TaskItemView)`
-	&.task-item {
-		list-style-type: none !important;
-		position: relative;
-		font-size: inherit;
-
-		p {
-			margin: unset;
-			margin-bottom: 0.4em;
-			line-height: 1.7em;
-		}
-
-		label {
-			position: absolute;
-			left: -18px;
-			top: 2px;
-
-			input {
-				font-size: inherit;
-				cursor: pointer;
-				height: 0.8125em;
-				width: 0.8125em;
-			}
-		}
-	}
-
-	&.readonly-task-item label {
-		font-size: inherit;
-		top: unset;
-	}
-`;
-
 const DefaultListItem = ({ children, className }: ListItemProps) => {
 	return <li className={className}>{children}</li>;
 };
 
 const ListItem: FC<ListItemProps> = (props) => {
-	const Tag = props.isTaskItem ? StyledTaskItemView : DefaultListItem;
+	const Tag = props.isTaskItem ? TaskItemView : DefaultListItem;
 
 	return <Tag {...props} />;
 };

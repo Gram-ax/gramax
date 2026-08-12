@@ -2,7 +2,7 @@ import resolveFrontendModule from "@app/resolveModule/frontend";
 import type { DiffFileInputProps } from "@components/Atoms/FileInput/DiffFileInput/DiffFileInputProps";
 import getFileInputDefaultLanguage from "@components/Atoms/FileInput/getFileInputDefaultLanguage";
 import t from "@ext/localization/locale/translate";
-import ThemeService from "@ext/Theme/components/ThemeService";
+import { useSetting } from "@ext/settings/logic/hooks";
 import Theme from "@ext/Theme/Theme";
 import { useLayoutEffect, useRef, useState } from "react";
 
@@ -10,7 +10,7 @@ const DEFAULT_LANGAUGE = getFileInputDefaultLanguage();
 
 const DiffFileInput = (props: DiffFileInputProps) => {
 	const { language, className, height = "60vh", options, onChange, onMount, containerStyles, ...otherProps } = props;
-	const theme = ThemeService.value;
+	const [theme] = useSetting("general.theme");
 	const ref = useRef<HTMLDivElement>(null);
 	const [editorHeight, setEditorHeight] = useState(0);
 	const DiffFileInput = resolveFrontendModule("DiffFileInput");
@@ -40,7 +40,7 @@ const DiffFileInput = (props: DiffFileInputProps) => {
 						...options,
 					}}
 					originalLanguage={language ?? DEFAULT_LANGAUGE}
-					theme={theme == Theme.dark ? "vs-dark" : "light"}
+					theme={theme === Theme.dark ? "article-dark" : "light"}
 					{...otherProps}
 				/>
 			</div>

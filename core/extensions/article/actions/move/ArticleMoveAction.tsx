@@ -9,6 +9,7 @@ import { RequestStatus, useDeferApi } from "@core-ui/hooks/useApi";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import type DuplicateArticleDialog from "@ext/article/actions/move/DuplicateArticleDialog";
 import t from "@ext/localization/locale/translate";
+import type { ItemLink } from "@ext/navigation/NavigationLinks";
 import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 import { DropdownMenuItem, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger } from "@ui-kit/Dropdown";
 import { Loader } from "@ui-kit/Loader";
@@ -18,9 +19,24 @@ import SelectTargetWorkspaceAndCatalog, { type SelectCatalogResult } from "./Sel
 
 interface ArticleMoveActionProps {
 	articlePath: string;
+	itemLink?: ItemLink;
 }
 
-const ArticleMoveAction = ({ articlePath }: ArticleMoveActionProps) => {
+const ArticleMoveError = ({ text }: { text: string }) => {
+	return (
+		<Tooltip>
+			<TooltipTrigger className="w-full">
+				<DropdownMenuItem disabled>
+					<Icon code="arrow-right" />
+					{t("article.move.to-workspace")}
+				</DropdownMenuItem>
+			</TooltipTrigger>
+			<TooltipContent>{text}</TooltipContent>
+		</Tooltip>
+	);
+};
+
+const ArticleMoveAction = ({ articlePath, itemLink }: ArticleMoveActionProps) => {
 	const router = useRouter();
 	const { sourceCatalogName, hasLanguage } = useCatalogPropsStore((state) => ({
 		sourceCatalogName: state.data?.name,
@@ -125,19 +141,14 @@ const ArticleMoveAction = ({ articlePath }: ArticleMoveActionProps) => {
 	};
 
 	const isLoading = moveArticleStatus === RequestStatus.Loading || checkAndMoveStatus === RequestStatus.Loading;
+	const isTemplateArticle = itemLink?.options?.isTemplate;
+
+	if (isTemplateArticle) {
+		return <ArticleMoveError text={t("article.move.cannot-move-template")} />;
+	}
 
 	if (hasLanguage) {
-		return (
-			<Tooltip>
-				<TooltipTrigger className="w-full">
-					<DropdownMenuItem disabled>
-						<Icon code="arrow-right" />
-						{t("article.move.to-workspace")}
-					</DropdownMenuItem>
-				</TooltipTrigger>
-				<TooltipContent>{t("article.move.cannot-move-language")}</TooltipContent>
-			</Tooltip>
-		);
+		return <ArticleMoveError text={t("article.move.cannot-move-language")} />;
 	}
 
 	return (

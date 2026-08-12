@@ -1,7 +1,7 @@
 import { getDeps } from "./core";
 
 export const PlatformEnvironments = {
-	Browser: "browser",
+	Web: "web",
 	Desktop: "tauri",
 	DocPortal: "next",
 	Static: "static",

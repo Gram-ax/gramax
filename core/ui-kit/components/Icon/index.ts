@@ -1,2 +1,3 @@
+export type { IconCode } from "@components/Atoms/Icon/LucideIcon";
 export { FeatureIcon } from "./FeatureIcon";
-export { Icon } from "./Icon";
+export { Icon, type IconProps } from "./Icon";

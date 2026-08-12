@@ -17,7 +17,11 @@ const Tab = ({ idx, name, icon, isPrint, children }: TabProps): ReactElement => 
 		);
 	}
 
-	return <div className={`tab c-${idx}`}>{children}</div>;
+	return (
+		<div className={`tab c-${idx}`} data-tab-index={idx}>
+			<div className="content">{children}</div>
+		</div>
+	);
 };
 
 export default Tab;

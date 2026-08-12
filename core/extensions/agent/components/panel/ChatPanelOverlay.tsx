@@ -1,4 +1,5 @@
-import { Sheet, SheetContent } from "@ui-kit/Sheet";
+import { Root as VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { Sheet, SheetContent, SheetTitle } from "@ui-kit/Sheet";
 import { useAgentChatIsOpen } from "../store/AgentChatIsOpenStore";
 import AgentChatPanel from "./AgentChatPanel";
 
@@ -15,6 +16,9 @@ const ChatPanelOverlay = () => {
 				showCloseButton={false}
 				side="right"
 			>
+				<VisuallyHidden>
+					<SheetTitle>Chat</SheetTitle>
+				</VisuallyHidden>
 				<AgentChatPanel />
 			</SheetContent>
 		</Sheet>

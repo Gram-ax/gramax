@@ -1,9 +1,9 @@
-import styled from "@emotion/styled";
 import { useStyleGuideTests } from "@ext/enterprise/components/admin/settings/styleGuide/helpers/StyleGuideContext";
 import type { StyleGuideRule } from "@ext/enterprise/components/admin/settings/styleGuide/helpers/StyleGuideRuleAdapter";
 import t from "@ext/localization/locale/translate";
+import CodeBlock from "@ext/markdown/elements/codeBlockLowlight/render/component/CodeBlock";
+import { Alert, AlertDescription, AlertTitle } from "@ui-kit/Alert";
 import { IconButton } from "@ui-kit/Button";
-import { Label } from "@ui-kit/Label";
 import { Popover, PopoverContent, PopoverTrigger } from "@ui-kit/Popover";
 import { AutogrowTextarea } from "@ui-kit/Textarea";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
@@ -17,12 +17,6 @@ interface TestExampleProps {
 	onDelete: (testId: string) => void;
 	onUpdate: (testId: string, updates: Partial<RuleExample>) => void;
 }
-
-const DeleteButton = styled(IconButton)`
-	&:hover {
-		color: var(--color-danger);
-	}
-`;
 
 export const StyleGuideTestExample = ({ rule, test, guid, isFirst, onDelete, onUpdate }: TestExampleProps) => {
 	const { runningTests, runSingleTest } = useStyleGuideTests();
@@ -42,7 +36,9 @@ export const StyleGuideTestExample = ({ rule, test, guid, isFirst, onDelete, onU
 							variant="ghost"
 						/>
 					</TooltipTrigger>
-					<TooltipContent>{t("enterprise.admin.check.test-run")}</TooltipContent>
+					<TooltipContent className="font-sans font-normal">
+						{t("enterprise.admin.check.test-run")}
+					</TooltipContent>
 				</Tooltip>
 				{isRunning ? (
 					<IconButton disabled icon="loader" size="sm" variant="ghost" />
@@ -57,11 +53,11 @@ export const StyleGuideTestExample = ({ rule, test, guid, isFirst, onDelete, onU
 							/>
 						</PopoverTrigger>
 						<PopoverContent className="w-[400px]">
-							<div className="grid gap-4">
-								<h4>{t("enterprise.admin.check.test-popup-title")}</h4>
-								<div className="grid gap-2">
-									<div className="grid items-center grid-cols-3 gap-2">
-										<Label>
+							<Alert className="p-0 border-none w-[364px]">
+								<div className="w-[364px]">
+									<AlertTitle>{t("enterprise.admin.check.test-popup-title")}</AlertTitle>
+									<div className="flex flex-row w-full pt-1 gap-2 justify-between">
+										<AlertDescription>
 											{t("enterprise.admin.check.test-popup-done")}:{" "}
 											{new Date(test.runResult.dateTimeIso8601).toLocaleString("ru-RU", {
 												day: "2-digit",
@@ -71,14 +67,16 @@ export const StyleGuideTestExample = ({ rule, test, guid, isFirst, onDelete, onU
 												minute: "2-digit",
 												second: "2-digit",
 											})}
-										</Label>
+										</AlertDescription>
 									</div>
-									<Label>{t("enterprise.admin.check.test-popup-response")}:</Label>
-									<pre className="text-xs bg-muted p-2 mt-2 rounded-md overflow-auto">
+									<CodeBlock
+										language="json"
+										style={{ overflow: "auto", width: "100%", marginTop: "8px" }}
+									>
 										{JSON.stringify(test.runResult.result, null, 4)}
-									</pre>
+									</CodeBlock>
 								</div>
-							</div>
+							</Alert>
 						</PopoverContent>
 					</Popover>
 				) : (
@@ -87,19 +85,21 @@ export const StyleGuideTestExample = ({ rule, test, guid, isFirst, onDelete, onU
 							<IconButton icon="info" size="sm" status="default" variant="ghost" />
 						</PopoverTrigger>
 						<PopoverContent className="w-[400px]">
-							<div className="grid gap-4">
-								<h4>{t("enterprise.admin.check.test-popup-title")}</h4>
-								<div className="grid gap-2">
-									<div className="grid items-center grid-cols-3 gap-2">
-										<Label>{"Здесь будут результаты теста"}</Label>
-									</div>
-								</div>
-							</div>
+							<Alert className="p-0 border-none">
+								<AlertTitle>{t("enterprise.admin.check.test-popup-title")}</AlertTitle>
+								<AlertDescription>{t("enterprise.admin.check.test-popup-empty")}</AlertDescription>
+							</Alert>
 						</PopoverContent>
 					</Popover>
 				)}
 
-				<DeleteButton icon="trash2" onClick={() => onDelete(test.id)} size="sm" variant="ghost" />
+				<IconButton
+					className="hover:text-[var(--color-danger)]"
+					icon="trash2"
+					onClick={() => onDelete(test.id)}
+					size="sm"
+					variant="ghost"
+				/>
 			</div>
 			<AutogrowTextarea
 				autoFocus={isFirst}

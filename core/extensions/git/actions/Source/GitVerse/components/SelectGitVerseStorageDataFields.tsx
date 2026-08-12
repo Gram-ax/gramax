@@ -21,11 +21,12 @@ interface SelectGitVerseStorageDataFieldsProps {
 
 const SelectGitVerseStorageDataFields = (props: SelectGitVerseStorageDataFieldsProps) => {
 	const { source, mode, form } = props;
-	const authServiceUrl = PageDataContextService.value.conf.authServiceUrl;
+	const authServiceUrl = PageDataContextService.value.settings?.services?.auth?.endpoint;
 	const sourceApi = useMakeSourceApi(source, authServiceUrl) as GitSourceApi;
 	const gitPaginatedProjectList = useMemo(() => new GitPaginatedProjectList(sourceApi), [sourceApi]);
 	const [user, setUser] = useState<SourceUser>(null);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: prefill the user once on mount
 	useEffect(() => {
 		if (mode !== "init") return;
 		sourceApi.getUser().then((user) => {

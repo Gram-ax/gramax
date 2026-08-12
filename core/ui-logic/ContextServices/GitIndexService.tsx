@@ -1,7 +1,7 @@
 /** biome-ignore-all lint/complexity/noStaticOnlyClass: expected */
 /** biome-ignore-all lint/correctness/useHookAtTopLevel: expected */
 import type { ClientGitStatus } from "@app/commands/versionControl/statuses";
-import type { UnsubscribeToken } from "@core/Event/EventEmitter";
+import { createEventEmitter, type UnsubscribeToken } from "@core/Event/EventEmitter";
 import type Path from "@core/FileProvider/Path/Path";
 import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService, { type OnDidCommandEv } from "@core-ui/ApiServices/FetchService";
@@ -9,6 +9,8 @@ import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { useApiEvent } from "@core-ui/hooks/useApi";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
+import { useIsRevision } from "@ext/git/actions/Revisions/logic/hooks/useIsRevision";
 import type { TotalOverview } from "@ext/git/core/GitDiffItemCreator/RevisionDiffPresenter";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import { createContext, type ReactElement, useCallback, useContext, useLayoutEffect, useState } from "react";
@@ -22,7 +24,13 @@ const GitIndexContext = createContext<{ index: Map<string, FileStatus>; overview
 	},
 });
 
+type GitIndexEvents = {
+	"index-changed": (payload: { catalogName: string; changed: number }) => void;
+};
+
 export default abstract class GitIndexService {
+	static readonly events = createEventEmitter<GitIndexEvents>();
+
 	private static _apiUrlCreator: ApiUrlCreator;
 	private static _unsubscribe: UnsubscribeToken;
 	private static _interestedCommands = new Set([
@@ -67,9 +75,12 @@ export default abstract class GitIndexService {
 		"comments/delete",
 		"catalog/move",
 		"article/move",
+		"agent/message/send",
+		"fs/handleEvents",
 	]);
 
 	private static _enabled = false;
+	private static _catalogName: string | undefined;
 	private static _setIndex: (index: Map<string, FileStatus>) => void;
 	private static _setOverview: (overview: TotalOverview) => void;
 
@@ -79,6 +90,10 @@ export default abstract class GitIndexService {
 
 	static Provider({ children }: { children: ReactElement }): ReactElement {
 		const { isNext, isStatic, isStaticCli } = usePlatform();
+		const isRevision = useIsRevision();
+		const catalogName = useCatalogPropsStore((state) => state.data?.name);
+		const { isReadOnly } = PageDataContextService.value.conf;
+
 		const [index, setIndex] = useState<Map<string, FileStatus>>(new Map());
 		const [overview, setOverview] = useState<TotalOverview>({
 			added: 0,
@@ -87,18 +102,26 @@ export default abstract class GitIndexService {
 		});
 
 		GitIndexService._apiUrlCreator = ApiUrlCreatorService.value;
+		GitIndexService._catalogName = useCatalogPropsStore((s) => s.data?.name);
 		GitIndexService._setIndex = setIndex;
 		GitIndexService._setOverview = setOverview;
 
 		GitIndexService._enabled = PageDataContextService.value.isArticle;
 
 		if (!isNext && !isStatic && !isStaticCli) {
-			const callback = useCallback(GitIndexService._onDidCommand.bind(GitIndexService), []);
+			const callback = useCallback(
+				(ev: OnDidCommandEv) => {
+					if (isReadOnly && !isRevision) return;
+					GitIndexService._onDidCommand(ev);
+				},
+				[isReadOnly],
+			);
 			useApiEvent("on-did-command", callback);
 
 			useLayoutEffect(() => {
+				if (isReadOnly && !isRevision) return;
 				void GitIndexService._onDidCommand({ command: "init", args: {}, result: {} });
-			}, []);
+			}, [isReadOnly, isRevision, catalogName]);
 		}
 
 		return <GitIndexContext.Provider value={{ index, overview }}>{children}</GitIndexContext.Provider>;
@@ -149,5 +172,11 @@ export default abstract class GitIndexService {
 		GitIndexService._setIndex?.(new Map(iter));
 		GitIndexService._setOverview?.(overview);
 		GitIndexService._lastRun = Date.now();
+
+		const catalogName = GitIndexService._catalogName;
+		if (catalogName) {
+			const changed = overview.added + overview.deleted + overview.modified;
+			GitIndexService.events.emitSync("index-changed", { catalogName, changed });
+		}
 	}
 }

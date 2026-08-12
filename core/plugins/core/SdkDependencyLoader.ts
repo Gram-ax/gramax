@@ -1,14 +1,18 @@
 import { PlatformServiceNew } from "@core-ui/PlatformService";
 import type UiLanguage from "@ext/localization/core/model/Language";
 import tRaw, { getCurrentLanguage, type TranslationKey } from "@ext/localization/locale/translate";
-import { initializeSdk } from "@plugins/api/sdk";
+import { initializeSdk, pluginCommandExecutor } from "@plugins/api/sdk";
 import type { SdkDependencies } from "@plugins/api/sdk/core";
 import { type PluginContainer, ServiceKey } from "@plugins/core/PluginContainer";
+import { PluginCommandRegistry } from "@plugins/registry";
 
 export class SdkDependencyLoader {
 	private _initialized = false;
 
-	constructor(private _container: PluginContainer) {}
+	constructor(
+		private _container: PluginContainer,
+		private _app?: unknown,
+	) {}
 
 	async load(): Promise<void> {
 		if (this._initialized) return;
@@ -23,6 +27,9 @@ export class SdkDependencyLoader {
 			extensions: this._container.get(ServiceKey.Extensions),
 			menus: this._container.get(ServiceKey.Menus),
 			events: this._container.get(ServiceKey.Events),
+			commands: pluginCommandExecutor,
+			pluginCommands: new PluginCommandRegistry(),
+			app: this._app,
 			t,
 			Modal,
 			isPlatform,

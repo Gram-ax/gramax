@@ -12,18 +12,12 @@ import buildMiddleware from "@core/Api/middleware/buildMiddleware";
 import type Middleware from "@core/Api/middleware/Middleware";
 import type Query from "@core/Api/Query";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
-import { withContext } from "apps/next/logic/Context/ContextHook";
 import type { NextApiResponse } from "next";
+import { withContext } from "../../logic/Context/ContextHook";
 
 export default async (req: ApiRequest, res: ApiResponse) => {
 	const controller = new AbortController();
 	(res as unknown as NextApiResponse).on("close", () => controller.abort());
-
-	Object.entries(req.query)
-		.filter(([, v]) => !!v)
-		.forEach(([k, v]) => {
-			req.query[k] = typeof v === "string" ? decodeURIComponent(v) : v.map(decodeURIComponent);
-		});
 
 	const path = (req.query.route as string[]).join("/");
 
@@ -41,6 +35,10 @@ export default async (req: ApiRequest, res: ApiResponse) => {
 	const process: Middleware = new ApiMiddleware(async (req, res) => {
 		const ctx = await app.contextFactory.fromNode({ req, res });
 		try {
+			// Next has already percent-decoded the query. Decoding it a second time here ate the escaping of
+			// any value that legitimately contains a percent sign: a versioned catalog name arrives as
+			// `test-docs:releases%2Fv1.0` and became `test-docs:releases/v1.0`, which matches no version, so
+			// every command silently answered for the actual (unversioned) catalog instead.
 			const params = command.params(ctx, req.query as Query, parseBody(req.body), controller.signal);
 
 			const result = await withContext(ctx, async () => await command.do(params));

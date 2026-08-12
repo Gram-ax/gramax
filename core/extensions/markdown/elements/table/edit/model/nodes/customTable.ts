@@ -7,7 +7,7 @@ import aggregationPlugin from "@ext/markdown/elements/table/edit/model/aggregati
 import { columnResizing } from "@ext/markdown/elements/table/edit/model/columnResizing/columnResizing";
 import decorationPlugin from "@ext/markdown/elements/table/edit/model/decorationPlugin/plugin";
 import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
-import Table from "@tiptap/extension-table";
+import { Table } from "@tiptap/extension-table";
 import type { Attrs } from "@tiptap/pm/model";
 import type { Plugin } from "@tiptap/pm/state";
 import { ReplaceAroundStep, ReplaceStep } from "@tiptap/pm/transform";
@@ -23,6 +23,11 @@ const CustomTable = Table.extend({
 			contentDOMElementTag: "tbody",
 			ignoreMutation: ({ mutation }) => {
 				if (mutation.type === "selection") return false;
+				return true;
+			},
+			update: ({ oldNode, newNode, updateProps }) => {
+				if (oldNode === newNode) return true;
+				updateProps();
 				return true;
 			},
 		});

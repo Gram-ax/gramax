@@ -1,0 +1,151 @@
+import type { AppConfig } from "@app/config/AppConfig";
+import type Application from "@app/types/Application";
+import getApp from "@app/web/app";
+import getCommands from "@app/web/commands";
+import type Query from "@core/Api/Query";
+import { parserQuery } from "@core/Api/Query";
+import Path from "@core/FileProvider/Path/Path";
+import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
+import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
+import type { HomePageData } from "@core/SitePresenter/SitePresenter";
+import getPageTitle from "@core-ui/getPageTitle";
+import type DefaultError from "@ext/errorHandlers/logic/DefaultError";
+import MarkdownParser from "@ext/markdown/core/Parser/Parser";
+import { useApplyTheme } from "@ext/Theme/utils";
+import { setFeatureList } from "@ext/toggleFeatures/features";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { createRoot } from "react-dom/client";
+import { Router } from "wouter";
+import AppError from "../../../web/src/components/Atoms/AppError";
+import Gramax, { type GramaxData } from "../../../web/src/Gramax";
+import useLocation from "../../../web/src/logic/Api/useLocation";
+import { type ExtendedWindow, InitialDataKeys } from "../../src/logic/initialDataUtils/types";
+import type { InitialData } from "../logic/ArticleTypes";
+import { getCatalogNameFromInitialData } from "../logic/initialDataUtils/getCatalogName";
+// biome-ignore lint/style/noRestrictedImports: CSS-only import for theme variables
+import "ics-ui-kit/theme.css";
+import "../../../../core/ui-kit/index.css";
+import "../../../../core/styles/main.css";
+import "../../../../core/styles/chain-icon.css";
+
+if (window.location.hash && window.location.pathname.length > 1 && window.location.pathname.endsWith("/")) {
+	const newPath = window.location.pathname.slice(0, -1);
+	const newUrl = newPath + window.location.search + window.location.hash;
+	window.history.replaceState(null, "", newUrl);
+}
+
+const initialData: InitialData = (window as ExtendedWindow)[InitialDataKeys.DATA];
+const catalogName = getCatalogNameFromInitialData();
+const handle404 = async () => {
+	if (initialData.context.isArticle && initialData.data?.articlePageData?.articleProps?.errorCode === 404) {
+		const article404 = new CustomArticlePresenter().getArticle("Article404", {
+			pathname: window.location.pathname,
+		});
+		initialData.data.articlePageData.content = JSON.stringify(
+			(await new MarkdownParser().parse(await article404.getContent())).renderTree,
+		);
+		initialData.data.articlePageData.articleProps.title = article404.getTitle();
+	}
+};
+
+const getBasePath = () => {
+	const basePath = new URL(document.baseURI).pathname;
+	return basePath === "/" ? Path.empty : new Path(basePath);
+};
+global.config = (window as ExtendedWindow)[InitialDataKeys.CONFIG];
+setFeatureList();
+(global.config as AppConfig).paths = {
+	base: getBasePath(),
+	data: new Path(`/${catalogName}`),
+	default: new Path("/"),
+	root: new Path("/"),
+};
+
+const onAppInit = (app: Application) => {
+	const workspace = app.wm.current();
+	workspace.getContextlessCatalog(catalogName);
+};
+
+const promisedApp: Promise<Application> = (async () => {
+	const app = await getApp();
+	onAppInit(app);
+	return app;
+})();
+
+const getData = async (route: string, query: Query) => {
+	const app = await promisedApp;
+	const commands = getCommands(app);
+	const language = RouterPathProvider.parsePath(route).language;
+	const ctx = await app.contextFactory.fromWeb({
+		language,
+		query,
+	});
+	return commands.page.getPageData.do({ ctx, path: route, options: { mode: "read" } });
+};
+
+const removeBasePath = (path: string) => {
+	const basePath = (global.config as AppConfig).paths.base.value;
+	return path.startsWith(basePath) ? path.slice(basePath.length) : path;
+};
+
+const Component = () => {
+	useApplyTheme();
+
+	const isFirstRender = useRef(true);
+	const [path, setLocation, query] = useLocation();
+	const [data, setData] = useState<GramaxData>(
+		initialData.context.isArticle
+			? {
+					path,
+					page: "article",
+					data: {
+						...initialData.data.articlePageData,
+						catalogProps: initialData.data.catalogProps,
+						openGraphData: null,
+					},
+					context: initialData.context,
+				}
+			: {
+					path,
+					page: "home",
+					data: initialData.data as unknown as HomePageData,
+					context: initialData.context,
+				},
+	);
+	const [error, setError] = useState<DefaultError>();
+
+	const refresh = useCallback(async () => {
+		try {
+			if (isFirstRender.current) {
+				isFirstRender.current = false;
+				return;
+			}
+			const cleanPath = removeBasePath(path);
+			if (!cleanPath || cleanPath === "/" || !initialData.context.isArticle) return window.location.reload();
+
+			const data = await getData(cleanPath, parserQuery(query));
+			setData({ path, ...data });
+		} catch (err) {
+			console.error(err);
+			setError(err);
+		}
+	}, [path, query]);
+
+	useEffect(() => {
+		document.title = getPageTitle(data);
+	}, [data]);
+
+	useEffect(() => void refresh(), [refresh]);
+
+	if (error) return <AppError error={error} />;
+
+	return (
+		<Router base={(global.config as AppConfig).paths.base.value} hook={() => [data.path, setLocation]}>
+			<Gramax data={data} platform="static" refresh={refresh} setData={() => {}} />
+		</Router>
+	);
+};
+
+const root = createRoot(document.getElementById("root"));
+
+void handle404().then(() => root.render(<Component />));

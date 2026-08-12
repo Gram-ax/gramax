@@ -1,9 +1,9 @@
 /** biome-ignore-all lint/suspicious/noExplicitAny: expected */
 import LucideIcon from "@components/Atoms/Icon/LucideIcon";
 import { cn } from "@core-ui/utils/cn";
-import type { ExtractComponentGeneric } from "core/ui-kit/lib/extractComponentGeneric";
 import { Tag as UiKitTag } from "ics-ui-kit/components/tag";
 import { forwardRef } from "react";
+import type { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
 
 type UiKitTagProps = ExtractComponentGeneric<typeof UiKitTag>;
 

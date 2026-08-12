@@ -4,6 +4,7 @@ import { classNames } from "@components/libs/classNames";
 import useWatch from "@core-ui/hooks/useWatch";
 import { cn } from "@core-ui/utils/cn";
 import { css } from "@emotion/react";
+// biome-ignore lint/style/noRestrictedImports: will be removed in the future
 import styled from "@emotion/styled";
 import { BreadcrumbDiffLine } from "@ext/git/core/Diff/components/BreadcrumbDiffLine";
 import ProseMirrorDiffLineContent from "@ext/git/core/Diff/components/ProseMirrorDiffLineContent";
@@ -221,6 +222,7 @@ const DiffLine = ({ top, height, left, diffLine, oldScope, articlePath, onDiscar
 					content={
 						<ProseMirrorDiffLineContent
 							articlePath={articlePath}
+							newContent={diffLine.newContent}
 							oldContent={diffLine.oldContent}
 							oldDecorations={diffLine.oldDecorations}
 							oldScope={oldScope}

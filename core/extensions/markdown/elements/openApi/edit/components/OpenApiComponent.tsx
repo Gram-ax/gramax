@@ -4,10 +4,12 @@ import { useArticlePropsStore } from "@core-ui/stores/ArticlePropsStore/ArticleP
 import { NodeViewContextableWrapper } from "@ext/markdown/core/element/NodeViewContextableWrapper";
 import OpenApiActions from "@ext/markdown/elements/openApi/edit/components/OpenApiActions";
 import buildNavigationFromSpec from "@ext/markdown/elements/openApi/edit/logic/buildNavigationFromSpec";
+import { createOpenApiTocItemsResolver } from "@ext/markdown/elements/openApi/edit/logic/OpenApiTocItemsStore";
 import { useOpenApiTocItemsStore } from "@ext/markdown/elements/openApi/edit/logic/OpenApiTocItemsStore.provider";
-import OpenApi, { type CreateOnComplete } from "@ext/markdown/elements/openApi/render/OpenApi";
+import OpenApi from "@ext/markdown/elements/openApi/render/OpenApi";
 import getTocItems, { getLevelTocItemsByJSONContent } from "@ext/navigation/article/logic/createTocItems";
 import type { NodeViewProps } from "@tiptap/react";
+import * as yaml from "js-yaml";
 import { type ReactElement, useCallback, useRef } from "react";
 
 const OpenApiComponent = (props: NodeViewProps): ReactElement => {
@@ -23,7 +25,9 @@ const OpenApiComponent = (props: NodeViewProps): ReactElement => {
 	}));
 
 	const updateTocItems = useCallback(() => {
-		const tocItems = getTocItems(getLevelTocItemsByJSONContent(editor.state.doc, openApiTocItemsData));
+		const tocItems = getTocItems(
+			getLevelTocItemsByJSONContent(editor.state.doc, createOpenApiTocItemsResolver(openApiTocItemsData)),
+		);
 		if (tocItems) updateArticleProps({ tocItems: [...tocItems] });
 	}, [updateArticleProps, openApiTocItemsData, editor.state.doc]);
 
@@ -36,14 +40,25 @@ const OpenApiComponent = (props: NodeViewProps): ReactElement => {
 		updateTocItems();
 	}, [openApiTocItemsData?.[node.attrs.src]]);
 
-	const createOnComplete: CreateOnComplete = useCallback(
-		(src) => (system) => {
+	const handleSpecLoaded = useCallback(
+		(spec: string | null) => {
 			if (!setTocItemsData) return;
-			const spec = system.specSelectors.specJson().toJS();
-			const navigation = buildNavigationFromSpec(spec);
-			setTocItemsData(src, navigation);
+			// null arrives on every load failure. The navigation lives in the store by src and survives a
+			// failed reload, so it has to be cleared explicitly -- otherwise the article's table of contents
+			// keeps pointing at operations that are no longer on screen.
+			if (spec === null) {
+				setTocItemsData(node.attrs.src, []);
+				return;
+			}
+			try {
+				const json = yaml.load(spec);
+				const navigation = buildNavigationFromSpec(json);
+				setTocItemsData(node.attrs.src, navigation);
+			} catch {
+				return;
+			}
 		},
-		[setTocItemsData],
+		[setTocItemsData, node.attrs.src],
 	);
 
 	return (
@@ -58,7 +73,12 @@ const OpenApiComponent = (props: NodeViewProps): ReactElement => {
 				selected={false}
 				updateAttributes={updateAttributes}
 			>
-				<OpenApi {...node.attrs} commentId={node.attrs.comment?.id} createOnComplete={createOnComplete} />
+				<OpenApi
+					{...node.attrs}
+					commentId={node.attrs.comment?.id}
+					isEditing={editor.isEditable}
+					onSpecLoaded={handleSpecLoaded}
+				/>
 			</BlockActionPanel>
 		</NodeViewContextableWrapper>
 	);

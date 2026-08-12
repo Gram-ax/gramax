@@ -1,36 +1,20 @@
-import EditorsComponent from "@ext/enterprise/components/admin/settings/editors/EditorsComponent";
 import type { EditorsSettings } from "@ext/enterprise/components/admin/settings/editors/types/EditorsComponentTypes";
-import GroupsComponent from "@ext/enterprise/components/admin/settings/groups/GroupsComponent";
 import type { GroupsSettings } from "@ext/enterprise/components/admin/settings/groups/types/GroupsComponentTypes";
-import GuestsComponent from "@ext/enterprise/components/admin/settings/guests/GuestsComponent";
 import type { GuestsSettings } from "@ext/enterprise/components/admin/settings/guests/types/GuestsComponent";
-import MailComponent, { type MailSettings } from "@ext/enterprise/components/admin/settings/MailComponent";
-import MetricsPage from "@ext/enterprise/components/admin/settings/metrics/MetricsPage";
-import SearchMetricsComponent from "@ext/enterprise/components/admin/settings/metrics/search/SearchMetricsComponent";
+import type { MailSettings } from "@ext/enterprise/components/admin/settings/MailComponent";
 import type { MetricsSettings, SearchMetricsSettings } from "@ext/enterprise/components/admin/settings/metrics/types";
-import ViewMetricsComponent from "@ext/enterprise/components/admin/settings/metrics/view/ViewMetricsComponent";
-import PluginDetailComponent from "@ext/enterprise/components/admin/settings/plugins/PluginDetail/PluginDetailComponent";
-import PluginsComponent from "@ext/enterprise/components/admin/settings/plugins/PluginPage/PluginsComponent";
 import type { QuizSettings } from "@ext/enterprise/components/admin/settings/quiz/QuizComponent";
-import QuizComponent from "@ext/enterprise/components/admin/settings/quiz/QuizComponent";
-import ResourcesComponent from "@ext/enterprise/components/admin/settings/resources/ResourcesComponent";
 import type { ResourcesSettings } from "@ext/enterprise/components/admin/settings/resources/types/ResourcesComponent";
-import RolesComponent from "@ext/enterprise/components/admin/settings/roles/RolesComponent";
-import StyleGuideComponent, {
-	type StyleGuideSettings,
-} from "@ext/enterprise/components/admin/settings/styleGuide/StyleGuideComponent";
+import type { StyleGuideSettings } from "@ext/enterprise/components/admin/settings/styleGuide/StyleGuideComponent";
 import type { WorkspaceSettings } from "@ext/enterprise/components/admin/settings/workspace/types/WorkspaceComponent";
-import WorkspaceComponent from "@ext/enterprise/components/admin/settings/workspace/WorkspaceComponent";
-import { Page } from "@ext/enterprise/types/Page";
 import type { PluginsSettings } from "@ext/enterprise/types/PluginsSettings";
-import type { ComponentType } from "react";
 
 export type Settings = {
 	workspace: WorkspaceSettings;
 	groups: GroupsSettings;
 	editors: EditorsSettings;
 	resources: ResourcesSettings[];
-	mailServer: MailSettings;
+	mail: MailSettings;
 	styleGuide: StyleGuideSettings;
 	guests: GuestsSettings;
 	quiz: QuizSettings;
@@ -39,21 +23,22 @@ export type Settings = {
 	searchMetrics: SearchMetricsSettings;
 };
 
-export const defaultGroupKeys = ["Everyone", "Authenticated"];
+export const tabKeys = [
+	"workspace",
+	"groups",
+	"editors",
+	"resources",
+	"mail",
+	"guests",
+	"styleGuide",
+	"quiz",
+	"plugins",
+	"metrics",
+] as const;
 
-export const PageComponents: Record<Page, ComponentType> = {
-	[Page.WORKSPACE]: WorkspaceComponent,
-	[Page.USER_GROUPS]: GroupsComponent,
-	[Page.EDITORS]: EditorsComponent,
-	[Page.STYLEGUIDE]: StyleGuideComponent,
-	[Page.RESOURCES]: ResourcesComponent,
-	[Page.MAIL]: MailComponent,
-	[Page.GUESTS]: GuestsComponent,
-	[Page.PLUGINS]: PluginsComponent,
-	[Page.PLUGIN_DETAIL]: PluginDetailComponent,
-	[Page.QUIZ]: QuizComponent,
-	[Page.METRICS]: MetricsPage,
-	[Page.VIEW_METRICS]: ViewMetricsComponent,
-	[Page.SEARCH_METRICS]: SearchMetricsComponent,
-	[Page.ROLES]: RolesComponent,
-};
+export type TabKey = (typeof tabKeys)[number];
+
+// "searchMetrics" shares the "metrics" tab for loading/error state but has its own loader
+export type LoadableTab = TabKey | "searchMetrics";
+
+export const defaultGroupKeys = ["Everyone", "Authenticated"];

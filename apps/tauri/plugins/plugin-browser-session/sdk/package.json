@@ -1,0 +1,6 @@
+{
+	"private": true,
+	"scripts": {
+		"build": "bun build src/init.ts --outfile ../src/scripts/init.js --target browser --format iife && bun build src/collector.ts --outfile ../src/scripts/collector.js --target browser --format iife"
+	}
+}

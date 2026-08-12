@@ -66,24 +66,38 @@
           - .ci/.templates.yml
           - .ci/build.yml
 
+.ci-job-duration-metrics:
+  after_script:
+    - bash ./.ci/metrics/push-ci-job-duration-metrics.sh || true
+
 .template.docker:
   before_script:
+    - . ./.ci/scripts/retry.sh
     - |
       dockerd --tls=false > /dockerd.log 2>&1 &
       timeout 30s sh -c 'until docker info > /dev/null 2>&1; do sleep 1; echo "Waiting for Docker daemon..."; done'
       docker logout gitlab.ics-it.ru:4567
-      echo $GX_TOKEN | docker login gitlab.ics-it.ru:4567 -u "$GX_USER" --password-stdin
+      retry 3 2 -- bash -c 'echo "$GX_TOKEN" | docker login gitlab.ics-it.ru:4567 -u "$GX_USER" --password-stdin'
 
 .template.github-ssh-key:
   before_script:
+    - . ./.ci/scripts/retry.sh
     - |
       mkdir -p /root/.ssh
       cat "$GITHUB_ANTI_RATELIMIT_SSH_KEY" > /root/.ssh/github-private-key
-      ssh-keyscan github.com > /root/.ssh/known_hosts
-      printf "Host github.com\nPreferredAuthentications publickey\nUser git\nIdentityFile /root/.ssh/github-private-key\n" > /root/.ssh/config
+      retry 3 2 -- ssh-keyscan -p 443 ssh.github.com > /root/.ssh/known_hosts
+      printf '%s\n' \
+        'Host github.com' \
+        '  HostName ssh.github.com' \
+        '  Port 443' \
+        '  User git' \
+        '  PreferredAuthentications publickey' \
+        '  IdentityFile /root/.ssh/github-private-key' \
+        '  StrictHostKeyChecking yes' \
+        > /root/.ssh/config
       chmod -R 700 /root/.ssh
-      chmod 600 /root/.ssh/config
-      ssh -T git@github.com || echo "github.com ssh auth"
+      chmod 600 /root/.ssh/config /root/.ssh/github-private-key
+      ssh -T -o ConnectTimeout=8 git@github.com || echo "github.com ssh auth"
       git config --global url.ssh://git@github.com/.insteadOf https://github.com/
 
 .template.docker.kubernetes:
@@ -132,6 +146,11 @@
       export TAG_SHORT
 
     - |
-      echo ${BUILDX_DRIVER}
-      echo "$CI_DEPENDENCY_PROXY_PASSWORD" | docker login $CI_DEPENDENCY_PROXY_SERVER --username $CI_DEPENDENCY_PROXY_USER --password-stdin &&
-      echo "$GRAMAX_USER_PASSWORD" | docker login $CI_REGISTRY --username git --password-stdin
+      retry 3 2 -- bash -c 'echo "$CI_DEPENDENCY_PROXY_PASSWORD" | docker login "$CI_DEPENDENCY_PROXY_SERVER" --username "$CI_DEPENDENCY_PROXY_USER" --password-stdin' && \
+      retry 3 2 -- bash -c 'echo "$GRAMAX_USER_PASSWORD" | docker login "$CI_REGISTRY" --username git --password-stdin'
+
+.template.nexus-login:
+  before_script:
+    - |
+      retry 3 2 -- bash -c 'echo "$NEXUS_PASSWORD" | docker login "$NEXUS_DOCKERHUB" --username "$NEXUS_USER" --password-stdin' && \
+      retry 3 2 -- bash -c 'echo "$NEXUS_PASSWORD" | docker login "$NEXUS_MCR" --username "$NEXUS_USER" --password-stdin'

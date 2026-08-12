@@ -15,7 +15,6 @@ type UseGetArticleContextDataProps = {
 
 const useGetArticleContextData = (props: UseGetArticleContextDataProps) => {
 	const { articlePath, catalogName, scope } = props;
-
 	const apiUrlCreatorService = ApiUrlCreatorService.value;
 
 	const [articleProps, setArticleProps] = useState<ClientArticleProps>(null);
@@ -28,13 +27,14 @@ const useGetArticleContextData = (props: UseGetArticleContextDataProps) => {
 	const fetchData = async () => {
 		const url = apiUrlCreatorService.getScopedPageDataByArticleData(articlePath, catalogName, scope);
 
-		const res = await FetchService.fetch<ArticlePageData>(url);
+		const res = await FetchService.fetch<ArticlePageData>(url, undefined, undefined, undefined, false);
 		if (!res.ok) return;
 
 		const data = await res.json();
+		if (!data) return;
 
-		setArticleProps(data.articleProps);
-		setCatalogProps(data.catalogProps);
+		setArticleProps(data?.articleProps);
+		setCatalogProps(data?.catalogProps);
 
 		const apiUrlCreator = new ApiUrlCreator(basePath, data.catalogProps?.name, data.articleProps?.ref?.path);
 		setApiUrlCreator(apiUrlCreator);

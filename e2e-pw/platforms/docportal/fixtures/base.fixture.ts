@@ -7,13 +7,13 @@ import {
 	setStorageViaApi,
 } from "@docportal/utils";
 import type GitSourceData from "@gramax/core/extensions/git/core/model/GitSourceData.schema";
-import { type BrowserContext, type Page, test } from "@playwright/test";
+import { type Page, test, type WebContext } from "@playwright/test";
 import "@utils/async";
 import { getSourceDataFromEnv } from "@utils/source";
 
 export interface WorkerBaseFixture {
 	startUrl: string;
-	sharedContext: BrowserContext;
+	sharedContext: WebContext;
 	sharedPage: Page;
 	basePage: BasePage;
 	isolated?: boolean;

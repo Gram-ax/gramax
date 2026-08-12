@@ -6,10 +6,10 @@ import Middleware from "./Middleware";
 
 export class AuthorizeMiddleware extends Middleware {
 	async Process(req: ApiRequest, res: ApiResponse): Promise<void> {
-		const isBrowser = getExecutingEnvironment() === "browser";
+		const isWeb = getExecutingEnvironment() === "web";
 		const isDesktop = getExecutingEnvironment() === "tauri";
 
-		if (isBrowser || isDesktop) return this._next.Process(req, res);
+		if (isWeb || isDesktop) return this._next.Process(req, res);
 
 		const query = req.query as Query;
 		const ctx = await this._app.contextFactory.fromNode({ req, res, query });

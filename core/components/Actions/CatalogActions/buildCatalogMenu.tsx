@@ -14,6 +14,7 @@ import TemplateItem from "@components/Actions/CatalogItems/TemplateItem";
 import ViewFavoritesItem from "@components/Actions/CatalogItems/ViewFavoritesItem";
 import Icon from "@components/Atoms/Icon";
 import { PlatformServiceNew } from "@core-ui/PlatformService";
+import AgentSkillsItem from "@ext/agent/components/skills/AgentSkillsItem";
 import type { CatalogMoveActionRenderProps } from "@ext/catalog/actions/move/components/CatalogMoveAction";
 import CatalogPropsTrigger from "@ext/catalog/actions/propsEditor/components/CatalogPropsTrigger";
 import DeleteCatalog from "@ext/catalog/actions/propsEditor/components/DeleteCatalog";
@@ -35,7 +36,8 @@ type CoreMenuItemIdNew =
 	| "repository-permission"
 	| "favorite-articles"
 	| "lfs-lazy-toggle"
-	| "fragments";
+	| "fragments"
+	| "agent-skills";
 
 export type CoreMenuItemIdApp = CoreMenuItemId | CoreMenuItemIdNew;
 
@@ -57,6 +59,7 @@ export interface MenuItemPropMap {
 	"catalog-tools": ReactNode;
 	snippets: ReactNode;
 	fragments: ReactNode;
+	"agent-skills": ReactNode;
 	template: ReactNode;
 	"ai-prompt": ReactNode;
 	healthcheck: ReactNode;
@@ -131,7 +134,7 @@ export function buildCatalogMenu(ctx: CatalogActionsContextValue): MenuItemDescr
 		{
 			id: "repository-permission",
 			component: (children) => <RepositoryPermissionItem>{children}</RepositoryPermissionItem>,
-			visible: hasWorkspaceGesUrl && canConfigure && (platform.isBrowser || platform.isDesktop),
+			visible: hasWorkspaceGesUrl && canConfigure && (platform.isWeb || platform.isDesktop),
 		},
 	] as const;
 
@@ -158,6 +161,11 @@ export function buildCatalogMenu(ctx: CatalogActionsContextValue): MenuItemDescr
 					id: "fragments",
 					component: (children) => <FragmentsItem>{children}</FragmentsItem>,
 					visible: true,
+				},
+				{
+					id: "agent-skills",
+					component: (children) => <AgentSkillsItem>{children}</AgentSkillsItem>,
+					visible: feature("agent-chat"),
 				},
 				{
 					id: "template",

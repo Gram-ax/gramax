@@ -1,8 +1,7 @@
-import { getExecutingEnvironment } from "@app/resolveModule/env";
 import { ResponseKind } from "@app/types/ResponseKind";
+import applyWorkspaceServices from "@app/utils/applyWorkspaceServices";
 import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddleware";
 import type { ClientWorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
-import setWorkerProxy from "../../../apps/browser/src/logic/setWorkerProxy";
 import { Command } from "../../types/Command";
 
 const create: Command<{ config: ClientWorkspaceConfig }, void> = Command.create({
@@ -17,14 +16,10 @@ const create: Command<{ config: ClientWorkspaceConfig }, void> = Command.create(
 		const { path, ...init } = config;
 		const id = await wm.addWorkspace(path, init, true);
 		await wm.setWorkspace(id);
-		// TODO: Remove if
-		if (getExecutingEnvironment() == "browser") {
-			const config = await wm.current().config();
-			setWorkerProxy(config.services?.gitProxy?.url);
-		}
+		applyWorkspaceServices(await wm.current().config());
 	},
 
-	params(ctx, q, body) {
+	params(_ctx, _q, body) {
 		return { config: body };
 	},
 });

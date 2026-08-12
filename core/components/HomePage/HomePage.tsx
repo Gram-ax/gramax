@@ -12,19 +12,21 @@ import TopMenuWrapper, {
 } from "@components/HomePage/TopMenu/Components/TopMenuWrapper";
 import type { HomePageData, Section } from "@core/SitePresenter/SitePresenter";
 import IsMacService from "@core-ui/ContextServices/IsMac";
+import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { GlobalAudioToolbar } from "@ext/ai/components/Audio/Toolbar";
 import AddCatalogMenu from "@ext/catalog/actions/AddCatalogMenu";
-import { SingInTauri } from "@ext/enterprise/components/SingInOut/SingInOut";
-import SwitchUiLanguage from "@ext/localization/actions/SwitchUiLanguage";
+import { useIsEnterprise } from "@ext/enterprise/utils/useIsEnterprise";
+import { GesCloudEditorHomePage } from "@ext/enterprise-cloud/components/HomePage/GesCloudEditorHomePage";
 import PermissionService from "@ext/security/logic/Permission/components/PermissionService";
-import { editCatalogContentPermission } from "@ext/security/logic/Permission/Permissions";
-import ThemeToggle from "@ext/Theme/components/ThemeToggle";
+import { editCatalogPermission, readPermission } from "@ext/security/logic/Permission/Permissions";
+import UserMenu from "@ext/settings/components/UserMenu";
+import { feature } from "@ext/toggleFeatures/features";
 import SwitchWorkspace from "@ext/workspace/components/SwitchWorkspace";
 import type React from "react";
-import { HomeLogo } from "../../../apps/browser/src/components/Atoms/HomeLogo";
-import BrowserHomePage from "../../../apps/browser/src/components/BrowserHomePage";
+import { HomeLogo } from "../../../apps/web/src/components/Atoms/HomeLogo";
+import WebHomePage from "../../../apps/web/src/components/WebHomePage";
 
 const StaticTopMenu = () => {
 	return (
@@ -33,8 +35,9 @@ const StaticTopMenu = () => {
 				<HomeLogo />
 			</TopMenuLeftSide>
 			<TopMenuRightSide>
-				<SwitchUiLanguage size="lg" />
-				<ThemeToggle isHomePage />
+				<TopMenuSwitchUiLanguageButton />
+				<TopMenuThemeToggle />
+				<UserMenu />
 			</TopMenuRightSide>
 		</TopMenuWrapper>
 	);
@@ -42,7 +45,14 @@ const StaticTopMenu = () => {
 
 const TauriTopMenu = ({ section }: { section?: Section }) => {
 	const isMac = IsMacService.value;
-	const canAddCatalog = PermissionService.useCheckAnyCatalogPermission(editCatalogContentPermission);
+	const hasEditCatalogPermission = PermissionService.useCheckPermission(
+		editCatalogPermission,
+		WorkspaceService.current().path,
+	);
+	const hasReadCatalogContentPermission = PermissionService.useCheckAnyCatalogPermission(readPermission);
+	const shouldCheckCatalogPermissions = useIsEnterprise();
+	const canEditCatalogContent = !shouldCheckCatalogPermissions || hasEditCatalogPermission;
+	const canCloneCatalog = !shouldCheckCatalogPermissions || hasReadCatalogContentPermission;
 	const hasWorkspace = WorkspaceService.hasActive();
 
 	return (
@@ -51,14 +61,20 @@ const TauriTopMenu = ({ section }: { section?: Section }) => {
 				<HomeLogo />
 				<TopMenuLeftSideActions>
 					{hasWorkspace && <SwitchWorkspace />}
-					{canAddCatalog && <AddCatalogMenu />}
+					{(canEditCatalogContent || canCloneCatalog) && (
+						<AddCatalogMenu
+							canCloneCatalog={canCloneCatalog}
+							canCreateCatalog={canEditCatalogContent}
+							canImportCatalog={canEditCatalogContent}
+						/>
+					)}
 				</TopMenuLeftSideActions>
 			</TopMenuLeftSide>
 			<TopMenuRightSide>
 				{hasWorkspace && <TopMenuSearch section={section} />}
 				<TopMenuSwitchUiLanguageButton />
 				<TopMenuThemeToggle />
-				<SingInTauri />
+				<UserMenu />
 			</TopMenuRightSide>
 		</TopMenuWrapper>
 	);
@@ -67,7 +83,7 @@ const TauriTopMenu = ({ section }: { section?: Section }) => {
 const components: Record<Environment, ({ data }: { data: HomePageData }) => React.ReactNode> = {
 	tauri: ({ data }) => <TauriHomePage data={data} />,
 	static: ({ data }) => <StaticHomePage data={data} />,
-	browser: ({ data }) => <BrowserHomePage data={data} />,
+	web: ({ data }) => <WebHomePage data={data} />,
 	cli: () => null,
 	next: () => null,
 	test: () => null,
@@ -91,6 +107,12 @@ const StaticHomePage = ({ data }: { data: HomePageData }) => {
 };
 
 const TauriHomePage = ({ data }: { data: HomePageData }) => {
+	const { url: gesCloudUrl, enabled } = PageDataContextService.value.conf.enterpriseCloud;
+	const isLogged = PageDataContextService.value.isLogged;
+	const gesCloudMode = feature("ges-cloud") && gesCloudUrl && enabled && isLogged;
+
+	if (gesCloudMode) return <GesCloudEditorHomePage data={data} />;
+
 	return (
 		<HomePageWrapper>
 			<TauriTopMenu section={data.section} />

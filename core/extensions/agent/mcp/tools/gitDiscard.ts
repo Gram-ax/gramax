@@ -13,7 +13,7 @@ export async function runGitDiscard({ app, input }: ToolExecutionContext): Promi
 	try {
 		const catalog = await app.wm.current().getContextlessCatalog(catalogName);
 		if (!catalog?.repo?.gvc) {
-			return fail(`git_discard: git repository not available for catalog: ${catalogName}`);
+			return fail("Git repository not available");
 		}
 		const gvc = catalog.repo.gvc;
 
@@ -29,23 +29,28 @@ export async function runGitDiscard({ app, input }: ToolExecutionContext): Promi
 				);
 
 		if (!targetPaths.length) {
-			return ok({
-				catalogName,
-				discarded: [],
-				mode: hasFilePaths ? "paths" : "all",
-				refreshPage: true,
-			});
+			return ok(
+				{
+					catalogName,
+					discarded: [],
+					mode: hasFilePaths ? "paths" : "all",
+				},
+				true,
+			);
 		}
 
 		await gvc.discard(targetPaths);
-		return ok({
-			catalogName,
-			discarded: targetPaths.map((path) => path.value),
-			mode: hasFilePaths ? "paths" : "all",
-			refreshPage: true,
-		});
+		await app.wm.current().refreshCatalog(catalogName);
+		return ok(
+			{
+				catalogName,
+				discarded: targetPaths.map((path) => path.value),
+				mode: hasFilePaths ? "paths" : "all",
+			},
+			true,
+		);
 	} catch (e) {
 		const msg = e instanceof Error ? e.message : String(e);
-		return fail(`git_discard error: ${msg}`);
+		return fail(`Failed to discard changes: ${msg}`);
 	}
 }

@@ -1,3 +1,4 @@
+import type { CommentBlock } from "@core-ui/CommentBlock";
 import isMobile from "@core-ui/utils/IsMobile";
 import CommentBlockMark from "@ext/markdown/elements/comment/edit/logic/BlockMark";
 import getNearestNodeWithSameCommentId from "@ext/markdown/elements/comment/edit/logic/utils/getNearestNodeWithSameCommentId";
@@ -48,6 +49,8 @@ const Comment = Mark.create<CommentOptions, CommentStorage>({
 			openedComment: null,
 			hoverComment: null,
 			positions: new Map<string, Range[]>(),
+			comments: new Map<string, CommentBlock>(),
+			deleted: new Map<string, CommentBlock>(),
 		};
 	},
 
@@ -97,6 +100,9 @@ const Comment = Mark.create<CommentOptions, CommentStorage>({
 		}
 
 		dom.addEventListener("click", (event) => {
+			//MR-16157 style guide suggestions take the click over the comment
+			if ((event.target as HTMLElement)?.closest?.("suggestion")) return;
+
 			const posAtDom = this.editor.view.posAtDOM(dom, 0);
 			if (!posAtDom) return;
 

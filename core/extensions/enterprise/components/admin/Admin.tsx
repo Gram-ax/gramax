@@ -1,5 +1,4 @@
 import SourceDataService from "@core-ui/ContextServices/SourceDataService";
-import { OpenProvider } from "@ext/enterprise/components/admin/contexts/OpenContext";
 import { AdminModalContent } from "@ext/enterprise/components/admin/modal/AdminModalContent";
 import EnterpriseService from "@ext/enterprise/EnterpriseService";
 import { getEnterpriseSourceData } from "@ext/enterprise/utils/getEnterpriseSourceData";
@@ -10,6 +9,7 @@ export const Admin = ({ onClose, gesUrl }: { onClose: () => void; gesUrl: string
 	const [isOpen, setIsOpen] = useState(true);
 	const sourceDatas = SourceDataService.value;
 	const enterpriseService = useMemo(() => new EnterpriseService(gesUrl), [gesUrl]);
+	// biome-ignore lint/correctness/useExhaustiveDependencies: idc
 	const token = useMemo(() => getEnterpriseSourceData(sourceDatas, gesUrl)?.token, [gesUrl, sourceDatas]);
 	const guardedCloseRef = useRef<(() => void) | null>(null);
 
@@ -33,14 +33,12 @@ export const Admin = ({ onClose, gesUrl }: { onClose: () => void; gesUrl: string
 
 	return (
 		<Dialog onOpenChange={onOpenChange} open={isOpen}>
-			<OpenProvider open={isOpen} setOpen={setIsOpen}>
-				<AdminModalContent
-					enterpriseService={enterpriseService}
-					guardedCloseRef={guardedCloseRef}
-					onRequestClose={handleRequestClose}
-					token={token}
-				/>
-			</OpenProvider>
+			<AdminModalContent
+				enterpriseService={enterpriseService}
+				guardedCloseRef={guardedCloseRef}
+				onRequestClose={handleRequestClose}
+				token={token}
+			/>
 		</Dialog>
 	);
 };

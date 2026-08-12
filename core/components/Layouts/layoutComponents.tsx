@@ -11,7 +11,7 @@ interface RenderTitledLinks {
 }
 
 const listStyles = tv({
-	base: "!-ml-5 text-sm leading-normal text-[var(--color-primary)] list-none",
+	base: "!pl-0 text-sm leading-normal text-[var(--color-primary)] list-none",
 });
 
 const anchorStyles = tv({

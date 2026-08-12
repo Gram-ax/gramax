@@ -153,3 +153,65 @@ fn commit_with_file_deletion(_sandbox: TempDir, #[with(&_sandbox)] repo: Repo<Te
 
 	Ok(())
 }
+
+#[rstest]
+fn commit_excludes_ds_store(_sandbox: TempDir, #[with(&_sandbox)] repo: Repo<TestCreds>) -> Result {
+	fs::write(_sandbox.path().join("file1"), "content1")?;
+	fs::write(_sandbox.path().join(".DS_Store"), "junk")?;
+	fs::create_dir_all(_sandbox.path().join("nested"))?;
+	fs::write(_sandbox.path().join("nested/.DS_Store"), "junk")?;
+
+	repo.add_glob(vec!["*"])?;
+
+	let oid = repo.commit(CommitOptions {
+		message: "publish everything including trash".to_string(),
+		parent_refs: None,
+		files: Some(vec![PathBuf::from("file1"), PathBuf::from(".DS_Store"), PathBuf::from("nested/.DS_Store")]),
+	})?;
+
+	let tree = repo.repo().find_commit(oid)?.tree()?;
+	assert!(tree.get_path(Path::new("file1")).is_ok());
+	assert!(tree.get_path(Path::new(".DS_Store")).is_err());
+	assert!(tree.get_path(Path::new("nested/.DS_Store")).is_err());
+
+	Ok(())
+}
+
+#[rstest]
+fn commit_purges_already_tracked_ds_store(_sandbox: TempDir, #[with(&_sandbox)] repo: Repo<TestCreds>) -> Result {
+	// Simulate a `.DS_Store` committed before the trash filter existed, by staging + committing it
+	// directly through git2 (bypassing Repo::commit).
+	fs::write(_sandbox.path().join("file1"), "content1")?;
+	fs::write(_sandbox.path().join(".DS_Store"), "junk")?;
+	{
+		let git = repo.repo();
+		let mut index = git.index()?;
+		index.add_path(Path::new("file1"))?;
+		index.add_path(Path::new(".DS_Store"))?;
+		index.write()?;
+		let tree = git.find_tree(index.write_tree()?)?;
+		let sig = Signature::now("test-user", "test@email.com")?;
+		let parent = git.head()?.peel_to_commit()?;
+		git.commit(Some("HEAD"), &sig, &sig, "legacy commit with trash", &tree, &[&parent])?;
+	}
+	assert!(repo.repo().head()?.peel_to_tree()?.get_path(Path::new(".DS_Store")).is_ok());
+
+	// A later publish must purge the tracked `.DS_Store` (git rm --cached) while keeping other files.
+	fs::write(_sandbox.path().join("file2"), "content2")?;
+	repo.add_glob(vec!["*"])?;
+	let oid = repo.commit(CommitOptions {
+		message: "publish file2".to_string(),
+		parent_refs: None,
+		files: Some(vec![PathBuf::from("file2")]),
+	})?;
+
+	let tree = repo.repo().find_commit(oid)?.tree()?;
+	assert!(tree.get_path(Path::new("file1")).is_ok());
+	assert!(tree.get_path(Path::new("file2")).is_ok());
+	assert!(tree.get_path(Path::new(".DS_Store")).is_err());
+
+	// working-tree file stays on disk (rm --cached, not rm)
+	assert!(_sandbox.path().join(".DS_Store").exists());
+
+	Ok(())
+}

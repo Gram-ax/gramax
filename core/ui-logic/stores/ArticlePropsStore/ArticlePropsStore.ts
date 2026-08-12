@@ -16,3 +16,5 @@ export const createArticlePropsStore = (initState = defaultInitState) => {
 		update: (patch: Partial<ClientArticleProps>) => set((state) => ({ data: { ...state.data, ...patch } })),
 	}));
 };
+
+export type ArticlePropsStoreApi = ReturnType<typeof createArticlePropsStore>;

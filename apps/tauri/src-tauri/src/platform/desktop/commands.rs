@@ -97,6 +97,26 @@ pub fn set_badge<R: Runtime>(_otel: OtelContext, window: WebviewWindow<R>, count
 	Ok(())
 }
 
+#[command]
+pub fn collect_logs<R: Runtime>(_otel: OtelContext, app: AppHandle<R>, scope: String) -> std::result::Result<(), String> {
+	use crate::logging::LogScope;
+
+	let scope = match scope.as_str() {
+		"session" => LogScope::Session,
+		"today" => LogScope::Today,
+		"7d" => LogScope::Last7Days,
+		"all" => LogScope::All,
+		other => return Err(format!("unknown log scope: {other}")),
+	};
+
+	// Archiving reads every scoped file and pops a blocking save dialog — keep it off the command thread.
+	std::thread::spawn(move || {
+		_ = crate::logging::collect_logs(&app, scope).or_show();
+	});
+
+	Ok(())
+}
+
 #[cfg(target_os = "macos")]
 #[command]
 pub fn history_back_forward_go<R: Runtime>(_otel: OtelContext, window: WebviewWindow<R>, forward: bool) -> Result<()> {

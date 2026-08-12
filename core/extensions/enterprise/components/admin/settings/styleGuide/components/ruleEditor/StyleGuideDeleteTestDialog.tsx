@@ -1,3 +1,5 @@
+import { Button } from "@ext/enterprise/components/admin/ui-kit/Button";
+import { CancelButton } from "@ext/enterprise/components/admin/ui-kit/CancelButton";
 import t from "@ext/localization/locale/translate";
 import {
 	AlertDialog,
@@ -10,7 +12,6 @@ import {
 	AlertDialogPrimitiveCancel,
 	AlertDialogTitle,
 } from "@ui-kit/AlertDialog";
-import { Button } from "@ui-kit/Button";
 
 interface DeleteTestDialogProps {
 	open: boolean;
@@ -29,9 +30,7 @@ export const DeleteTestDialog = ({ open, onOpenChange, onConfirm }: DeleteTestDi
 				</AlertDialogHeader>
 				<AlertDialogFooter>
 					<AlertDialogPrimitiveCancel asChild>
-						<Button type="button" variant="outline">
-							{t("cancel")}
-						</Button>
+						<CancelButton />
 					</AlertDialogPrimitiveCancel>
 					<AlertDialogPrimitiveAction asChild>
 						<Button onClick={onConfirm} status="error" type="button">

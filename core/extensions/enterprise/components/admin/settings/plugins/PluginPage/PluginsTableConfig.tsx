@@ -1,17 +1,7 @@
-import styled from "@emotion/styled";
-import { TABLE_SELECT_COLUMN_CODE } from "@ext/enterprise/components/admin/ui-kit/table/TableComponent";
-import t, { tString } from "@ext/localization/locale/translate";
+import t from "@ext/localization/locale/translate";
 import { IconButton } from "@ui-kit/Button";
-import { Checkbox, type CheckedState } from "@ui-kit/Checkbox";
-import { type ColumnDef, useTableSelection } from "@ui-kit/DataTable";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@ui-kit/Tooltip";
-import { Switch } from "ics-ui-kit/components/switch";
-
-const DeleteButton = styled(IconButton)`
-	&:hover {
-		color: var(--color-danger);
-	}
-`;
+import type { ColumnDef } from "@ui-kit/DataTable";
+import { Switch } from "@ui-kit/Switch";
 
 export interface PluginTableRow {
 	id: string;
@@ -28,63 +18,10 @@ interface GetPluginsTableColumnsProps {
 	onToggleState: (pluginId: string, isDisabled: boolean) => void;
 }
 
-export const columnClassName = {
-	select: "w-10",
-	name: "",
-	version: "w-24",
-	actions: "w-24 text-right",
-};
-
 export const getPluginsTableColumns = ({
 	onDelete,
 	onToggleState,
 }: GetPluginsTableColumnsProps): ColumnDef<PluginTableRow>[] => [
-	{
-		id: TABLE_SELECT_COLUMN_CODE,
-		header: ({ table }) => {
-			const { allSelectableSelected, someSelectableSelected, handleSelectAll } = useTableSelection({
-				table,
-			});
-
-			return (
-				<Checkbox
-					aria-label="Select all"
-					checked={(allSelectableSelected || (someSelectableSelected && "indeterminate")) as CheckedState}
-					onCheckedChange={handleSelectAll}
-				/>
-			);
-		},
-		cell: ({ row }) => {
-			if (row.original.isBuiltIn) {
-				return (
-					<div onClick={(e) => e.stopPropagation()}>
-						<TooltipProvider>
-							<Tooltip>
-								<TooltipTrigger asChild>
-									<span className="inline-flex ">
-										<Checkbox disabled={true} />
-									</span>
-								</TooltipTrigger>
-								<TooltipContent>
-									<p>{tString("plugins.messages.built-in-cannot-delete")}</p>
-								</TooltipContent>
-							</Tooltip>
-						</TooltipProvider>
-					</div>
-				);
-			}
-			return (
-				<div onClick={(e) => e.stopPropagation()}>
-					<Checkbox
-						checked={row.getIsSelected()}
-						onCheckedChange={(value: boolean) => row.toggleSelected(!!value)}
-					/>
-				</div>
-			);
-		},
-		enableSorting: false,
-		enableHiding: false,
-	},
 	{
 		id: "name",
 		accessorKey: "name",
@@ -94,10 +31,12 @@ export const getPluginsTableColumns = ({
 		id: "version",
 		accessorKey: "version",
 		header: t("version"),
+		size: 96,
 	},
 	{
 		id: "actions",
 		header: t("actions"),
+		size: 96,
 		cell: ({ row }) => {
 			const plugin = row.original;
 
@@ -117,7 +56,8 @@ export const getPluginsTableColumns = ({
 							variant="ghost"
 						/>
 					) : !plugin.isBuiltIn ? (
-						<DeleteButton
+						<IconButton
+							className="hover:text-[color:var(--color-danger)]"
 							icon="trash"
 							onClick={() => onDelete(plugin.id, plugin.name)}
 							size="sm"

@@ -1,7 +1,7 @@
 import Workspace from "@core-ui/ContextServices/Workspace";
 import { useApi } from "@core-ui/hooks/useApi";
-import { useLazySearchList } from "@core-ui/hooks/useLazySearchList";
 import useWatch from "@core-ui/hooks/useWatch";
+import { useArticlePropsStore } from "@core-ui/stores/ArticlePropsStore/ArticlePropsStore.provider";
 import type LinkItem from "@ext/article/LinkCreator/models/LinkItem";
 import t from "@ext/localization/locale/translate";
 import { LinkMenuBreadcrumb } from "@ext/markdown/elements/link/edit/components/LinkMenu/EditLinkMenu/LinkMenuBreadcrumb";
@@ -13,9 +13,9 @@ import {
 import { LinkMenuLoader } from "@ext/markdown/elements/link/edit/components/LinkMenu/EditLinkMenu/LinkMenuLoader";
 import { filterItems } from "@ext/markdown/elements/link/edit/logic/filterItems";
 import type { CatalogSummary } from "@ext/workspace/UnintializedWorkspace";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { CommandGroup, CommandItem } from "@ui-kit/Command";
-import { LoadMoreTrigger } from "@ui-kit/LoadMoreTrigger";
-import { Fragment, useCallback, useEffect, useId, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 
 interface LinkMenuCatalogChooserProps {
 	searchValue: string;
@@ -27,13 +27,24 @@ interface LinkMenuArticleChooserProps extends Omit<LinkMenuItemProps, "option" |
 	searchValue: string;
 	isCurrentCatalog: boolean;
 	catalogName: string;
+	onCurrentOptionValue?: (value: string) => void;
 }
 
+type VirtualRow =
+	| { kind: "breadcrumb"; key: string; breadcrumb: string[] }
+	| { kind: "item"; key: string; option: ItemLinkOption };
+
+const ITEM_HEIGHT = 28;
+const BREADCRUMB_HEIGHT = 28;
+const MAX_HEIGHT = 176; // 11rem
+
 export const LinkMenuArticleChooser = (props: LinkMenuArticleChooserProps) => {
-	const { searchValue, onUpdate, isCurrentCatalog, catalogName } = props;
+	const { searchValue, onUpdate, isCurrentCatalog, catalogName, onCurrentOptionValue } = props;
 	const [options, setOptions] = useState<ItemLinkOption[]>([]);
 	const [isLoading, setIsLoading] = useState(false);
 	const id = useId();
+	const scrollRef = useRef<HTMLDivElement>(null);
+	const currentPathname = useArticlePropsStore((s) => `/${s.data?.pathname}`);
 
 	const { call: getItemLinks } = useApi<LinkItem[]>({
 		url: (api) => api.getLinkItems(catalogName),
@@ -46,73 +57,111 @@ export const LinkMenuArticleChooser = (props: LinkMenuArticleChooserProps) => {
 		void (async () => {
 			const res = (await getItemLinks()) || [];
 			setOptions(
-				res.map((item) => {
-					return {
-						label: item.title,
-						value: item.pathname + id,
-						...item,
-					};
-				}),
+				res.map((item) => ({
+					label: item.title,
+					value: item.pathname + id,
+					...item,
+				})),
 			);
 		})();
 	}, []);
 
-	const filterFn = useCallback((option: ItemLinkOption, searchValue: string) => {
-		return filterItems({ label: option.label, pathname: option.pathname.split("/").pop() }, searchValue) ? 1 : 0;
-	}, []);
+	const filteredOptions = useMemo(() => {
+		if (!searchValue) return options;
+		return options
+			.map((option) => ({
+				option,
+				score: filterItems({ label: option.label, pathname: option.pathname.split("/").pop() }, searchValue)
+					? 1
+					: 0,
+			}))
+			.filter(({ score }) => score > 0)
+			.map(({ option }) => option);
+	}, [options, searchValue]);
 
-	const { visibleOptions, hasMoreItems, handleLoadMore, handleSearchChange } = useLazySearchList<ItemLinkOption>({
-		options,
-		filter: filterFn,
-		pageSize: 10,
-		defaultValue: searchValue,
-		value: searchValue,
+	const rows = useMemo<VirtualRow[]>(() => {
+		if (!searchValue) return filteredOptions.map((option) => ({ kind: "item", key: option.value, option }));
+
+		const result: VirtualRow[] = [];
+		const seenBreadcrumbs = new Set<string>();
+
+		for (const option of filteredOptions) {
+			if (option.breadcrumb?.length > 0) {
+				const breadcrumbKey = option.breadcrumb.join("/");
+				if (!seenBreadcrumbs.has(breadcrumbKey)) {
+					seenBreadcrumbs.add(breadcrumbKey);
+					result.push({ kind: "breadcrumb", key: `bc:${breadcrumbKey}`, breadcrumb: option.breadcrumb });
+				}
+			}
+			result.push({ kind: "item", key: option.value, option });
+		}
+		return result;
+	}, [filteredOptions, searchValue]);
+
+	const virtualizer = useVirtualizer({
+		count: rows.length,
+		getScrollElement: () => scrollRef.current,
+		estimateSize: (index) => (rows[index].kind === "breadcrumb" ? BREADCRUMB_HEIGHT : ITEM_HEIGHT),
+		overscan: 5,
 	});
 
 	useWatch(() => {
-		handleSearchChange(searchValue);
+		virtualizer.scrollToIndex(0);
 	}, [searchValue]);
 
-	const shouldVisibleBreadcrumb = !!searchValue;
+	// biome-ignore lint/correctness/useExhaustiveDependencies: scroll to element only when options loaded
+	useEffect(() => {
+		const option = filteredOptions.find((option) => option.pathname === currentPathname);
+		if (!option) return;
 
-	const areBreadcrumbsEqual = useCallback((a: string[], b: string[]) => {
-		if (a === b) return true;
-		if (!a || !b || a.length !== b.length) return false;
-		return a.every((item, i) => item === b[i]);
-	}, []);
+		onCurrentOptionValue?.(option.value);
+		virtualizer.scrollToIndex(filteredOptions.indexOf(option), { align: "start" });
+	}, [options]);
+
+	const totalHeight = virtualizer.getTotalSize();
+	const containerHeight = Math.min(totalHeight, MAX_HEIGHT);
 
 	return (
-		<>
-			<CommandGroup
-				className="overflow-y-auto text-xs"
-				heading={isCurrentCatalog ? t("editor.link.current-catalog") : t("editor.link.other-catalogs")}
-				style={{ maxHeight: "11rem" }}
-			>
-				{!isLoading ? (
-					visibleOptions.map((option, index) => {
-						const prevBreadcrumb = visibleOptions[index - 1]?.breadcrumb;
-						const isFirstWithThisBreadcrumb = !areBreadcrumbsEqual(option.breadcrumb, prevBreadcrumb);
-						const showBreadcrumb =
-							shouldVisibleBreadcrumb && option.breadcrumb?.length > 0 && isFirstWithThisBreadcrumb;
-
-						return (
-							<Fragment key={option.value}>
-								{showBreadcrumb && <LinkMenuBreadcrumb breadcrumb={option.breadcrumb} />}
-								<LinkMenuItem
-									depth={searchValue.length ? 0 : option.breadcrumb?.length}
-									icon={option.type === "article" ? "file" : "folder"}
-									onUpdate={onUpdate}
-									option={option}
-								/>
-							</Fragment>
-						);
-					})
-				) : (
-					<LinkMenuLoader />
-				)}
-				<LoadMoreTrigger hasMore={hasMoreItems} onLoad={handleLoadMore} />
-			</CommandGroup>
-		</>
+		<CommandGroup
+			className="text-xs"
+			heading={isCurrentCatalog ? t("editor.link.current-catalog") : t("editor.link.other-catalogs")}
+		>
+			{!isLoading ? (
+				<div ref={scrollRef} style={{ height: containerHeight, overflowY: "auto" }}>
+					<div style={{ height: totalHeight, position: "relative" }}>
+						{virtualizer.getVirtualItems().map((virtualItem) => {
+							const row = rows[virtualItem.index];
+							return (
+								<div
+									key={row.key}
+									style={{
+										position: "absolute",
+										top: virtualItem.start,
+										left: 0,
+										width: "100%",
+										height: virtualItem.size,
+										overflow: "hidden",
+									}}
+								>
+									{row.kind === "breadcrumb" ? (
+										<LinkMenuBreadcrumb breadcrumb={row.breadcrumb} />
+									) : (
+										<LinkMenuItem
+											depth={searchValue.length ? 0 : row.option.breadcrumb?.length}
+											icon={row.option.type === "article" ? "file" : "folder"}
+											onUpdate={onUpdate}
+											option={row.option}
+										/>
+									)}
+								</div>
+							);
+						})}
+					</div>
+				</div>
+			) : (
+				<LinkMenuLoader />
+			)}
+		</CommandGroup>
 	);
 };
 

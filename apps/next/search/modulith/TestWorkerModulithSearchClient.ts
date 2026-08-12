@@ -6,6 +6,7 @@ import type {
 	SearchResult,
 	UpdateArgs,
 } from "@ext/serach/modulith/search/ModulithSearchClient";
+import { defaultGetIndexFactory } from "@ext/serach/modulith/search/worker/modulithSearch.base.worker";
 import type { SearchWorkerInMessage } from "@ext/serach/modulith/search/worker/types";
 import {
 	type SearchWorker,
@@ -70,8 +71,11 @@ export class TestWorkerModulithSearchClient extends WorkerModulithSearchClientBa
 			.handleMessage;
 
 		this._handleInMessage = (msg) => {
-			handleMessage(msg, (data) => {
-				void this._handleMessage(data);
+			handleMessage(msg, {
+				postMessage: (data) => {
+					void this._handleMessage(data);
+				},
+				getIndexFactory: defaultGetIndexFactory,
 			});
 		};
 

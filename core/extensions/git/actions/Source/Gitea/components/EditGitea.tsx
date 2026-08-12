@@ -49,7 +49,7 @@ const getGiteaSettingsUrl = (domain: string) => {
 };
 
 const EditGitea = ({ onSubmit, data }: EditGiteaProps) => {
-	const authServiceUrl = PageDataContext.value.conf.authServiceUrl;
+	const authServiceUrl = PageDataContext.value.settings?.services?.auth?.endpoint;
 	const { setPrimaryButton } = useSetFooterButton();
 	const [isLoading, setIsLoading] = useState(false);
 
@@ -121,7 +121,7 @@ const EditGitea = ({ onSubmit, data }: EditGiteaProps) => {
 	};
 
 	const formSubmit = (e) => {
-		form.handleSubmit((formData) => {
+		void form.handleSubmit((formData) => {
 			const hasProtocol = formData.url.includes("://");
 			const { domain, protocol } = parseStorageUrl(hasProtocol ? formData.url : `https://${formData.url}`);
 			const isInvalid = !!form.formState.errors.token?.message || !!form.formState.errors.url?.message;

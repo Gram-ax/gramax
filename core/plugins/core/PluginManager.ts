@@ -1,28 +1,41 @@
+import { addEvent, Level } from "@ext/loggers/opentelemetry";
 import type { PluginProps } from "@gramax/sdk";
 import type { Plugin } from "@plugins/api/sdk";
+import { getDeps } from "@plugins/api/sdk/core";
 import { EsModuleShimsLoader } from "@plugins/core/EsModuleShimsLoader";
 import { PluginContainer, ServiceKey } from "@plugins/core/PluginContainer";
+import { injectPluginStyles } from "@plugins/core/PluginStyleManager";
 import { SdkDependencyLoader } from "@plugins/core/SdkDependencyLoader";
-import type { PluginMetadata } from "@plugins/types";
+import type { PluginAssetFile, PluginMetadata } from "@plugins/types";
 
 export type RawPluginsType = {
 	metadata: PluginMetadata;
 	scriptUrl: string;
 	locale?: Record<string, Record<string, string>>;
+	assets?: PluginAssetFile[];
 }[];
 
+type LoadedPlugin = {
+	instance: Plugin;
+	cleanup: VoidFunction;
+};
+
 export class PluginManager {
-	private _plugins = new Map<string, Plugin>();
+	private _plugins = new Map<string, LoadedPlugin>();
 	private _shimsLoader = new EsModuleShimsLoader();
 	readonly container = new PluginContainer();
-	private _sdkLoader = new SdkDependencyLoader(this.container);
+	private _sdkLoader: SdkDependencyLoader;
 	private _pluginProps: PluginProps = {};
 
-	static async init(plugins: RawPluginsType, props?: PluginProps): Promise<PluginManager> {
+	constructor(app?: unknown) {
+		this._sdkLoader = new SdkDependencyLoader(this.container, app);
+	}
+
+	static async init(plugins: RawPluginsType, props?: PluginProps, app?: unknown): Promise<PluginManager | undefined> {
 		if (!plugins || plugins.length === 0) {
 			return;
 		}
-		const manager = new PluginManager();
+		const manager = new PluginManager(app);
 
 		await manager._shimsLoader.load();
 		await manager._sdkLoader.load();
@@ -38,39 +51,49 @@ export class PluginManager {
 
 	async add(plugin: RawPluginsType[0], props?: PluginProps) {
 		const propsToUse = props ?? this._pluginProps;
-		const PluginClass = await this._shimsLoader.importModule<new (options?: PluginProps) => Plugin>(
-			plugin.scriptUrl,
-		);
-		const pluginInstance = new PluginClass(propsToUse);
+		let removeStyles: VoidFunction = () => undefined;
+		let pluginInstance: Plugin;
+		const cleanup = () => {
+			removeStyles();
+			this._removeContributions(plugin.metadata.id);
+		};
 
-		if (plugin.locale) {
-			this.container.get(ServiceKey.Locales).registerLocale(plugin.metadata.id, plugin.locale);
+		try {
+			const PluginClass = await this._shimsLoader.importModule<new (options?: PluginProps) => Plugin>(
+				plugin.scriptUrl,
+			);
+			pluginInstance = new PluginClass(propsToUse);
+		} catch (error) {
+			cleanup();
+			throw error;
 		}
 
-		pluginInstance._setContainer(plugin.metadata.id);
-		await Promise.resolve(pluginInstance.onload());
+		try {
+			if (plugin.locale) {
+				this.container.get(ServiceKey.Locales).registerLocale(plugin.metadata.id, plugin.locale);
+			}
 
-		this._plugins.set(plugin.metadata.id, pluginInstance);
+			pluginInstance._setContainer(plugin.metadata.id);
+			await Promise.resolve(pluginInstance.onload());
+			// Inject styles only after successful onload to avoid a flash from broken plugins
+			removeStyles = injectPluginStyles(plugin.metadata.id, plugin.assets);
+		} catch (error) {
+			cleanup();
+			throw error;
+		}
+
+		this._plugins.set(plugin.metadata.id, { instance: pluginInstance, cleanup });
 	}
 
 	remove(pluginId: string) {
-		const plugin = this._plugins.get(pluginId);
-		if (!plugin) {
-			console.warn(`Plugin ${pluginId} is not loaded`);
+		const loadedPlugin = this._plugins.get(pluginId);
+		if (!loadedPlugin) {
+			addEvent("plugin-not-loaded", Level.Full, { id: pluginId });
 			return;
 		}
 
-		plugin.onunload?.();
-
-		this.container.get(ServiceKey.Extensions).remove(pluginId);
-		this.container.get(ServiceKey.Locales).remove(pluginId);
-		this.container.get(ServiceKey.Menus).remove(pluginId);
-
-		const tokens = this.container.get(ServiceKey.Events).pluginEventTokens.get(pluginId);
-		if (tokens) {
-			tokens.forEach((token) => this.container.get(ServiceKey.Events).off(token));
-			this.container.get(ServiceKey.Events).pluginEventTokens.delete(pluginId);
-		}
+		loadedPlugin.instance._unload();
+		loadedPlugin.cleanup();
 
 		this._plugins.delete(pluginId);
 	}
@@ -78,17 +101,27 @@ export class PluginManager {
 	clear() {
 		const pluginIds = Array.from(this._plugins.keys());
 		for (const pluginId of pluginIds) {
-			const plugin = this._plugins.get(pluginId);
-			if (plugin) {
-				try {
-					plugin.onunload?.();
-				} catch (error) {
-					console.error(`Error unloading plugin:`, error);
-				}
+			const loadedPlugin = this._plugins.get(pluginId);
+			if (loadedPlugin) {
+				loadedPlugin.instance._unload();
+				loadedPlugin.cleanup();
 			}
 		}
 
 		this._plugins.clear();
 		this.container.clear();
+	}
+
+	private _removeContributions(pluginId: string): void {
+		this.container.get(ServiceKey.Extensions).remove(pluginId);
+		this.container.get(ServiceKey.Locales).remove(pluginId);
+		this.container.get(ServiceKey.Menus).remove(pluginId);
+		getDeps().pluginCommands.remove(pluginId);
+
+		const tokens = this.container.get(ServiceKey.Events).pluginEventTokens.get(pluginId);
+		if (tokens) {
+			tokens.forEach((token) => this.container.get(ServiceKey.Events).off(token));
+			this.container.get(ServiceKey.Events).pluginEventTokens.delete(pluginId);
+		}
 	}
 }

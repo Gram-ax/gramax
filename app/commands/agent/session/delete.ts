@@ -1,19 +1,15 @@
 import { ResponseKind } from "@app/types/ResponseKind";
-import { abortActiveSessionRun, deleteAgentSession, getAgentSession } from "@ext/agent/core/sessionStore";
-import assert from "assert";
 import { Command } from "../../../types/Command";
 
-const sessionDelete: Command<{ sessionId: string }, { ok: true; cancelled: boolean; deleted: true }> = Command.create({
+const sessionDelete: Command<{ sessionId: string }, { ok: true; deleted: true; cancelled: boolean }> = Command.create({
 	path: "agent/session/delete",
 
 	kind: ResponseKind.json,
 
 	async do({ sessionId }) {
-		const session = getAgentSession(sessionId);
-		assert(session, "agent/session/delete: session_not_found");
-		const cancelled = abortActiveSessionRun(sessionId);
-		deleteAgentSession(sessionId);
-		return { ok: true as const, cancelled, deleted: true as const };
+		await this._app.agentManager.browserHost.teardown(sessionId);
+		const cancelled = await this._app.agentManager.sessions.delete(sessionId);
+		return { ok: true as const, deleted: true as const, cancelled };
 	},
 
 	params(_ctx, q) {

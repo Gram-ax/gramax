@@ -13,7 +13,7 @@ export function getGroupBadgeType(group: Pick<Group, "id" | "source">): GroupBad
 export function getGroupSourceLabel(group: Pick<Group, "id" | "source">): string {
 	return {
 		sso: t("enterprise.admin.groups.badges.sso"),
-		custom: t("enterprise.admin.groups.badges.custom"),
+		custom: t("group"),
 		system: t("enterprise.admin.groups.badges.system"),
 	}[getGroupBadgeType(group)];
 }
@@ -21,22 +21,25 @@ export function getGroupSourceLabel(group: Pick<Group, "id" | "source">): string
 export function getGroupsWithNames(groupsSettings: GroupsSettings): Group[] {
 	if (!groupsSettings) return [];
 
-	const customGroups = Object.entries(groupsSettings).map(([id, data]) => ({
-		id,
-		name: data.name,
-		source: GroupSource.GX_GROUPS as const,
-	}));
+	const customGroups = Object.entries(groupsSettings).map(
+		([id, data]): Group => ({
+			id,
+			name: data.name,
+			source: GroupSource.GX_GROUPS,
+		}),
+	);
 
-	const defaultGroups = defaultGroupKeys.map((key) => ({
-		id: key,
-		name: key,
-		source: GroupSource.GX_GROUPS as const,
-	}));
+	const defaultGroups = defaultGroupKeys.map(
+		(key): Group => ({
+			id: key,
+			source: GroupSource.GX_GROUPS,
+		}),
+	);
 
 	return [...defaultGroups, ...customGroups];
 }
 
-export function getGroupNameById(groupId: string, groupsSettings: GroupsSettings | undefined): string {
+export function getGroupDisplayNameById(groupId: string, groupsSettings: GroupsSettings | undefined): string {
 	if (defaultGroupKeys.includes(groupId)) return groupId;
 	return groupsSettings?.[groupId]?.name ?? groupId;
 }

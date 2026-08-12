@@ -1,10 +1,7 @@
-import { getTableSizes } from "@ext/markdown/elements/table/edit/logic/utils";
+import { getTableSizes, type TableSizes } from "@ext/markdown/elements/table/edit/logic/utils";
 import { type MutableRefObject, useEffect, useState } from "react";
 
-export type TableDataString = {
-	cols: string[];
-	rows: string[];
-};
+export type TableDataString = TableSizes;
 
 const useTableSizes = (tableRef: MutableRefObject<HTMLTableElement>, onChangeChildCount?: () => void) => {
 	const [tableSizes, setTableSizes] = useState<TableDataString>(null);
@@ -20,8 +17,8 @@ const useTableSizes = (tableRef: MutableRefObject<HTMLTableElement>, onChangeChi
 				return Array.from(nodes).filter((node: HTMLElement) => {
 					return (
 						!node?.classList?.contains("column-resize-handle") &&
-						!node?.classList?.contains("add-row") &&
-						!node?.classList?.contains("add-column")
+						node?.dataset?.tablePlusPreview !== "row" &&
+						node?.dataset?.tablePlusPreview !== "column"
 					);
 				});
 			};

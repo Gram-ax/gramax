@@ -8,6 +8,16 @@ self.MonacoEnvironment = {
 	getWorker: getMonacoWorker,
 };
 
+monaco.editor.defineTheme("article-dark", {
+	base: "vs-dark",
+	inherit: true,
+	rules: [],
+	colors: {
+		"editor.background": "#00000000",
+		focusBorder: "#00000000",
+	},
+});
+
 loader.config({ monaco });
 
 loader.init();

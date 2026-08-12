@@ -1,11 +1,15 @@
 ARG BRANCH
 ARG USE_IMAGE_TAG="latest-dev"
+ARG NEXUS_MCR
 
 FROM gitlab.ics-it.ru:4567/ics/doc-reader/spa:${USE_IMAGE_TAG:-latest-dev} AS spa
 
-FROM mcr.microsoft.com/playwright:v1.57.0-noble
+FROM ${NEXUS_MCR}/playwright:v1.57.0-noble
 
 ENV DEBIAN_FRONTEND=noninteractive
+
+RUN printf 'retry = 3\nretry-delay = 2\nretry-connrefused\nretry-all-errors\n' > /root/.curlrc \
+	&& printf 'Acquire::Retries "3";\n' > /etc/apt/apt.conf.d/80-retries
 
 RUN apt-get update && \
 	apt-get install -y --no-install-recommends \
@@ -30,7 +34,7 @@ RUN apt-get update && \
 	apt-get install -y --no-install-recommends caddy && \
 	rm -rf /var/lib/apt/lists/*
 
-RUN curl -fsSL https://bun.com/install | bash && \
+RUN curl -fsSL https://bun.com/install | bash -s "bun-v1.3.13" && \
 	curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && \
 	curl -fsSL -o /usr/local/bin/n https://raw.githubusercontent.com/tj/n/master/bin/n && \
 	chmod +x /usr/local/bin/n && \

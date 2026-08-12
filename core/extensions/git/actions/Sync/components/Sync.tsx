@@ -2,29 +2,37 @@ import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import { useSyncCount } from "@core-ui/ContextServices/SyncCount/useSyncCount";
 import SyncIconService from "@core-ui/ContextServices/SyncIconService";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
+import { useIsEnterprise } from "@ext/enterprise/utils/useIsEnterprise";
 import SyncLayout from "@ext/git/actions/Sync/components/SyncLayout";
 import { useAvailableSync } from "@ext/git/actions/Sync/logic/hooks/useAvailableSync";
 import SyncService from "@ext/git/actions/Sync/logic/SyncService";
 import useSourceData from "@ext/storage/components/useSourceData";
 import { useOpenRestoreSourceTokenModal } from "@ext/storage/logic/SourceDataProvider/components/useOpenRestoreSourceTokenModal";
-import { type CSSProperties, useCallback, useEffect } from "react";
+import { useOpenStorageNotConnectedModal } from "@ext/storage/logic/SourceDataProvider/components/useOpenStorageNotConnectedModal";
+import { type CSSProperties, useCallback, useEffect, useRef } from "react";
 
 const Sync = ({ style, disable }: { style?: CSSProperties; disable?: boolean }) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const catalogName = useCatalogPropsStore((state) => state.data?.name);
 	const syncProcess = SyncIconService.value;
+	const syncProcessRef = useRef(syncProcess);
+	syncProcessRef.current = syncProcess;
 
 	const { syncCount, updateSyncCount } = useSyncCount(catalogName);
 
 	const source = useSourceData();
+	const isEnterprise = useIsEnterprise();
+
 	const openRestoreSourceModal = useOpenRestoreSourceTokenModal(source);
+	const openStorageNotConnectedModal = useOpenStorageNotConnectedModal();
+
 	const availableSync = useAvailableSync();
 	const disabled = disable || !availableSync;
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: it's ok
 	useEffect(() => {
 		const handleSyncStart = () => {
-			if (!syncProcess) {
+			if (!syncProcessRef.current) {
 				SyncIconService.start();
 			}
 		};
@@ -55,16 +63,20 @@ const Sync = ({ style, disable }: { style?: CSSProperties; disable?: boolean }) 
 			SyncService.events.off(errorToken);
 			SyncService.events.off(conflictAbortedToken);
 		};
-	}, [syncProcess]);
+	}, []);
 
 	const handleSyncClick = useCallback(async () => {
 		if (source?.isInvalid) {
+			if (isEnterprise) {
+				openStorageNotConnectedModal();
+				return;
+			}
 			openRestoreSourceModal();
 			return;
 		}
 
 		await SyncService.sync(apiUrlCreator);
-	}, [source?.isInvalid, openRestoreSourceModal, apiUrlCreator]);
+	}, [source?.isInvalid, openRestoreSourceModal, openStorageNotConnectedModal, isEnterprise]);
 
 	return (
 		<SyncLayout

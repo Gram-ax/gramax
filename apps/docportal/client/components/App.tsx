@@ -1,30 +1,40 @@
 import ContextProviders from "@components/ContextProviders";
 import type { PageProps } from "@components/Pages/models/Pages";
-import type { ArticlePageData } from "@core/SitePresenter/types/ArticlePage";
 import getPageTitle from "@core-ui/getPageTitle";
 import ErrorBoundary from "@ext/errorHandlers/client/components/ErrorBoundary";
 import type DefaultError from "@ext/errorHandlers/logic/DefaultError";
+import { useApplyTheme } from "@ext/Theme/utils";
 import { usePluginEvent } from "@plugins/api/events";
-import { usePluginLoader } from "@plugins/index";
-import AppError from "apps/browser/src/components/Atoms/AppError";
-import useLocation from "apps/browser/src/logic/Api/useLocation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Router } from "wouter";
 import { DocportalPage } from "../../../../core/components/Pages/components/DocportalPage";
+import AppError from "../../../web/src/components/Atoms/AppError";
+import useLocation from "../../../web/src/logic/Api/useLocation";
+import { getBasePath, prependBasePath, stripBasePath } from "../logic/basePath";
 
 interface AppProps {
 	initialData: PageProps;
 }
 
 const fetchPageData = async (path: string): Promise<PageProps> => {
-	const res = await fetch(`/api/page/getPageData?path=${encodeURIComponent(path)}`);
+	const URLParams = new URLSearchParams();
+	URLParams.set("path", path);
+	URLParams.set("mode", "read");
+
+	const res = await fetch(`${getBasePath()}/api/page/getPageData?${URLParams.toString()}`);
 	if (!res.ok) throw new Error(`Failed to fetch page data: ${res.status}`);
 	return res.json();
 };
 
-export function App({ initialData }: AppProps) {
+export const App = ({ initialData }: AppProps) => {
+	const basePath = getBasePath();
 	const isFirstLoad = useRef<boolean>(true);
-	const [path, setLocation] = useLocation();
+	const [rawPath, rawSetLocation] = useLocation();
+	const path = stripBasePath(rawPath);
+	const setLocation = useCallback(
+		(url: string, opts?: { replace?: boolean }) => rawSetLocation(prependBasePath(url), opts),
+		[rawSetLocation],
+	);
 	const [pageData, setPageData] = useState<PageProps>(initialData);
 	const [error, setError] = useState<DefaultError>(null);
 
@@ -33,7 +43,7 @@ export function App({ initialData }: AppProps) {
 		try {
 			const newData = await fetchPageData(path);
 			setPageData(newData);
-			if (newData) document.title = getPageTitle(newData.context.isArticle, newData.data as ArticlePageData);
+			if (newData) document.title = getPageTitle(newData);
 		} catch (err) {
 			console.error("failed to get page data", err);
 			setError(err);
@@ -44,7 +54,7 @@ export function App({ initialData }: AppProps) {
 		(url: string) => {
 			if (typeof window === "undefined") return;
 			window.resetIsFirstLoad?.();
-			if (url === path) refresh();
+			if (url === path) void refresh();
 			else setLocation(url);
 		},
 		[path, refresh, setLocation],
@@ -61,13 +71,7 @@ export function App({ initialData }: AppProps) {
 		else void refresh();
 	}, [refresh]);
 
-	usePluginLoader({
-		basePath: pageData?.context?.conf?.basePath ?? "",
-		workspacePath: pageData?.context?.workspace.current,
-		gesUrl: pageData?.context?.conf?.enterprise?.gesUrl,
-		enabled: !!pageData,
-	});
-
+	useApplyTheme();
 	usePluginEvent("app:open", { ...pageData, path });
 	usePluginEvent("app:close");
 
@@ -78,10 +82,10 @@ export function App({ initialData }: AppProps) {
 	return (
 		<ContextProviders pageProps={pageData} platform="next" refreshPage={refresh}>
 			<ErrorBoundary context={pageData.context}>
-				<Router hook={() => [path, setLocation]}>
+				<Router base={basePath} hook={() => [path, setLocation]}>
 					<DocportalPage data={pageData} />
 				</Router>
 			</ErrorBoundary>
 		</ContextProviders>
 	);
-}
+};

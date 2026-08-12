@@ -1,7 +1,7 @@
 import { useSettings } from "@ext/enterprise/components/admin/contexts/SettingsContext";
 import { FilterMultiSelect } from "@ext/enterprise/components/admin/settings/quiz/components/filters/QuizFilterMultiSelect";
+import { Button } from "@ext/enterprise/components/admin/ui-kit/Button";
 import t from "@ext/localization/locale/translate";
-import { Button } from "@ui-kit/Button";
 import { useCache } from "@ui-kit/MultiSelect";
 import { type Dispatch, memo, type SetStateAction, useCallback } from "react";
 import { QuizFilterDropdown } from "./filters/QuizFilterDropdown";
@@ -55,7 +55,7 @@ const TestsSelect = memo((props: MultiSelectFilterProps<"tests">) => {
 			onAdd={onTestsChange}
 			onRemove={onTestsChange}
 			searchPlaceholder={t("enterprise.admin.quiz.filters.tests.search")}
-			trigger={t("enterprise.admin.quiz.filters.tests.name")}
+			trigger={t("enterprise.admin.tests")}
 		/>
 	);
 });
@@ -85,7 +85,7 @@ const UsersSelect = memo((props: MultiSelectFilterProps<"users">) => {
 	return (
 		<FilterMultiSelect
 			disabled={disabled}
-			emptyPlaceholder={t("enterprise.admin.quiz.filters.users.empty")}
+			emptyPlaceholder={t("enterprise.admin.users.users-not-found")}
 			existingOptions={filter}
 			icon="users"
 			loadingPlaceholder={t("enterprise.admin.quiz.filters.users.loading")}
@@ -93,7 +93,7 @@ const UsersSelect = memo((props: MultiSelectFilterProps<"users">) => {
 			onAdd={onUsersChange}
 			onRemove={onUsersChange}
 			searchPlaceholder={t("enterprise.admin.quiz.filters.users.search")}
-			trigger={t("enterprise.admin.quiz.filters.users.name")}
+			trigger={t("enterprise.admin.users.users")}
 		/>
 	);
 });
@@ -121,10 +121,10 @@ const ResultSelect = memo((props: MultiSelectFilterProps<"result">) => {
 			onClear={onClear}
 			onRemove={onResultChange}
 			options={[
-				{ value: "passed", label: t("enterprise.admin.quiz.filters.result.passed") },
-				{ value: "failed", label: t("enterprise.admin.quiz.filters.result.failed") },
+				{ value: "passed", label: t("enterprise.admin.passed") },
+				{ value: "failed", label: t("enterprise.admin.failed") },
 			]}
-			trigger={t("enterprise.admin.quiz.filters.result.name")}
+			trigger={t("enterprise.admin.result")}
 			value={filter}
 		/>
 	);

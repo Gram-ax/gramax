@@ -1,7 +1,12 @@
+import type {
+	ResourceParseFileArgs,
+	ResourceParseFileResult,
+} from "@ext/serach/modulith/resourceParse/ResourceParseClient";
 import {
 	type ResourceParseWorker,
 	WorkerResourceParseClientBase,
 } from "@ext/serach/modulith/resourceParse/worker/WorkerResourceParseClientBase";
+import type { ProgressCallback } from "@ics/article-search-utils";
 
 export class BunResourceParseWorkerClient extends WorkerResourceParseClientBase {
 	private constructor() {
@@ -10,6 +15,13 @@ export class BunResourceParseWorkerClient extends WorkerResourceParseClientBase 
 
 	static async create(): Promise<BunResourceParseWorkerClient> {
 		return new BunResourceParseWorkerClient();
+	}
+
+	async parseResourceFile(
+		args: ResourceParseFileArgs,
+		progressCallback?: ProgressCallback,
+	): Promise<ResourceParseFileResult | null> {
+		return await this._parseResourceFile(args, progressCallback);
 	}
 
 	protected override _createWorker(): ResourceParseWorker {

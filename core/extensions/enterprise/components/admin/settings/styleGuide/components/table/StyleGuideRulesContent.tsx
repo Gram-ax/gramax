@@ -1,12 +1,6 @@
-import {
-	TABLE_EDIT_COLUMN_CODE,
-	TABLE_SELECT_COLUMN_CODE,
-} from "@ext/enterprise/components/admin/ui-kit/table/TableComponent";
 import t from "@ext/localization/locale/translate";
-import { Checkbox } from "@ui-kit/Checkbox";
 import { Counter } from "@ui-kit/Counter";
 import type { ColumnDef } from "@ui-kit/DataTable";
-import { Icon } from "@ui-kit/Icon";
 import { Switch } from "@ui-kit/Switch";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
 import type { RuleExample } from "../../types";
@@ -25,38 +19,13 @@ export const getRulesTableColumns = ({
 	onToggle: (guid: string, enabled: boolean) => void;
 }): ColumnDef<RuleRow>[] => [
 	{
-		id: TABLE_SELECT_COLUMN_CODE,
-		header: ({ table }) => (
-			<Checkbox
-				aria-label="Select all"
-				checked={table.getIsAllPageRowsSelected()}
-				onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-			/>
-		),
-		cell: ({ row }) => (
-			<Checkbox
-				aria-label={"Select row"}
-				checked={row.getIsSelected()}
-				onCheckedChange={(value) => row.toggleSelected(!!value)}
-			/>
-		),
-		enableSorting: false,
-		enableHiding: false,
-	},
-	{
-		id: TABLE_EDIT_COLUMN_CODE,
-		cell: () => <Icon className="text-muted" icon="pencil-line" />,
-		enableSorting: false,
-		enableHiding: false,
-	},
-	{
 		accessorKey: "name",
 		header: t("enterprise.admin.check.rule-name-placeholder"),
 		cell: ({ row }) => row.getValue("name"),
 	},
 	{
 		accessorKey: "testBadge",
-		header: t("enterprise.admin.check.tests-column-title"),
+		header: t("enterprise.admin.tests"),
 		cell: ({ row }) => {
 			const badge = row.original.testBadge;
 			return (
@@ -66,7 +35,9 @@ export const getRulesTableColumns = ({
 							{badge.label}
 						</Counter>
 					</TooltipTrigger>
-					<TooltipContent>{t("enterprise.admin.check.tests-correct")}</TooltipContent>
+					<TooltipContent className="font-sans font-normal">
+						{t("enterprise.admin.check.tests-correct")}
+					</TooltipContent>
 				</Tooltip>
 			);
 		},
@@ -81,5 +52,6 @@ export const getRulesTableColumns = ({
 				size="sm"
 			/>
 		),
+		size: 52,
 	},
 ];

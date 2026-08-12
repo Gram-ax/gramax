@@ -4,6 +4,7 @@ import createChildWindow from "@core-ui/ChildWindow/createChildWindow";
 import PageDataContext from "@core-ui/ContextServices/PageDataContext";
 import { useSetFooterButton } from "@core-ui/hooks/useFooterPortal";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
+// biome-ignore lint/style/noRestrictedImports: existing styled wrapper, Tailwind migration out of scope
 import styled from "@emotion/styled";
 import OnNetworkApiErrorService from "@ext/errorHandlers/client/OnNetworkApiErrorService";
 import type GitHubSourceData from "@ext/git/actions/Source/GitHub/logic/GitHubSourceData";
@@ -45,8 +46,10 @@ const EditGitHub = ({ onSubmit, data: initialData }: EditGitHubProps) => {
 	const { setPrimaryButton } = useSetFooterButton();
 	const {
 		domain,
-		conf: { authServiceUrl, basePath },
+		settings,
+		conf: { basePath },
 	} = PageDataContext.value;
+	const authServiceUrl = settings?.services?.auth?.endpoint;
 	const onNetworkApiError = OnNetworkApiErrorService.value;
 	const [data, setData] = useState<UserData>(null);
 
@@ -87,6 +90,7 @@ const EditGitHub = ({ onSubmit, data: initialData }: EditGitHubProps) => {
 		if (!isTauri) await processQuery(await waitForTempToken());
 	};
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: footer button re-syncs on data only
 	useLayoutEffect(() => {
 		const handleAddRepo = () => {
 			if (data) {

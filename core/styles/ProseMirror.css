@@ -14,9 +14,11 @@
 .ProseMirror-hideselection *::selection {
 	background: transparent;
 }
+
 .ProseMirror-hideselection *::-moz-selection {
 	background: transparent;
 }
+
 .ProseMirror-hideselection {
 	caret-color: transparent;
 }
@@ -25,10 +27,6 @@
 	display: inline !important;
 	margin: 0 !important;
 	border: none !important;
-}
-
-.ProseMirror .scrollableContent:has(.tableComponent) {
-	position: relative;
 }
 
 .ProseMirror .focus-pointer-events {
@@ -62,6 +60,7 @@
 .ProseMirror li {
 	position: relative;
 }
+
 .ProseMirror li > p {
 	line-height: 1.7em;
 }
@@ -184,16 +183,13 @@
 	opacity: 0.13;
 }
 
-.table-actions {
-	position: absolute;
-}
-
 .resize-cursor {
 	cursor: col-resize;
 }
 
 [data-qa="editor"] > .ProseMirror p.is-empty:first-of-type:last-of-type::before,
-[data-qa="article-editor"] > .ProseMirror p.is-empty::before {
+[data-qa="article-editor"] > .ProseMirror p.is-empty::before,
+[data-qa="article-editor"] > .ProseMirror note-title.is-empty::before {
 	float: left;
 	height: 0;
 	pointer-events: none;
@@ -257,4 +253,50 @@
 	color: inherit;
 	padding: 5px 0;
 	box-decoration-break: clone;
+}
+
+.ProseMirror .diff-inserted {
+	background: var(--color-added-bg);
+}
+
+.ProseMirror .diff-deleted-block,
+.ProseMirror .diff-deleted {
+	color: var(--color-removed-text);
+	text-decoration: line-through;
+	background: var(--color-removed-bg);
+}
+
+/* Border has only resourcable nodes */
+.ProseMirror .diff-deleted-block:is(.node-image, .node-drawio, .node-diagrams, .node-openapi),
+.ProseMirror .diff-deleted:is(.node-image, .node-drawio, .node-diagrams, .node-openapi) {
+	width: 100%;
+	margin-block: 2px;
+	border: 2px solid color-mix(in srgb, var(--color-status-deleted) 45%, transparent);
+	border-radius: var(--radius-small);
+}
+
+.ProseMirror .diff-moved {
+	background: color-mix(in srgb, var(--color-status-modified) 20%, transparent);
+}
+
+.ProseMirror .diff-inline-inserted {
+	background: var(--color-added-bg);
+}
+
+.ProseMirror .diff-inline-deleted {
+	color: var(--color-removed-text);
+	text-decoration: line-through;
+	background: var(--color-removed-bg);
+}
+
+.ProseMirror .diff-inline-replaced {
+	background: var(--color-added-bg);
+}
+
+.ProseMirror .diff-mark-changed {
+	background: color-mix(in srgb, var(--color-status-rename) 20%, transparent);
+}
+
+.ProseMirror .diff-attr-changed {
+	outline: 2px solid color-mix(in srgb, var(--color-status-modified) 50%, transparent);
 }

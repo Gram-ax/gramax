@@ -15,7 +15,7 @@ import type {
 import getUrlFromGitStorageData from "@ext/git/core/GitStorage/utils/getUrlFromGitStorageData";
 import type GitVersionData from "@ext/git/core/model/GitVersionData";
 import t from "@ext/localization/locale/translate";
-import { trace } from "@ext/loggers/opentelemetry";
+import { Level, trace } from "@ext/loggers/opentelemetry";
 import type { VersionControlInfo } from "@ext/VersionControl/model/VersionControlInfo";
 import assert from "assert";
 import type FileProvider from "../../../../logic/FileProvider/model/FileProvider";
@@ -118,7 +118,7 @@ export class GitCommands {
 		}
 	}
 
-	@trace()
+	@trace({ level: Level.Internal })
 	async addRemote(data: GitStorageData) {
 		const url = getUrlFromGitStorageData(data, true);
 		try {
@@ -129,7 +129,7 @@ export class GitCommands {
 		await this.push(data.source);
 	}
 
-	@trace()
+	@trace({ level: Level.Full })
 	async getCurrentBranch(data?: GitSourceData): Promise<GitBranch> {
 		try {
 			return await this._impl.getCurrentBranch(data);
@@ -143,7 +143,7 @@ export class GitCommands {
 		}
 	}
 
-	@trace()
+	@trace({ level: Level.Full })
 	async getCurrentBranchName(): Promise<string> {
 		try {
 			return await this._impl.getCurrentBranchName();
@@ -157,7 +157,7 @@ export class GitCommands {
 		}
 	}
 
-	@trace()
+	@trace({ level: Level.Full })
 	async getAllBranches(): Promise<GitBranch[]> {
 		let branches: GitBranch[];
 		try {
@@ -173,7 +173,7 @@ export class GitCommands {
 			);
 	}
 
-	@trace()
+	@trace({ level: Level.Full })
 	async getDefaultBranch(source: SourceData): Promise<GitBranch | null> {
 		try {
 			return await this._impl.getDefaultBranch(source);
@@ -182,7 +182,7 @@ export class GitCommands {
 		}
 	}
 
-	@trace()
+	@trace({ level: Level.Full })
 	async getBranch(branchName: string): Promise<GitBranch> {
 		const branch = await this._impl.getBranch(branchName);
 		if (!branch)
@@ -195,7 +195,7 @@ export class GitCommands {
 		return branch;
 	}
 
-	@trace()
+	@trace({ level: Level.Full })
 	async getRemoteBranchName(name: string, data?: GitSourceData): Promise<string> {
 		try {
 			return await this._impl.getRemoteBranchName(name, data);
@@ -204,7 +204,7 @@ export class GitCommands {
 		}
 	}
 
-	@trace()
+	@trace({ level: Level.Full })
 	async getCommitHash(ref = "HEAD"): Promise<GitVersion> {
 		try {
 			return await this._impl.getCommitHash(ref);
@@ -213,7 +213,7 @@ export class GitCommands {
 		}
 	}
 
-	@trace()
+	@trace({ level: Level.Full })
 	async getHeadCommit(ref: GitBranch | string = "HEAD"): Promise<GitVersion> {
 		try {
 			return this._impl.getHeadCommit(ref.toString());
@@ -222,7 +222,7 @@ export class GitCommands {
 		}
 	}
 
-	@trace()
+	@trace({ level: Level.Internal })
 	async createNewBranch(newBranchName: string) {
 		try {
 			await this._impl.newBranch(newBranchName);
@@ -231,7 +231,7 @@ export class GitCommands {
 		}
 	}
 
-	@trace()
+	@trace({ level: Level.Internal })
 	async deleteBranch(branchName: GitBranch | string, remote?: boolean, data?: GitSourceData): Promise<void> {
 		const currentBranch = await this.getCurrentBranch();
 		if (
@@ -253,12 +253,12 @@ export class GitCommands {
 		}
 	}
 
-	@trace()
+	@trace({ level: Level.Full })
 	async getCommitAuthors(): Promise<CommitAuthorInfo[]> {
 		return this._impl.getCommitAuthors();
 	}
 
-	@trace()
+	@trace({ level: Level.Internal })
 	async setHead(refname: string) {
 		try {
 			return await this._impl.setHead(refname);
@@ -267,7 +267,7 @@ export class GitCommands {
 		}
 	}
 
-	@trace()
+	@trace({ level: Level.Internal })
 	async checkout(
 		data: GitSourceData,
 		ref: GitVersion | GitBranch | string,
@@ -291,7 +291,7 @@ export class GitCommands {
 		}
 	}
 
-	@trace()
+	@trace({ level: Level.Internal })
 	async clone(url: string, source: GitSourceData, cancelToken: CancelToken, opts: CloneOptions = {}): Promise<void> {
 		const newUrl = url.endsWith(".git") ? url : `${url}.git`;
 
@@ -332,7 +332,7 @@ export class GitCommands {
 		}
 	}
 
-	@trace()
+	@trace({ level: Level.Internal })
 	async recover(
 		data: GitSourceData,
 		cancelToken: CancelToken,
@@ -341,12 +341,12 @@ export class GitCommands {
 		return await this._impl.recover(data, cancelToken, onProgress);
 	}
 
-	@trace()
+	@trace({ level: Level.Internal })
 	async cancel(cancelToken: CancelToken): Promise<boolean> {
 		return await this._impl.cancel(cancelToken);
 	}
 
-	@trace()
+	@trace({ level: Level.Full })
 	async getAllCancelTokens(): Promise<number[]> {
 		try {
 			return this._impl.getAllCancelTokens();
@@ -355,7 +355,7 @@ export class GitCommands {
 		}
 	}
 
-	@trace()
+	@trace({ level: Level.Internal })
 	async add(filePaths?: Path[], force = false): Promise<void> {
 		try {
 			return await this._impl.add(filePaths, force);
@@ -364,12 +364,13 @@ export class GitCommands {
 		}
 	}
 
-	@trace()
+	@trace({ level: Level.Internal })
 	async pullLfsObjects(
 		data: GitSourceData,
 		paths: Path[],
 		checkout: boolean,
 		cancelToken: CancelToken,
+		scope?: TreeReadScope,
 	): Promise<void> {
 		try {
 			return await this._impl.pullLfsObjects(
@@ -377,13 +378,14 @@ export class GitCommands {
 				paths.map((p) => p.value),
 				checkout,
 				cancelToken,
+				scope,
 			);
 		} catch (e) {
 			throw getGitError(e, { repositoryPath: this._repoPath.value });
 		}
 	}
 
-	@trace()
+	@trace({ level: Level.Internal })
 	async reset(opts: ResetOptions): Promise<void> {
 		try {
 			return await this._impl.reset(opts);
@@ -392,13 +394,13 @@ export class GitCommands {
 		}
 	}
 
-	@trace()
+	@trace({ level: Level.Internal })
 	async stash(data: SourceData): Promise<GitStash> {
 		const res = await this._impl.stash(data);
 		return res && new GitStash(res);
 	}
 
-	@trace()
+	@trace({ level: Level.Internal })
 	async applyStash(stashOid: GitStash): Promise<MergeResult> {
 		const res = await this._impl.applyStash(stashOid.toString());
 
@@ -414,7 +416,7 @@ export class GitCommands {
 		return await this._autoMerger.merge(fixedConflict);
 	}
 
-	@trace()
+	@trace({ level: Level.Internal })
 	async deleteStash(stashHash: GitStash): Promise<void> {
 		try {
 			return await this._impl.deleteStash(stashHash.toString());
@@ -423,7 +425,7 @@ export class GitCommands {
 		}
 	}
 
-	@trace()
+	@trace({ level: Level.Full })
 	async stashParent(stashOid: GitStash): Promise<GitVersion> {
 		try {
 			return await this._impl.stashParent(stashOid.toString());
@@ -432,7 +434,7 @@ export class GitCommands {
 		}
 	}
 
-	@trace()
+	@trace({ level: Level.Internal })
 	async pull(data: GitSourceData) {
 		try {
 			await this.fetch(data);
@@ -447,7 +449,7 @@ export class GitCommands {
 		}
 	}
 
-	@trace()
+	@trace({ level: Level.Internal })
 	async push(data: GitSourceData): Promise<void> {
 		try {
 			await this._impl.push(data);
@@ -457,7 +459,7 @@ export class GitCommands {
 		}
 	}
 
-	@trace()
+	@trace({ level: Level.Internal })
 	async fetch(data: GitSourceData, force = false, lock = true): Promise<void> {
 		try {
 			await this._impl.fetch(data, force, lock);
@@ -468,7 +470,7 @@ export class GitCommands {
 		}
 	}
 
-	@trace()
+	@trace({ level: Level.Internal })
 	async merge(data: GitSourceData, opts: MergeOptions): Promise<MergeResult> {
 		assert(opts, "merge opts is required");
 		assert(opts.theirs, "opts.theirs is required");
@@ -489,14 +491,14 @@ export class GitCommands {
 		return await this._autoMerger.merge(fixedConflict);
 	}
 
-	@trace()
+	@trace({ level: Level.Full })
 	async formatMergeMessage(data: SourceData, opts: MergeOptions): Promise<string> {
 		assert(opts, "merge opts is required");
 		assert(opts.theirs, "opts.theirs is required");
 		return await this._impl.formatMergeMessage(data, opts);
 	}
 
-	@trace()
+	@trace({ level: Level.Internal })
 	async commit(
 		message: string,
 		data: SourceData,
@@ -515,7 +517,7 @@ export class GitCommands {
 		}
 	}
 
-	@trace()
+	@trace({ level: Level.Full })
 	async status(type: "index" | "workdir" = "workdir"): Promise<GitStatus[]> {
 		try {
 			return await this._impl.status(type);
@@ -524,7 +526,7 @@ export class GitCommands {
 		}
 	}
 
-	@trace()
+	@trace({ level: Level.Full })
 	async fileStatus(filePath: Path): Promise<GitStatus> {
 		try {
 			return await this._impl.fileStatus(filePath);
@@ -536,7 +538,7 @@ export class GitCommands {
 	/**
 	 * @deprecated use GitTreeFileProvider instead
 	 */
-	@trace()
+	@trace({ level: Level.Full })
 	async showFileContent(filePath: Path, ref?: GitVersion | GitStash): Promise<string> {
 		try {
 			return await this._impl.showFileContent(filePath, ref);
@@ -545,7 +547,7 @@ export class GitCommands {
 		}
 	}
 
-	@trace()
+	@trace({ level: Level.Full })
 	async getFileHistory(filePath: Path, offset = 0, limit = 15): Promise<VersionControlInfo[]> {
 		try {
 			return await this._impl.getFileHistory(filePath, offset, limit);
@@ -554,7 +556,7 @@ export class GitCommands {
 		}
 	}
 
-	@trace()
+	@trace({ level: Level.Full })
 	async getRemoteUrl(): Promise<string> {
 		try {
 			return await this._impl.getRemoteUrl();
@@ -563,7 +565,7 @@ export class GitCommands {
 		}
 	}
 
-	@trace()
+	@trace({ level: Level.Full })
 	async getParentCommit(commitOid: GitVersion): Promise<GitVersion> {
 		try {
 			const oid = await this._impl.getParentCommit(commitOid.toString());
@@ -573,7 +575,7 @@ export class GitCommands {
 		}
 	}
 
-	@trace()
+	@trace({ level: Level.Internal })
 	countChangedFiles(searchIn: string): Promise<UpstreamCountFileChanges> {
 		try {
 			return this._impl.countChangedFiles(searchIn);
@@ -582,7 +584,7 @@ export class GitCommands {
 		}
 	}
 
-	@trace()
+	@trace({ level: Level.Internal })
 	async restore(staged: boolean, filePaths: Path[]): Promise<void> {
 		try {
 			return await this._impl.restore(staged, filePaths);
@@ -591,7 +593,7 @@ export class GitCommands {
 		}
 	}
 
-	@trace()
+	@trace({ level: Level.Full })
 	async diff(opts: DiffConfig): Promise<DiffTree2TreeInfo> {
 		try {
 			return await this._impl.diff(opts);
@@ -600,12 +602,21 @@ export class GitCommands {
 		}
 	}
 
-	@trace()
+	@trace({ level: Level.Full })
+	async hasMergeConflictsWithRemoteBranch(branch: GitBranch | string, data: GitSourceData): Promise<string[]> {
+		try {
+			return await this._impl.hasMergeConflicts(branch.toString(), data);
+		} catch (e) {
+			throw getGitError(e, { repositoryPath: this._repoPath.value });
+		}
+	}
+
+	@trace({ level: Level.Internal })
 	async haveConflictsWithBranch(branch: GitBranch | string, data: GitSourceData): Promise<boolean> {
 		// temp implementation
 		const before = await this.getHeadCommit();
-		const isBrowser = getExecutingEnvironment() === "browser";
-		if (!isBrowser) await this.add();
+		const isWeb = getExecutingEnvironment() === "web";
+		if (!isWeb) await this.add();
 
 		assert((await this.status("index")).length === 0, "Can't check conflicts if there are local changes");
 
@@ -614,7 +625,7 @@ export class GitCommands {
 		return haveConflicts;
 	}
 
-	@trace()
+	@trace({ level: Level.Full })
 	async getCommitInfo(oid: GitVersion, opts: GetCommitInfoOpts): Promise<GitVersionData[]> {
 		try {
 			return await this._impl.getCommitInfo(oid.toString(), opts);

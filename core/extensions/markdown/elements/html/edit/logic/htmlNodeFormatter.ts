@@ -4,7 +4,7 @@ import type { NodeSerializerSpec } from "@ext/markdown/core/edit/logic/Prosemirr
 const htmlNodeFormatter =
 	(formatter: FormatterType): NodeSerializerSpec =>
 	(state, node) => {
-		state.write(`${formatter.openTag("html", { mode: node.attrs.mode })}\n\n`);
+		state.write(`${formatter.openTag("html", { mode: node.attrs.mode, scale: node.attrs.scale })}\n\n`);
 		state.text(node.attrs.content, false);
 		state.write(`\n\n`);
 		state.write(formatter.closeTag("html"));

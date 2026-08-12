@@ -5,7 +5,7 @@ import ResourceService from "@core-ui/ContextServices/ResourceService/ResourceSe
 import { ArticlePropsStoreProvider } from "@core-ui/stores/ArticlePropsStore/ArticlePropsStore.provider";
 import Renderer from "@ext/markdown/core/render/components/Renderer";
 import type { ArticlePreview } from "@ext/print/types";
-import type { ReactNode } from "react";
+import type { ElementType, ReactNode } from "react";
 
 const ArticleServices = ({
 	apiUrlCreator,
@@ -29,8 +29,7 @@ const ArticleServices = ({
 
 type ArticlePrintPreviewProps = {
 	item: ArticlePreview;
-	// biome-ignore lint/suspicious/noExplicitAny: it's ok
-	components: Record<string, (...props: any) => ReactNode>;
+	components: Record<string, ElementType>;
 	onRender?: VoidFunction;
 };
 

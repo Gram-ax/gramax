@@ -6,7 +6,7 @@ import { OverflowTooltip } from "@ui-kit/Tooltip";
 
 export const AdminSidebarHeader = () => {
 	return (
-		<DialogTitle asChild className="-font-sans">
+		<DialogTitle asChild className="-font-sans font-normal">
 			<SidebarHeader className="px-4 py-3 h-[3.75rem] items-center flex-row">
 				<FeatureIcon className="flex-shrink-0" icon="settings" size="sm" />
 				<OverflowTooltip className="inline-block max-w-full truncate text-base font-medium">

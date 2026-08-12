@@ -6,6 +6,7 @@ import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticleTooltipService from "@core-ui/ContextServices/ArticleTooltip";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import ResourceService from "@core-ui/ContextServices/ResourceService/ResourceService";
+import ViewportIntersectionService from "@core-ui/ContextServices/ViewportIntersection";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import { useEffect, useState } from "react";
 
@@ -25,7 +26,7 @@ const ArticlePreview = ({ logicPath, className }: ArticlePreviewProps) => {
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: it's ok
 	useEffect(() => {
-		(async () => {
+		void (async () => {
 			if (!language || pageProps.language.content === language) return data && setData(null);
 			const res = await FetchService.fetch<RenderContent>(
 				apiUrlCreator.getArticleRenderDataByLogicPath(logicPath),
@@ -41,13 +42,15 @@ const ArticlePreview = ({ logicPath, className }: ArticlePreviewProps) => {
 	return (
 		<div className={className}>
 			<ApiUrlCreatorService.Provider value={newApiUrlCreator}>
-				<ResourceService.Provider>
-					<ArticleTooltipService.Provider>
-						<div className="article tooltip-size">
-							<MiniArticle content={data.content} title={data.title} />
-						</div>
-					</ArticleTooltipService.Provider>
-				</ResourceService.Provider>
+				<ViewportIntersectionService.Provider>
+					<ResourceService.Provider>
+						<ArticleTooltipService.Provider>
+							<div className="article tooltip-size">
+								<MiniArticle content={data.content} title={data.title} />
+							</div>
+						</ArticleTooltipService.Provider>
+					</ResourceService.Provider>
+				</ViewportIntersectionService.Provider>
 			</ApiUrlCreatorService.Provider>
 		</div>
 	);

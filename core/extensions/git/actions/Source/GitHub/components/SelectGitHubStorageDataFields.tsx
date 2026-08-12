@@ -46,7 +46,8 @@ const CustomSelectOption = ({ label, avatarUrl }: { label: string; avatarUrl: st
 };
 
 const SelectGitHubStorageDataFields = ({ form, source, mode }: SelectProps) => {
-	const { authServiceUrl, isRelease } = PageDataContextService.value.conf;
+	const { isRelease } = PageDataContextService.value.conf;
+	const authServiceUrl = PageDataContextService.value.settings?.services?.auth?.endpoint;
 
 	const sourceApi = useMakeSourceApi(source, authServiceUrl) as GithubSourceAPI;
 	const [options, setOptions] = useState<SelectOptionType[]>([]);
@@ -69,7 +70,7 @@ const SelectGitHubStorageDataFields = ({ form, source, mode }: SelectProps) => {
 
 	const loadInstallations = () => {
 		setIsLoading(true);
-		sourceApi.getInstallations().then((installations) => {
+		void sourceApi.getInstallations().then((installations) => {
 			setOptions(
 				installations.map((installation) => ({
 					value: installation.name,

@@ -17,11 +17,6 @@ export const ArticleReadRenderer = memo(({ data: { content } }: ArticleComponent
 				<Header className={"article-title"} dataQa={"article-title"} level={1}>
 					{articleProps.title}
 				</Header>
-				{!articleProps.description ? null : (
-					<Header className={"article-description"} dataQa={"article-description"} level={2}>
-						{articleProps.description}
-					</Header>
-				)}
 				{Renderer(
 					content,
 					{ components: useMemo(getComponents, []) },

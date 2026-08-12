@@ -1,6 +1,6 @@
 import { Given, Then, When } from "@cucumber/cucumber";
-import type E2EWorld from "e2e/models/World";
 import { expect } from "playwright/test";
+import type E2EWorld from "../models/World";
 
 const MODAL_SELECTOR = '.outer-modal, .form-layout, [data-qa="modal-content"], [role="alertdialog"]';
 const FORM_SELECTOR = `.outer-modal, .form-layout, [data-qa="modal-content"] form`;

@@ -12,7 +12,8 @@ interface HandleClickParams {
 
 const useHandleItemClick = ({ itemPath, toggleFunction, closeNavigation, isCurrentLink }: HandleClickParams) => {
 	const articleElement = ArticleRefService.value.current;
-	const { clearPosition } = useScrollPositionStore();
+	// Select the (stable) action rather than the whole store, so nav items don't re-render on every scroll.
+	const clearPosition = useScrollPositionStore((s) => s.clearPosition);
 
 	const scrollToTop = useCallback(
 		(articlePath: string) => {

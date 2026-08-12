@@ -1,5 +1,6 @@
 import { CATEGORY_ROOT_FILENAME } from "@app/config/const";
 import { getExecutingEnvironment } from "@app/resolveModule/env";
+import type FileProvider from "@core/FileProvider/model/FileProvider";
 import Path from "@core/FileProvider/Path/Path";
 import type { Article } from "@core/FileStructue/Article/Article";
 import BaseCatalog from "@core/FileStructue/Catalog/BaseCatalog";
@@ -13,15 +14,16 @@ import {
 	normalizeCatalogProperties,
 } from "@ext/serach/components/utils/normalizeProperties";
 import type { KeyPhraseArticleSearcherItem } from "@ext/serach/modulith/keyPhrase/KeyPhraseArticleSearcher";
-import { CombinedProgressManager, type ProgressManager } from "@ext/serach/modulith/ProgressManager";
 import { getArticleId, getCatalogId } from "@ext/serach/modulith/parsing/getArticleId";
 import type { ResourcesInfo, SearchArticleParser } from "@ext/serach/modulith/parsing/SearchArticleParser";
 import type {
 	ArticleLanguage,
+	RemoteSearchArticle,
 	SearchArticle,
 	SearchArticleCatalogMetadata,
 	SearchArticleFileMetadata,
 	SearchArticleFilter,
+	SearchArticleItemMetadata,
 	SearchArticleKey,
 } from "@ext/serach/modulith/SearchArticle";
 import type {
@@ -35,7 +37,7 @@ import { collectText } from "@ext/serach/modulith/utils/collectText";
 import { getLang } from "@ext/serach/modulith/utils/getLang";
 import { getValidCatalogItems } from "@ext/serach/modulith/utils/getValidCatalogItems";
 import { trimAroundHighlights } from "@ext/serach/modulith/utils/trimAroundHighlights";
-import { WorkspaceState } from "@ext/serach/modulith/WorkspaceState";
+import { CATALOG_PARALLEL_LIMIT, WorkspaceState } from "@ext/serach/modulith/WorkspaceState";
 import type {
 	InProgressItem,
 	ProgressArgs,
@@ -50,6 +52,7 @@ import type { Workspace } from "@ext/workspace/Workspace";
 import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 import type WorkspaceManager from "@ext/workspace/WorkspaceManager";
 import type { Article as ModulithArticle } from "@ics/article-search/article";
+import { ArticleItemCollector } from "@ics/article-search/article";
 import {
 	AggregateProgress,
 	andFilter,
@@ -69,6 +72,7 @@ export interface ModulithServiceOptions {
 	wm: WorkspaceManager;
 	sap: SearchArticleParser;
 	immediateIndexing?: boolean;
+	resourceSearchEnabled?: boolean;
 }
 
 const PROGRESS_UPDATE_TIMEOUT_MS = 500;
@@ -77,12 +81,15 @@ const RESOURCE_ARTICLES_UPDATE_BUFFER_SIZE = 20;
 
 const COMMIT_DEBOUNCE_TIME_MS = 5000;
 const COMMIT_DEBOUNCE_SYMBOL = Symbol();
-const REQUIRED_COMMIT_DEBOUNCE_TIME_MS = 30 * 1000;
+const REQUIRED_COMMIT_DEBOUNCE_TIME_MS = 60 * 1000;
 const REQUIRED_COMMIT_DEBOUNCE_SYMBOL = Symbol();
 
 export class ModulithService {
 	private _cancelDebounceCommit: (() => void) | undefined;
 	private _cancelRequiredCommit: (() => void) | undefined;
+	private _activeUpdates = 0;
+	private _isCommitting = false;
+	private _needCommitAfterCurrent = false;
 	private readonly _stateByWorkspace = new Map<WorkspacePath, WorkspaceState>();
 
 	constructor(private readonly _options: ModulithServiceOptions) {
@@ -129,7 +136,7 @@ export class ModulithService {
 		const ws = this._options.wm.current();
 		const state = await this._getOrCreateState(ws);
 		const catalog = await ws.getContextlessCatalog(BaseCatalog.parseName(catalogName).name);
-		await this._actualizeCatalog(state, overridePath ?? state.path, catalog);
+		await this._actualizeCatalog(state, overridePath ?? state.path, ws.getFileProvider(), catalog);
 	}
 
 	async *progress({ resourceFilter, signal }: ProgressArgs): SearcherProgressGenerator {
@@ -139,23 +146,7 @@ export class ModulithService {
 
 		const curWs = this._options.wm.current();
 		const state = await this._getOrCreateState(curWs);
-		let pms: ProgressManager[] = [];
-		switch (resourceFilter) {
-			case "without": {
-				pms = [state.indexingProgressManager];
-				break;
-			}
-			case "only": {
-				pms = [state.resourceIndexingProgressManager];
-				break;
-			}
-			default: {
-				pms = [state.indexingProgressManager, state.resourceIndexingProgressManager];
-				break;
-			}
-		}
-
-		const pm = new CombinedProgressManager(pms);
+		const pm = state.getCombinedProgressManager(resourceFilter);
 		if (!pm.hasProgresses()) {
 			yield {
 				type: "done",
@@ -320,10 +311,11 @@ export class ModulithService {
 					metadataFilters.push(convertPropertyFilter(x.propertyFilter));
 				}
 
-				if (x.resourceFilter && x.resourceFilter !== "with") {
+				const resourceFilter: ResourceFilter = !state.resourceSearchEnabled ? "without" : x.resourceFilter;
+				if (resourceFilter && resourceFilter !== "with") {
 					let filter: Filter<SearchArticleKey> = eqFilter(["type"], "file");
 
-					if (x.resourceFilter === "without") {
+					if (resourceFilter === "without") {
 						filter = notFilter(filter);
 					}
 
@@ -443,7 +435,7 @@ export class ModulithService {
 					breadcrumbs: await getBreadcrumbs(
 						x.catalog,
 						x.article,
-						getLang(x.article.logicPath, x.catalog.props.language),
+						getLang(x.article.logicPath, x.catalog.props.language, x.catalog.props.supportedLanguages),
 					),
 				};
 			});
@@ -471,7 +463,7 @@ export class ModulithService {
 			try {
 				const pc = pm.getProgressCallback(prid);
 				const rpc = rpm.getProgressCallback(rprid);
-				await this._actualizeCatalog(state, state.path, catalog, pc, rpc);
+				await this._actualizeCatalog(state, state.path, ws.getFileProvider(), catalog, pc, rpc);
 			} finally {
 				pm.doneProgress(prid);
 				rpm.doneProgress(rprid);
@@ -491,13 +483,13 @@ export class ModulithService {
 
 	private async _removeCatalogFromIndex(state: WorkspaceState, catalogName: string): Promise<void> {
 		const release = await state.lockIndexing();
+		this._beginUpdate();
 		try {
 			await this._updateBothClients([], {
 				metadata: eqFilter(["catalogId"], catalogName),
 			});
-
-			this._debounceCommitClient();
 		} finally {
+			this._endUpdate();
 			release();
 		}
 	}
@@ -548,12 +540,13 @@ export class ModulithService {
 					await this._actualizeCatalog(
 						state,
 						state.path,
+						ws.getFileProvider(),
 						catalog,
 						aggProgress.getProgressCallback(i),
 						resourceAggProgress.getProgressCallback(i),
 					);
 				},
-				5,
+				CATALOG_PARALLEL_LIMIT,
 				true,
 			);
 		} finally {
@@ -565,21 +558,7 @@ export class ModulithService {
 	private async _actualizeCatalog(
 		state: WorkspaceState,
 		wsPath: WorkspacePath,
-		catalog?: ReadonlyCatalog,
-		progressCallback?: ProgressCallback,
-		resourceProgressCallback?: ProgressCallback,
-	): Promise<void> {
-		try {
-			await this._actualizeCatalogImpl(state, wsPath, catalog, progressCallback, resourceProgressCallback);
-		} catch (error) {
-			console.error(error);
-			throw error;
-		}
-	}
-
-	private async _actualizeCatalogImpl(
-		state: WorkspaceState,
-		wsPath: WorkspacePath,
+		fp: FileProvider,
 		catalog?: ReadonlyCatalog,
 		progressCallback?: ProgressCallback,
 		resourceProgressCallback?: ProgressCallback,
@@ -590,6 +569,27 @@ export class ModulithService {
 			return;
 		}
 
+		const release = await state.startCatalogIndexing(catalog.name);
+		if (!release) return;
+
+		try {
+			await this._actualizeCatalogImpl(state, wsPath, fp, catalog, progressCallback, resourceProgressCallback);
+		} catch (error) {
+			console.error(error);
+			throw error;
+		} finally {
+			release();
+		}
+	}
+
+	private async _actualizeCatalogImpl(
+		state: WorkspaceState,
+		wsPath: WorkspacePath,
+		fp: FileProvider,
+		catalog?: ReadonlyCatalog,
+		progressCallback?: ProgressCallback,
+		resourceProgressCallback?: ProgressCallback,
+	): Promise<void> {
 		const catalogArticles = getValidCatalogItems(catalog);
 
 		const aggProgress = new AggregateProgress({
@@ -599,18 +599,24 @@ export class ModulithService {
 			onChange: (p) => progressCallback?.(p),
 		});
 
-		await this._updateCatalogSearchArticles(catalog, wsPath, aggProgress.getProgressCallback(0));
-		aggProgress.setProgress(0, 1);
+		this._beginUpdate();
+		try {
+			await this._updateCatalogSearchArticles(catalog, wsPath, aggProgress.getProgressCallback(0));
+			aggProgress.setProgress(0, 1);
 
-		await this._updateSearchArticles(
-			state,
-			catalog,
-			wsPath,
-			catalogArticles,
-			aggProgress.getProgressCallback(1),
-			resourceProgressCallback,
-		);
-		aggProgress.setProgress(1, 1);
+			await this._updateSearchArticles(
+				state,
+				fp,
+				catalog,
+				wsPath,
+				catalogArticles,
+				aggProgress.getProgressCallback(1),
+				resourceProgressCallback,
+			);
+			aggProgress.setProgress(1, 1);
+		} finally {
+			this._endUpdate();
+		}
 
 		const currentArticleIds = new Set(catalogArticles.map((x) => getArticleId(wsPath, x.logicPath)));
 		state.keyPhraseSearcher.removeArticlesNotIn(catalog.name, currentArticleIds);
@@ -631,15 +637,17 @@ export class ModulithService {
 		wsPath: WorkspacePath,
 		progressCallback?: ProgressCallback,
 	) {
-		const searchArticles: ModulithArticle<SearchArticleCatalogMetadata>[] = [];
+		const searchArticles: ModulithArticle<SearchArticleCatalogMetadata, SearchArticleItemMetadata>[] = [];
 
 		if (catalog.props.title) {
 			const lang = catalog.props.language ?? "none";
+			const id = getCatalogId(wsPath, catalog.name, lang);
+			const title = catalog.props.title;
 			searchArticles.push({
-				id: getCatalogId(wsPath, catalog.name, lang),
-				title: catalog.props.title,
+				id,
+				title,
 				children: [],
-				items: [],
+				items: new ArticleItemCollector<SearchArticleItemMetadata>(id, title).finish(),
 				metadata: {
 					type: "catalog",
 					wsPath,
@@ -659,12 +667,14 @@ export class ModulithService {
 				const path = rootCategoryPath.join(new Path(supLang), new Path(CATEGORY_ROOT_FILENAME));
 
 				const langCategory = catalog.findItemByItemPath(path);
-				if (!langCategory || !langCategory.props.title) continue;
+				if (!langCategory?.props.title) continue;
+				const id = getCatalogId(wsPath, catalog.name, supLang);
+				const title = langCategory.props.title;
 				searchArticles.push({
-					id: getCatalogId(wsPath, catalog.name, supLang),
-					title: langCategory.props.title,
+					id,
+					title,
 					children: [],
-					items: [],
+					items: new ArticleItemCollector<SearchArticleItemMetadata>(id, title).finish(),
 					metadata: {
 						type: "catalog",
 						wsPath,
@@ -693,6 +703,7 @@ export class ModulithService {
 
 	private async _updateSearchArticles(
 		state: WorkspaceState,
+		fp: FileProvider,
 		catalog: ReadonlyCatalog,
 		wsPath: WorkspacePath,
 		catalogArticles: Article[],
@@ -708,6 +719,7 @@ export class ModulithService {
 
 		const { searchArticles, resourcesInfo, remoteSearchArticles } = await this._options.sap.getSearchArticles(
 			wsPath,
+			fp,
 			catalog,
 			catalogArticles,
 			state.resourceSearchEnabled,
@@ -716,13 +728,9 @@ export class ModulithService {
 		);
 		aggProgress.setProgress(0, 1);
 
-		const updateResourceArticlesPromise = this._updateResourceSearchArticles(
-			state,
-			wsPath,
-			catalog,
-			resourcesInfo,
-			resourceProgressCallback,
-		);
+		const updateResourceArticlesPromise = state.resourceSearchEnabled
+			? this._updateResourceSearchArticles(state, wsPath, catalog, resourcesInfo, resourceProgressCallback)
+			: Promise.resolve();
 
 		const filter: SearchArticleFilter = {
 			metadata: andFilter<SearchArticleKey>([
@@ -761,6 +769,11 @@ export class ModulithService {
 		resourceInfos: ResourcesInfo[],
 		progressCallback?: ProgressCallback,
 	) {
+		if (resourceInfos.length === 0) {
+			progressCallback?.(1);
+			return;
+		}
+
 		const release = await state.lockResourceIndexing(catalog.name);
 		try {
 			await this._updateResourceSearchArticlesImpl(state, wsPath, catalog, resourceInfos, progressCallback);
@@ -783,27 +796,24 @@ export class ModulithService {
 			onChange: (p) => progressCallback?.(p),
 		});
 
-		const articlePayloads =
-			resourceInfos.length === 0
-				? []
-				: await this._options.localClient
-						.getArticlePayloads<SearchArticleFileMetadata>({
-							items: resourceInfos.map((x) => ({
-								filter: {
-									metadata: andFilter<SearchArticleKey>([
-										eqFilter(["wsPath"], wsPath),
-										eqFilter(["catalogId"], catalog.name),
-										eqFilter(["type"], "file"),
-										eqFilter(["articleId"], getArticleId(wsPath, x.article.logicPath)),
-									]),
-								},
-							})),
-						})
-						.then((x) => x.articles);
+		const articlePayloads = await this._options.localClient
+			.getArticlePayloads<SearchArticleFileMetadata>({
+				items: resourceInfos.map((x) => ({
+					filter: {
+						metadata: andFilter<SearchArticleKey>([
+							eqFilter(["wsPath"], wsPath),
+							eqFilter(["catalogId"], catalog.name),
+							eqFilter(["type"], "file"),
+							eqFilter(["articleId"], getArticleId(wsPath, x.article.logicPath)),
+						]),
+					},
+				})),
+			})
+			.then((x) => x.articles);
 
 		let bufferSize = 0;
 		let articleIdBuffer = new Set<string>();
-		const articleBuffer: ModulithArticle<SearchArticleFileMetadata>[] = [];
+		const articleBuffer: ModulithArticle<SearchArticleFileMetadata, SearchArticleItemMetadata>[] = [];
 		let unchangedResourcesBuffer = new Set<string>();
 
 		const flushBuffer = async (progressCallback?: ProgressCallback) => {
@@ -848,6 +858,7 @@ export class ModulithService {
 				const { searchArticles, unchangedResources } = await this._options.sap.parseResourceArticles(
 					x.resources,
 					x.parsedContent.parsedContext.getResourceManager(),
+					x.fp,
 					wsPath,
 					x.article,
 					catalog,
@@ -883,7 +894,7 @@ export class ModulithService {
 	private async _updateBothClients(
 		articles: SearchArticle[],
 		filter: SearchArticleFilter,
-		remoteArticles?: SearchArticle[],
+		remoteArticles?: RemoteSearchArticle[],
 		progressCallback?: ProgressCallback,
 	) {
 		const aggProgress = new AggregateProgress({
@@ -900,7 +911,7 @@ export class ModulithService {
 				progressCallback: aggProgress.getProgressCallback(0),
 			}),
 			this._options.remoteClient?.update({
-				articles: remoteArticles ?? articles,
+				articles: remoteArticles ?? [],
 				filter,
 				progressCallback: aggProgress.getProgressCallback(1),
 			}),
@@ -912,17 +923,29 @@ export class ModulithService {
 		}
 	}
 
-	private _debounceCommitClient() {
-		// Committing saves data in storage
-		// If storage is slow, we dont want to commit too often
-		this._cancelDebounceCommit = debounceFunction(
-			COMMIT_DEBOUNCE_SYMBOL,
-			() => this._flushCommitClient(),
-			COMMIT_DEBOUNCE_TIME_MS,
-		);
+	private _beginUpdate(): void {
+		this._activeUpdates++;
+		this._cancelDebounceCommit?.();
+		this._cancelDebounceCommit = undefined;
+	}
 
-		// With this we can commit periodically
-		// In case of many frequent updates
+	private _endUpdate(): void {
+		if (--this._activeUpdates === 0) {
+			this._debounceCommitClient();
+		}
+	}
+
+	private _debounceCommitClient() {
+		// Only arm idle debounce when no updates are in progress
+		if (this._activeUpdates === 0) {
+			this._cancelDebounceCommit = debounceFunction(
+				COMMIT_DEBOUNCE_SYMBOL,
+				() => this._flushCommitClient(),
+				COMMIT_DEBOUNCE_TIME_MS,
+			);
+		}
+
+		// Arm periodic commit once per burst; reset each burst via _cancelRequiredCommit in _flushCommitClient
 		if (this._cancelRequiredCommit == null) {
 			this._cancelRequiredCommit = debounceFunction(
 				REQUIRED_COMMIT_DEBOUNCE_SYMBOL,
@@ -933,19 +956,34 @@ export class ModulithService {
 	}
 
 	private async _flushCommitClient() {
+		if (this._isCommitting) {
+			this._needCommitAfterCurrent = true;
+			return;
+		}
+
 		this._cancelDebounceCommit?.();
 		this._cancelDebounceCommit = undefined;
 		this._cancelRequiredCommit?.();
 		this._cancelRequiredCommit = undefined;
-		await this._options.localClient.commit();
+
+		this._isCommitting = true;
+		this._needCommitAfterCurrent = false;
+		try {
+			await this._options.localClient.commit();
+		} finally {
+			this._isCommitting = false;
+			if (this._needCommitAfterCurrent) {
+				this._needCommitAfterCurrent = false;
+				this._debounceCommitClient();
+			}
+		}
 	}
 
 	private async _getOrCreateState(ws: Workspace): Promise<WorkspaceState> {
 		const wsPath = ws.path();
 		let ex = this._stateByWorkspace.get(wsPath);
 		if (ex === undefined) {
-			const wsConf = await ws.config();
-			ex = new WorkspaceState(wsPath, Boolean(wsConf?.enterprise?.gesUrl));
+			ex = new WorkspaceState(wsPath, this._options.resourceSearchEnabled);
 			this._stateByWorkspace.set(wsPath, ex);
 		}
 

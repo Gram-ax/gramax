@@ -62,10 +62,10 @@ export const useGetItems = (
 			stage: "exporting",
 			ratio: 0.02,
 		});
-	}, [apiUrlCreator, catalogName, isCategory, itemPath, router.basePath, titleNumber]);
+	}, [apiUrlCreator, catalogName, isCategory, itemPath, onProgress, router.basePath, templateName, titleNumber]);
 
 	useEffect(() => {
-		loadItems();
+		void loadItems();
 	}, [loadItems]);
 
 	return {

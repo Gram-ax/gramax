@@ -60,7 +60,6 @@ const TagInputWithKeyboard = ({ value, onChange, placeholder, readonly, descript
 				ref={inputRef}
 				value={inputValue}
 			/>
-			{description && <div className="text-muted font-normal text-xs">{description}</div>}
 			{value.length > 0 && (
 				<div className="flex flex-wrap gap-1">
 					{value.map((tag, index) => (
@@ -76,6 +75,7 @@ const TagInputWithKeyboard = ({ value, onChange, placeholder, readonly, descript
 					))}
 				</div>
 			)}
+			{description && <div className="text-muted font-normal text-xs">{description}</div>}
 		</div>
 	);
 };

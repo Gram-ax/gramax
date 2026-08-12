@@ -10,36 +10,48 @@ export default class FSCatalogEntryAttachGit implements EventHandlerCollection {
 
 	mount(): void {
 		this._fs.events.on("before-catalog-entry-read", async ({ path, initProps }) => {
+			if (initProps.isCloning || initProps.resolvedVersions) return;
+			if (getExecutingEnvironment() === "cli") return;
+
 			const fp = this._fs.fp.default();
+			const fromNative = initProps.isGitRepo !== undefined;
 
-			const isNotCloningOrResolved = !initProps.isCloning && !initProps.resolvedVersions;
-			const pathExists = await this._fs.fp.exists(path);
+			let isGitRepository: boolean;
+			let isBare: boolean | undefined;
+			let hasSubmodules: boolean | undefined;
 
-			if (isNotCloningOrResolved && pathExists) {
+			if (fromNative) {
+				isGitRepository = !!initProps.isGitRepo;
+				isBare = !!initProps.isBareRepo;
+				hasSubmodules = !!initProps.hasGitmodules;
+			} else {
+				const pathExists = await this._fs.fp.exists(path);
+				if (!pathExists) return;
 				const items = await fp.readdir(path);
-				const isGitRepository = items.includes(".git") || path.value.endsWith(".git");
-
-				if (getExecutingEnvironment() !== "cli" && isGitRepository) {
-					const git = new GitCommands(fp, path);
-					const gitfp = new GitTreeFileProvider(git);
-
-					try {
-						if (await git.isBare()) {
-							const hasSubmodules = await fp.exists(path.join(new Path(".gitmodules")));
-
-							if (hasSubmodules) {
-								const errorMessage = `Repository ${git.repoPath.value} is bare but has submodules; submodules aren't currently supported`;
-								throw new Error(errorMessage);
-							}
-
-							this._fs.fp.mount(path, gitfp);
-						} else {
-							const headScopePath = GitTreeFileProvider.scoped(path, null);
-							this._fs.fp.mount(headScopePath, gitfp);
-						}
-					} catch {}
-				}
+				isGitRepository = items.includes(".git") || path.value.endsWith(".git");
 			}
+
+			if (!isGitRepository) return;
+
+			const git = new GitCommands(fp, path);
+			const gitfp = new GitTreeFileProvider(git);
+
+			try {
+				if (isBare === undefined) isBare = await git.isBare();
+				if (isBare) {
+					if (hasSubmodules === undefined)
+						hasSubmodules = await fp.exists(path.join(new Path(".gitmodules")));
+					if (hasSubmodules) {
+						const errorMessage = `Repository ${git.repoPath.value} is bare but has submodules; submodules aren't currently supported`;
+						throw new Error(errorMessage);
+					}
+
+					this._fs.fp.mount(path, gitfp);
+				} else {
+					const headScopePath = GitTreeFileProvider.scoped(path, null);
+					this._fs.fp.mount(headScopePath, gitfp);
+				}
+			} catch {}
 		});
 	}
 }

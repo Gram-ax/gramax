@@ -1,6 +1,7 @@
 import type * as api from "@opentelemetry/api";
 import { SpanStatusCode } from "@opentelemetry/api";
 import type * as sdk from "@opentelemetry/sdk-trace-base";
+import { Level, SpanAttribute } from "../span";
 
 export default class DetectHangSpanProcessor implements sdk.SpanProcessor {
 	private _timers: Map<string, NodeJS.Timeout> = new Map();
@@ -26,13 +27,16 @@ export default class DetectHangSpanProcessor implements sdk.SpanProcessor {
 				this._timers.set(
 					span.spanContext().spanId,
 					setTimeout(() => {
-						span.addEvent("hung operation detected", { stack: capture() });
+						span.addEvent("hung operation detected", {
+							stack: capture(),
+							[SpanAttribute.Level]: Level.Commands,
+						});
 						span.setStatus({ code: SpanStatusCode.ERROR });
 						span.end();
 					}, this._forceEndTimeout - this._warnTimeout),
 				);
 
-				span.addEvent("long-running operation detected");
+				span.addEvent("long-running operation detected", { [SpanAttribute.Level]: Level.Commands });
 			}, this._warnTimeout),
 		);
 

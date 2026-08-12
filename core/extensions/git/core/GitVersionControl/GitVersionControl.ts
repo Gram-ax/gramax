@@ -2,7 +2,6 @@ import { createEventEmitter, type Event } from "@core/Event/EventEmitter";
 import gitMergeConverter from "@ext/git/actions/MergeConflictHandler/logic/GitMergeConverter";
 import type GitMergeResult from "@ext/git/actions/MergeConflictHandler/model/GitMergeResult";
 import type { GitRevisionsFilter } from "@ext/git/actions/Revisions/model/GitRevisionsFilter";
-import BrowserStashCache from "@ext/git/core/BrowserStashCache/BrowserStashCache";
 import type { CommitAuthorInfo, ConfigValue } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
 import type {
 	DiffConfig,
@@ -13,9 +12,11 @@ import type {
 	RefInfo,
 	ResetOptions,
 	StorageStats,
+	TreeReadScope,
 } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import type GitStash from "@ext/git/core/model/GitStash";
 import type GitVersionData from "@ext/git/core/model/GitVersionData";
+import WebStashCache from "@ext/git/core/WebStashCache/WebStashCache";
 import type FileProvider from "../../../../logic/FileProvider/model/FileProvider";
 import Path from "../../../../logic/FileProvider/Path/Path";
 import type SourceData from "../../../storage/logic/SourceDataProvider/model/SourceData";
@@ -27,7 +28,10 @@ import type { GitStatus } from "../GitWatcher/model/GitStatus";
 import type GitSourceData from "../model/GitSourceData.schema";
 import { GitVersion } from "../model/GitVersion";
 
-export type GitVersionControlEvents = Event<"files-changed", { items: GitStatus[] }>;
+export type GitVersionControlEvents = Event<"files-changed", { items: GitStatus[] }> &
+	// Destructive history/working-tree change (discard, branch delete) — distinct from "files-changed"
+	// (which also fires on ordinary local edits) so peer-refresh only triggers on real git mutations.
+	Event<"reset", { reason: "discard" | "delete-branch" }>;
 export type GitVersionDataSet = {
 	data: GitVersionData[];
 	reachedFirstCommit: boolean;
@@ -150,6 +154,7 @@ export default class GitVersionControl {
 
 	async deleteLocalBranch(branchName: string) {
 		await this._gitRepository.deleteBranch(branchName, false);
+		await this._events.emit("reset", { reason: "delete-branch" });
 	}
 
 	async stash(data: SourceData, doAddBeforeStash = true): Promise<GitStash> {
@@ -160,7 +165,7 @@ export default class GitVersionControl {
 		await this.reset({ mode: "mixed" });
 
 		const stash = await this._gitRepository.stash(data);
-		if (stash) BrowserStashCache.setStashCache(this.getPath().value, stash.toString());
+		if (stash) WebStashCache.setStashCache(this.getPath().value, stash.toString());
 		return stash;
 	}
 
@@ -219,7 +224,9 @@ export default class GitVersionControl {
 			await storage.restore(false, paths);
 		}
 		const items: GitStatus[] = filePaths.map((path) => ({ path, status: FileStatus.modified }));
+		this.resetCachedStatus();
 		await this._events.emit("files-changed", { items });
+		await this._events.emit("reset", { reason: "discard" });
 	}
 
 	async checkChanges(oldVersion: GitVersion, newVersion: GitVersion): Promise<void> {
@@ -236,6 +243,7 @@ export default class GitVersionControl {
 		parents?: (string | GitBranch)[],
 		filesToPublish?: Path[],
 	): Promise<void> {
+		this.resetCachedStatus();
 		await this._gitRepository.commit(message, userData, parents, filesToPublish);
 	}
 
@@ -282,8 +290,8 @@ export default class GitVersionControl {
 		await this.reset({ mode: "soft", head: parent });
 	}
 
-	async pullLfsObjects(data: GitSourceData, paths: Path[], checkout: boolean): Promise<void> {
-		return await this._gitRepository.pullLfsObjects(data, paths, checkout, 0);
+	async pullLfsObjects(data: GitSourceData, paths: Path[], checkout: boolean, scope?: TreeReadScope): Promise<void> {
+		return await this._gitRepository.pullLfsObjects(data, paths, checkout, 0, scope);
 	}
 
 	async getVersionControlByPath(path: Path): Promise<{ gitVersionControl: GitVersionControl; relativePath: Path }> {
@@ -320,6 +328,10 @@ export default class GitVersionControl {
 
 	haveConflictsWithBranch(branch: GitBranch | string, data: GitSourceData): Promise<boolean> {
 		return this._gitRepository.haveConflictsWithBranch(branch, data);
+	}
+
+	hasMergeConflictsWithRemoteBranch(branch: GitBranch | string, data: GitSourceData): Promise<string[]> {
+		return this._gitRepository.hasMergeConflictsWithRemoteBranch(branch, data);
 	}
 
 	async getCommitInfo(oid?: GitVersion, depth = 20, filters?: GitRevisionsFilter): Promise<GitVersionDataSet> {

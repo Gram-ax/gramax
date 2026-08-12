@@ -1,19 +1,20 @@
 import type { CommandTree } from "@app/commands";
+import { agentConfig } from "../../core/agentConfig";
 import { fail, ok, type ToolExecutionContext, type ToolExecutionResult } from "../tool";
-import { buildPath } from "../utils/catalogPaths";
+// import { buildPath } from "../utils/catalogPaths";
 import { compactSearchResults } from "../utils/searchResults";
-
-const DEFAULT_SEARCH_TIMEOUT_MS = 120_000;
-const DEFAULT_INDEX_PROGRESS_WAIT_MS = 300_000;
-const DEFAULT_SEARCH_HITS_LIMIT = 15;
-const DEFAULT_SNIPPETS_PER_HIT = 2;
-const DEFAULT_SNIPPET_MAX_CHARS = 240;
 
 type SearchCatalogsInput = {
 	query: string;
 	catalogName?: string;
-	itemPath?: string;
+	// scopePath?: string;
 };
+
+// function normalizeScopePath(input: string): string {
+// 	const normalized = input.trim().replace(/^[/\\]+/, "").replace(/\\/g, "/").replace(/\/+$/, "");
+// 	if (!normalized || normalized.endsWith(".md")) return normalized;
+// 	return `${normalized}/_index.md`;
+// }
 
 function timeoutSignal(ms: number): AbortSignal | undefined {
 	if (typeof AbortSignal === "undefined" || typeof AbortSignal.timeout !== "function") return undefined;
@@ -79,16 +80,23 @@ async function waitUntilIndexingProgressDone(
 	}
 }
 
-export async function runSearchCatalogs({ ctx, input, commands }: ToolExecutionContext): Promise<ToolExecutionResult> {
-	const { query, catalogName, itemPath: scopeItemPath } = input as SearchCatalogsInput;
+export async function runSearchCatalogs({
+	app,
+	ctx,
+	input,
+	commands,
+}: ToolExecutionContext): Promise<ToolExecutionResult> {
+	const { query, catalogName } = input as SearchCatalogsInput;
 	const cat = catalogName?.trim();
-	const scopeRaw = scopeItemPath?.trim();
-	if (scopeRaw && !cat) {
-		return fail("itemPath (search scope) is set without catalogName — provide catalogName.");
-	}
+	// const scopeRaw = scopePath?.trim();
+	// if (scopeRaw && !cat) {
+	// 	return fail("scopePath is set without catalogName — provide catalogName.");
+	// }
 	const queryText = query.trim();
-	const gramaxSearchRootRef = cat && scopeRaw ? buildPath(cat, scopeRaw) : undefined;
-	const progressWaitSignal = timeoutSignal(DEFAULT_INDEX_PROGRESS_WAIT_MS);
+	// const normalizedScopePath = scopeRaw ? normalizeScopePath(scopeRaw) : undefined;
+	// const gramaxSearchRootRef = cat && normalizedScopePath ? buildPath(cat, normalizedScopePath) : undefined;
+	const { searchHitsLimit, searchSnippetsPerHit, searchTimeoutMs, searchIndexProgressWaitMs } = agentConfig;
+	const progressWaitSignal = timeoutSignal(searchIndexProgressWaitMs);
 
 	try {
 		await commands.search.resetSearchData.do({
@@ -97,27 +105,21 @@ export async function runSearchCatalogs({ ctx, input, commands }: ToolExecutionC
 			catalogName: cat || undefined,
 		});
 		await waitUntilIndexingProgressDone(commands.search, progressWaitSignal);
-		const searchSignal = timeoutSignal(DEFAULT_SEARCH_TIMEOUT_MS);
+		const searchSignal = timeoutSignal(searchTimeoutMs);
 		const results = await commands.search.searchCommand.do({
 			ctx,
 			signal: searchSignal,
 			query: queryText,
 			catalogName: cat || undefined,
-			articleRefFilter: gramaxSearchRootRef,
+			articleRefFilter: undefined,
 			propertyFilter: undefined,
 			resourceFilter: undefined,
 			articlesLanguage: undefined,
 		});
-		const compact = compactSearchResults(
-			results,
-			cat,
-			DEFAULT_SEARCH_HITS_LIMIT,
-			DEFAULT_SNIPPETS_PER_HIT,
-			DEFAULT_SNIPPET_MAX_CHARS,
-		);
-		return ok(compact);
+		const hits = await compactSearchResults(app, ctx, results, searchHitsLimit, searchSnippetsPerHit);
+		return ok({ hits });
 	} catch (e) {
 		const msg = e instanceof Error ? e.message : String(e);
-		return fail(`Search error: ${msg}`);
+		return fail(`Failed to search catalogs: ${msg}`);
 	}
 }

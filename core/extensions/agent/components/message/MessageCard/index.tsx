@@ -1,63 +1,80 @@
-import type { Ref } from "react";
+import { memo, type Ref } from "react";
 import type { ChatMessage } from "../../types/chat";
 import { AssistantMessage } from "./AssistantMessage";
+import { CancelledStatusMessage } from "./CancelledStatusMessage";
 import { ErrorStatusMessage } from "./ErrorStatusMessage";
-import { LoadingStatusMessage } from "./LoadingStatusMessage";
 import { UserMessage } from "./UserMessage";
+import { WarningStatusMessage } from "./WarningStatusMessage";
 
 export type MessageCardProps = {
 	message: ChatMessage;
 	streamDescription?: boolean;
-	fullDescriptionForStream?: string;
-	streamLive?: boolean;
-	onStreamComplete?: (id: string) => void;
 	stickyUserPrompt?: boolean;
 	userPromptAnchorRef?: Ref<HTMLDivElement>;
 	responseRef?: Ref<HTMLDivElement>;
+	copyButtonMessageId?: string | null;
+	cancelledDurationMs?: number;
+	footerAlwaysVisible?: boolean;
 };
 
-export function MessageCard({
-	message,
-	streamDescription = false,
-	fullDescriptionForStream = "",
-	streamLive = false,
-	onStreamComplete,
-	stickyUserPrompt = false,
-	userPromptAnchorRef,
-	responseRef,
-}: MessageCardProps) {
-	switch (message.kind) {
-		case "user":
-			return (
-				<UserMessage
-					stickyUserPrompt={stickyUserPrompt}
-					userPromptAnchorRef={userPromptAnchorRef}
-					userText={message.userText ?? ""}
-				/>
-			);
-		case "status":
-			return (
-				<div className="text-sm text-muted-foreground" ref={responseRef}>
-					{message.statusText ?? ""}
-				</div>
-			);
-		case "loading":
-			return <LoadingStatusMessage responseRef={responseRef} statusText={message.statusText ?? ""} />;
-		case "error":
-			return <ErrorStatusMessage responseRef={responseRef} statusText={message.statusText ?? ""} />;
-		case "explanation":
-		case "suggestion":
-			return (
-				<AssistantMessage
-					fullDescriptionForStream={fullDescriptionForStream}
-					message={message}
-					onStreamComplete={onStreamComplete}
-					responseRef={responseRef}
-					streamDescription={streamDescription}
-					streamLive={streamLive}
-				/>
-			);
-		default:
-			return null;
-	}
-}
+const messageCardPropsAreEqual = (prev: MessageCardProps, next: MessageCardProps): boolean =>
+	prev.message.id === next.message.id &&
+	prev.message.kind === next.message.kind &&
+	prev.streamDescription === next.streamDescription &&
+	prev.stickyUserPrompt === next.stickyUserPrompt &&
+	prev.userPromptAnchorRef === next.userPromptAnchorRef &&
+	prev.responseRef === next.responseRef &&
+	prev.copyButtonMessageId === next.copyButtonMessageId &&
+	prev.cancelledDurationMs === next.cancelledDurationMs &&
+	prev.footerAlwaysVisible === next.footerAlwaysVisible;
+
+export const MessageCard = memo(
+	({
+		message,
+		streamDescription = false,
+		stickyUserPrompt = false,
+		userPromptAnchorRef,
+		responseRef,
+		copyButtonMessageId,
+		cancelledDurationMs,
+		footerAlwaysVisible,
+	}: MessageCardProps) => {
+		switch (message.kind) {
+			case "user":
+				return (
+					<UserMessage
+						attachments={message.attachments}
+						stickyUserPrompt={stickyUserPrompt}
+						userPromptAnchorRef={userPromptAnchorRef}
+						userText={message.userText}
+					/>
+				);
+			case "error":
+				return (
+					<ErrorStatusMessage
+						errorType={message.errorType}
+						responseRef={responseRef}
+						statusText={message.statusText}
+					/>
+				);
+			case "warning":
+				return <WarningStatusMessage responseRef={responseRef} statusText={message.statusText} />;
+			case "cancelled":
+				return <CancelledStatusMessage durationMs={cancelledDurationMs} responseRef={responseRef} />;
+			case "assistant":
+				return (
+					<AssistantMessage
+						footerAlwaysVisible={footerAlwaysVisible}
+						message={message}
+						responseRef={responseRef}
+						showCopyButton={copyButtonMessageId === message.id}
+						streamDescription={streamDescription}
+					/>
+				);
+			default:
+				return null;
+		}
+	},
+	messageCardPropsAreEqual,
+);
+MessageCard.displayName = "MessageCard";

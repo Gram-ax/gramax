@@ -4,6 +4,29 @@ import type { HTMLAttributes } from "react";
 export type CustomIcon<T extends HTMLAttributes<SVGElement> = NonNullable<unknown>> = (props: T) => JSX.Element;
 
 const customIcons = {
+	"pencil-sparkles": (props) => {
+		return (
+			<svg
+				fill="none"
+				height="1em"
+				stroke="currentColor"
+				strokeLinecap="round"
+				strokeLinejoin="round"
+				strokeWidth="2"
+				viewBox="0 0 24 24"
+				width="1em"
+				xmlns="http://www.w3.org/2000/svg"
+				{...props}
+			>
+				<path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" />
+				<path d="m15 5 4 4" />
+				<path d="M5 3v4" />
+				<path d="M7 5H3" />
+				<path d="M19 17v4" />
+				<path d="M21 19h-4" />
+			</svg>
+		);
+	},
 	"confluence cloud": (props) => {
 		return (
 			<svg xmlns="http://www.w3.org/2000/svg" {...props} viewBox="0 0 255.376 245.387">

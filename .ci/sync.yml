@@ -4,7 +4,7 @@ sync-with-github:
   tags:
     - kubernetes01-gramax
   script:
-    - ./.ci/sync/install-trufflehog.sh
-    - ./.ci/sync/sync.sh
+    - HTTPS_PROXY="${RUNNER_HTTPS_PROXY}" ./.ci/sync/install-trufflehog.sh
+    - HTTPS_PROXY="${RUNNER_HTTPS_PROXY}" ./.ci/sync/sync.sh
   rules:
     - if: '$CI_COMMIT_TAG'

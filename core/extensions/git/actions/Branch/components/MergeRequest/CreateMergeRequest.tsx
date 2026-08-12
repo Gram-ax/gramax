@@ -23,18 +23,18 @@ import { z } from "zod";
 
 interface MergeRequestModalProps {
 	useGesUsersSelect: boolean;
+	isEnabledGetUsers?: boolean;
 	sourceBranchRef: string;
 	targetBranchRef: string;
 	onSubmit: (mergeRequest: CreateMergeRequest) => void;
 	onOpen?: () => void;
 	onClose?: () => void;
-	preventSearchAndStartLoading?: boolean;
 	isLoading?: boolean;
 }
 
 const CreateMergeRequestModal = (props: MergeRequestModalProps) => {
 	const {
-		preventSearchAndStartLoading = false,
+		isEnabledGetUsers = false,
 		sourceBranchRef,
 		targetBranchRef,
 		onSubmit,
@@ -110,8 +110,8 @@ const CreateMergeRequestModal = (props: MergeRequestModalProps) => {
 											{useGesUsersSelect ? (
 												<SelectGES
 													approvers={field.value}
+													isEnabledGetUsers={isEnabledGetUsers}
 													onChange={field.onChange}
-													preventSearchAndStartLoading={preventSearchAndStartLoading}
 												/>
 											) : (
 												<SelectGitCommitAuthors

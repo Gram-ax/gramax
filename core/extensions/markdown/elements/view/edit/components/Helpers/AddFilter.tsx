@@ -1,6 +1,7 @@
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import FilterMenu from "@ext/markdown/elements/view/edit/components/Helpers/FilterMenu";
 import ViewButton from "@ext/markdown/elements/view/edit/components/Helpers/ViewButton";
+import { filterPropertyList } from "@ext/properties/logic/utils/filterPropertyList";
 import { type Property, PropertyTypes, type PropertyValue, SystemProperties } from "@ext/properties/models";
 import { type ReactNode, useCallback, useMemo } from "react";
 
@@ -48,7 +49,10 @@ const AddFilter = (props: AddFilterProps) => {
 		closeOnSelection = true,
 		filter,
 	} = props;
-	const catalogProperties = useCatalogPropsStore((state) => state.data.properties, "shallow");
+	const catalogProperties = useCatalogPropsStore(
+		(state) => state.data.properties.filter((prop) => filterPropertyList(prop)),
+		"shallow",
+	);
 	const oneValue = mode === "single";
 	const noAssignedProperties: PropertyFilter[] = useMemo(() => {
 		return catalogProperties

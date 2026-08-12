@@ -28,6 +28,7 @@ export const createPrivateParserContext = (context: ParserContext): PrivateParse
 		context.getCatalog(),
 		resourceManager,
 		context.getRepositoryProvider(),
+		context.fp,
 	);
 	gitLfsLoader.mount();
 

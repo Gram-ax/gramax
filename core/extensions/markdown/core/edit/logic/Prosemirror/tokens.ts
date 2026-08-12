@@ -121,8 +121,8 @@ export const getTokens = (context?: PrivateParserContext): { [name: string]: Par
 		},
 
 		color: colorToken,
-		"fragment-link": fragmentLinkToken,
-		"snippet-link": fragmentLinkToken,
+		"fragment-link": fragmentLinkToken(context),
+		"snippet-link": fragmentLinkToken(context),
 		strong: { mark: "strong" },
 		code_inline: { mark: "code", noCloseToken: true },
 

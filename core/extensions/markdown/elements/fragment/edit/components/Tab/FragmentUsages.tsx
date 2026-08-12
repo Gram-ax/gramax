@@ -1,5 +1,7 @@
 import GoToArticle from "@components/Actions/GoToArticle";
+import { highlightFragmentUsage } from "@components/Article/SearchHandler/ArticleSearchFragmentHander";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
+import { useRouter } from "@core/Api/useRouter";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import t from "@ext/localization/locale/translate";
@@ -31,6 +33,7 @@ const FragmentUsages = ({ fragmentId, trigger, isSubmenu }: FragmentUsagesProps)
 	const [isApiRequest, setIsApiRequest] = useState(false);
 
 	const apiUrlCreator = ApiUrlCreatorService.value;
+	const router = useRouter();
 
 	const fetchFragmentUsages = async () => {
 		setIsApiRequest(true);
@@ -49,7 +52,13 @@ const FragmentUsages = ({ fragmentId, trigger, isSubmenu }: FragmentUsagesProps)
 		else setList([]);
 	};
 
-	const onClick = () => FragmentService.closeItem();
+	const onClick = (pathname: string) => {
+		FragmentService.closeItem();
+
+		const currentPath = decodeURIComponent(router.path).replace(/^\//, "");
+		const usagePath = decodeURIComponent(pathname).replace(/^\//, "");
+		if (currentPath === usagePath) void highlightFragmentUsage(fragmentId);
+	};
 
 	const Menu = isSubmenu ? DropdownMenuSub : DropdownMenu;
 	const MenuContent = isSubmenu ? DropdownMenuSubContent : DropdownMenuContent;
@@ -72,7 +81,12 @@ const FragmentUsages = ({ fragmentId, trigger, isSubmenu }: FragmentUsagesProps)
 					<>
 						{list.map((item) => (
 							<DropdownMenuItem key={item.pathname}>
-								<GoToArticle href={item.pathname} onClick={onClick} trigger={item.title} />
+								<GoToArticle
+									href={item.pathname}
+									onClick={() => onClick(item.pathname)}
+									query={{ fragmentUsage: fragmentId }}
+									trigger={item.title}
+								/>
 							</DropdownMenuItem>
 						))}
 						{!list.length && <DropdownMenuItem disabled>{t("fragment-no-usages")}</DropdownMenuItem>}

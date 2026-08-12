@@ -1,6 +1,7 @@
-import LanguageService from "@core-ui/ContextServices/Language";
+import { getCachedSetting } from "@ext/settings/logic/cachedSettingsStore";
 import dayjs from "dayjs";
 import "dayjs/locale/ru";
+// biome-ignore lint/style/noRestrictedImports: legacy styled component, migrate to Tailwind later
 import styled from "@emotion/styled";
 import { CheckboxField } from "@ui-kit/Checkbox";
 
@@ -23,7 +24,7 @@ export const getOptimalAxisFormat = (dataLength: number, containerWidth: number)
 };
 
 export const formatDateForAxis = (date: string, format: AxisLabelFormat): string => {
-	const locale = LanguageService.currentUi();
+	const locale = getCachedSetting("general.language");
 	return dayjs(date).locale(locale).format(AXIS_DATE_FORMATS[format]);
 };
 

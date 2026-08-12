@@ -1,5 +1,5 @@
 import toggleListPrepare from "@ext/markdown/elements/list/edit/logic/toggleListPrepare";
-import TaskList from "@tiptap/extension-task-list";
+import { TaskList } from "@tiptap/extension-list";
 
 const CustomTaskList = TaskList.extend({
 	addOptions() {

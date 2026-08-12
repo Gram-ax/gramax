@@ -3,7 +3,6 @@ import type Context from "@core/Context/Context";
 import UiLanguage, { ContentLanguage } from "@ext/localization/core/model/Language";
 import AllPermission from "@ext/security/logic/Permission/AllPermission";
 import User from "@ext/security/logic/User/User";
-import Theme from "@ext/Theme/Theme";
 import CookieMock from "@ext/wordExport/tests/CookieMock";
 
 const ctx: Context = {
@@ -20,7 +19,7 @@ const ctx: Context = {
 		return UiLanguage.ru;
 	},
 	get theme() {
-		return Theme.dark;
+		return undefined;
 	},
 	get domain() {
 		return "";

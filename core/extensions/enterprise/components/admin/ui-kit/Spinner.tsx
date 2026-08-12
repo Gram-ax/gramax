@@ -20,8 +20,8 @@ interface SpinnerContentProps extends VariantProps<typeof spinnerVariants>, Vari
 
 export function Spinner({ size, show, children, className }: SpinnerContentProps) {
 	return (
-		<span className={spinnerVariants({ show })}>
-			<Icon className={cn(loaderVariants({ size }), className)} icon="loader-circle" />
+		<span className={cn(spinnerVariants({ show }), className)}>
+			<Icon className={loaderVariants({ size })} icon="loader-circle" />
 			{children}
 		</span>
 	);

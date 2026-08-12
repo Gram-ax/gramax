@@ -1,14 +1,16 @@
 use std::path::Path;
 use std::path::PathBuf;
 
+use gramaxfs::backend::close_delimiter;
+use gramaxfs::backend::open_delimiter_len;
 use gramaxfs::backend::Fs;
 use gramaxfs::DirStat;
 use serde::Serialize;
 
-use tracing::warn;
-
 use crate::error::Result;
 use crate::scan::utils::empty_object;
+use crate::scan::utils::find_docroot;
+use crate::scan::utils::read_docroot_props;
 use crate::scan::utils::yaml_to_json_or_empty;
 use crate::scan::workspace::ScanOpts;
 
@@ -18,22 +20,15 @@ pub enum NodeDto {
 	#[serde(rename_all = "camelCase")]
 	Article {
 		rel_path: PathBuf,
-		name: String,
-		m_time_ms: u128,
-		size: u64,
 		front_matter: serde_json::Value,
-		content: String,
 		parse_error: Option<String>,
 	},
 	#[serde(rename_all = "camelCase")]
 	Category {
 		rel_path: PathBuf,
 		directory: PathBuf,
-		name: String,
 		has_index: bool,
 		front_matter: serde_json::Value,
-		content: String,
-		m_time_ms: u128,
 		children: Vec<NodeDto>,
 	},
 }
@@ -41,163 +36,186 @@ pub enum NodeDto {
 #[derive(Serialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct CatalogTreeDto {
-	pub name: String,
-	pub base_path: PathBuf,
 	pub docroot_rel: Option<PathBuf>,
 	pub catalog_props: serde_json::Value,
-	pub root: NodeDto,
+	pub children: Vec<NodeDto>,
 }
 
-pub fn scan_catalog(fp: &dyn Fs, path: &Path, docroot_abs: Option<&Path>, opts: &ScanOpts) -> Result<CatalogTreeDto> {
-	let docroot_rel = docroot_abs.and_then(|p| p.strip_prefix(path).ok()).map(|p| p.to_path_buf());
+pub struct CatalogScanner<'p> {
+	fp: &'p dyn Fs,
+	path: &'p Path,
+	docroot_rel: Option<PathBuf>,
+	opts: &'p ScanOpts,
+}
 
-	let catalog_props = match docroot_abs {
-		Some(p) => match fp.read(p) {
-			Ok(bytes) => yaml_to_json_or_empty(&bytes).unwrap_or_else(|e| {
-				warn!(path = %p.display(), error = %e, "docroot yaml parse failed");
-				empty_object()
-			}),
-			Err(e) => {
-				warn!(path = %p.display(), error = ?e, "docroot read failed");
-				empty_object()
+impl<'p> CatalogScanner<'p> {
+	pub fn new(fp: &'p dyn Fs, path: &'p Path, docroot_rel: Option<&'p Path>, opts: &'p ScanOpts) -> Self {
+		let docroot_rel = match docroot_rel {
+			Some(p) => Some(p.to_path_buf()),
+			None => find_docroot(fp, path, opts).and_then(|p| p.strip_prefix(path).ok().map(|p| p.to_path_buf())),
+		};
+		Self { fp, path, docroot_rel, opts }
+	}
+
+	pub fn scan(&self) -> Result<CatalogTreeDto> {
+		let _otel = gramaxfs::suppress_orphan_telemetry();
+		let catalog_props = match self.docroot_rel.as_ref() {
+			Some(rel) => read_docroot_props(self.fp, Some(&self.path.join(rel))),
+			None => empty_object(),
+		};
+		let children = self.walk_root();
+
+		Ok(CatalogTreeDto {
+			docroot_rel: self.docroot_rel.clone(),
+			catalog_props,
+			children,
+		})
+	}
+
+	fn walk_root(&self) -> Vec<NodeDto> {
+		let root_dir = self.root_dir();
+		let (_index_entry, articles, subdirs) = self.split_dir_entries(&root_dir);
+		self.collect_children(&root_dir, &articles, &subdirs)
+	}
+
+	fn root_dir(&self) -> PathBuf {
+		match self.docroot_rel.as_ref() {
+			Some(rel) => self
+				.path
+				.join(rel)
+				.parent()
+				.map(Path::to_path_buf)
+				.unwrap_or_else(|| self.path.to_path_buf()),
+			None => self.path.to_path_buf(),
+		}
+	}
+
+	fn walk_dir(&self, dir: &Path) -> Option<NodeDto> {
+		let (index_entry, articles, subdirs) = self.split_dir_entries(dir);
+		let children = self.collect_children(dir, &articles, &subdirs);
+
+		let has_index = index_entry.is_some();
+		if !has_index && children.is_empty() {
+			return None;
+		}
+
+		let front_matter = match index_entry.as_ref() {
+			Some(e) => self.read_index_frontmatter(&dir.join(&e.name)),
+			None => empty_object(),
+		};
+
+		let directory = rel(self.path, dir);
+		let rel_path = match index_entry.as_ref() {
+			Some(e) => rel(self.path, &dir.join(&e.name)),
+			None => directory.clone(),
+		};
+
+		Some(NodeDto::Category {
+			rel_path,
+			directory,
+			has_index,
+			front_matter,
+			children,
+		})
+	}
+
+	fn split_dir_entries(&self, dir: &Path) -> (Option<DirStat>, Vec<DirStat>, Vec<DirStat>) {
+		let entries = self.fp.read_dir_stats(dir).unwrap_or_default();
+
+		let mut articles: Vec<DirStat> = Vec::new();
+		let mut subdirs: Vec<DirStat> = Vec::new();
+		let mut index_entry: Option<DirStat> = None;
+		let mut index_priority: usize = usize::MAX;
+
+		for entry in entries {
+			if self.opts.is_excluded(&entry.name) {
+				continue;
 			}
-		},
-		None => empty_object(),
-	};
-
-	let name = path.file_name().map(|s| s.to_string_lossy().into_owned()).unwrap_or_default();
-	let root = walk_dir(fp, path, path, opts);
-
-	Ok(CatalogTreeDto {
-		name,
-		base_path: path.to_path_buf(),
-		docroot_rel,
-		catalog_props,
-		root,
-	})
-}
-
-fn walk_dir(fp: &dyn Fs, base: &Path, dir: &Path, opts: &ScanOpts) -> NodeDto {
-	let entries = fp.read_dir_stats(dir).unwrap_or_default();
-
-	let mut articles: Vec<DirStat> = Vec::new();
-	let mut subdirs: Vec<DirStat> = Vec::new();
-	let mut index_entry: Option<DirStat> = None;
-	let mut index_priority: usize = usize::MAX;
-
-	for entry in entries {
-		if opts.is_excluded(&entry.name) {
-			continue;
-		}
-		if opts.docroot_filenames.iter().any(|n| n == &entry.name) {
-			continue;
-		}
-		if entry.stat.is_file() {
-			if let Some(p) = opts.category_index_filename.iter().position(|n| n == &entry.name) {
-				if p < index_priority {
-					index_priority = p;
-					index_entry = Some(entry);
+			if self.opts.docroot_filenames.iter().any(|n| n == &entry.name) {
+				continue;
+			}
+			if entry.stat.is_file() {
+				if let Some(p) = self.opts.category_index_filename.iter().position(|n| n == &entry.name) {
+					if p < index_priority {
+						index_priority = p;
+						index_entry = Some(entry);
+					}
+					continue;
+				}
+				if is_markdown(&entry.name) {
+					articles.push(entry);
 				}
 				continue;
 			}
-			if is_markdown(&entry.name) {
-				articles.push(entry);
+			if entry.stat.is_dir() {
+				subdirs.push(entry);
 			}
-			continue;
 		}
-		if entry.stat.is_dir() {
-			subdirs.push(entry);
-		}
+
+		articles.sort_by(|a, b| a.name.cmp(&b.name));
+		subdirs.sort_by(|a, b| a.name.cmp(&b.name));
+
+		(index_entry, articles, subdirs)
 	}
 
-	articles.sort_by(|a, b| a.name.cmp(&b.name));
-	subdirs.sort_by(|a, b| a.name.cmp(&b.name));
+	#[cfg(not(target_family = "wasm"))]
+	fn collect_children(&self, dir: &Path, articles: &[DirStat], subdirs: &[DirStat]) -> Vec<NodeDto> {
+		use rayon::prelude::*;
 
-	let children = collect_children(fp, base, dir, &articles, &subdirs, opts);
+		let articles_task = || -> Vec<NodeDto> {
+			articles
+				.par_iter()
+				.filter_map(|e| {
+					let _otel = gramaxfs::suppress_orphan_telemetry();
+					self.read_article(&dir.join(&e.name))
+				})
+				.collect()
+		};
 
-	let has_index = index_entry.is_some();
-	let (front_matter, content, m_time_ms) = match index_entry.as_ref() {
-		Some(e) => read_index(fp, &dir.join(&e.name)),
-		None => (empty_object(), String::new(), 0),
-	};
+		let subdirs_task = || -> Vec<NodeDto> {
+			subdirs
+				.par_iter()
+				.filter_map(|e| {
+					let _otel = gramaxfs::suppress_orphan_telemetry();
+					self.walk_dir(&dir.join(&e.name))
+				})
+				.collect()
+		};
 
-	let directory = rel(base, dir);
-	let rel_path = match index_entry.as_ref() {
-		Some(e) => rel(base, &dir.join(&e.name)),
-		None => directory.clone(),
-	};
-	let name = dir.file_name().map(|s| s.to_string_lossy().into_owned()).unwrap_or_default();
+		let (article_results, subdir_results) = rayon::join(articles_task, subdirs_task);
 
-	NodeDto::Category {
-		rel_path,
-		directory,
-		name,
-		has_index,
-		front_matter,
-		content,
-		m_time_ms,
-		children,
+		let mut children: Vec<NodeDto> = Vec::with_capacity(article_results.len() + subdir_results.len());
+		children.extend(article_results);
+		children.extend(subdir_results);
+		children
 	}
-}
 
-#[cfg(not(target_family = "wasm"))]
-fn collect_children(fp: &dyn Fs, base: &Path, dir: &Path, articles: &[DirStat], subdirs: &[DirStat], opts: &ScanOpts) -> Vec<NodeDto> {
-	use rayon::prelude::*;
+	#[cfg(target_family = "wasm")]
+	fn collect_children(&self, dir: &Path, articles: &[DirStat], subdirs: &[DirStat]) -> Vec<NodeDto> {
+		let mut children: Vec<NodeDto> = Vec::with_capacity(articles.len() + subdirs.len());
+		children.extend(articles.iter().filter_map(|e| self.read_article(&dir.join(&e.name))));
+		children.extend(subdirs.iter().filter_map(|e| self.walk_dir(&dir.join(&e.name))));
+		children
+	}
 
-	let articles_task = || -> Vec<NodeDto> {
-		articles
-			.par_iter()
-			.filter_map(|e| {
-				let p = dir.join(&e.name);
-				read_article(fp, base, &p, e)
-			})
-			.collect()
-	};
+	fn read_index_frontmatter(&self, path: &Path) -> serde_json::Value {
+		let bytes = match self.fp.read_frontmatter(path) {
+			Ok(b) => b,
+			Err(_) => return empty_object(),
+		};
+		parse_frontmatter(&bytes).0
+	}
 
-	let subdirs_task = || -> Vec<NodeDto> { subdirs.par_iter().map(|e| walk_dir(fp, base, &dir.join(&e.name), opts)).collect() };
+	fn read_article(&self, path: &Path) -> Option<NodeDto> {
+		let bytes = self.fp.read_frontmatter(path).ok()?;
+		let (front_matter, parse_error) = parse_frontmatter(&bytes);
 
-	let (article_results, subdir_results) = rayon::join(articles_task, subdirs_task);
-
-	let mut children: Vec<NodeDto> = Vec::with_capacity(article_results.len() + subdir_results.len());
-	children.extend(article_results);
-	children.extend(subdir_results);
-	children
-}
-
-#[cfg(target_family = "wasm")]
-fn collect_children(fp: &dyn Fs, base: &Path, dir: &Path, articles: &[DirStat], subdirs: &[DirStat], opts: &ScanOpts) -> Vec<NodeDto> {
-	let mut children: Vec<NodeDto> = Vec::with_capacity(articles.len() + subdirs.len());
-	children.extend(articles.iter().filter_map(|e| {
-		let p = dir.join(&e.name);
-		read_article(fp, base, &p, e)
-	}));
-	children.extend(subdirs.iter().map(|e| walk_dir(fp, base, &dir.join(&e.name), opts)));
-	children
-}
-
-fn read_index(fp: &dyn Fs, path: &Path) -> (serde_json::Value, String, u128) {
-	let bytes = match fp.read(path) {
-		Ok(b) => b,
-		Err(_) => return (empty_object(), String::new(), 0),
-	};
-	let m_time_ms = fp.stat(path, false).ok().map(|s| s.modified_ms()).unwrap_or(0);
-	let (fm, content, _err) = split_frontmatter(&bytes);
-	(fm, content, m_time_ms)
-}
-
-fn read_article(fp: &dyn Fs, base: &Path, path: &Path, entry: &DirStat) -> Option<NodeDto> {
-	let bytes = fp.read_frontmatter(path).ok()?;
-	let (front_matter, _, parse_error) = split_frontmatter(&bytes);
-
-	Some(NodeDto::Article {
-		rel_path: rel(base, path),
-		name: entry.name.clone(),
-		m_time_ms: entry.stat.modified_ms(),
-		size: entry.stat.size(),
-		front_matter,
-		content: String::new(),
-		parse_error,
-	})
+		Some(NodeDto::Article {
+			rel_path: rel(self.path, path),
+			front_matter,
+			parse_error,
+		})
+	}
 }
 
 fn rel(base: &Path, path: &Path) -> PathBuf {
@@ -208,31 +226,18 @@ fn is_markdown(name: &str) -> bool {
 	name.ends_with(".md") || name.ends_with(".markdown")
 }
 
-/// Splits `---\n<yaml>\n---\n<body>`. Returns ({}, content, None) if no frontmatter.
-fn split_frontmatter(bytes: &[u8]) -> (serde_json::Value, String, Option<String>) {
-	let text = match std::str::from_utf8(bytes) {
-		Ok(s) => s,
-		Err(_) => return (empty_object(), String::new(), Some("invalid utf-8".into())),
+/// Parses bytes of a frontmatter region as returned by `Fs::read_frontmatter`.
+/// Returns `({}, None)` for empty/missing frontmatter and `({}, Some(err))` for malformed YAML
+/// or unterminated fences. Tolerates trailing whitespace on `---` delimiter lines (gray-matter parity).
+fn parse_frontmatter(bytes: &[u8]) -> (serde_json::Value, Option<String>) {
+	let Some(open) = open_delimiter_len(bytes) else {
+		return (empty_object(), None);
 	};
-
-	let stripped = text.strip_prefix("---\n").or_else(|| text.strip_prefix("---\r\n"));
-	let Some(rest) = stripped else {
-		return (empty_object(), text.trim().to_string(), None);
+	let Some((yaml_end, _)) = close_delimiter(&bytes[open..]) else {
+		return (empty_object(), Some("unterminated frontmatter".into()));
 	};
-
-	let end = rest.find("\n---\n").or_else(|| rest.find("\n---\r\n"));
-	let Some(end) = end else {
-		return (empty_object(), text.trim().to_string(), Some("unterminated frontmatter".into()));
-	};
-
-	let yaml_part = &rest[..end];
-	let body_start = rest[end..].find('\n').map(|i| end + i + 1).unwrap_or(rest.len());
-	let body = &rest[body_start..];
-
-	let fm = match yaml_to_json_or_empty(yaml_part.as_bytes()) {
-		Ok(v) => v,
-		Err(e) => return (empty_object(), body.trim().to_string(), Some(e.to_string())),
-	};
-
-	(fm, body.trim().to_string(), None)
+	match yaml_to_json_or_empty(&bytes[open..open + yaml_end]) {
+		Ok(v) => (v, None),
+		Err(e) => (empty_object(), Some(e.to_string())),
+	}
 }

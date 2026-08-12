@@ -7,9 +7,9 @@ export const resolveExportScopeProperty = (
 	catalogProperties: Property[],
 	articleProperties: PropertyValue[],
 	bind: string,
-): { property: Property; scope: PropertyScope } => {
+): { property: Property; scope: PropertyScope; exists: boolean } => {
 	const catalogViewID = catalog?.props?.resolvedView?.id;
-	const catalogProperty = catalogProperties.find((p) => p.id === bind);
+	const catalogProperty = catalogProperties?.find((p) => p.id === bind);
 	if (!catalogProperty) return;
 
 	if (catalogViewID) {
@@ -18,6 +18,7 @@ export const resolveExportScopeProperty = (
 		return {
 			property: { ...catalogProperty, value: viewProperty?.value },
 			scope: "catalog-view",
+			exists: !!viewProperty,
 		};
 	}
 
@@ -25,5 +26,6 @@ export const resolveExportScopeProperty = (
 	return {
 		property: { ...catalogProperty, value: articleProperty?.value },
 		scope: "article",
+		exists: !!articleProperty,
 	};
 };

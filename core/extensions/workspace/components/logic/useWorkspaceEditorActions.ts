@@ -29,6 +29,7 @@ export const useWorkspaceEditorActions = (initialWorkspace: ClientWorkspaceConfi
 
 	const [originalProps, setOriginalProps] = useState<ClientWorkspaceConfig>({ ...initialWorkspace });
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: needed
 	const setOpen = useCallback(
 		(v: boolean) => {
 			if (v) setOriginalProps({ ...initialWorkspace });
@@ -43,8 +44,11 @@ export const useWorkspaceEditorActions = (initialWorkspace: ClientWorkspaceConfi
 		setDeleteInProgress(true);
 		clearData();
 		await FetchService.fetch(apiUrlCreator.removeWorkspace(originalProps.path));
-		await refreshPage();
+		// Close the modal before refreshing: the refresh reloads page data and
+		// switches the app to the next workspace, which would otherwise re-render
+		// the still-open modal on that workspace instead of dismissing it.
 		closeCallback();
+		await refreshPage();
 	};
 
 	const onSubmit = async (
@@ -53,8 +57,10 @@ export const useWorkspaceEditorActions = (initialWorkspace: ClientWorkspaceConfi
 	) => {
 		if (deleteInProgress) return;
 
+		const { settings: _settings, ...workspaceProps } = newProps;
+
 		clearData();
-		await FetchService.fetch(apiUrlCreator.editWorkspace(), JSON.stringify(newProps));
+		await FetchService.fetch(apiUrlCreator.editWorkspace(), JSON.stringify(workspaceProps));
 		await confirmLogo();
 		await confirmStyle();
 		await refreshPage();

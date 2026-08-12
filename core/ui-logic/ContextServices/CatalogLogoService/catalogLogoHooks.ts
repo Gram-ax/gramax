@@ -4,16 +4,17 @@ import type Url from "@core-ui/ApiServices/Types/Url";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import useWatch, { useWatchClient } from "@core-ui/hooks/useWatch";
 import { resolveFileKind } from "@core-ui/utils/resolveFileKind";
-import ThemeService from "@ext/Theme/components/ThemeService";
+import { useSetting } from "@ext/settings/logic/hooks";
 import Theme from "@ext/Theme/Theme";
 import { useCallback, useRef, useState } from "react";
+
+export type CatalogLogo = { iconCode: string; iconColor?: string } | { emoji: string } | { src: string };
 
 const useCatalogLogoManager = (catalogPath: string, theme: Theme) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const [logo, setLogo] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	const getLogo = useCallback(async () => {
 		setIsLoading(true);
 		const url = apiUrlCreator.getLogoUrl(catalogPath, theme, true);
@@ -83,25 +84,30 @@ export const useCatalogLogo = (catalogPath?: string) => {
 };
 
 export const useGetCatalogLogoSrc = (catalogName: string, deeps = []) => {
-	const theme = ThemeService.value;
+	const [theme] = useSetting("general.theme");
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const useImage = resolveModule("useImage");
-	const [isExist, setIsExist] = useState(false);
 	const [urlToFetch, setUrlToFetch] = useState<Url>();
+	const [logo, setLogo] = useState<CatalogLogo>(null);
 	const activeRequestId = useRef(0);
 
-	const getLogoUrlForTheme = useCallback(
-		async (themeToCheck: Theme) => {
+	const getLogoForTheme = useCallback(
+		async (
+			themeToCheck: Theme,
+		): Promise<{ url: Url; iconCode?: string; iconColor?: string; emoji?: string } | null> => {
 			if (!catalogName) return null;
 
 			const existUrl = apiUrlCreator.catalogLogoExist(catalogName, themeToCheck);
 			const res = await FetchService.fetch(existUrl);
 			if (!res.ok || !res?.body) return null;
 
-			const data: { isExist: boolean } = await res.json();
-			return data.isExist ? apiUrlCreator.getLogoUrl(catalogName, themeToCheck, true) : null;
+			const data: { isExist: boolean; iconCode?: string; iconColor?: string; emoji?: string } = await res.json();
+			if (!data.isExist) return null;
+			if (data.iconCode) return { url: null, iconCode: data.iconCode, iconColor: data.iconColor };
+			if (data.emoji) return { url: null, emoji: data.emoji };
+			return { url: apiUrlCreator.getLogoUrl(catalogName, themeToCheck, true) };
 		},
-		[apiUrlCreator, catalogName],
+		[catalogName],
 	);
 
 	useWatchClient(async () => {
@@ -110,37 +116,33 @@ export const useGetCatalogLogoSrc = (catalogName: string, deeps = []) => {
 
 		if (!catalogName) {
 			if (requestId === activeRequestId.current) {
-				setIsExist(false);
+				setLogo(null);
 				setUrlToFetch(undefined);
 			}
 			return;
 		}
 
-		const currentThemeLogo = await getLogoUrlForTheme(theme);
+		const found =
+			(await getLogoForTheme(theme)) ?? (theme !== Theme.light ? await getLogoForTheme(Theme.light) : null);
+
 		if (requestId !== activeRequestId.current) return;
 
-		if (currentThemeLogo) {
-			setIsExist(true);
-			setUrlToFetch(currentThemeLogo);
-			return;
+		if (!found) {
+			setLogo(null);
+			setUrlToFetch(undefined);
+		} else if (found.iconCode) {
+			setLogo({ iconCode: found.iconCode, iconColor: found.iconColor });
+			setUrlToFetch(undefined);
+		} else if (found.emoji) {
+			setLogo({ emoji: found.emoji });
+			setUrlToFetch(undefined);
+		} else {
+			setLogo(null);
+			setUrlToFetch(found.url);
 		}
-
-		if (theme !== Theme.light) {
-			const fallbackLogo = await getLogoUrlForTheme(Theme.light);
-			if (requestId !== activeRequestId.current) return;
-
-			if (fallbackLogo) {
-				setIsExist(true);
-				setUrlToFetch(fallbackLogo);
-				return;
-			}
-		}
-
-		setIsExist(false);
-		setUrlToFetch(undefined);
-	}, [theme, catalogName, ...deeps, getLogoUrlForTheme]);
+	}, [theme, catalogName, ...deeps, getLogoForTheme]);
 
 	const src = useImage(urlToFetch, deeps);
 
-	return { isExist, src };
+	return { logo: logo ?? (src ? { src } : null) } as { logo: CatalogLogo };
 };

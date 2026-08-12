@@ -1,8 +1,7 @@
 import Icon from "@components/Atoms/Icon";
-import { classNames } from "@components/libs/classNames";
-import styled from "@emotion/styled";
+import { cn } from "@core-ui/utils/cn";
 import { HELPERS_LEFT, VERTICAL_TOP_OFFSET } from "@ext/markdown/elements/table/edit/components/Helpers/consts";
-import { type MouseEvent, type RefObject, useState } from "react";
+import { type CSSProperties, type MouseEvent, type RefObject, useState } from "react";
 
 interface PlusActionsProps {
 	onClick: (index) => void;
@@ -17,24 +16,6 @@ type HoveredData = {
 	width: string;
 	height: string;
 };
-
-const Line = styled.div`
-	position: absolute;
-	top: 1em;
-	opacity: 0.13;
-	background-color: var(--color-table-action-add);
-	pointer-events: none;
-
-	&.vertical {
-		top: 5px;
-		left: 1em;
-	}
-
-	&.horizontal {
-		top: 1em;
-		left: 0.4em;
-	}
-`;
 
 const PlusActions = (props: PlusActionsProps) => {
 	const { index, className, vertical, onClick, dataQa, tableRef } = props;
@@ -64,89 +45,43 @@ const PlusActions = (props: PlusActionsProps) => {
 
 	return (
 		<div
-			className={classNames(className, { vertical: vertical, horizontal: !vertical }, ["hidden"])}
+			className={cn(
+				"group relative h-4 w-4 items-center justify-center",
+				"[&.hidden]:pointer-events-none [&_i]:flex [&_i]:items-center [&_i]:justify-center [&_i]:text-[11px] [&_svg]:[stroke-width:0.2rem]",
+				className,
+				vertical
+					? `left-[var(--helpers-left)] top-[calc(var(--vertical-top-offset)*-1)]`
+					: `right-[calc(-100%+var(--helpers-left))]`,
+				"z-10",
+				"!hidden",
+				"flex",
+			)}
 			data-qa={dataQa}
+			data-table-plus-action={vertical ? "row" : "column"}
 			data-testid={dataQa}
 			onMouseEnter={preOnMouseEnter}
 			onMouseLeave={preOnMouseLeave}
+			style={{ "--helpers-left": HELPERS_LEFT, "--vertical-top-offset": VERTICAL_TOP_OFFSET } as CSSProperties}
 		>
 			{hoveredData && (
-				<Line
-					className={vertical ? "vertical" : "horizontal"}
+				<div
+					className={cn(
+						"absolute pointer-events-none bg-[var(--color-table-action-add)] opacity-[0.13]",
+						vertical ? "left-[1em] top-[5px]" : "left-[0.4em] top-[1em]",
+					)}
+					data-table-plus-preview={vertical ? "row" : "column"}
 					style={{ width: hoveredData.width, height: hoveredData.height }}
 				/>
 			)}
-			<div className="plus-actions-icon" onClick={preOnClick}>
+			<div
+				className="z-[1000] hidden h-0 w-0 cursor-pointer items-center justify-center rounded-[var(--radius-full)] border border-[var(--color-table-plus-border)] bg-[var(--color-table-plus-bg)] p-[0.44rem] text-[var(--color-article-text)] [stroke-width:2rem] pointer-events-none group-hover:!flex group-hover:pointer-events-auto"
+				onClick={preOnClick}
+			>
 				<Icon code="plus" />
 			</div>
-			<span className="plus-actions-circle" />
+			<span className="flex h-[3px] w-[3px] rounded-[var(--radius-full)] bg-[var(--color-line)] group-hover:hidden" />
 		</div>
 	);
 };
 
-export default styled(PlusActions)`
-	position: relative;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	width: 1rem;
-	height: 1rem;
-
-	&.hidden {
-		pointer-events: none;
-	}
-
-	.plus-actions-icon {
-		display: none;
-		align-items: center;
-		cursor: pointer;
-		color: var(--color-article-text);
-		background-color: var(--color-table-plus-bg);
-		border: 1px solid var(--color-table-plus-border);
-		border-radius: var(--radius-full);
-		stroke-width: 2rem;
-		justify-content: center;
-		padding: 0.44rem;
-		width: 0;
-		height: 0;
-		z-index: 1000;
-		pointer-events: none;
-	}
-
-	.plus-actions-circle {
-		display: flex;
-		width: 3px;
-		height: 3px;
-		border-radius: var(--radius-full);
-		background-color: var(--color-line);
-	}
-
-	&:hover .plus-actions-icon {
-		display: flex;
-		pointer-events: auto;
-	}
-
-	&:hover .plus-actions-circle {
-		display: none;
-	}
-
-	i {
-		font-size: 11px;
-		display: flex;
-		justify-content: center;
-		align-items: center;
-	}
-
-	svg {
-		stroke-width: 0.2rem;
-	}
-
-	&.horizontal {
-		right: calc(-100% + ${HELPERS_LEFT});
-	}
-
-	&.vertical {
-		left: ${HELPERS_LEFT};
-		top: -${VERTICAL_TOP_OFFSET};
-	}
-`;
+export default PlusActions;

@@ -1,17 +1,30 @@
 /** biome-ignore-all lint/style/useNamingConvention: expected */
 import { act, renderHook } from "@testing-library/react";
-import useType from "./useType";
+import useType, { getFilteredActions } from "./useType";
+
+const makeNodeRange = (typeName: string, attrs: Record<string, unknown> = {}) => ({
+	node: { type: { name: typeName }, attrs, marks: [], nodeSize: 1 },
+	from: 0,
+	to: 1,
+});
 
 const makeNode = (typeName: string, marks: { type: { name: string }; attrs?: Record<string, unknown> }[] = []) => ({
 	type: { name: typeName },
 	marks,
 	attrs: {},
+	nodeSize: 1,
 });
 
-const makeDoc = (nodes: ReturnType<typeof makeNode>[]) => ({
-	nodesBetween: (_from: number, _to: number, cb: (node: ReturnType<typeof makeNode>) => void) => {
-		nodes.forEach((n) => cb(n));
+const makeDoc = (
+	nodes: ReturnType<typeof makeNode>[],
+	resolvedMarks: { type: { name: string }; attrs?: Record<string, unknown> }[] = [],
+) => ({
+	nodesBetween: (_from: number, _to: number, cb: (node: ReturnType<typeof makeNode>, pos: number) => void) => {
+		nodes.forEach((n, i) => cb(n, i));
 	},
+	resolve: (_pos: number) => ({
+		marks: () => resolvedMarks,
+	}),
 });
 
 const makeSelection = (
@@ -85,6 +98,33 @@ const makeEditor = (state: ReturnType<typeof makeEditorState>) => {
 	return editor;
 };
 
+describe("getFilteredActions", () => {
+	test("excludes system node types", () => {
+		const systemTypes = ["doc", "text", "listItem", "taskItem", "tableHeader", "tableCell", "tableRow"];
+		const ranges = systemTypes.map((t) => makeNodeRange(t)) as never[];
+		expect(getFilteredActions(ranges)).toEqual([]);
+	});
+
+	test("includes non-system node types", () => {
+		const ranges = [makeNodeRange("heading"), makeNodeRange("paragraph"), makeNodeRange("table")] as never[];
+		expect(getFilteredActions(ranges)).toEqual(["heading", "paragraph", "table"]);
+	});
+
+	test("filters mixed list keeping only non-system nodes", () => {
+		const ranges = [
+			makeNodeRange("doc"),
+			makeNodeRange("heading"),
+			makeNodeRange("listItem"),
+			makeNodeRange("note"),
+		] as never[];
+		expect(getFilteredActions(ranges)).toEqual(["heading", "note"]);
+	});
+
+	test("returns empty array for empty input", () => {
+		expect(getFilteredActions([])).toEqual([]);
+	});
+});
+
 describe("useType", () => {
 	test("initial state — empty marks and actions", () => {
 		const editor = makeEditor(makeEditorState());
@@ -94,7 +134,7 @@ describe("useType", () => {
 		expect(result.current.actions).toEqual([]);
 	});
 
-	test("returns active marks after selectionUpdate", () => {
+	test("returns active marks after transaction", () => {
 		const strongMark = { type: { name: "strong" }, attrs: {} };
 		const selection = makeSelection({
 			empty: false,
@@ -109,7 +149,7 @@ describe("useType", () => {
 		const { result } = renderHook(() => useType(editor as never));
 
 		act(() => {
-			editor._emit("selectionUpdate");
+			editor._emit("transaction");
 		});
 
 		expect(result.current.marks).toContain("strong");
@@ -127,7 +167,7 @@ describe("useType", () => {
 		const { result } = renderHook(() => useType(editor as never));
 
 		act(() => {
-			editor._emit("selectionUpdate");
+			editor._emit("transaction");
 		});
 		expect(result.current.marks).toContain("strong");
 
@@ -136,18 +176,17 @@ describe("useType", () => {
 		const docEmpty = makeDoc([makeNode("paragraph")]);
 		editor.state = makeEditorState({ selection: selectionEmpty, doc: docEmpty } as never);
 		act(() => {
-			editor._emit("selectionUpdate");
+			editor._emit("transaction");
 		});
 
 		expect(result.current.marks).not.toContain("strong");
 	});
 
-	test("subscribes to update and selectionUpdate on mount", () => {
+	test("subscribes to transaction on mount", () => {
 		const editor = makeEditor(makeEditorState());
 		renderHook(() => useType(editor as never));
 
-		expect(editor.on).toHaveBeenCalledWith("update", expect.any(Function));
-		expect(editor.on).toHaveBeenCalledWith("selectionUpdate", expect.any(Function));
+		expect(editor.on).toHaveBeenCalledWith("transaction", expect.any(Function));
 	});
 
 	test("unsubscribes on unmount", () => {
@@ -156,8 +195,7 @@ describe("useType", () => {
 
 		unmount();
 
-		expect(editor.off).toHaveBeenCalledWith("selectionUpdate", expect.any(Function));
-		expect(editor.off).toHaveBeenCalledWith("update", expect.any(Function));
+		expect(editor.off).toHaveBeenCalledWith("transaction", expect.any(Function));
 	});
 
 	test("does not update state if nothing has changed", () => {
@@ -165,13 +203,13 @@ describe("useType", () => {
 		const { result } = renderHook(() => useType(editor as never));
 
 		act(() => {
-			editor._emit("selectionUpdate");
+			editor._emit("transaction");
 		});
 
 		const stateAfterFirst = result.current;
 
 		act(() => {
-			editor._emit("selectionUpdate");
+			editor._emit("transaction");
 		});
 
 		expect(result.current).toBe(stateAfterFirst);
@@ -190,10 +228,65 @@ describe("useType", () => {
 		const { result } = renderHook(() => useType(editor as never));
 
 		act(() => {
-			editor._emit("selectionUpdate");
+			editor._emit("transaction");
 		});
 
 		expect(result.current.marks).toContain("strong");
 		expect(result.current.marks).toContain("em");
+	});
+
+	test("returns heading level in attrs", () => {
+		const selection = makeSelection({ empty: false, from: 0, to: 5 });
+		const headingNode = { type: { name: "heading" }, marks: [], attrs: { level: 2 }, nodeSize: 1, isText: false };
+		const doc = {
+			nodesBetween: (_f: number, _t: number, cb: (n: typeof headingNode, pos: number) => void) =>
+				cb(headingNode, 0),
+			resolve: () => ({ marks: () => [] }),
+		};
+		const editor = makeEditor(makeEditorState({ selection, doc } as never));
+		const { result } = renderHook(() => useType(editor as never));
+
+		expect(result.current.attrs.level).toBe(2);
+	});
+
+	test("returns note type in attrs", () => {
+		const selection = makeSelection({ empty: false, from: 0, to: 5 });
+		const noteNode = { type: { name: "note" }, marks: [], attrs: { type: "info" }, nodeSize: 1, isText: false };
+		const doc = {
+			nodesBetween: (_f: number, _t: number, cb: (n: typeof noteNode, pos: number) => void) => cb(noteNode, 0),
+			resolve: () => ({ marks: () => [] }),
+		};
+		const editor = makeEditor(makeEditorState({ selection, doc } as never));
+		const { result } = renderHook(() => useType(editor as never));
+
+		expect(result.current.attrs.type).toBe("info");
+	});
+
+	test("returns empty state when editor.state is absent", () => {
+		const editor = { state: null, on: jest.fn(), off: jest.fn() };
+		const { result } = renderHook(() => useType(editor as never));
+
+		expect(result.current.marks).toEqual([]);
+		expect(result.current.actions).toEqual([]);
+	});
+
+	test("returns actions for non-system nodes in selection", () => {
+		const selection = makeSelection({ empty: false, from: 0, to: 5 });
+		const doc = makeDoc([makeNode("heading"), makeNode("paragraph"), makeNode("listItem")]);
+		const editor = makeEditor(makeEditorState({ selection, doc } as never));
+		const { result } = renderHook(() => useType(editor as never));
+
+		expect(result.current.actions).toContain("heading");
+		expect(result.current.actions).toContain("paragraph");
+		expect(result.current.actions).not.toContain("listItem");
+	});
+
+	test("exposes current selection in state", () => {
+		const selection = makeSelection({ from: 3, to: 7, empty: false });
+		const doc = makeDoc([]);
+		const editor = makeEditor(makeEditorState({ selection, doc } as never));
+		const { result } = renderHook(() => useType(editor as never));
+
+		expect(result.current.selection).toBe(selection);
 	});
 });

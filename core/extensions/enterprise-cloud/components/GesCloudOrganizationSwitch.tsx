@@ -1,9 +1,13 @@
 import { topMenuItemClassName } from "@components/HomePage/TopMenu/const";
 import { classNames } from "@components/libs/classNames";
+import { useRouter } from "@core/Api/useRouter";
+import FetchService from "@core-ui/ApiServices/FetchService";
+import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import isMobileService from "@core-ui/ContextServices/isMobileService";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
-import { relocateToUrl } from "@ext/enterprise/components/SingInOut/hooks/useSignIn";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
+import initEnterprise from "@ext/enterprise/utils/initEnterprise";
 import type { OrganizationInfo } from "@ext/enterprise-cloud/GesCloudApi";
 import { useGesCloudOrganizationStore } from "@ext/enterprise-cloud/ui-logic/stores/GesCloudOrganizationStore/GesCloudOrganizationStore.provider";
 import t from "@ext/localization/locale/translate";
@@ -17,16 +21,23 @@ import {
 } from "@ui-kit/Dropdown";
 import { Icon } from "@ui-kit/Icon";
 import { MenuItemInteractiveTemplate } from "@ui-kit/MenuItem";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 interface OrganizationListProps {
 	setDropdownOpen: (open: boolean) => void;
 	organizations: OrganizationInfo[];
 	isLoading: boolean;
 	error: string | null;
+	onOrganizationSelect: (organization: OrganizationInfo) => void;
 }
 
-const OrganizationList = ({ setDropdownOpen, organizations, isLoading, error }: OrganizationListProps) => {
+const OrganizationList = ({
+	setDropdownOpen,
+	organizations,
+	isLoading,
+	error,
+	onOrganizationSelect,
+}: OrganizationListProps) => {
 	if (isLoading) {
 		return (
 			<DropdownMenuItem disabled>
@@ -79,7 +90,7 @@ const OrganizationList = ({ setDropdownOpen, organizations, isLoading, error }: 
 					key={organization.id}
 					onClick={() => {
 						setDropdownOpen(false);
-						relocateToUrl(organization.url);
+						onOrganizationSelect(organization);
 					}}
 				>
 					<Icon icon="building" />
@@ -145,6 +156,26 @@ export const GesCloudSwitchOrganization = () => {
 	}));
 	const currentOrganization = organizations.find((org) => org.current);
 
+	const { environment } = usePlatform();
+	const apiUrlCreator = ApiUrlCreatorService.value;
+	const router = useRouter();
+
+	const onOrganizationSelect = useCallback(
+		(organization: OrganizationInfo) => {
+			FetchService.fetch(
+				apiUrlCreator.switchGesCloudOrganization(organization.apiUrl, organization.redirectUrl),
+			).then(() => {
+				if (environment === "tauri")
+					void initEnterprise(
+						router,
+						apiUrlCreator.getAddEnterpriseCloudWorkspaceUrl(),
+						apiUrlCreator.getCloneEnterpriseCatalogsUrl(),
+					);
+			});
+		},
+		[apiUrlCreator, environment, router],
+	);
+
 	return (
 		<DropdownMenu onOpenChange={setDropdownOpen} open={dropdownOpen}>
 			<SwitchWorkspaceTrigger currentOrganization={currentOrganization} isLoading={isLoading} />
@@ -153,6 +184,7 @@ export const GesCloudSwitchOrganization = () => {
 					<OrganizationList
 						error={error}
 						isLoading={isLoading}
+						onOrganizationSelect={onOrganizationSelect}
 						organizations={organizations}
 						setDropdownOpen={setDropdownOpen}
 					/>

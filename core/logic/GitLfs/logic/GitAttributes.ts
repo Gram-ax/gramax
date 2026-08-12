@@ -1,7 +1,6 @@
 import type FileProvider from "@core/FileProvider/model/FileProvider";
 import Path from "@core/FileProvider/Path/Path";
 import { parseGitAttributes, serializeGitAttributes } from "@core/GitLfs/logic/gitAttributesParsing";
-import type WorkdirRepository from "@ext/git/core/Repository/WorkdirRepository";
 import type { ToSpan } from "@ext/loggers/opentelemetry";
 
 type GitAttributesMap = Map<string, { attributes: string[]; disabled: boolean }>;
@@ -17,8 +16,8 @@ export default class GitAttributes implements ToSpan {
 		private _path: Path,
 	) {}
 
-	static async parse(repo: WorkdirRepository, fp: FileProvider): Promise<GitAttributes> {
-		const path = repo.path.join(GIT_ATTRIBUTES_PATH);
+	static async parse(fp: FileProvider, rootPath: Path): Promise<GitAttributes> {
+		const path = rootPath.join(GIT_ATTRIBUTES_PATH);
 		const exists = await fp.exists(path);
 
 		if (!exists) return new GitAttributes(new Map(), fp, path);
@@ -32,13 +31,9 @@ export default class GitAttributes implements ToSpan {
 	}
 
 	findPatternsByAttr(attr: string): string[] {
-		const patterns =
-			this._attrs
-				.entries()
-				.filter(([, v]) => !v.disabled && v.attributes.includes(attr))
-				.map(([k]) => k) ?? [];
-
-		return Array.from(patterns);
+		return Array.from(this._attrs.entries())
+			.filter(([, v]) => !v.disabled && v.attributes.includes(attr))
+			.map(([k]) => k);
 	}
 
 	setAttr(pattern: string, attr: string): this {
@@ -76,16 +71,20 @@ export default class GitAttributes implements ToSpan {
 		return this;
 	}
 
-	async save() {
-		if (!this._dirty) return;
-
+	/** Current state as it would be written by {@link save}. */
+	serialize(): string {
 		const entries = Array.from(this._attrs.entries()).map(([pattern, v]) => ({
 			pattern,
 			attributes: v.attributes,
 			disabled: v.disabled,
 		}));
 
-		await this._fp.write(this._path, serializeGitAttributes(entries));
+		return serializeGitAttributes(entries);
+	}
+
+	async save() {
+		if (!this._dirty) return;
+		await this._fp.write(this._path, this.serialize());
 	}
 
 	toSpan() {

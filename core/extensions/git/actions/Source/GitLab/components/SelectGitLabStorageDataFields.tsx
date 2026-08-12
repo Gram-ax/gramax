@@ -9,6 +9,7 @@ import type { SelectFormSchemaType } from "@ext/storage/logic/SourceDataProvider
 import { FormField } from "@ui-kit/Form";
 import { useMemo } from "react";
 import type { UseFormReturn } from "react-hook-form";
+import { useIsEnterprise } from "../../../../../enterprise/utils/useIsEnterprise";
 import type GitStorageData from "../../../../core/model/GitStorageData";
 import CloneFields from "../../components/CloneFields";
 
@@ -21,15 +22,17 @@ interface SelectGitLabStorageDataFieldsProps {
 
 const SelectGitLabStorageDataFields = (props: SelectGitLabStorageDataFieldsProps) => {
 	const { source, form, mode } = props;
-	const authServiceUrl = PageDataContextService.value.conf.authServiceUrl;
-	const sourceApi = useMakeSourceApi(source, authServiceUrl) as GitSourceApi;
+	const authServiceUrl = PageDataContextService.value.settings?.services?.auth?.endpoint;
+	const isEnterprise = useIsEnterprise();
+
+	const sourceApi = useMakeSourceApi(source, authServiceUrl, !(isEnterprise && mode === "clone")) as GitSourceApi;
 	const gitPaginatedProjectList = useMemo(() => new GitPaginatedProjectList(sourceApi), [sourceApi]);
 
 	return (
 		<FormField
 			control={({ field }) =>
 				mode === "init" ? (
-					<ConnectFields {...field} placeholder={t("find") + " " + t("group2")} source={source} />
+					<ConnectFields {...field} placeholder={`${t("find")} ${t("group2")}`} source={source} />
 				) : (
 					<CloneFields
 						{...field}

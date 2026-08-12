@@ -20,6 +20,7 @@ enum GitErrorCode {
 	HttpError = "HttpError",
 	FileNotFoundError = "FileNotFoundError",
 	CancelledOperation = "CancelledOperation",
+	NotEnoughDiskSpace = "NotEnoughDiskSpace",
 }
 
 export default GitErrorCode;

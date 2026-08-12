@@ -1,11 +1,10 @@
 import type FileProvider from "@core/FileProvider/model/FileProvider";
 import Path from "@core/FileProvider/Path/Path";
-import type WorkdirRepository from "@ext/git/core/Repository/WorkdirRepository";
 import GitAttributes from "./GitAttributes";
 
 describe("GitAttributes", () => {
 	let mockFp: jest.Mocked<FileProvider>;
-	let mockRepo: { path: Path };
+	let rootPath: Path;
 
 	beforeEach(() => {
 		mockFp = {
@@ -14,19 +13,38 @@ describe("GitAttributes", () => {
 			write: jest.fn(),
 		} as unknown as jest.Mocked<FileProvider>;
 
-		mockRepo = {
-			path: new Path("/test/repo"),
-		};
+		rootPath = new Path("/test/repo");
 	});
 
 	describe("parse", () => {
 		it("should return empty attributes if file does not exist", async () => {
 			mockFp.exists.mockResolvedValue(false);
 
-			const result = await GitAttributes.parse(mockRepo as unknown as WorkdirRepository, mockFp);
+			const result = await GitAttributes.parse(mockFp, rootPath);
 
 			expect(result).toBeInstanceOf(GitAttributes);
 			expect(result["_attrs"].size).toBe(0);
+		});
+
+		it("should read .gitattributes from the given root dir, not the repo root", async () => {
+			// catalog whose .doc-root.yaml lives in a subdirectory of the git repo
+			const docRootDir = new Path("/test/repo/docs");
+			mockFp.exists.mockResolvedValue(false);
+
+			await GitAttributes.parse(mockFp, docRootDir);
+
+			expect(mockFp.exists).toHaveBeenCalledWith(new Path("/test/repo/docs/.gitattributes"));
+		});
+
+		it("should save .gitattributes next to the given root dir", async () => {
+			const docRootDir = new Path("/test/repo/docs");
+			mockFp.exists.mockResolvedValue(false);
+
+			const result = await GitAttributes.parse(mockFp, docRootDir);
+			result.setAttr("*.png", "filter=lfs");
+			await result.save();
+
+			expect(mockFp.write).toHaveBeenCalledWith(new Path("/test/repo/docs/.gitattributes"), expect.any(String));
 		});
 
 		it("should parse existing file with attributes", async () => {
@@ -35,7 +53,7 @@ describe("GitAttributes", () => {
 			mockFp.exists.mockResolvedValue(true);
 			mockFp.read.mockResolvedValue(gitAttributesContent);
 
-			const result = await GitAttributes.parse(mockRepo as unknown as WorkdirRepository, mockFp);
+			const result = await GitAttributes.parse(mockFp, rootPath);
 
 			expect(result["_attrs"].get("*.pdf")).toEqual({
 				attributes: ["filter=lfs", "diff=lfs", "merge=lfs", "-text"],

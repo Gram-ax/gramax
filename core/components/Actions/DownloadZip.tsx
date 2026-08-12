@@ -21,7 +21,7 @@ const DownloadZip = () => {
 
 	const { download, isDownloading } = useDownloadAsZip({ onStart: show, onFinally: () => dismiss.current?.() });
 
-	if (!platform.isBrowser && !platform.isTauri) return null;
+	if (!platform.isWeb && !platform.isTauri) return null;
 
 	return (
 		<DropdownMenuItem onSelect={download}>

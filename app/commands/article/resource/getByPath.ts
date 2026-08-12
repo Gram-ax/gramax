@@ -2,9 +2,10 @@ import { Command } from "@app/types/Command";
 import { ResponseKind } from "@app/types/ResponseKind";
 import type Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
+import { pullLfsResourceIfPointer } from "@core/GitLfs/logic/pullLfsResourceIfPointer";
 import HashResourceByPathManager from "@core/Hash/HashItems/HashResourceByPathManager";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
-import assert from "assert";
+import { addEvent, Level } from "@ext/loggers/opentelemetry";
 
 const get: Command<
 	{
@@ -20,18 +21,23 @@ const get: Command<
 	kind: ResponseKind.blob,
 
 	async do({ fullResourcePath, mimeType, catalogName, ctx }) {
-		const { wm } = this._app;
+		const { rp, wm } = this._app;
 		const workspace = wm.current();
 
 		const mime = mimeType ?? MimeTypes?.[fullResourcePath.extension] ?? `application/${fullResourcePath.extension}`;
 		const catalog = await workspace.getCatalog(catalogName, ctx);
-		assert(catalog);
+		if (!catalog) {
+			addEvent("no-catalog", Level.Internal, { catalogName });
+			return;
+		}
 
-		const hashItem = new HashResourceByPathManager(
-			fullResourcePath,
-			workspace.getFileStructure().fp,
-			catalog.basePath,
-		);
+		const fp = workspace.getFileStructure().fp;
+
+		// This read path bypasses ResourceManager, so the lazy LFS loader never fires — pull the pointer
+		// ourselves before HashResourceByPathManager reads the real content.
+		await pullLfsResourceIfPointer({ fp, catalog, absolutePath: catalog.basePath.join(fullResourcePath), ctx, rp });
+
+		const hashItem = new HashResourceByPathManager(fullResourcePath, fp, catalog.basePath);
 
 		return { hashItem, mime };
 	},

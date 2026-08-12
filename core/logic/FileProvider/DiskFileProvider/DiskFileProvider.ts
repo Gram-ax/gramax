@@ -7,8 +7,10 @@ import type FileProvider from "@core/FileProvider/model/FileProvider";
 import type { FileProviderEvents } from "@core/FileProvider/model/FileProvider";
 import Path from "@core/FileProvider/Path/Path";
 import type { ItemRef } from "@core/FileStructue/Item/ItemRef";
-import { trace, traced } from "@ext/loggers/opentelemetry";
+import { Level, span, trace, traced } from "@ext/loggers/opentelemetry";
+import { broadcastFsEvent } from "@ext/Watchers/FsEventBroadcaster";
 import type { ItemRefStatus } from "@ext/Watchers/model/ItemStatus";
+import { PendingSelfWrites } from "@ext/Watchers/PendingSelfWrites";
 import assert from "assert";
 
 const isDesktop = getExecutingEnvironment() === "tauri";
@@ -25,6 +27,10 @@ export default class DiskFileProvider implements FileProvider {
 
 	static get events(): EventEmitter<FileProviderEvents> {
 		return DiskFileProvider._events;
+	}
+
+	get kind(): "git" | "disk" {
+		return "disk";
 	}
 
 	get storageId(): string {
@@ -51,6 +57,7 @@ export default class DiskFileProvider implements FileProvider {
 		return { path, storageId: this.storageId };
 	}
 
+	@trace({ level: Level.Full })
 	async getItems(path: Path): Promise<FileInfo[]> {
 		try {
 			const stats = await this._backend().readDirStats(this._rel(path));
@@ -65,17 +72,19 @@ export default class DiskFileProvider implements FileProvider {
 		}
 	}
 
+	@trace({ level: Level.Full })
 	async isFolder(path: Path): Promise<boolean> {
 		if (!(await this.exists(path))) return false;
 		const stat = await this._backend().lstat(this._rel(path));
 		return stat.isDirectory();
 	}
 
+	@trace({ level: Level.Full })
 	exists(uri: Path) {
 		return this._backend().exists(this._rel(uri));
 	}
 
-	@trace()
+	@trace({ level: Level.Full })
 	async getStat(path: Path, lstat = false): Promise<FileInfo> {
 		const stats = await this._backend().stat(this._rel(path), !lstat);
 		if (!stats) return null;
@@ -86,8 +95,14 @@ export default class DiskFileProvider implements FileProvider {
 		} as FileInfo);
 	}
 
-	@trace()
+	@trace({ level: Level.Files })
 	async delete(path: Path, preferTrash?: boolean) {
+		span()?.addEvent("disk-file-provider-delete", {
+			path: path.value,
+			preferTrash: Boolean(preferTrash),
+			stack: new Error().stack ?? "",
+		});
+
 		if (preferTrash && isDesktop) {
 			try {
 				return await moveToTrash(this.toAbsolute(path));
@@ -96,46 +111,72 @@ export default class DiskFileProvider implements FileProvider {
 
 		if (await this.isFolder(path)) await this._deleteFolder(path);
 		else await this._deleteFile(path);
+		PendingSelfWrites.mark(this.toAbsolute(path));
+		broadcastFsEvent({ relPath: path.value, kind: { type: "removed" } });
 		await DiskFileProvider.events.emit("delete", { path });
 	}
 
+	@trace({ level: Level.Files })
 	async write(path: Path, data: string | Buffer, compress?: CompressOptions) {
 		await traced(
 			"DiskFileProvider.write",
-			{ args: [path, typeof data === "string" ? data : "<Buffer>", compress] },
+			{ level: Level.Files, args: [path, typeof data === "string" ? data : "<Buffer>", compress] },
 			async () => {
 				if (!(await this.exists(path.parentDirectoryPath))) {
 					await this._backend().makeDir(this._rel(path.parentDirectoryPath), true);
 				}
 				await this._backend().writeFile(this._rel(path), data, compress);
+				PendingSelfWrites.mark(this.toAbsolute(path));
+				broadcastFsEvent({ relPath: path.value, kind: { type: "modified" } });
 				await DiskFileProvider.events.emit("write", { path, data });
 			},
 		);
 	}
 
+	@trace({ level: Level.Files })
 	async move(from: Path, to: Path, outside?: DiskFileProvider) {
+		span()?.addEvent("disk-file-provider-move", {
+			from: from.value,
+			to: to.value,
+			outside: Boolean(outside),
+			stack: new Error().stack ?? "",
+		});
+
 		if (outside) {
 			await RustFs.disk("").mv(this.toAbsolute(from), outside.toAbsolute(to));
+			PendingSelfWrites.mark(this.toAbsolute(from));
+			PendingSelfWrites.mark(outside.toAbsolute(to));
 		} else {
 			await this._backend().mv(this._rel(from), this._rel(to));
+			PendingSelfWrites.mark(this.toAbsolute(from));
+			PendingSelfWrites.mark(this.toAbsolute(to));
 		}
+		broadcastFsEvent({ relPath: to.value, kind: { type: "renamed", from: from.value } });
 		await DiskFileProvider.events.emit("move", { from, to });
 	}
 
+	@trace({ level: Level.Files })
 	async copy(from: Path, to: Path) {
 		if (await this.isFolder(from)) await this._copyFolder(from, to);
 		else await this._copyFile(from, to);
+		PendingSelfWrites.mark(this.toAbsolute(to));
+		broadcastFsEvent({ relPath: to.value, kind: { type: "created" } });
 		await DiskFileProvider.events.emit("copy", { from, to });
 	}
 
+	@trace({ level: Level.Files })
 	async mkdir(path: Path, _mode?: number) {
 		if (!(await this.exists(path))) await this._backend().makeDir(this._rel(path), true);
+		PendingSelfWrites.mark(this.toAbsolute(path));
+		broadcastFsEvent({ relPath: path.value, kind: { type: "created" } });
 	}
 
+	@trace({ level: Level.Full })
 	async read(path: Path): Promise<string> {
 		return (await this._backend().readFile(this._rel(path))).toString();
 	}
 
+	@trace({ level: Level.Full })
 	async readAsBinary(path: Path): Promise<Buffer> {
 		try {
 			return await this._backend().readFile(this._rel(path));
@@ -152,21 +193,26 @@ export default class DiskFileProvider implements FileProvider {
 		}
 	}
 
+	@trace({ level: Level.Full })
 	async readdir(path: Path): Promise<string[]> {
 		return this._backend().readDir(this._rel(path));
 	}
 
+	@trace({ level: Level.Full })
 	async readlink(path: Path): Promise<string> {
 		return this._backend().readLink(this._rel(path));
 	}
 
+	@trace({ level: Level.Files })
 	async hardlink(target: Path, path: Path): Promise<void> {
 		await this._backend().makeSymlink(this._rel(target), this._rel(path));
 	}
 
-	@trace()
+	@trace({ level: Level.Files })
 	async deleteEmptyDirs(folderPath: Path) {
 		await this._backend().deleteEmptyDirs(this._rel(folderPath));
+		PendingSelfWrites.mark(this.toAbsolute(folderPath));
+		broadcastFsEvent({ relPath: folderPath.value, kind: { type: "removed" } });
 	}
 
 	watch(_: (changeItems: ItemRefStatus[]) => void) {}
@@ -175,11 +221,13 @@ export default class DiskFileProvider implements FileProvider {
 
 	startWatch() {}
 
+	@trace({ level: Level.Files })
 	async createRootPathIfNeed() {
 		if (await this.exists(Path.empty)) return;
 		return await this.mkdir(Path.empty);
 	}
 
+	@trace({ level: Level.Full })
 	async isRootPathExists() {
 		try {
 			await this.readdir(Path.empty);

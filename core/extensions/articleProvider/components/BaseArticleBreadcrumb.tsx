@@ -1,27 +1,23 @@
-import Icon from "@components/Atoms/Icon";
-import styled from "@emotion/styled";
+import { TooltipIconButton } from "@components/Atoms/TooltipIconButton";
 import t from "@ext/localization/locale/translate";
 
 interface BaseArticleBreadcrumbProps {
 	onCloseClick: () => void;
 }
 
-const Wrapper = styled.div`
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	flex-wrap: wrap;
-	padding: 30px 30px 0 30px;
-`;
-
 const BaseArticleBreadcrumb = ({ onCloseClick }: BaseArticleBreadcrumbProps) => {
 	return (
-		<Wrapper>
-			<div />
-			<div>
-				<Icon code="x" isAction onClick={onCloseClick} tooltipContent={t("close")} />
-			</div>
-		</Wrapper>
+		<div className="flex items-center justify-end flex-wrap">
+			<TooltipIconButton
+				className="size-7"
+				icon="x"
+				iconClassName="size-3.5 shrink-0"
+				onClick={onCloseClick}
+				size="md"
+				tooltip={t("close")}
+				variant="text"
+			/>
+		</div>
 	);
 };
 export default BaseArticleBreadcrumb;

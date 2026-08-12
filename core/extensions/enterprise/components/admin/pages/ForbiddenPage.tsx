@@ -1,3 +1,4 @@
+import t from "@ext/localization/locale/translate";
 import { SystemState, SystemStateCode, SystemStateDescription, SystemStateTitle } from "@ui-kit/SystemState";
 
 const ForbiddenPage = () => {
@@ -6,8 +7,8 @@ const ForbiddenPage = () => {
 			<div className="w-full max-w-md">
 				<SystemState>
 					<SystemStateCode>403</SystemStateCode>
-					<SystemStateTitle>Доступ запрещен</SystemStateTitle>
-					<SystemStateDescription>У вас нет доступа к этой странице</SystemStateDescription>
+					<SystemStateTitle>{t("enterprise.admin.forbidden.title")}</SystemStateTitle>
+					<SystemStateDescription>{t("enterprise.admin.forbidden.description")}</SystemStateDescription>
 				</SystemState>
 			</div>
 		</div>

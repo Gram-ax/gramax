@@ -20,6 +20,7 @@ interface DiagramProps {
 	isFrozen?: boolean;
 	scale?: number;
 	openEditor?: () => void;
+	isPrint?: boolean;
 }
 
 const DiagramRender = forwardRef((props: DiagramProps, ref?: MutableRefObject<HTMLDivElement>) => {
@@ -35,6 +36,7 @@ const DiagramRender = forwardRef((props: DiagramProps, ref?: MutableRefObject<HT
 		downloadSrc,
 		openEditor,
 		scale,
+		isPrint,
 	} = props;
 	const { id: resourceId, provider: resourceProvider } = ResourceService.value;
 
@@ -74,6 +76,7 @@ const DiagramRender = forwardRef((props: DiagramProps, ref?: MutableRefObject<HT
 			<div
 				className={cn(
 					className,
+					"flex w-full items-center justify-center",
 					isFrozen && "opacity-40",
 					`${diagramName}-diagram`,
 					"[&>svg]:select-none [&>svg]:!bg-transparent [&>svg]:!max-w-full [&>svg]:!max-h-full [&>svg]:!w-full",
@@ -90,7 +93,7 @@ const DiagramRender = forwardRef((props: DiagramProps, ref?: MutableRefObject<HT
 	if (openEditor) return diagram;
 
 	return (
-		<ArticleComponentResizer disabled={!openEditor} scale={scale}>
+		<ArticleComponentResizer disabled={!openEditor} isPrint={isPrint} scale={scale}>
 			{diagram}
 		</ArticleComponentResizer>
 	);

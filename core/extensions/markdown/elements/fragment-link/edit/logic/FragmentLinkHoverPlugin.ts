@@ -1,14 +1,9 @@
-import type PageDataContext from "@core/Context/PageDataContext";
-import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import { FragmentLinkHoverTooltip } from "@ext/markdown/elements/fragment-link/edit/logic/FragmentLinkHoverTooltip";
+import { getEditorContext } from "@ext/markdown/elementsUtils/editorContext/EditorContext";
 import type { Editor } from "@tiptap/core";
 import { Plugin, PluginKey } from "prosemirror-state";
 
-export function fragmentLinkHoverPlugin(
-	editor: Editor,
-	apiUrlCreator: ApiUrlCreator,
-	pageDataContext: PageDataContext,
-): Plugin {
+export function fragmentLinkHoverPlugin(editor: Editor): Plugin {
 	let tooltip: FragmentLinkHoverTooltip | null = null;
 
 	editor.on("destroy", () => {
@@ -27,6 +22,9 @@ export function fragmentLinkHoverPlugin(
 						if (!fragmentId) return;
 
 						if (tooltip?.element === markEl) return;
+
+						const { apiUrlCreator, pageDataContext } = getEditorContext(editor);
+						if (!apiUrlCreator) return;
 
 						tooltip?.closeComponent();
 						tooltip = null;

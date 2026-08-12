@@ -71,7 +71,7 @@ export const useGetResource: UseGetResource = (callback, src, content?, havePare
 	const loadInternalDataCallback = useCallback(
 		async (src: string): Promise<ResourceFetchResult> =>
 			loadInternalData({ src, apiUrlCreator, catalogName, id, provider }),
-		[id, provider, apiUrlCreator, catalogName],
+		[id, provider, catalogName],
 	);
 
 	const wrappedCallback = useCallback(
@@ -126,7 +126,7 @@ export const useGetResource: UseGetResource = (callback, src, content?, havePare
 
 			update(src, result.buffer);
 		},
-		[update, haveParentPath, isPrint, apiUrlCreator, loadInternalDataCallback, loadingPromises],
+		[update, haveParentPath, isPrint, loadInternalDataCallback, loadingPromises],
 	);
 
 	const loadData = useCallback(

@@ -2,6 +2,7 @@ import { Command } from "@app/types/Command";
 import { ResponseKind } from "@app/types/ResponseKind";
 import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddleware";
 import Path from "@core/FileProvider/Path/Path";
+import { isLogoIcon } from "@ext/catalog/logo/catalogLogoIcon";
 import Theme from "@ext/Theme/Theme";
 
 const deleteLogo: Command<{ catalogName: string; theme: Theme; content: string }, void> = Command.create({
@@ -15,7 +16,7 @@ const deleteLogo: Command<{ catalogName: string; theme: Theme; content: string }
 		if (!catalog) return;
 
 		const logoPath = Theme[theme] === Theme.light ? catalog.props.logo : catalog.props[`logo_${theme}`];
-		if (!logoPath) return;
+		if (!logoPath || isLogoIcon(logoPath)) return;
 
 		const path = catalog.getRootCategoryDirectoryPath().join(new Path(logoPath));
 

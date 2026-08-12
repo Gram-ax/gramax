@@ -1,4 +1,5 @@
 import type { PlatformEnvironmentKey } from "@plugins/api/sdk/utilities";
+import { PluginFileParser } from "@plugins/core/PluginFileParser";
 import type { PluginConfig, PluginMetadata } from "@plugins/types";
 import semver from "semver";
 
@@ -16,9 +17,11 @@ export class PluginValidator {
 		const errors: string[] = [];
 		const metadata = "metadata" in pluginConfig ? pluginConfig.metadata : pluginConfig;
 
-		this.validateMetadataFields(metadata, errors);
+		this._validateMetadataFields(metadata, errors);
+		this._validateStyleMetadata(metadata, errors);
+		if ("metadata" in pluginConfig) this._validateDeclaredStyleAssets(pluginConfig, errors);
 
-		this.validateCompatibility(metadata, errors);
+		this._validateCompatibility(metadata, errors);
 
 		return {
 			valid: errors.length === 0,
@@ -27,7 +30,7 @@ export class PluginValidator {
 		};
 	}
 
-	private validateMetadataFields(metadata: PluginMetadata, errors: string[]): void {
+	private _validateMetadataFields(metadata: PluginMetadata, errors: string[]): void {
 		if (!metadata.id || typeof metadata.id !== "string") {
 			errors.push("Metadata must have a valid 'id' field");
 		}
@@ -41,7 +44,38 @@ export class PluginValidator {
 		}
 	}
 
-	private validateCompatibility(metadata: PluginMetadata, errors: string[]): void {
+	private _validateStyleMetadata(metadata: PluginMetadata, errors: string[]): void {
+		if (!metadata.styles) return;
+		try {
+			PluginFileParser.getStylePaths(metadata);
+		} catch (error) {
+			errors.push(error instanceof Error ? error.message : String(error));
+		}
+	}
+
+	private _validateDeclaredStyleAssets(pluginConfig: PluginConfig, errors: string[]): void {
+		let stylePaths: string[];
+		try {
+			stylePaths = PluginFileParser.getStylePaths(pluginConfig.metadata);
+		} catch {
+			return;
+		}
+		if (!stylePaths.length) return;
+
+		const styleAssets = new Set(
+			(pluginConfig.assets ?? [])
+				.filter((asset) => asset.kind === "style")
+				.map((asset) => asset.path.replace(/\\/g, "/").replace(/^\.\/+/, "")),
+		);
+
+		for (const stylePath of stylePaths) {
+			if (!styleAssets.has(stylePath)) {
+				errors.push(`Plugin style file is declared but missing from plugin assets: ${stylePath}`);
+			}
+		}
+	}
+
+	private _validateCompatibility(metadata: PluginMetadata, errors: string[]): void {
 		const pluginVersion = metadata.version;
 
 		// Skip compatibility check if version field is already invalid

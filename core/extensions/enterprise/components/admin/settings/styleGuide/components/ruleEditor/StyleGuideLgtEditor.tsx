@@ -126,7 +126,7 @@ export const StyleGuideLgtEditor = ({
 			<form id="styleguide-form" onSubmit={form.handleSubmit(handleSubmit)}>
 				<FormStack>
 					<FormItem>
-						<FormLabel>{t("enterprise.admin.check.rule-name-label")}</FormLabel>
+						<FormLabel>{t("name")}</FormLabel>
 						<FormControl>
 							<Input
 								disabled
@@ -142,7 +142,7 @@ export const StyleGuideLgtEditor = ({
 						name="content"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>{t("enterprise.admin.check.rule-description-label")}</FormLabel>
+								<FormLabel>{t("description")}</FormLabel>
 								<FormControl>
 									<div
 										className={`resize-y border rounded-lg overflow-hidden min-h-[156px] h-[300px] ${

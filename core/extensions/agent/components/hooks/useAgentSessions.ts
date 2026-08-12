@@ -1,21 +1,20 @@
 import Method from "@core-ui/ApiServices/Types/Method";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import { useApi, useDeferApi } from "@core-ui/hooks/useApi";
-import type { AgentSession } from "@ext/agent/core/sessionStore";
 import t from "@ext/localization/locale/translate";
-import { useCallback, useEffect, useState } from "react";
-import type { SessionTabItem } from "../panel/ChatHeader";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
 	clearActiveSessionId,
 	getActiveSessionId,
-	getApiKey,
 	getSessions,
-	type SessionStatePayload,
 	setApiKey,
 	removeSession as storeRemoveSession,
 	setActiveSessionId as storeSetActiveSessionId,
 	setSessions as storeSetSessions,
+	useStoredSessions,
 } from "../store/AgentStore";
+import { setChatState } from "../store/ChatStore";
+import type { SessionStatePayload, SessionTabItem } from "../types/chat";
 
 const LIST_OPTS = { consumeError: true } as const;
 const POST_OPTS = {
@@ -25,14 +24,32 @@ const POST_OPTS = {
 } as const;
 
 type SessionListResponse = { sessions: SessionStatePayload[] };
-type SessionCreateResponse = { sessionId?: string };
+
+let sessionsRestored = false;
 
 export const useAgentSessions = () => {
 	const [sessions, setSessions] = useState<SessionTabItem[]>([]);
 	const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
 	const [sessionLoading, setSessionLoading] = useState(true);
 	const [sessionError, setSessionError] = useState<string | null>(null);
-	const [initialized, setInitialized] = useState(false);
+	const storedSessions = useStoredSessions();
+
+	useEffect(() => {
+		setSessions((prev) => {
+			let changed = false;
+			const next = prev.map((s) => {
+				const stored = storedSessions.find((z) => z.id === s.id);
+				if (!stored) return s;
+				const events = Array.isArray(stored.events) ? stored.events : [];
+				const hasUserMessage = events.some((e) => e.type === "user_message");
+				const title = stored.title ?? "";
+				if (s.hasUserMessage === hasUserMessage && s.title === title) return s;
+				changed = true;
+				return { ...s, hasUserMessage, title };
+			});
+			return changed ? next : prev;
+		});
+	}, [storedSessions]);
 
 	const { call: callList } = useApi<SessionListResponse>({
 		url: (api) => api.getAgentSessionListUrl(),
@@ -42,66 +59,52 @@ export const useAgentSessions = () => {
 		url: (api) => api.getAgentSessionRestoreUrl(),
 		opts: POST_OPTS,
 	});
-	const { call: callCreate } = useDeferApi<SessionCreateResponse>({
+	const { call: callCreate } = useDeferApi<SessionStatePayload>({
 		url: (api) => api.getAgentSessionCreateUrl(),
 		opts: POST_OPTS,
 	});
 	const { call: callDelete } = useDeferApi<void>({ opts: POST_OPTS });
 
-	const toAgentSession = useCallback((session: SessionStatePayload): AgentSession | null => {
-		if (!session.sessionId) return null;
-		return {
-			id: session.sessionId,
-			openItemPath: session.openItemPath ?? null,
-			cancelled: !!session.cancelled,
-			runChain: Promise.resolve(),
-			activeRunController: null,
-			processing: !!session.processing,
-			lastError: session.lastError ?? null,
-			events: Array.isArray(session.events) ? (session.events as AgentSession["events"]) : [],
-			usage: session.usage,
-		};
+	const activate = useCallback((id: string | null) => {
+		setActiveSessionId(id);
+		if (id) storeSetActiveSessionId(id);
+		else clearActiveSessionId();
 	}, []);
 
-	const restoreSessions = useCallback(
-		async (sessionsSnapshot: SessionStatePayload[], preferredSessionId?: string | null) => {
-			if (!sessionsSnapshot.length) return;
-			const restoredSessions = sessionsSnapshot
-				.map(toAgentSession)
-				.filter((session): session is AgentSession => !!session);
-			if (!restoredSessions.length) return;
-			await callRestore({
-				opts: {
-					body: JSON.stringify({
-						sessions: restoredSessions,
-						activeSessionId: preferredSessionId ?? null,
-						apiKey: getApiKey(),
-					}),
-				},
-			});
-		},
-		[callRestore, toAgentSession],
-	);
+	const restoreSessions = useCallback(async () => {
+		const activeSessionId = getActiveSessionId();
+		await callRestore({
+			opts: {
+				body: JSON.stringify({
+					activeSessionId,
+				}),
+			},
+		});
+	}, [callRestore]);
 
 	const fetchSessions = useCallback(async (): Promise<SessionTabItem[]> => {
 		try {
 			const data = await callList();
 			if (data && Array.isArray(data.sessions)) {
-				const mappedSessions = data.sessions.map((s) => {
-					const events = Array.isArray(s.events) ? s.events : [];
-					const firstUserMessage = events.find((e) => e.type === "user_message");
-					const title =
-						firstUserMessage?.type === "user_message"
-							? firstUserMessage.content
-							: t("agent.history.new-chat");
-					const createdAt = events[0]?.ts ?? Date.now();
+				const mappedSessions: SessionTabItem[] = data.sessions
+					.flatMap((s) => {
+						const id = s.id;
+						if (!id) return [];
+						const events = Array.isArray(s.events) ? s.events : [];
+						const firstUserMessage = events.find((e) => e.type === "user_message");
+						const title = s.title ?? "";
+						const createdAt = events[0]?.ts ?? Date.now();
 
-					return {
-						id: s.sessionId,
-						title,
-						createdAt,
-					};
-				});
+						return [
+							{
+								id,
+								title,
+								createdAt,
+								hasUserMessage: !!firstUserMessage,
+							},
+						];
+					})
+					.sort((a, b) => b.createdAt - a.createdAt);
 
 				setSessions(mappedSessions);
 				storeSetSessions(data.sessions);
@@ -109,62 +112,71 @@ export const useAgentSessions = () => {
 			}
 			return [];
 		} finally {
-			setInitialized(true);
 			setSessionLoading(false);
 		}
 	}, [callList]);
 
-	useEffect(() => {
-		const initSessions = async () => {
-			const preferredSessionId = getActiveSessionId();
-			await restoreSessions(getSessions(), preferredSessionId);
-			const restoredSessions = await fetchSessions();
-			const resolvedActiveId = restoredSessions.some((session) => session.id === preferredSessionId)
-				? preferredSessionId
-				: restoredSessions[0]?.id;
-			if (resolvedActiveId) {
-				setActiveSessionId(resolvedActiveId);
-				storeSetActiveSessionId(resolvedActiveId);
-			} else {
-				setActiveSessionId(null);
-				clearActiveSessionId();
-			}
-		};
-		void initSessions();
-	}, [fetchSessions, restoreSessions]);
-
-	const createSession = useCallback(async (): Promise<string | null> => {
+	const createNewSession = useCallback(async (): Promise<string | null> => {
 		setSessionLoading(true);
 		setSessionError(null);
 		try {
 			const data = await callCreate({
-				opts: { body: JSON.stringify({ apiKey: getApiKey() }) },
+				opts: { body: JSON.stringify({}) },
 			});
 
-			if (!data?.sessionId) {
+			if (!data?.id) {
 				setSessionError(t("agent.chat-error.chat-connection-failed"));
 				return null;
 			}
 
-			const newSession: SessionTabItem = {
-				id: data.sessionId,
-				createdAt: Date.now(),
-			};
+			const newId = data.id;
+			setSessions((prev) =>
+				prev.some((s) => s.id === newId)
+					? prev
+					: [{ id: newId, title: data.title ?? "", createdAt: Date.now(), hasUserMessage: false }, ...prev],
+			);
+			activate(newId);
 
-			setSessions((prev) => [newSession, ...prev]);
-			setActiveSessionId(data.sessionId);
-			storeSetActiveSessionId(data.sessionId);
-
-			return data.sessionId;
+			return newId;
 		} finally {
 			setSessionLoading(false);
 		}
-	}, [callCreate]);
+	}, [callCreate, activate]);
 
-	const selectSession = useCallback((id: string) => {
-		setActiveSessionId(id);
-		storeSetActiveSessionId(id);
-	}, []);
+	const createSession = useCallback(async (): Promise<string | null> => {
+		const empty = sessions.find((s) => !s.hasUserMessage);
+		if (empty) {
+			activate(empty.id);
+			return empty.id;
+		}
+		return createNewSession();
+	}, [sessions, createNewSession, activate]);
+
+	const ensureActiveSession = useCallback(
+		async (candidateId: string | null) => {
+			if (candidateId) activate(candidateId);
+			else await createNewSession();
+		},
+		[activate, createNewSession],
+	);
+
+	useEffect(() => {
+		const initSessions = async () => {
+			const preferredSessionId = getActiveSessionId();
+			if (!sessionsRestored) {
+				sessionsRestored = true;
+				await restoreSessions();
+			}
+			const restoredSessions = await fetchSessions();
+			const resolvedActiveId = restoredSessions.some((session) => session.id === preferredSessionId)
+				? preferredSessionId
+				: (restoredSessions[0]?.id ?? null);
+			await ensureActiveSession(resolvedActiveId);
+		};
+		void initSessions();
+	}, [fetchSessions, restoreSessions, ensureActiveSession]);
+
+	const selectSession = useCallback((id: string) => activate(id), [activate]);
 
 	const deleteSession = useCallback(
 		async (id: string) => {
@@ -178,11 +190,7 @@ export const useAgentSessions = () => {
 			storeRemoveSession(id);
 			setSessions(nextSessions);
 
-			if (nextActiveId !== activeSessionId) {
-				setActiveSessionId(nextActiveId);
-				if (nextActiveId) storeSetActiveSessionId(nextActiveId);
-				else clearActiveSessionId();
-			}
+			if (nextActiveId && nextActiveId !== activeSessionId) activate(nextActiveId);
 
 			let failed = false;
 			await callDelete({
@@ -195,32 +203,40 @@ export const useAgentSessions = () => {
 			if (failed) {
 				setSessions(prevSessions);
 				storeSetSessions(prevStoreSessions);
-				if (prevActiveSessionId) {
-					setActiveSessionId(prevActiveSessionId);
-					storeSetActiveSessionId(prevActiveSessionId);
-				} else {
-					setActiveSessionId(null);
-					clearActiveSessionId();
-				}
+				activate(prevActiveSessionId);
 				setSessionError(t("agent.chat-error.delete-session-error"));
+				return;
 			}
+
+			await ensureActiveSession(nextActiveId);
 		},
-		[activeSessionId, callDelete, sessions],
+		[activeSessionId, callDelete, ensureActiveSession, sessions, activate],
 	);
+
+	const saveApiKey = useCallback(async (key: string) => {
+		setApiKey(key);
+	}, []);
+
+	const deleteSessionRef = useRef(deleteSession);
+	deleteSessionRef.current = deleteSession;
+	const saveApiKeyRef = useRef(saveApiKey);
+	saveApiKeyRef.current = saveApiKey;
+	const createSessionRef = useRef(createSession);
+	createSessionRef.current = createSession;
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: it's ok
+	useEffect(() => {
+		setChatState({
+			onSelectSession: selectSession,
+			onNewSession: () => void createSessionRef.current(),
+			onCloseTab: (id) => void deleteSessionRef.current(id),
+			onSaveSettings: (key) => void saveApiKeyRef.current(key),
+		});
+	}, []);
 
 	useEffect(() => {
-		if (initialized && sessions.length === 0 && !sessionLoading) {
-			void createSession();
-		}
-	}, [initialized, sessions.length, sessionLoading, createSession]);
-
-	const saveApiKey = useCallback(
-		async (key: string) => {
-			setApiKey(key);
-			await restoreSessions(getSessions(), activeSessionId);
-		},
-		[activeSessionId, restoreSessions],
-	);
+		setChatState({ sessions, activeSessionId, sessionLoading });
+	}, [sessions, activeSessionId, sessionLoading]);
 
 	return {
 		sessions,

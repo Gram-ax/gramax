@@ -25,16 +25,6 @@ const addWorkspace: Command<{ ctx: Context }, UserSettings> = Command.create({
 		const userSettings = await gesApi.getUserSettings();
 
 		if (!userSettings) throw new DefaultError(t("enterprise.user-not-found"));
-		if (userSettings.isNotEditor) {
-			throw new DefaultError(
-				t("enterprise.check-if-user-editor-warning"),
-				null,
-				{},
-				true,
-				t("enterprise.access-restricted"),
-			);
-		}
-
 		if (!userSettings.workspace) throw new DefaultError(t("enterprise.config-error"));
 
 		const path = wm.defaultPath().parentDirectoryPath.join(new Path(userSettings.workspace.id)).toString();
@@ -61,10 +51,18 @@ const addWorkspace: Command<{ ctx: Context }, UserSettings> = Command.create({
 			enterpriseCloud: {
 				url: gesCloudUrl,
 			},
+			git: {
+				lfs: enterpriseWorkspace.git?.lfs ?? enterpriseWorkspace.lfs,
+			},
 		};
 
 		if (!existWorkspace) await this._commands.workspace.create.do({ config: workspaceConfig });
-		else await this._commands.workspace.edit.do({ data: { ...workspaceConfig } });
+		else {
+			await this._commands.workspace.edit.do({ data: { ...workspaceConfig } });
+			await wm.setWorkspace(path);
+		}
+
+		await this._commands.storage.sourceData.setSourceData.do({ ctx, ...userSettings.source });
 
 		const sourceData = userSettings.source;
 		const userInfo: UserInfo = { mail: sourceData.userEmail, name: sourceData.userName, id: sourceData.userEmail };

@@ -1,3 +1,4 @@
+use std::path::Path;
 use std::path::PathBuf;
 
 use git2::*;
@@ -76,6 +77,7 @@ impl<C: Creds> Repo<'_, C> {
 		let Some(files) = files else {
 			info!(target: TAG, "using index that already present");
 			index.add_all(["."].iter(), IndexAddOption::DEFAULT, None)?;
+			purge_trash_from_index(&mut index)?;
 			index.write()?;
 			return Ok(self.0.find_tree(index.write_tree()?)?);
 		};
@@ -85,10 +87,17 @@ impl<C: Creds> Repo<'_, C> {
 				let statuses = self.status(true)?;
 				let is_whole_index = statuses.len() == files.len();
 
-				let paths = statuses.iter().filter_map(|s| s.path().map(|s| s.to_string())).collect::<Vec<_>>();
+				let paths = statuses
+					.iter()
+					.filter_map(|s| s.path().map(|s| s.to_string()))
+					.filter(|path| !is_trash(path))
+					.collect::<Vec<_>>();
+
+				let files = files.iter().filter(|path| !is_trash(path)).collect::<Vec<_>>();
 
 				info!(target: TAG, "reset index & add specified files: {files:?}");
 				index.read_tree(&head_tree)?;
+				purge_trash_from_index(&mut index)?;
 				index.add_all(files.iter(), IndexAddOption::DEFAULT, None)?;
 				let tree = self.0.find_tree(index.write_tree_to(&self.0)?)?;
 
@@ -102,6 +111,7 @@ impl<C: Creds> Repo<'_, C> {
 			}
 			Err(_) => {
 				warn!(target: TAG, "HEAD has no commit; cannot reset index, so using the index that already present");
+				purge_trash_from_index(&mut index)?;
 				Ok(self.0.find_tree(index.write_tree_to(&self.0)?)?)
 			}
 		}
@@ -124,4 +134,33 @@ impl<C: Creds> Repo<'_, C> {
 		}
 		Ok(commits)
 	}
+}
+
+/// OS-generated junk that must never enter a published commit, matched by file name in any directory.
+const TRASH_NAMES: [&str; 1] = [".DS_Store"];
+
+fn is_trash<P: AsRef<Path>>(path: P) -> bool {
+	path.as_ref()
+		.file_name()
+		.and_then(|name| name.to_str())
+		.map(|name| TRASH_NAMES.contains(&name))
+		.unwrap_or(false)
+}
+
+/// Removes already-tracked trash files (e.g. `.DS_Store`) from the index without touching the working
+/// tree — same semantics as `git rm --cached`. Keeps stale junk from lingering in future commits even
+/// when it was committed before the exclude/filter existed.
+fn purge_trash_from_index(index: &mut Index) -> Result<()> {
+	let trash = index
+		.iter()
+		.filter_map(|entry| std::str::from_utf8(&entry.path).ok().map(PathBuf::from))
+		.filter(|path| is_trash(path))
+		.collect::<Vec<_>>();
+
+	for path in &trash {
+		info!(target: TAG, "purging tracked trash from index: {path:?}");
+		index.remove_path(path)?;
+	}
+
+	Ok(())
 }

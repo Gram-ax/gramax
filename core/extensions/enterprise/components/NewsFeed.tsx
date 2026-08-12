@@ -1,8 +1,9 @@
 import Link from "@components/Atoms/Link";
-import LanguageService from "@core-ui/ContextServices/Language";
+import Url from "@core-ui/ApiServices/Types/Url";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import SourceDataService from "@core-ui/ContextServices/SourceDataService";
 import { TruncatedText } from "@ext/enterprise/components/admin/settings/metrics/view/table/TableHelpers";
+import { Button } from "@ext/enterprise/components/admin/ui-kit/Button";
 import type { NotificationItemFromAPI } from "@ext/enterprise/EnterpriseService";
 import EnterpriseService from "@ext/enterprise/EnterpriseService";
 import {
@@ -13,8 +14,8 @@ import {
 } from "@ext/enterprise/notifications/NotificationStore";
 import { getEnterpriseSourceData } from "@ext/enterprise/utils/getEnterpriseSourceData";
 import t from "@ext/localization/locale/translate";
-import { traced } from "@ext/loggers/opentelemetry";
-import { Button } from "@ui-kit/Button";
+import { Level, traced } from "@ext/loggers/opentelemetry";
+import { getCachedSetting } from "@ext/settings/logic/cachedSettingsStore";
 import { Counter } from "@ui-kit/Counter";
 import { Divider } from "@ui-kit/Divider";
 import { EmptyState } from "@ui-kit/EmptyState";
@@ -33,7 +34,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 dayjs.extend(relativeTime);
 
 function formatRelativeTime(isoTimestamp: string): string {
-	return dayjs(isoTimestamp).locale(LanguageService.currentUi()).fromNow();
+	return dayjs(isoTimestamp).locale(getCachedSetting("general.language")).fromNow();
 }
 
 const NewsFeed = () => {
@@ -82,7 +83,7 @@ const NewsFeed = () => {
 			setIsLoading(true);
 			setError(false);
 			try {
-				await traced("NewsFeed.fetchNotifications", async () => {
+				await traced("NewsFeed.fetchNotifications", { level: Level.Internal }, async () => {
 					const result = await enterpriseService.fetchNotificationHistory(userEmail, token, {
 						cursor: loadMore ? cursorRef.current : undefined,
 					});
@@ -140,7 +141,7 @@ const NewsFeed = () => {
 				{allNotifications.map((notification) => (
 					<Link
 						className="block"
-						href={{ pathname: notification.article_url }}
+						href={Url.from({ pathname: notification.article_url })}
 						key={notification.id}
 						onClick={() => !notification.is_read && handleMarkAsRead(notification.id)}
 					>

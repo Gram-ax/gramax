@@ -23,7 +23,7 @@ const getLfsOptions: Command<{ catalogName: string }, LfsOptions> = Command.crea
 
 		const isLazy = await catalog.repo.gvc.getConfigVal("lfs.lazy");
 
-		const attributes = await catalog.repo.attributes();
+		const attributes = await catalog.repo.attributes(catalog.getRootCategoryPath());
 		return { patterns: attributes.findPatternsByAttr("filter=lfs"), lazy: isLazy !== "false" };
 	},
 

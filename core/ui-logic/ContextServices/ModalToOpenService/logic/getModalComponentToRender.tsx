@@ -1,29 +1,32 @@
 import ExportPdf from "@components/Actions/Modal/ExportPdf";
 import ActionConfirm from "@components/Atoms/ActionConfirm";
 import MediaPreview from "@components/Atoms/Image/modalImage/MediaPreview";
-import DocRootMissingModal from "@components/Layouts/CatalogLayout/DocRootMissingModal";
 import ModalLoading from "@components/ModalLoading";
 import UnsavedChangesModal from "@components/UnsavedChangesModal";
+import { AgentContextUsageModal } from "@ext/agent/components/panel/AgentContextUsageModal";
 import EditMarkdown from "@ext/article/actions/EditMarkdown";
 import DuplicateArticleDialog from "@ext/article/actions/move/DuplicateArticleDialog";
 import BugsnagModal from "@ext/bugsnag/components/BugsnagModal";
 import DuplicateCatalogDialog from "@ext/catalog/actions/move/components/DuplicateCatalogDialog";
-import CatalogPropsEditor from "@ext/catalog/actions/propsEditor/components/CatalogPropsEditor";
 import ShareModal from "@ext/catalog/actions/share/components/ShareModal";
 import NotificationSettingsModal from "@ext/enterprise/components/NotificationSettingsModal";
 import { SignInEnterpriseTauriForm } from "@ext/enterprise/components/SingInOut/SignInEnterpriseTauriForm";
 import SignOutEnterprise from "@ext/enterprise/components/SingInOut/SignOutEnterprise";
 import { GesCloudInitCatalog } from "@ext/enterprise-cloud/components/Catalog/GesCloudInitCatalog";
 import { GesCloudSignInFormModal } from "@ext/enterprise-cloud/components/GesCloudSignInFormModal";
+import { GesCloudUrlFormModal } from "@ext/enterprise-cloud/components/GesCloudUrlFormModal";
 import { InviteMismatchModal } from "@ext/enterprise-cloud/components/InviteMismatchModal";
 import { GesCloudOrganizationSettingsModal } from "@ext/enterprise-cloud/components/organizationSettings/OrganizationSettings";
 import { GesCloudInviteUserModal } from "@ext/enterprise-cloud/components/organizationSettings/settings/components/UserToolbarInviteBtn";
 import GesCloudSignOutModal from "@ext/enterprise-cloud/components/SignInOut/GesCloudSignOutModal";
+import { CreateAccessTokenModal } from "@ext/enterpriseCommon/components/accessTokens/CreateAccessTokenModal";
+import { ShowAccessTokenModal } from "@ext/enterpriseCommon/components/accessTokens/ShowAccessTokenModal";
 import MergeModal from "@ext/git/actions/Branch/components/MergeModal";
 import CreateMergeRequestModal from "@ext/git/actions/Branch/components/MergeRequest/CreateMergeRequest";
 import CloneModal from "@ext/git/actions/Clone/components/CloneModal";
 import MergeConflictConfirm from "@ext/git/actions/MergeConflictHandler/components/MergeConflictConfirm";
 import MergeResolver from "@ext/git/actions/MergeConflictHandler/components/MergeResolver";
+import LfsMigrationDialog from "@ext/git/actions/Sync/components/LfsMigrationDialog";
 import MergeRequestConfirm from "@ext/git/core/GitMergeRequest/components/MergeRequestConfirm";
 import CheckoutHandler from "@ext/git/core/GitPathnameHandler/checkout/components/CheckoutHandler";
 import CloneHandler from "@ext/git/core/GitPathnameHandler/clone/components/CloneHandler";
@@ -38,11 +41,11 @@ import FilePreviewModal from "@ext/markdown/elements/file/edit/components/Previe
 import FragmentAlreadyUseWarn from "@ext/markdown/elements/fragment/edit/components/FragmentAlreadyUseWarn";
 import HTMLEditor from "@ext/markdown/elements/html/edit/components/HTMLEditButton";
 import PropertyEditor from "@ext/properties/components/Modals/PropertyEditor";
+import AppSettingsEditor from "@ext/settings/components/AppSettingsEditor";
 import CloudModal from "@ext/static/components/CloudModal";
 import CreateStorageModal from "@ext/storage/components/CreateStorageModal";
 import TemplateContentWarning from "@ext/templates/components/TemplateContentWarning";
 import CreateWorkspaceForm from "@ext/workspace/components/CreateWorkspaceForm";
-import EditWorkspaceForm from "@ext/workspace/components/EditWorkspaceForm";
 import { AlertConfirm } from "@ui-kit/AlertDialog";
 import { lazy, type ReactNode } from "react";
 import DefaultModal from "../components/DefaultModal";
@@ -82,14 +85,11 @@ const getModalComponentToRender: {
 	[ModalToOpen.TemplateContentWarning]: TemplateContentWarning,
 	[ModalToOpen.PropertySettings]: PropertyEditor,
 
-	[ModalToOpen.DocRootMissingModal]: DocRootMissingModal,
-
 	[ModalToOpen.CloudModal]: CloudModal,
 
 	[ModalToOpen.ItemPropsEditor]: PropsEditor,
 
 	[ModalToOpen.CreateWorkspaceForm]: CreateWorkspaceForm,
-	[ModalToOpen.EditWorkspaceForm]: EditWorkspaceForm,
 
 	[ModalToOpen.MediaPreview]: MediaPreview,
 	[ModalToOpen.FilePreview]: FilePreviewModal,
@@ -101,7 +101,6 @@ const getModalComponentToRender: {
 	[ModalToOpen.Share]: ShareModal,
 	[ModalToOpen.NotificationSettings]: NotificationSettingsModal,
 
-	[ModalToOpen.CatalogPropsEditor]: CatalogPropsEditor,
 	[ModalToOpen.Healthcheck]: Healthcheck,
 
 	[ModalToOpen.ActionConfirm]: ActionConfirm,
@@ -115,11 +114,17 @@ const getModalComponentToRender: {
 	[ModalToOpen.DefaultModal]: DefaultModal,
 	[ModalToOpen.UnsavedChangesModal]: UnsavedChangesModal,
 
-	[ModalToOpen.RepositoryPermission]: lazy(() => import("@ext/enterprise/components/RepositoryPermissionModal")),
+	[ModalToOpen.RepositoryPermission]: lazy(
+		() => import("@ext/enterprise/components/RepositoryPermission/RepositoryPermissionModal"),
+	),
 
 	[ModalToOpen.TauriGesSignIn]: SignInEnterpriseTauriForm,
 
+	[ModalToOpen.CreateAccessToken]: CreateAccessTokenModal,
+	[ModalToOpen.ShowAccessToken]: ShowAccessTokenModal,
+
 	[ModalToOpen.GesCloudInitCatalog]: GesCloudInitCatalog,
+	[ModalToOpen.GesCloudUrl]: GesCloudUrlFormModal,
 	[ModalToOpen.GesCloudSignIn]: GesCloudSignInFormModal,
 	[ModalToOpen.GesCloudInviteUser]: GesCloudInviteUserModal,
 	[ModalToOpen.GesCloudInviteMismatch]: InviteMismatchModal,
@@ -127,6 +132,10 @@ const getModalComponentToRender: {
 	[ModalToOpen.GesCloudSignOut]: GesCloudSignOutModal,
 
 	[ModalToOpen.AlertConfirm]: AlertConfirm,
+	[ModalToOpen.LfsMigration]: LfsMigrationDialog,
+
+	[ModalToOpen.AppSettings]: AppSettingsEditor,
+	[ModalToOpen.AgentContextUsageModal]: AgentContextUsageModal,
 };
 
 export default getModalComponentToRender;

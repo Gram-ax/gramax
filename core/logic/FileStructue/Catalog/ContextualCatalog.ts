@@ -1,6 +1,7 @@
 import type Context from "@core/Context/Context";
 import { createEventEmitter, type Event } from "@core/Event/EventEmitter";
 import type Path from "@core/FileProvider/Path/Path";
+import type { CatalogAliases } from "@core/FileStructue/Alias/CatalogAliases";
 import type { Article } from "@core/FileStructue/Article/Article";
 import type ArticleParser from "@core/FileStructue/Article/ArticleParser";
 import type { ArticleFilter, Catalog } from "@core/FileStructue/Catalog/Catalog";
@@ -136,6 +137,10 @@ export default class ContextualCatalog<P extends CatalogProps = CatalogProps> im
 		return this.deref.findArticle(logicPath, filters, root);
 	}
 
+	get aliases(): CatalogAliases {
+		return this.deref.aliases;
+	}
+
 	getNeededPermission(): IPermission {
 		return this.deref.getNeededPermission();
 	}
@@ -166,8 +171,9 @@ export default class ContextualCatalog<P extends CatalogProps = CatalogProps> im
 		markdown: string,
 		parentRef?: ItemRef,
 		silent?: boolean,
+		afterRef?: ItemRef,
 	): Promise<Article> {
-		return await this.deref.createArticle(rc.withContext(this._ctx), markdown, parentRef, silent);
+		return await this.deref.createArticle(rc.withContext(this._ctx), markdown, parentRef, silent, afterRef);
 	}
 
 	async createCategory(name: string, parentRef?: ItemRef): Promise<Category> {

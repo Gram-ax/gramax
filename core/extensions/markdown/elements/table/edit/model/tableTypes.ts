@@ -54,6 +54,14 @@ export type AggregationData = {
 	data: ColumnData;
 }[];
 
+export type AggregationCell = {
+	method: AggregationMethod;
+	value: string;
+	align: string;
+	colspan?: number;
+	physicalIndex: number;
+};
+
 export type HoveredData = { rowIndex: number; cellIndex: number };
 
 export type FilterAndSort = {
@@ -64,6 +72,7 @@ export type FilterAndSort = {
 
 export interface FilterAndSortProps {
 	tableData?: TableDataExtended;
+	aggregation?: TableAggregationData;
 	canSort: boolean;
 	saved: FilterAndSort;
 	active: FilterAndSort;
@@ -82,6 +91,20 @@ export type TableCellInfo = {
 	realColStart: number;
 };
 
+export type TableAggregationCellData = {
+	method: AggregationMethod | null;
+	data: ColumnData;
+	align?: AlignEnumTypes;
+	colspan: number;
+	visualColStart: number;
+	realColStart: number;
+};
+
+export type TableAggregationData = {
+	enabled: boolean;
+	cells: TableAggregationCellData[];
+};
+
 export type TableDataExtended = {
 	rows: {
 		initialOrder?: number;
@@ -89,4 +112,8 @@ export type TableDataExtended = {
 	}[];
 	numRows: number;
 	numCols: number;
+	sortFilter?: {
+		enabled: boolean;
+	};
+	aggregation?: TableAggregationData;
 };

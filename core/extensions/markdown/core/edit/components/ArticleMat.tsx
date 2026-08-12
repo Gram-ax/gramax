@@ -39,7 +39,7 @@ const ArticleMat = memo(({ editor, className, style }: ArticleMatProps) => {
 			className={classNames("mat-under-article", {}, [className])}
 			data-testid="article-bottom"
 			onClick={onClickHandler}
-			style={style}
+			style={{ ...(editor ? null : { pointerEvents: "none" }), ...style }}
 		/>
 	);
 });

@@ -6,6 +6,7 @@ import Welcome from "@components/Welcome";
 import type { ArticlePageData } from "@core/SitePresenter/types/ArticlePage";
 import ResourceService from "@core-ui/ContextServices/ResourceService/ResourceService";
 import useShowMainLangContentPreview from "@core-ui/hooks/useShowMainLangContentPreview";
+import { useItemLinks } from "@core-ui/stores/ItemLinksStore/ItemLinksStore.provider";
 import ArticleErrorHandler from "@ext/errorHandlers/client/components/ArticleErrorHandler";
 import { useEffect } from "react";
 import Article from "../Article/Article";
@@ -13,6 +14,7 @@ import Article from "../Article/Article";
 const ArticlePage = ({ data }: { data: ArticlePageData }) => {
 	const { clear } = ResourceService.value;
 	const isShowMainLangContentPreview = useShowMainLangContentPreview();
+	const itemLinks = useItemLinks();
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useEffect(() => clear(), [data.articleProps.logicPath]);
@@ -23,7 +25,7 @@ const ArticlePage = ({ data }: { data: ArticlePageData }) => {
 			<ArticleErrorHandler key={data.articleProps.logicPath}>
 				<ArticleBreadcrumb
 					hasPreview={isShowMainLangContentPreview}
-					itemLinks={data.itemLinks}
+					itemLinks={itemLinks}
 					showActions={data.mode !== "markdown"}
 				/>
 				<ArticleWithPreviewArticle
@@ -32,7 +34,7 @@ const ArticlePage = ({ data }: { data: ArticlePageData }) => {
 						isShowMainLangContentPreview && <ArticlePreview logicPath={data.articleProps.logicPath} />
 					}
 				/>
-				<ArticleFooter itemLinks={data.itemLinks} />
+				<ArticleFooter />
 			</ArticleErrorHandler>
 		</div>
 	);

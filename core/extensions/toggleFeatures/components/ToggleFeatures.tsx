@@ -1,7 +1,7 @@
 import IsMacService from "@core-ui/ContextServices/IsMac";
 import isMobileService from "@core-ui/ContextServices/isMobileService";
-import LanguageService from "@core-ui/ContextServices/Language";
-import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import { useUiLanguage } from "@core-ui/ContextServices/Language";
+import PageDataContext from "@core-ui/ContextServices/PageDataContext";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 // biome-ignore lint/style/noRestrictedImports: it's ok
 import styled from "@emotion/styled";
@@ -15,7 +15,7 @@ import { Divider } from "@ui-kit/Divider";
 import { Popover, PopoverContent, PopoverTrigger } from "@ui-kit/Popover";
 import { SwitchField } from "@ui-kit/Switch";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 const StyledPopoverContent = styled(PopoverContent)`
 	width: 100%;
@@ -40,7 +40,7 @@ const Info = styled.a`
 const StyledSwitchField = styled(SwitchField)`
 	> div {
 		width: 100%;
-		max-width: 15rem;
+		max-width: 100%;
 	}
 
 	label {
@@ -50,7 +50,7 @@ const StyledSwitchField = styled(SwitchField)`
 
 const FeatureItem = ({ feature, disabled }: { feature: Feature; disabled: boolean }) => {
 	const [enabled, setEnabled] = useState(feature.isEnabled);
-	const language = LanguageService.currentUi();
+	const language = useUiLanguage();
 	const title = language === "ru" ? feature.title.ru : feature.title.en;
 	const desc = language === "ru" ? feature.desc?.ru : feature.desc?.en;
 	const url = language === "ru" ? feature.url?.ru : feature.url?.en;
@@ -66,7 +66,7 @@ const FeatureItem = ({ feature, disabled }: { feature: Feature; disabled: boolea
 	return (
 		<FeatureWrapper>
 			<StyledSwitchField
-				alignment="right"
+				alignment="left"
 				checked={enabled}
 				className="w-full"
 				description={
@@ -122,9 +122,42 @@ const FeatureItem = ({ feature, disabled }: { feature: Feature; disabled: boolea
 	);
 };
 
+export const FeatureList = () => {
+	const isRelease = PageDataContext.value.conf.isRelease;
+	// temp, waiting for fix in mac desktop
+	const { isTauri, isNext, isStatic } = usePlatform();
+	const isMac = IsMacService.value;
+	const canConfigure = PermissionService.useCheckPermission(configureWorkspacePermission);
+
+	// Capture enabled state on mount; reload on unmount (settings close) if any
+	// feature changed, so toggles take effect — like the popover's reload-on-close.
+	const initial = useRef<Record<string, boolean>>();
+	useEffect(() => {
+		initial.current = Object.fromEntries(getFeatureList().map((f) => [f.name, f.isEnabled]));
+		return () => {
+			const changed = getFeatureList().some((f) => initial.current?.[f.name] !== f.isEnabled);
+			if (changed) location.reload();
+		};
+	}, []);
+
+	const featuresList = getFeatureList();
+	const features = isMac && isTauri ? featuresList.filter((f) => f.name !== "cloud") : featuresList;
+
+	if (isNext && !canConfigure) return null;
+	if (features.length === 0) return null;
+
+	return (
+		<div className="flex flex-col">
+			{features.map((feature) => {
+				if (feature.status === "in-dev" && isRelease) return null;
+				return <FeatureItem disabled={isNext || isStatic} feature={feature} key={feature.name} />;
+			})}
+		</div>
+	);
+};
+
 const ToggleFeatures = () => {
 	const isMobile = isMobileService.value;
-	const isRelease = PageDataContextService.value.conf.isRelease;
 	const initial = useRef<Record<string, boolean>>();
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: it's ok
@@ -144,16 +177,6 @@ const ToggleFeatures = () => {
 		[initial],
 	);
 
-	const featuresList = getFeatureList();
-
-	// temp, waiting for fix in mac desktop
-	const { isTauri, isNext, isStatic } = usePlatform();
-	const isMac = IsMacService.value;
-	const features = isMac && isTauri ? featuresList.filter((f) => f.name !== "cloud") : featuresList;
-
-	if (isNext && !PermissionService.useCheckPermission(configureWorkspacePermission)) return <div></div>;
-	if (features.length === 0) return <div></div>;
-
 	return (
 		<Popover modal onOpenChange={onOpenChange}>
 			<PopoverTrigger asChild>
@@ -166,10 +189,7 @@ const ToggleFeatures = () => {
 					<h4 className="font-medium leading-none">{t("experimental-features.label")}</h4>
 				</div>
 				<Divider />
-				{features.map((feature) => {
-					if (feature.status === "in-dev" && isRelease) return null;
-					return <FeatureItem disabled={isNext || isStatic} feature={feature} key={feature.name} />;
-				})}
+				<FeatureList />
 			</StyledPopoverContent>
 		</Popover>
 	);

@@ -27,7 +27,7 @@ const update: Command<
 		if (!catalog) return;
 
 		const provider = ArticleProvider.getProvider(catalog, type);
-		return provider.getContent(id);
+		return await provider.getContent(id);
 	},
 
 	params(ctx, q) {

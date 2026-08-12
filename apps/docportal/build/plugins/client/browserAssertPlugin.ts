@@ -7,7 +7,7 @@ const shimPath = path.resolve(dirname, "../../shims/assert.ts");
 
 export function browserAssertPlugin(): BunPlugin {
 	return {
-		name: "browser-assert-plugin",
+		name: "web-assert-plugin",
 		setup(build) {
 			build.onResolve({ filter: /^(assert|node:assert|node:assert\/strict)$/ }, () => {
 				return {

@@ -12,7 +12,6 @@ import NullRepository from "@ext/git/core/Repository/NullRepository";
 import { getArticleId, getTestId } from "@ext/quiz/logic/getIds";
 import { getQuizResult } from "@ext/quiz/logic/getQuizResult";
 import type { StoredQuizResult } from "@ext/quiz/models/types";
-import assert from "assert";
 
 const getTestResult: Command<{ ctx: Context; catalogName: string; articlePath: Path }, StoredQuizResult> =
 	Command.create({
@@ -31,14 +30,15 @@ const getTestResult: Command<{ ctx: Context; catalogName: string; articlePath: P
 			if (!config.enterprise?.modules?.quiz) return null;
 
 			const catalog = await workspace.getCatalog(catalogName, ctx);
-			assert(catalog, "Catalog not found");
+			if (!catalog) return null;
 
 			const article = catalog.findItemByItemPath<Article>(articlePath);
 			if (!article) return null;
 
 			if (catalog.repo instanceof NullRepository || catalog.repo instanceof BrokenRepository) return null;
 			const gvc = catalog.repo.gvc;
-			if (gvc) return null;
+			if (!gvc) return null;
+			if (!(await gvc.isInit())) return null;
 
 			const gesUrl = config.enterprise?.gesUrl;
 			const sourceDatas = this._app.rp.getSourceDatas(ctx, workspace.path());

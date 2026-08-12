@@ -1,7 +1,7 @@
 /** biome-ignore-all lint/suspicious/noDocumentCookie: <Next.js support> */
+import { withRetries } from "@core/utils/withRetries";
 import type { GroupValue } from "@ext/enterprise/components/admin/settings/components/roles/Access";
 import type { EditorsSettings } from "@ext/enterprise/components/admin/settings/editors/types/EditorsComponentTypes";
-import type { GroupsSettings } from "@ext/enterprise/components/admin/settings/groups/types/GroupsComponentTypes";
 import type { GuestsSettings } from "@ext/enterprise/components/admin/settings/guests/types/GuestsComponent";
 import type { MailSettings } from "@ext/enterprise/components/admin/settings/MailComponent";
 import type { AnonymousFilter } from "@ext/enterprise/components/admin/settings/metrics/filters";
@@ -33,8 +33,10 @@ import type {
 	RequestCursor,
 	RequestData,
 } from "@ext/enterprise/components/admin/ui-kit/table/LazyInfinityTable/LazyInfinityTable";
+import { GesError, gesErrorCodeByStatus } from "@ext/enterprise/errors/GesError";
+import type { Settings } from "@ext/enterprise/types/EnterpriseAdmin";
 import t from "@ext/localization/locale/translate";
-import { span, trace } from "@ext/loggers/opentelemetry";
+import { addEvent, Level, trace } from "@ext/loggers/opentelemetry";
 import type { CheckChunk, CheckOverrideSettings, CheckSuggestion } from "@ics/gx-vector-search";
 import type { PluginsSettings } from "./types/PluginsSettings";
 
@@ -67,6 +69,24 @@ export interface NotificationHistoryResponse {
 	cursor: { created_at: string; id: number } | null;
 }
 
+export interface EtagResult<T> {
+	data: T | null;
+	etag: string | null;
+	notModified: boolean;
+}
+
+type ConfigTabMap = Omit<Settings, "searchMetrics">;
+
+const specialConfigNameMap: Partial<Record<keyof ConfigTabMap, string>> = {
+	styleGuide: "style-guide",
+	metrics: "metrics-config",
+};
+
+const REQUEST_RETRY_COUNT = 3;
+const REQUEST_RETRY_DELAY_MS = 1000;
+
+const isRetryableStatus = (status: number): boolean => status === 408 || status === 429 || status >= 500;
+
 class EnterpriseService {
 	constructor(private _url: string) {}
 
@@ -94,18 +114,6 @@ class EnterpriseService {
 		return res.status !== 401 && res.status !== 403;
 	}
 
-	async logout(token: string) {
-		const res = await fetch(`${this._url}/enterprise/sso/logout`, {
-			headers: { Authorization: `Bearer ${token}` },
-		});
-
-		if (!res.ok) {
-			throw new Error(`Не удалось завершить сессию. Статус: ${res.status}`);
-		}
-
-		this._clearUserCookie();
-	}
-
 	async checkDataProviderHealth(): Promise<boolean> {
 		try {
 			const res = await fetch(`${this._url}/enterprise/data-provider-health`);
@@ -128,7 +136,7 @@ class EnterpriseService {
 		}
 	}
 
-	@trace()
+	@trace({ level: Level.Commands })
 	async markNotificationsAsRead(userEmail: string, notificationIds: number[], token: string): Promise<boolean> {
 		try {
 			const res = await fetch(`${this._url}/enterprise/notifications/mark-read`, {
@@ -147,12 +155,12 @@ class EnterpriseService {
 			this._checkUnauthorized(res);
 			return res.ok;
 		} catch (error) {
-			span()?.addEvent("error", { error: String(error) });
+			addEvent("error", Level.Commands, { error: String(error) });
 			return false;
 		}
 	}
 
-	@trace()
+	@trace({ level: Level.Internal })
 	async fetchNotificationHistory(
 		userEmail: string,
 		token: string,
@@ -178,98 +186,12 @@ class EnterpriseService {
 
 			return (await res.json()) as NotificationHistoryResponse;
 		} catch (error) {
-			span()?.addEvent("error", { error: String(error) });
+			addEvent("error", Level.Commands, { error: String(error) });
 			return null;
 		}
 	}
 
-	private async _getWithEtag<T>(
-		url: string,
-		token: string,
-		etag?: string,
-	): Promise<{ data: T | null; etag: string | null; notModified: boolean }> {
-		if (!this._url || !token) throw new Error("Failed to get data: no URL or token");
-		try {
-			const headers: Record<string, string> = {
-				Authorization: `Bearer ${token}`,
-			};
-			if (etag) headers["If-None-Match"] = etag;
-
-			const res = await fetch(url, { headers, credentials: "include" });
-
-			await this._checkUnauthorized(res);
-
-			if (res.status === 304) {
-				return { data: null, etag: etag ?? null, notModified: true };
-			}
-
-			if (res.status === 401 || res.status === 403) {
-				throw new Error("Не удалось получить данные: требуется авторизация.");
-			}
-
-			if (!res.ok) {
-				throw new Error(`Не удалось получить данные: ${res.status}`);
-			}
-
-			const nextEtag = res.headers.get("ETag");
-			const data = (await res.json()) as T;
-			return { data, etag: nextEtag, notModified: false };
-		} catch (error) {
-			console.error(error);
-			throw error;
-		}
-	}
-
-	// Per-tab GET methods with ETag support
-	async getWorkspaceConfig(
-		token: string,
-		etag?: string,
-	): Promise<{
-		data: WorkspaceSettings | null;
-		etag: string | null;
-		notModified: boolean;
-	}> {
-		const url = `${this._url}/enterprise/config/workspace/get`;
-		return this._getWithEtag<WorkspaceSettings>(url, token, etag);
-	}
-
-	async getGroupsConfig(
-		token: string,
-		etag?: string,
-	): Promise<{
-		data: GroupsSettings | null;
-		etag: string | null;
-		notModified: boolean;
-	}> {
-		const url = `${this._url}/enterprise/config/groups/get`;
-		return this._getWithEtag<GroupsSettings>(url, token, etag);
-	}
-
-	async getEditorsConfig(
-		token: string,
-		etag?: string,
-	): Promise<{
-		data: EditorsSettings | null;
-		etag: string | null;
-		notModified: boolean;
-	}> {
-		const url = `${this._url}/enterprise/config/editors/get`;
-		return this._getWithEtag<EditorsSettings>(url, token, etag);
-	}
-
-	async getResourcesConfig(
-		token: string,
-		etag?: string,
-	): Promise<{
-		data: ResourcesSettings[] | null;
-		etag: string | null;
-		notModified: boolean;
-	}> {
-		const url = `${this._url}/enterprise/config/resources/get`;
-		return this._getWithEtag<ResourcesSettings[]>(url, token, etag);
-	}
-
-	@trace()
+	@trace({ level: Level.Internal })
 	async getResourceConfig(token: string, resourceId: string): Promise<ResourcesSettings | null> {
 		if (!this._url || !token) return null;
 		try {
@@ -281,90 +203,18 @@ class EnterpriseService {
 				credentials: "include",
 			});
 
-			await this._checkUnauthorized(res);
+			this._checkUnauthorized(res);
 
 			if (!res.ok) {
-				span()?.addEvent("error", { error: `Failed to get resource config: ${res.status}` });
+				addEvent("error", Level.Commands, { error: `Failed to get resource config: ${res.status}` });
 				return null;
 			}
 
 			return await res.json();
 		} catch (error) {
-			span()?.addEvent("error", { error: String(error) });
+			addEvent("error", Level.Commands, { error: String(error) });
 			return null;
 		}
-	}
-
-	async getMailConfig(
-		token: string,
-		etag?: string,
-	): Promise<{
-		data: MailSettings | null;
-		etag: string | null;
-		notModified: boolean;
-	}> {
-		const url = `${this._url}/enterprise/config/mail/get`;
-		return this._getWithEtag<MailSettings>(url, token, etag);
-	}
-
-	async getGuestsConfig(
-		token: string,
-		etag?: string,
-	): Promise<{
-		data: GuestsSettings | null;
-		etag: string | null;
-		notModified: boolean;
-	}> {
-		const url = `${this._url}/enterprise/config/guests/get`;
-		return this._getWithEtag<GuestsSettings>(url, token, etag);
-	}
-
-	async getStyleGuideConfig(
-		token: string,
-		etag?: string,
-	): Promise<{
-		data: StyleGuideSettings | null;
-		etag: string | null;
-		notModified: boolean;
-	}> {
-		const url = `${this._url}/enterprise/config/style-guide/get`;
-		return this._getWithEtag<StyleGuideSettings>(url, token, etag);
-	}
-
-	async getQuizConfig(
-		token: string,
-		etag?: string,
-	): Promise<{
-		data: QuizSettings | null;
-		etag: string | null;
-		notModified: boolean;
-	}> {
-		const url = `${this._url}/enterprise/config/quiz/get`;
-		return this._getWithEtag<QuizSettings>(url, token, etag);
-	}
-
-	async getMetricsConfig(
-		token: string,
-		etag?: string,
-	): Promise<{
-		data: MetricsConfigSettings | null;
-		etag: string | null;
-		notModified: boolean;
-	}> {
-		const url = `${this._url}/enterprise/config/metrics-config/get`;
-		return this._getWithEtag<MetricsConfigSettings>(url, token, etag);
-	}
-
-	async getPluginsConfig(
-		token: string,
-		etag?: string,
-	): Promise<{
-		data: PluginsSettings | null;
-		etag: string | null;
-		notModified: boolean;
-	}> {
-		const url = `${this._url}/enterprise/config/plugins/get`;
-		return this._getWithEtag<PluginsSettings>(url, token, etag);
 	}
 
 	async getMetricsChartData(
@@ -375,42 +225,15 @@ class EnterpriseService {
 		userEmails?: string[],
 		anonymousFilter?: AnonymousFilter,
 		catalogFilter?: string[],
-	): Promise<ChartDataPoint[] | null> {
-		if (!this._url) return null;
-		try {
-			const params = new URLSearchParams({
-				startDate,
-				endDate,
-			});
-			if (articleIds && articleIds.length > 0) {
-				params.append("articleIds", articleIds.join(","));
-			}
-			if (userEmails && userEmails.length > 0) {
-				params.append("userEmails", userEmails.join(","));
-			}
-			if (anonymousFilter) {
-				params.append("anonymousFilter", anonymousFilter);
-			}
-			if (catalogFilter && catalogFilter.length > 0) {
-				params.append("catalogFilter", catalogFilter.join(","));
-			}
-			const url = `${this._url}/enterprise/modules/metrics/getChartData?${params.toString()}`;
-			const response = await fetch(url, {
-				method: "GET",
-				headers: {
-					Authorization: `Bearer ${token}`,
-					"Content-Type": "application/json",
-				},
-				credentials: "include",
-			});
-			await this._checkUnauthorized(response);
-			if (!response.ok) return null;
-			return await response.json();
-		} catch (error) {
-			console.error(error);
-			return null;
-		}
+	): Promise<ChartDataPoint[]> {
+		const params = new URLSearchParams({ startDate, endDate });
+		if (articleIds?.length) params.append("articleIds", articleIds.join(","));
+		if (userEmails?.length) params.append("userEmails", userEmails.join(","));
+		if (anonymousFilter) params.append("anonymousFilter", anonymousFilter);
+		if (catalogFilter?.length) params.append("catalogFilter", catalogFilter.join(","));
+		return this._fetchGet<ChartDataPoint[]>(`/enterprise/modules/metrics/getChartData?${params.toString()}`, token);
 	}
+
 	async getSearchMetricsTableData(
 		token: string,
 		startDate: string,
@@ -420,35 +243,19 @@ class EnterpriseService {
 		sortOrder?: string,
 		limit?: number,
 		catalogFilter?: string[],
-	): Promise<SearchTableDataResponse | null> {
-		if (!this._url) return null;
-		try {
-			const params = new URLSearchParams({
-				startDate,
-				endDate,
-				...(cursor && { cursor }),
-				...(sortBy && { sortBy }),
-				...(sortOrder && { sortOrder }),
-				limit: limit?.toString(),
-				...(catalogFilter?.length && { catalogFilter: catalogFilter.join(",") }),
-			});
-			const url = `${this._url}/enterprise/modules/metrics/getSearchTableData?${params.toString()}`;
-			const response = await fetch(url, {
-				method: "GET",
-				headers: {
-					Authorization: `Bearer ${token}`,
-					"Content-Type": "application/json",
-				},
-				credentials: "include",
-			});
-			await this._checkUnauthorized(response);
-			if (!response.ok) return null;
-			return await response.json();
-		} catch (error) {
-			console.error(error);
-			return null;
-		}
+	): Promise<SearchTableDataResponse> {
+		const params = new URLSearchParams({ startDate, endDate });
+		if (cursor) params.append("cursor", cursor);
+		if (sortBy) params.append("sortBy", sortBy);
+		if (sortOrder) params.append("sortOrder", sortOrder);
+		if (limit) params.append("limit", limit.toString());
+		if (catalogFilter?.length) params.append("catalogFilter", catalogFilter.join(","));
+		return this._fetchGet<SearchTableDataResponse>(
+			`/enterprise/modules/metrics/getSearchTableData?${params.toString()}`,
+			token,
+		);
 	}
+
 	async getSearchQueryDetails(
 		token: string,
 		query: string,
@@ -458,34 +265,16 @@ class EnterpriseService {
 		sortBy?: string,
 		sortOrder?: string,
 		limit?: number,
-	): Promise<SearchQueryDetailsResponse | null> {
-		if (!this._url) return null;
-		try {
-			const params = new URLSearchParams({
-				query,
-				startDate,
-				endDate,
-			});
-			if (cursor) params.append("cursor", String(cursor));
-			if (sortBy) params.append("sortBy", sortBy);
-			if (sortOrder) params.append("sortOrder", sortOrder);
-			if (limit) params.append("limit", limit.toString());
-			const url = `${this._url}/enterprise/modules/metrics/getSearchQueryDetails?${params.toString()}`;
-			const response = await fetch(url, {
-				method: "GET",
-				headers: {
-					Authorization: `Bearer ${token}`,
-					"Content-Type": "application/json",
-				},
-				credentials: "include",
-			});
-			await this._checkUnauthorized(response);
-			if (!response.ok) return null;
-			return await response.json();
-		} catch (error) {
-			console.error(error);
-			return null;
-		}
+	): Promise<SearchQueryDetailsResponse> {
+		const params = new URLSearchParams({ query, startDate, endDate });
+		if (cursor) params.append("cursor", String(cursor));
+		if (sortBy) params.append("sortBy", sortBy);
+		if (sortOrder) params.append("sortOrder", sortOrder);
+		if (limit) params.append("limit", limit.toString());
+		return this._fetchGet<SearchQueryDetailsResponse>(
+			`/enterprise/modules/metrics/getSearchQueryDetails?${params.toString()}`,
+			token,
+		);
 	}
 
 	async getArticleRatings(
@@ -497,35 +286,17 @@ class EnterpriseService {
 		sortOrder?: string,
 		limit?: number,
 		catalogFilter?: string[],
-	): Promise<ArticleRatingsResponse | null> {
-		if (!this._url) return null;
-		try {
-			const params = new URLSearchParams({
-				startDate,
-				endDate,
-			});
-			if (cursor) params.append("cursor", cursor);
-			if (sortBy) params.append("sortBy", sortBy);
-			if (sortOrder) params.append("sortOrder", sortOrder);
-			if (limit) params.append("limit", limit.toString());
-			if (catalogFilter?.length) params.append("catalogFilter", catalogFilter.join(","));
-
-			const url = `${this._url}/enterprise/modules/metrics/getArticleRatings?${params.toString()}`;
-			const response = await fetch(url, {
-				method: "GET",
-				headers: {
-					Authorization: `Bearer ${token}`,
-					"Content-Type": "application/json",
-				},
-				credentials: "include",
-			});
-			await this._checkUnauthorized(response);
-			if (!response.ok) return null;
-			return await response.json();
-		} catch (error) {
-			console.error(error);
-			return null;
-		}
+	): Promise<ArticleRatingsResponse> {
+		const params = new URLSearchParams({ startDate, endDate });
+		if (cursor) params.append("cursor", cursor);
+		if (sortBy) params.append("sortBy", sortBy);
+		if (sortOrder) params.append("sortOrder", sortOrder);
+		if (limit) params.append("limit", limit.toString());
+		if (catalogFilter?.length) params.append("catalogFilter", catalogFilter.join(","));
+		return this._fetchGet<ArticleRatingsResponse>(
+			`/enterprise/modules/metrics/getArticleRatings?${params.toString()}`,
+			token,
+		);
 	}
 
 	async getSearchMetricsChartData(
@@ -533,30 +304,13 @@ class EnterpriseService {
 		startDate: string,
 		endDate: string,
 		catalogFilter?: string[],
-	): Promise<SearchChartDataPoint[] | null> {
-		if (!this._url) return null;
-		try {
-			const params = new URLSearchParams({
-				startDate,
-				endDate,
-			});
-			if (catalogFilter?.length) params.append("catalogFilter", catalogFilter.join(","));
-			const url = `${this._url}/enterprise/modules/metrics/getSearchChartData?${params.toString()}`;
-			const response = await fetch(url, {
-				method: "GET",
-				headers: {
-					Authorization: `Bearer ${token}`,
-					"Content-Type": "application/json",
-				},
-				credentials: "include",
-			});
-			await this._checkUnauthorized(response);
-			if (!response.ok) return null;
-			return await response.json();
-		} catch (error) {
-			console.error(error);
-			return null;
-		}
+	): Promise<SearchChartDataPoint[]> {
+		const params = new URLSearchParams({ startDate, endDate });
+		if (catalogFilter?.length) params.append("catalogFilter", catalogFilter.join(","));
+		return this._fetchGet<SearchChartDataPoint[]>(
+			`/enterprise/modules/metrics/getSearchChartData?${params.toString()}`,
+			token,
+		);
 	}
 
 	async getMetricsTableData(
@@ -570,43 +324,18 @@ class EnterpriseService {
 		userEmails?: string[],
 		anonymousFilter?: AnonymousFilter,
 		catalogFilter?: string[],
-	): Promise<TableDataResponse | null> {
-		if (!this._url) return null;
-		try {
-			const params = new URLSearchParams({
-				startDate,
-				endDate,
-				limit: String(limit),
-			});
-			if (cursor !== undefined) params.set("cursor", String(cursor));
-			if (sortBy) params.set("sortBy", sortBy);
-			if (sortOrder) params.set("sortOrder", sortOrder);
-			if (userEmails && userEmails.length > 0) {
-				params.set("userEmails", userEmails.join(","));
-			}
-			if (anonymousFilter) {
-				params.set("anonymousFilter", anonymousFilter);
-			}
-			if (catalogFilter && catalogFilter.length > 0) {
-				params.set("catalogFilter", catalogFilter.join(","));
-			}
-
-			const url = `${this._url}/enterprise/modules/metrics/getTableData?${params}`;
-			const response = await fetch(url, {
-				method: "GET",
-				headers: {
-					Authorization: `Bearer ${token}`,
-					"Content-Type": "application/json",
-				},
-				credentials: "include",
-			});
-			await this._checkUnauthorized(response);
-			if (!response.ok) return null;
-			return await response.json();
-		} catch (error) {
-			console.error(error);
-			return null;
-		}
+	): Promise<TableDataResponse> {
+		const params = new URLSearchParams({ startDate, endDate, limit: String(limit) });
+		if (cursor !== undefined) params.set("cursor", String(cursor));
+		if (sortBy) params.set("sortBy", sortBy);
+		if (sortOrder) params.set("sortOrder", sortOrder);
+		if (userEmails?.length) params.set("userEmails", userEmails.join(","));
+		if (anonymousFilter) params.set("anonymousFilter", anonymousFilter);
+		if (catalogFilter?.length) params.set("catalogFilter", catalogFilter.join(","));
+		return this._fetchGet<TableDataResponse>(
+			`/enterprise/modules/metrics/getTableData?${params.toString()}`,
+			token,
+		);
 	}
 
 	async getMetricsUsers(
@@ -614,30 +343,15 @@ class EnterpriseService {
 		search?: string,
 		limit?: number,
 		cursor?: number,
-	): Promise<MetricsUsersResponse | null> {
-		if (!this._url) return null;
-		try {
-			const params = new URLSearchParams();
-			if (search) params.append("search", search);
-			if (limit !== undefined) params.append("limit", limit.toString());
-			if (cursor !== undefined) params.append("cursor", cursor.toString());
-			const url = `${this._url}/enterprise/modules/metrics/getMetricsUsers?${params.toString()}`;
-			const response = await fetch(url, {
-				method: "GET",
-				headers: {
-					Authorization: `Bearer ${token}`,
-					"Content-Type": "application/json",
-				},
-				credentials: "include",
-			});
-			await this._checkUnauthorized(response);
-			if (!response.ok) return null;
-			const data = await response.json();
-			return data;
-		} catch (error) {
-			console.error(error);
-			return null;
-		}
+	): Promise<MetricsUsersResponse> {
+		const params = new URLSearchParams();
+		if (search) params.append("search", search);
+		if (limit !== undefined) params.append("limit", limit.toString());
+		if (cursor !== undefined) params.append("cursor", cursor.toString());
+		return this._fetchGet<MetricsUsersResponse>(
+			`/enterprise/modules/metrics/getMetricsUsers?${params.toString()}`,
+			token,
+		);
 	}
 
 	async getMetricsCatalogs(
@@ -645,30 +359,15 @@ class EnterpriseService {
 		search?: string,
 		limit?: number,
 		cursor?: number,
-	): Promise<MetricsCatalogsResponse | null> {
-		if (!this._url) return null;
-		try {
-			const params = new URLSearchParams();
-			if (search) params.append("search", search);
-			if (limit !== undefined) params.append("limit", limit.toString());
-			if (cursor !== undefined) params.append("cursor", cursor.toString());
-			const url = `${this._url}/enterprise/modules/metrics/getMetricsCatalogs?${params.toString()}`;
-			const response = await fetch(url, {
-				method: "GET",
-				headers: {
-					Authorization: `Bearer ${token}`,
-					"Content-Type": "application/json",
-				},
-				credentials: "include",
-			});
-			await this._checkUnauthorized(response);
-			if (!response.ok) return null;
-			const data = await response.json();
-			return data;
-		} catch (error) {
-			console.error(error);
-			return null;
-		}
+	): Promise<MetricsCatalogsResponse> {
+		const params = new URLSearchParams();
+		if (search) params.append("search", search);
+		if (limit !== undefined) params.append("limit", limit.toString());
+		if (cursor !== undefined) params.append("cursor", cursor.toString());
+		return this._fetchGet<MetricsCatalogsResponse>(
+			`/enterprise/modules/metrics/getMetricsCatalogs?${params.toString()}`,
+			token,
+		);
 	}
 
 	async getSearchMetricsCatalogs(
@@ -676,301 +375,63 @@ class EnterpriseService {
 		search?: string,
 		limit?: number,
 		cursor?: number,
-	): Promise<MetricsCatalogsResponse | null> {
-		if (!this._url) return null;
-		try {
-			const params = new URLSearchParams();
-			if (search) params.append("search", search);
-			if (limit !== undefined) params.append("limit", limit.toString());
-			if (cursor !== undefined) params.append("cursor", cursor.toString());
-			const url = `${this._url}/enterprise/modules/metrics/getSearchMetricsCatalogs?${params.toString()}`;
-			const response = await fetch(url, {
-				method: "GET",
-				headers: {
-					Authorization: `Bearer ${token}`,
-					"Content-Type": "application/json",
-				},
-				credentials: "include",
-			});
-			await this._checkUnauthorized(response);
-			if (!response.ok) return null;
-			const data = await response.json();
-			return data;
-		} catch (error) {
-			console.error(error);
-			return null;
-		}
+	): Promise<MetricsCatalogsResponse> {
+		const params = new URLSearchParams();
+		if (search) params.append("search", search);
+		if (limit !== undefined) params.append("limit", limit.toString());
+		if (cursor !== undefined) params.append("cursor", cursor.toString());
+		return this._fetchGet<MetricsCatalogsResponse>(
+			`/enterprise/modules/metrics/getSearchMetricsCatalogs?${params.toString()}`,
+			token,
+		);
 	}
 
-	async getResources(token: string, page: number): Promise<{ repos: string[]; total: number } | null> {
-		if (!this._url) return null;
-		try {
-			const headers = {
-				Authorization: `Bearer ${token}`,
-				credentials: "include",
-			};
-
-			const res = await fetch(`${this._url}/enterprise/git/get-repos?page=${page}`, {
-				headers,
-				credentials: "include",
-			});
-
-			await this._checkUnauthorized(res);
-
-			if (!res.ok) {
-				return null;
-			}
-			const data = await res.json();
-			return data;
-		} catch (error) {
-			console.error(error);
-			return null;
-		}
+	getResources(token: string, page: number): Promise<{ repos: string[]; total: number }> {
+		return this._fetchGet<{ repos: string[]; total: number }>(`/enterprise/git/get-repos?page=${page}`, token);
 	}
 
-	async getBranches(token: string, repoName: string): Promise<string[]> {
-		if (!this._url) return [];
-		try {
-			const headers = {
-				Authorization: `Bearer ${token}`,
-			};
-			const res = await fetch(
-				`${this._url}/enterprise/git/get-branches?&repoName=${encodeURIComponent(repoName)}`,
-				{
-					headers,
-					credentials: "include",
-				},
-			);
-
-			await this._checkUnauthorized(res);
-
-			return res.ok ? await res.json() : [];
-		} catch (error) {
-			console.error(error);
-			return [];
-		}
+	getBranches(token: string, repoName: string): Promise<string[]> {
+		return this._fetchGet<string[]>(`/enterprise/git/get-branches?repoName=${encodeURIComponent(repoName)}`, token);
 	}
 
-	// Per-tab SET helpers
-	async setWorkspace(token: string, workspace: WorkspaceSettings) {
-		if (!this._url) return false;
-		try {
-			const headers = {
-				Authorization: `Bearer ${token}`,
-				"Content-Type": "application/json",
-			};
-			const res = await fetch(`${this._url}/enterprise/config/workspace/set`, {
-				method: "POST",
-				headers,
-				body: JSON.stringify(workspace),
-				credentials: "include",
-			});
-			await this._checkUnauthorized(res);
-
-			if (!res.ok) throw new Error(`${t("enterprise.admin.workspace.errors.update")} ${res.status}`);
-			return true;
-		} catch (error) {
-			console.error(error);
-			throw error;
-		}
+	setWorkspace(token: string, workspace: WorkspaceSettings) {
+		return this._postConfig("workspace/set", token, workspace);
 	}
 
-	async addGroup(token: string, group: { groupId: string; groupValue: GroupValue[]; groupName?: string }) {
-		if (!this._url) return false;
-		try {
-			const headers = {
-				Authorization: `Bearer ${token}`,
-				"Content-Type": "application/json",
-			};
-			const res = await fetch(`${this._url}/enterprise/config/groups/add`, {
-				method: "POST",
-				headers,
-				body: JSON.stringify(group),
-				credentials: "include",
-			});
-			this._checkUnauthorized(res);
-			if (!res.ok) throw new Error(`${t("enterprise.admin.groups.errors.add")} ${res.status}`);
-			return true;
-		} catch (error) {
-			console.error(error);
-			throw error;
-		}
+	addGroup(token: string, group: { groupId: string; groupValue: GroupValue[]; groupName?: string }) {
+		return this._postConfig("groups/add", token, group);
 	}
 
-	async deleteGroups(token: string, groupIds: string[]) {
-		if (!this._url) return false;
-		try {
-			const headers = {
-				Authorization: `Bearer ${token}`,
-				"Content-Type": "application/json",
-			};
-			const res = await fetch(`${this._url}/enterprise/config/groups/delete`, {
-				method: "POST",
-				headers,
-				body: JSON.stringify({ groupIds }),
-				credentials: "include",
-			});
-			this._checkUnauthorized(res);
-			if (!res.ok) throw new Error(`${t("enterprise.admin.groups.errors.delete")} ${res.status}`);
-			return true;
-		} catch (error) {
-			console.error(error);
-			throw error;
-		}
+	deleteGroups(token: string, groupIds: string[]) {
+		return this._postConfig("groups/delete", token, { groupIds });
 	}
 
-	async renameGroup(token: string, groupId: string, newName: string) {
-		if (!this._url) return false;
-		try {
-			const headers = {
-				Authorization: `Bearer ${token}`,
-				"Content-Type": "application/json",
-			};
-			const res = await fetch(`${this._url}/enterprise/config/groups/rename`, {
-				method: "POST",
-				headers,
-				body: JSON.stringify({ groupId, newName }),
-				credentials: "include",
-			});
-			this._checkUnauthorized(res);
-			if (!res.ok) throw new Error(`${t("enterprise.admin.groups.errors.rename")} ${res.status}`);
-			return true;
-		} catch (error) {
-			console.error(error);
-			throw error;
-		}
+	renameGroup(token: string, groupId: string, newName: string) {
+		return this._postConfig("groups/rename", token, { groupId, newName });
 	}
 
-	async setEditors(token: string, editors: EditorsSettings) {
-		if (!this._url) return false;
-		try {
-			const headers = {
-				Authorization: `Bearer ${token}`,
-				"Content-Type": "application/json",
-			};
-			const res = await fetch(`${this._url}/enterprise/config/editors/set`, {
-				method: "POST",
-				headers,
-				body: JSON.stringify(editors),
-				credentials: "include",
-			});
-			this._checkUnauthorized(res);
-			if (!res.ok) throw new Error(`${t("enterprise.admin.editors.errors.update")} ${res.status}`);
-			return true;
-		} catch (error) {
-			console.error(error);
-			throw error;
-		}
+	setEditors(token: string, editors: EditorsSettings) {
+		return this._postConfig("editors/set", token, editors);
 	}
 
-	async addResource(token: string, resource: ResourcesSettings) {
-		if (!this._url) return false;
-		try {
-			const headers = {
-				Authorization: `Bearer ${token}`,
-				"Content-Type": "application/json",
-			};
-			const res = await fetch(`${this._url}/enterprise/config/resources/add`, {
-				method: "POST",
-				headers,
-				body: JSON.stringify(resource),
-				credentials: "include",
-			});
-			this._checkUnauthorized(res);
-			if (!res.ok) throw new Error(`${t("enterprise.admin.resources.errors.add")} ${res.status}`);
-			return true;
-		} catch (error) {
-			console.error(error);
-			throw error;
-		}
+	addResource(token: string, resource: ResourcesSettings) {
+		return this._postConfig("resources/add", token, resource);
 	}
 
-	async deleteResources(token: string, resourceIds: string[]) {
-		if (!this._url) return false;
-		try {
-			const headers = {
-				Authorization: `Bearer ${token}`,
-				"Content-Type": "application/json",
-			};
-			const res = await fetch(`${this._url}/enterprise/config/resources/delete`, {
-				method: "POST",
-				headers,
-				body: JSON.stringify({ resourceIds }),
-				credentials: "include",
-			});
-			this._checkUnauthorized(res);
-			if (!res.ok) throw new Error(`${t("enterprise.admin.mail.errors.update")} ${res.status}`);
-			return true;
-		} catch (error) {
-			console.error(error);
-			throw error;
-		}
+	deleteResources(token: string, resourceIds: string[]) {
+		return this._postConfig("resources/delete", token, { resourceIds });
 	}
 
-	async setMail(token: string, mail: MailSettings) {
-		if (!this._url) return false;
-		try {
-			const headers = {
-				Authorization: `Bearer ${token}`,
-				"Content-Type": "application/json",
-			};
-			const res = await fetch(`${this._url}/enterprise/config/mail/set`, {
-				method: "POST",
-				headers,
-				body: JSON.stringify(mail),
-				credentials: "include",
-			});
-			this._checkUnauthorized(res);
-			if (!res.ok) throw new Error(`${t("enterprise.admin.mail.errors.update")} ${res.status}`);
-			return true;
-		} catch (error) {
-			console.error(error);
-			throw error;
-		}
+	setMail(token: string, mail: MailSettings) {
+		return this._postConfig("mail/set", token, mail);
 	}
 
-	async setGuests(token: string, guests: GuestsSettings) {
-		if (!this._url) return false;
-		try {
-			const headers = {
-				Authorization: `Bearer ${token}`,
-				"Content-Type": "application/json",
-			};
-			const res = await fetch(`${this._url}/enterprise/config/guests/set`, {
-				method: "POST",
-				headers,
-				body: JSON.stringify(guests),
-				credentials: "include",
-			});
-			this._checkUnauthorized(res);
-			if (!res.ok) throw new Error(`${t("enterprise.admin.guests.errors.update")} ${res.status}`);
-			return true;
-		} catch (error) {
-			console.error(error);
-			throw error;
-		}
+	setGuests(token: string, guests: GuestsSettings) {
+		return this._postConfig("guests/set", token, guests);
 	}
 
-	async setStyleGuide(token: string, styleGuide: StyleGuideSettings) {
-		if (!this._url) return false;
-		try {
-			const headers = {
-				Authorization: `Bearer ${token}`,
-				"Content-Type": "application/json",
-			};
-			const res = await fetch(`${this._url}/enterprise/config/style-guide/set`, {
-				method: "POST",
-				headers,
-				body: JSON.stringify(styleGuide),
-				credentials: "include",
-			});
-			this._checkUnauthorized(res);
-			if (!res.ok) throw new Error(`${t("enterprise.admin.styleGuide.errors.update")} ${res.status}`);
-			return true;
-		} catch (error) {
-			console.error(error);
-			throw error;
-		}
+	setStyleGuide(token: string, styleGuide: StyleGuideSettings) {
+		return this._postConfig("style-guide/set", token, styleGuide);
 	}
 
 	async checkStyleGuide(
@@ -994,9 +455,8 @@ class EnterpriseService {
 				signal,
 			});
 
-			//TODO_RM: add here proper text upon errors with localization like other methods here
-			if (res.status === 503) throw new Error("Style guide is disabled");
-			if (!res.ok) throw new Error("Failed to check example");
+			if (res.status === 503) throw new Error(t("enterprise.admin.check.service-unavailable"));
+			if (!res.ok) throw new Error(t("enterprise.admin.check.check-failed"));
 
 			const response = await res.json();
 			return response;
@@ -1006,70 +466,16 @@ class EnterpriseService {
 		}
 	}
 
-	async setQuizConfig(token: string, quiz: QuizSettings) {
-		if (!this._url) return false;
-		try {
-			const headers = {
-				Authorization: `Bearer ${token}`,
-				"Content-Type": "application/json",
-			};
-			const res = await fetch(`${this._url}/enterprise/config/quiz/set`, {
-				method: "POST",
-				headers,
-				body: JSON.stringify(quiz),
-				credentials: "include",
-			});
-			await this._checkUnauthorized(res);
-			if (!res.ok) throw new Error(`${t("enterprise.admin.quiz.errors.save-data")} ${res.status}`);
-			return true;
-		} catch (error) {
-			console.error(error);
-			throw error;
-		}
+	setQuizConfig(token: string, quiz: QuizSettings) {
+		return this._postConfig("quiz/set", token, quiz);
 	}
 
-	async setMetricsConfig(token: string, metrics: MetricsConfigSettings) {
-		if (!this._url) return false;
-		try {
-			const headers = {
-				Authorization: `Bearer ${token}`,
-				"Content-Type": "application/json",
-			};
-			const res = await fetch(`${this._url}/enterprise/config/metrics-config/set`, {
-				method: "POST",
-				headers,
-				body: JSON.stringify(metrics),
-				credentials: "include",
-			});
-			await this._checkUnauthorized(res);
-			if (!res.ok) throw new Error(`Failed to save metrics config. Status: ${res.status}`);
-			return true;
-		} catch (error) {
-			console.error(error);
-			throw error;
-		}
+	setMetricsConfig(token: string, metrics: MetricsConfigSettings) {
+		return this._postConfig("metrics-config/set", token, metrics);
 	}
 
-	async setPlugins(token: string, plugins: PluginsSettings) {
-		if (!this._url) return false;
-		try {
-			const headers = {
-				Authorization: `Bearer ${token}`,
-				"Content-Type": "application/json",
-				credentials: "include",
-			};
-			const res = await fetch(`${this._url}/enterprise/config/plugins/set`, {
-				method: "POST",
-				headers,
-				body: JSON.stringify(plugins),
-			});
-			this._checkUnauthorized(res);
-			if (!res.ok) throw new Error(`Failed to save plugins. Status: ${res.status}`);
-			return true;
-		} catch (error) {
-			console.error(error);
-			throw error;
-		}
+	setPlugins(token: string, plugins: PluginsSettings) {
+		return this._postConfig("plugins/set", token, plugins);
 	}
 
 	async checkConnector(): Promise<boolean> {
@@ -1102,21 +508,13 @@ class EnterpriseService {
 	): Promise<RequestData<QuizTest>> {
 		try {
 			const baseUrl = `${this._url}/enterprise/modules/quiz/answer/get-with-user`;
-			const params = new URLSearchParams();
-			params.set("limit", limit.toString());
+			const params = new URLSearchParams({
+				limit: limit.toString(),
+			});
 
-			if (filters?.users && filters.users.length > 0) {
-				params.set("users", encodeURIComponent(JSON.stringify(filters.users)));
-			}
-
-			if (filters?.tests && filters.tests.length > 0) {
-				params.set("tests", encodeURIComponent(JSON.stringify(filters.tests)));
-			}
-
-			if (filters?.result && filters.result.length > 0) {
-				params.set("result", encodeURIComponent(JSON.stringify(filters.result)));
-			}
-
+			if (filters?.users.length) params.set("users", encodeURIComponent(JSON.stringify(filters.users)));
+			if (filters?.tests?.length) params.set("tests", encodeURIComponent(JSON.stringify(filters.tests)));
+			if (filters?.result?.length) params.set("result", encodeURIComponent(JSON.stringify(filters.result)));
 			if (cursor) params.set("cursor", encodeURIComponent(JSON.stringify(cursor)));
 
 			const res = await fetch(`${baseUrl}?${params.toString()}`, {
@@ -1133,10 +531,13 @@ class EnterpriseService {
 
 	async searchQuizTest(token: string, query: string): Promise<SearchedQuizTest[]> {
 		try {
-			let url = `${this._url}/enterprise/modules/quiz/test/get`;
-			url += `?select=${encodeURIComponent(JSON.stringify(["title"]))}`;
-			if (query) url += `&query=${encodeURIComponent(query)}`;
-			url += `&distinct=true`;
+			const params = new URLSearchParams({
+				select: '["title"]',
+				distinct: "true",
+			});
+			if (query) params.set("query", query);
+
+			const url = `${this._url}/enterprise/modules/quiz/test/get?${params.toString()}`;
 
 			const res = await fetch(url, {
 				headers: {
@@ -1156,10 +557,13 @@ class EnterpriseService {
 
 	async searchQuizAnsweredUsers(token: string, query: string): Promise<SearchedAnsweredUsers[]> {
 		try {
-			let url = `${this._url}/enterprise/modules/quiz/answer/user/get`;
-			url += `?select=${encodeURIComponent(JSON.stringify(["user_mail"]))}`;
-			if (query) url += `&query=${encodeURIComponent(query)}`;
-			url += `&distinct=true`;
+			const params = new URLSearchParams({
+				select: '["user_mail"]',
+				distinct: "true",
+			});
+			if (query) params.set("query", query);
+
+			const url = `${this._url}/enterprise/modules/quiz/answer/user/get?${params.toString()}`;
 
 			const res = await fetch(url, {
 				headers: {
@@ -1179,9 +583,12 @@ class EnterpriseService {
 
 	async getQuizDetailedUserAnswers(token: string, id: number): Promise<QuizTestData> {
 		try {
-			let url = `${this._url}/enterprise/modules/quiz/answer/get`;
-			url += `?id=${encodeURIComponent(id)}`;
-			url += `&select=${encodeURIComponent(JSON.stringify(["answers", "qt.questions as questions"]))}`;
+			const params = new URLSearchParams({
+				id: String(id),
+				select: '["answers", "qt.questions as questions"]',
+			});
+
+			const url = `${this._url}/enterprise/modules/quiz/answer/get?${params.toString()}`;
 
 			const res = await fetch(url, {
 				headers: {
@@ -1207,17 +614,14 @@ class EnterpriseService {
 		try {
 			const res = await fetch(`${this._url}/sso/connectors/getUsers`, {
 				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-					Authorization: `Bearer ${token}`,
-				},
+				headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
 				body: JSON.stringify({ emailOrCn: query }),
 				credentials: "include",
 			});
-
-			return res.ok ? await res.json() : [];
-		} catch (error) {
-			console.error(error);
+			if (!res.ok) return [];
+			const json = await res.json();
+			return Array.isArray(json) ? json : [];
+		} catch {
 			return [];
 		}
 	}
@@ -1226,18 +630,135 @@ class EnterpriseService {
 		try {
 			const res = await fetch(`${this._url}/sso/connectors/getGroups`, {
 				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-					Authorization: `Bearer ${token}`,
-				},
+				headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
 				body: JSON.stringify({ groupName: query }),
 				credentials: "include",
 			});
-
-			return res.ok ? await res.json() : [];
-		} catch (error) {
-			console.error(error);
+			if (!res.ok) return [];
+			const json = await res.json();
+			return Array.isArray(json) ? json : [];
+		} catch {
 			return [];
+		}
+	}
+
+	async getGroupsByIds(ids: string[], token: string): Promise<searchGroupInfo[]> {
+		if (!ids.length) return [];
+		try {
+			const res = await fetch(`${this._url}/sso/connectors/getGroupsByIds`, {
+				method: "POST",
+				headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+				body: JSON.stringify({ ids }),
+				credentials: "include",
+			});
+			if (!res.ok) return [];
+			const json = await res.json();
+			return Array.isArray(json) ? json : [];
+		} catch {
+			return [];
+		}
+	}
+
+	async getUsersByEmails(emails: string[], token: string): Promise<searchUserInfo[]> {
+		if (!emails.length) return [];
+		try {
+			const res = await fetch(`${this._url}/sso/connectors/getUsersByEmails`, {
+				method: "POST",
+				headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+				body: JSON.stringify({ emails }),
+				credentials: "include",
+			});
+			if (!res.ok) return [];
+			const json = await res.json();
+			return Array.isArray(json) ? json : [];
+		} catch {
+			return [];
+		}
+	}
+
+	async getConfig<T extends keyof ConfigTabMap>(
+		tab: T,
+		token: string,
+		etag?: string,
+	): Promise<EtagResult<ConfigTabMap[T]>> {
+		return await this._getConfig<ConfigTabMap[T]>(specialConfigNameMap[tab] ?? tab, token, etag);
+	}
+
+	private async _fetchGet<T>(path: string, token: string): Promise<T> {
+		if (!this._url) throw new GesError("not-configured");
+		const response = await this._request(`${this._url}${path}`, {
+			headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+			credentials: "include",
+		});
+		this._checkUnauthorized(response);
+		if (!response.ok) throw new GesError(gesErrorCodeByStatus(response.status));
+		return this._parseJson<T>(response);
+	}
+
+	private _getConfig<T>(name: string, token: string, etag?: string): Promise<EtagResult<T>> {
+		return this._getWithEtag<T>(`${this._url}/enterprise/config/${name}/get`, token, etag);
+	}
+
+	private async _getWithEtag<T>(url: string, token: string, etag?: string): Promise<EtagResult<T | null>> {
+		if (!this._url || !token) throw new GesError("not-configured");
+
+		const headers: Record<string, string> = { Authorization: `Bearer ${token}` };
+		if (etag) headers["If-None-Match"] = etag;
+
+		const res = await this._request(url, { headers, credentials: "include" });
+		this._checkUnauthorized(res);
+
+		if (res.status === 304) return { data: null, etag: etag ?? null, notModified: true };
+		if (!res.ok) throw new GesError(gesErrorCodeByStatus(res.status));
+
+		return { data: await this._parseJson<T>(res), etag: res.headers.get("ETag"), notModified: false };
+	}
+
+	private async _postConfig(endpoint: string, token: string, body: unknown): Promise<void> {
+		if (!this._url) throw new GesError("not-configured");
+
+		const res = await this._request(`${this._url}/enterprise/config/${endpoint}`, {
+			method: "POST",
+			headers: {
+				Authorization: `Bearer ${token}`,
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify(body),
+			credentials: "include",
+		});
+		this._checkUnauthorized(res);
+		if (!res.ok) throw new GesError(gesErrorCodeByStatus(res.status));
+	}
+
+	private async _request(url: string, init: RequestInit): Promise<Response> {
+		let lastResponse: Response;
+		let lastError: unknown;
+
+		const response = await withRetries<Response>(
+			async () => {
+				try {
+					const res = await fetch(url, init);
+					if (!isRetryableStatus(res.status)) return { type: "success", value: res };
+					lastResponse = res;
+				} catch (error) {
+					lastError = error;
+				}
+				return { type: "continue" };
+			},
+			REQUEST_RETRY_COUNT,
+			REQUEST_RETRY_DELAY_MS,
+		);
+
+		if (response) return response;
+		if (lastResponse) return lastResponse;
+		throw new GesError("offline", { cause: lastError });
+	}
+
+	private async _parseJson<T>(response: Response): Promise<T> {
+		try {
+			return (await response.json()) as T;
+		} catch (error) {
+			throw new GesError("malformed", { cause: error });
 		}
 	}
 }

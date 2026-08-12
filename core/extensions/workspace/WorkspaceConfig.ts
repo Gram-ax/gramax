@@ -1,5 +1,8 @@
 import type { ServicesConfig } from "@app/config/AppConfig";
 import type { ModuleOptions } from "@ext/enterprise/types/UserSettings";
+import type { AppSettings } from "@ext/settings/levels/app-settings";
+import type { WorkspaceSettings } from "@ext/settings/levels/workspace-settings";
+import type { StoredSettings } from "@ext/settings/logic/types";
 
 export enum WorkspaceView {
 	folder = "folder",
@@ -14,6 +17,9 @@ export type WorkspaceSection = {
 	catalogs?: string[];
 	sections?: Record<string, WorkspaceSection>;
 };
+
+export type WorkspaceSettingsSchema = StoredSettings<typeof WorkspaceSettings>;
+export type WorkspaceAppSettingsSchema = StoredSettings<typeof AppSettings>;
 
 export interface WorkspaceConfig {
 	name: string;
@@ -33,6 +39,11 @@ export interface WorkspaceConfig {
 	enterpriseCloud?: {
 		url?: string;
 	};
+	git?: {
+		lfs?: { patterns: string[] };
+	};
+	version?: number;
+	settings?: WorkspaceSettingsSchema & WorkspaceAppSettingsSchema;
 }
 
 export type WorkspacePath = string;

@@ -17,11 +17,11 @@
 		".vite-cache",
 		"**/.vite-cache",
 		"**/build",
-		"../../app/resolveModule/*/browser/**/*",
+		"../../app/resolveModule/*/web/**/*",
 		"../../app/resolveModule/*/tauri/**/*",
 		"../../app/resolveModule/*/cli/**/*",
 		"../../app/resolveModule/*/static/**/*",
 		"../../app/resolveModule/*/docportal.ts",
-		"../../core/extensions/loggers/opentelemetry/browser/**/*"
+		"../../core/extensions/loggers/opentelemetry/web/**/*"
 	]
 }

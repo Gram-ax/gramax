@@ -8,7 +8,7 @@ export class LinkHoverTooltipManager {
 
 	constructor(
 		private _parentElement: HTMLElement,
-		private _pageDataContext: PageDataContext,
+		private _pageDataContext: PageDataContext | undefined,
 		private _environment?: Environment,
 		private _basePath?: string,
 	) {}
@@ -23,6 +23,7 @@ export class LinkHoverTooltipManager {
 		href,
 	}: {
 		linkElement: HTMLElement;
+		// biome-ignore lint/suspicious/noExplicitAny: out of scope
 		markData?: { from: number; to: number; mark: any };
 		anchorPos?: number | null;
 		resourcePath?: string;
@@ -43,7 +44,7 @@ export class LinkHoverTooltipManager {
 		};
 
 		if (markData) tooltip.setMarkData(markData);
-		if (resourcePath) tooltip.setResourcePath(resourcePath, hash, href);
+		if (resourcePath || href) tooltip.setResourcePath(resourcePath, hash, href);
 		if (anchorPos) tooltip.updateAnchorPos(anchorPos);
 
 		tooltip.setComponent(linkElement);

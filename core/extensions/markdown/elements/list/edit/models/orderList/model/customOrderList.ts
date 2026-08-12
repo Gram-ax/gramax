@@ -1,6 +1,6 @@
 import inputRuleHandler from "@ext/markdown/elements/list/edit/logic/inputRuleHandler";
 import toggleListPrepare from "@ext/markdown/elements/list/edit/logic/toggleListPrepare";
-import OrderedList from "@tiptap/extension-ordered-list";
+import { OrderedList } from "@tiptap/extension-list";
 
 const CustomOrderList = OrderedList.extend({
 	addInputRules() {

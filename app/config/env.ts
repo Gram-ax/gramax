@@ -22,6 +22,11 @@ export type EnvironmentVariable = {
 	AUTO_PULL_INTERVAL: number;
 	AUTO_PULL_DELAY: number;
 
+	// Webhook
+	WEBHOOK_SECRET: string;
+	WEBHOOK_PEERS: string;
+	WEBHOOK_TOKEN: string;
+
 	// FileProvider
 	ROOT_PATH: string;
 	BASE_PATH: string;
@@ -29,6 +34,7 @@ export type EnvironmentVariable = {
 	GRAMAX_DEFAULT_WORKSPACE_PATH: string;
 
 	// Other
+	MACOS_IS_INSTALLED: Bool;
 	FORCE_UI_LANG_SYNC: Bool;
 	DEFAULT_UI_LANGUAGE: string;
 	SHARE_ACCESS_TOKEN: string;
@@ -36,6 +42,7 @@ export type EnvironmentVariable = {
 	DOC_READER_MAIL_PASSWORD: string;
 	DOCPORTAL_FEATURES: string;
 	FEATURES: string;
+	GRAMAX_LOG_LEVEL: string;
 
 	// Algolia
 	NEXT_PUBLIC_ALGOLIA_APP_ID: string;
@@ -64,8 +71,10 @@ export type EnvironmentVariable = {
 
 	// Enterprise
 	GES_URL: string;
+	RESOURCE_SEARCH_ENABLED: Bool;
 	ALLOWED_GRAMAX_URLS: string;
 	GES_REFRESH_INTERVAL: string;
+	HIDE_ERROR_CAUSE: Bool;
 
 	// Enterprise Cloud
 	GES_CLOUD_URL: string;

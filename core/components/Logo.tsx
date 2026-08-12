@@ -2,27 +2,29 @@ import Url from "@core-ui/ApiServices/Types/Url";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import { cssMedia } from "@core-ui/utils/cssUtils";
+// biome-ignore lint/style/noRestrictedImports: it's ok
 import styled from "@emotion/styled";
+import t from "@ext/localization/locale/translate";
 import Link from "./Atoms/Link";
 import { ActionLogo, CatalogLogo } from "./CatalogLogo";
 
 const Logo = ({ className }: { className?: string; imageUrl?: string }) => {
 	const pageData = PageDataContextService.value;
-	const { name, link, title, repositoryName } = useCatalogPropsStore(
+	const { name, link, title } = useCatalogPropsStore(
 		(state) => ({
 			name: state.data.name,
 			link: state.data?.link,
 			title: state.data?.title,
-			repositoryName: state.data?.repositoryName,
 		}),
 		"shallow",
 	);
+
 	return (
 		<div className={className}>
 			<Link href={Url.from(link)}>
 				{pageData.conf.logo.imageUrl ? <ActionLogo /> : <CatalogLogo catalogName={name} />}
 				<span className="title" title={title}>
-					{title || repositoryName}
+					{title || t("article.no-name")}
 				</span>
 			</Link>
 		</div>

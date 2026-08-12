@@ -3,7 +3,7 @@ import { createEventEmitter, type Event, type EventArgs } from "@core/Event/Even
 import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import type FetchResponse from "@core-ui/ApiServices/Types/FetchResponse";
 import Method from "@core-ui/ApiServices/Types/Method";
-import type MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
+import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import type Url from "@core-ui/ApiServices/Types/Url";
 import trimRoutePrefix from "@core-ui/ApiServices/trimRoutePrefix";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
@@ -21,8 +21,12 @@ export type ResponseMap<T, O> = (data: T) => Promise<O> | O;
 export type RequestParser = "json" | "text" | "blob" | ((body: unknown) => Promise<BodyInit> | BodyInit);
 
 export type OnDidCommandEv = { command: string; args: object; result: unknown };
+export type OnWillCommandEv = { command: string; args: object };
+export type OnSettledCommandEv = { command: string };
 
-export type UseApiEvents = Event<"on-did-command", OnDidCommandEv>;
+export type UseApiEvents = Event<"on-did-command", OnDidCommandEv> &
+	Event<"on-will-command", OnWillCommandEv> &
+	Event<"on-settled-command", OnSettledCommandEv>;
 
 export enum RequestStatus {
 	Init,
@@ -138,18 +142,26 @@ const resolveEndpoint = async (val: SpecifyOrCreateApi, apiUrlCreator: ApiUrlCre
 
 const fetchEndpoint = async (url: Url, opts?: UseApiOptions) => {
 	const method = opts?.method || (opts?.body ? Method.POST : Method.GET);
+	const command = trimRoutePrefix(url);
+	void events.emit("on-will-command", { command, args: {} });
 
-	const res = await resolveModule("Fetcher")(
-		url,
-		await parseBody(opts?.body, opts?.parse),
-		opts?.mime,
-		method,
-		false,
-		(command, args, result) => {
-			void events.emit("on-did-command", { command, args, result });
-		},
-		opts?.abort,
-	);
+	const res = await (async () => {
+		try {
+			return await resolveModule("Fetcher")(
+				url,
+				await parseBody(opts?.body, opts?.parse),
+				opts?.mime ?? MimeTypes.json,
+				method,
+				false,
+				(command, args, result) => {
+					void events.emit("on-did-command", { command, args, result });
+				},
+				opts?.abort,
+			);
+		} finally {
+			void events.emit("on-settled-command", { command });
+		}
+	})();
 
 	if (res.status === 404) {
 		const command = trimRoutePrefix(url);
@@ -240,6 +252,7 @@ export const useApi = <T, O = T>({ url: rawUrl, opts, parse, ...props }: UseApiP
 		statusRef.current = status;
 	}, [status]);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: it's ok
 	const call = useCallback(
 		async (defer?: UseApiProps<T, O>) => {
 			let cbs = callbacks.current;

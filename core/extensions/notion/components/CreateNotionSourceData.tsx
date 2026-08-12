@@ -13,7 +13,7 @@ import { useState } from "react";
 
 const CreateNotionSourceData = ({ onSubmit }: { onSubmit?: (editProps: NotionSourceData) => void }) => {
 	const page = PageDataContextService.value;
-	const authServiceUrl = PageDataContextService.value.conf.authServiceUrl;
+	const authServiceUrl = PageDataContextService.value.settings?.services?.auth?.endpoint;
 	const [data, setData] = useState<Query>(null);
 
 	return (
@@ -43,7 +43,7 @@ const CreateNotionSourceData = ({ onSubmit }: { onSubmit?: (editProps: NotionSou
 								(location) => setData(parserQuery(location.search)),
 							);
 						}}
-						text={t("log-in") + "Notion"}
+						text={`${t("log-in")}Notion`}
 						textSize={TextSize.M}
 					/>
 				)}

@@ -6,7 +6,7 @@ export const FORM_VALIDATION = {
 } as const;
 
 export const FORM_STYLES = {
-	LABEL_WIDTH: "w-44",
+	LABEL_WIDTH: "w-44 shrink-0",
 } as const;
 
 export const FORM_DATA_QA = {

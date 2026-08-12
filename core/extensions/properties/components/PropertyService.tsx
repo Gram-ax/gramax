@@ -1,6 +1,6 @@
 /** biome-ignore-all lint/complexity/noStaticOnlyClass: expected */
-import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import useWatch from "@core-ui/hooks/useWatch";
+import { useArticlePropsStore } from "@core-ui/stores/ArticlePropsStore/ArticlePropsStore.provider";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import combineProperties from "@ext/properties/logic/combineProperties";
 import { type Property, SystemProperties } from "@ext/properties/models";
@@ -9,6 +9,7 @@ import {
 	type Dispatch,
 	type ReactElement,
 	type SetStateAction,
+	useCallback,
 	useContext,
 	useEffect,
 	useState,
@@ -32,24 +33,24 @@ class PropertyServiceProvider {
 		const [properties, setProperties] = useState<Map<string, Property>>(new Map());
 
 		const catalogProperties = useCatalogPropsStore((state) => state.data?.properties, "shallow");
-		const articleProps = ArticlePropsService.value;
+		const articleProps = useArticlePropsStore((state) => state?.data?.properties);
 
 		useEffect(() => {
-			const articleProperties = combineProperties(articleProps?.properties, properties);
+			const articleProperties = combineProperties(articleProps, properties);
 			setArticleProperties(articleProperties);
-		}, [articleProps?.properties, properties]);
+		}, [articleProps, properties]);
 
-		const updateProperties = () => {
+		const updateProperties = useCallback(() => {
 			const map = catalogProperties
 				? new Map(catalogProperties.filter((prop) => !SystemProperties[prop.id]).map((prop) => [prop.id, prop]))
 				: new Map();
 
 			setProperties(map);
-		};
+		}, [catalogProperties]);
 
 		useWatch(() => {
 			updateProperties();
-		}, [catalogProperties]);
+		}, [updateProperties]);
 
 		return (
 			<PropertyContext.Provider value={{ properties, articleProperties, setArticleProperties }}>

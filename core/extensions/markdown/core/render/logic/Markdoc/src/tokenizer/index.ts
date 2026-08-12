@@ -42,6 +42,11 @@ export default class Tokenizer {
 		return this._parser.render(content);
 	}
 
+	/** Phrasing content only — no wrapping <p>. For slots that sit inside a line of other content. */
+	renderToHtmlInline(content: string): string {
+		return this._parser.renderInline(content);
+	}
+
 	getParser(): MarkdownIt {
 		return this._parser;
 	}

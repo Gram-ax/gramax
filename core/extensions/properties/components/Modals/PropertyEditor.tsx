@@ -1,26 +1,24 @@
-import type { IconCode } from "@components/Atoms/Icon/LucideIcon";
-import useLucideIconLists from "@components/Atoms/Icon/lucideIconList";
 import Style from "@components/HomePage/Cards/model/Style";
 import UnsavedChangesModal from "@components/UnsavedChangesModal";
 import generateUniqueID from "@core/utils/generateUniqueID";
-import multiLayoutSearcher from "@core-ui/languageConverter/multiLayoutSearcher";
-import styled from "@emotion/styled";
+import { cn } from "@core-ui/utils/cn";
 import t from "@ext/localization/locale/translate";
+import { PopoverIconPicker } from "@ext/markdown/elements/icon/edit/components/IconPicker/PopoverIconPicker";
 import { Values } from "@ext/properties/components/Helpers/Values";
 import ActionWarning from "@ext/properties/components/Modals/ActionWarning";
 import PropertyService from "@ext/properties/components/PropertyService";
+import { PropertyStylePicker } from "@ext/properties/components/PropertyStylePicker";
 import { isPropertySuitableForArticle, type Property, PropertyTypes, type PropertyValue } from "@ext/properties/models";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Button, IconButton } from "@ui-kit/Button";
+import { Button, IconButton, InlineTriggerButton } from "@ui-kit/Button";
 import { CheckboxField } from "@ui-kit/Checkbox";
 import { Dialog, DialogBody, DialogContent } from "@ui-kit/Dialog";
 import { ErrorState } from "@ui-kit/ErrorState";
 import { Form, FormField, FormFieldSet, FormFooter, FormHeader, FormStack } from "@ui-kit/Form";
 import { Icon } from "@ui-kit/Icon";
 import { Input } from "@ui-kit/Input";
-import { FieldLabel } from "@ui-kit/Label";
-import { LazySearchSelect } from "@ui-kit/LazySearchSelect";
 import { Loader } from "@ui-kit/Loader";
+import { Popover, PopoverContent, PopoverTriggerButton } from "@ui-kit/Popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@ui-kit/Select";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
 import { useCallback, useState } from "react";
@@ -42,59 +40,30 @@ interface FormFieldValuesProps {
 	error: string;
 }
 
-const BetweenContainer = styled.div`
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	width: 100%;
-`;
-
-const CustomFormField = styled.div`
-	display: flex;
-	flex-direction: column;
-	gap: 0.25rem;
-	width: 100%;
-`;
-
-const CustomFormFieldLabel = styled(FieldLabel)`
-	height: auto;
-
-	.truncate {
-		width: 100%;
-	}
-`;
-
-const TreeRoot = styled.div`
-	margin-top: 0.5rem;
-	font-size: 0.85rem;
-`;
-
 const FormFieldValues = ({ values = [], onChange, error }: FormFieldValuesProps) => {
 	const addValue = () => {
 		onChange([...values, ""]);
 	};
 
 	return (
-		<CustomFormField>
-			<CustomFormFieldLabel>
-				<BetweenContainer>
-					<span>{t("forms.catalog-create-props.props.values.name")}</span>
-					<IconButton
-						className="rounded-full"
-						data-testid="add-value"
-						icon="plus"
-						onClick={addValue}
-						size="xs"
-						type="button"
-						variant="outline"
-					/>
-				</BetweenContainer>
-			</CustomFormFieldLabel>
+		<div className="flex flex-col gap-1 w-full overflow-hidden">
+			<div className="flex items-center justify-between w-full">
+				<span>{t("forms.catalog-create-props.props.values.name")}</span>
+				<IconButton
+					className="rounded-full"
+					data-testid="add-value"
+					icon="plus"
+					onClick={addValue}
+					size="xs"
+					type="button"
+					variant="outline"
+				/>
+			</div>
 			<ErrorState className="p-0">{error}</ErrorState>
-			<TreeRoot className="tree-root">
+			<div className="tree-root mt-2 text-[0.85rem] overflow-auto max-h-96">
 				<Values data={values} onChange={onChange} />
-			</TreeRoot>
-		</CustomFormField>
+			</div>
+		</div>
 	);
 };
 
@@ -112,10 +81,8 @@ const PropertyEditor = ({
 	const [isSubmitLoading, setIsSubmitLoading] = useState(false);
 
 	const isNew = !data?.id;
-	const lucideIconListForUikitOptions = useLucideIconLists().lucideIconListForUikitOptions;
 	const { properties } = PropertyService.value;
 
-	console.log(onlyArticleProperties);
 	const propertyTypes = onlyArticleProperties
 		? Object.values(PropertyTypes).filter(isPropertySuitableForArticle)
 		: Object.values(PropertyTypes);
@@ -162,7 +129,7 @@ const PropertyEditor = ({
 
 	const formSubmit = useCallback(
 		(e) => {
-			form.handleSubmit(async (data) => {
+			void form.handleSubmit(async (data) => {
 				setIsSubmitLoading(true);
 				const val = data.options;
 				const newValues = Object.entries(val || {}).reduce((acc, [key, value]) => {
@@ -177,9 +144,12 @@ const PropertyEditor = ({
 					options: Object.keys(newValues).length > 0 ? newValues : undefined,
 				};
 
-				await onSubmit(newData as unknown as Property);
-				setIsSubmitLoading(false);
-				setOpen(false);
+				try {
+					await onSubmit(newData as unknown as Property);
+					setOpen(false);
+				} finally {
+					setIsSubmitLoading(false);
+				}
 			})(e);
 		},
 		[form, onSubmit],
@@ -287,31 +257,12 @@ const PropertyEditor = ({
 									/>
 									<FormField
 										control={({ field }) => (
-											<LazySearchSelect
-												{...field}
-												defaultValue={field.value || undefined}
-												filter={(value: string, search: string) => {
-													return multiLayoutSearcher<number>({
-														sync: true,
-														searcher: (search: string): number => {
-															if (!search) return 0;
-															if (value.toLowerCase().includes(search.toLowerCase()))
-																return 2;
-															return 0;
-														},
-													})(search);
-												}}
-												onChange={field.onChange}
-												options={lucideIconListForUikitOptions}
-												pageSize={25}
-												placeholder={t("forms.catalog-create-props.props.icon.placeholder")}
-												renderOption={({ option }) => (
-													<div className="flex items-center gap-2">
-														<Icon icon={option.value as IconCode} />
-														{option.value}
-													</div>
-												)}
-												value={field.value || undefined}
+											<PopoverIconPicker
+												disable={["emoji", "file-input", "color"]}
+												label={field.value ? field.value : t("icon")}
+												onChange={(value) => "code" in value && field.onChange(value.code)}
+												onClear={() => field.onChange(undefined)}
+												value={field.value ? { code: field.value } : undefined}
 											/>
 										)}
 										description={t("forms.catalog-create-props.props.icon.description")}
@@ -320,27 +271,61 @@ const PropertyEditor = ({
 									/>
 									<FormField
 										control={({ field }) => (
-											<Select
-												defaultValue={field.value || undefined}
-												onValueChange={field.onChange}
-											>
-												<SelectTrigger
-													data-qa={t("forms.catalog-create-props.props.style.name")}
+											<Popover>
+												<PopoverTriggerButton
+													className={cn(
+														"w-full justify-start pr-2.5 pl-3 py-1.5 font-normal",
+														!field.value && "text-muted",
+													)}
+													containerClassName="w-full justify-start"
+													data-testid="style-popover-trigger"
+													variant="outline"
 												>
-													<SelectValue
-														placeholder={t(
-															"forms.catalog-create-props.props.style.placeholder",
+													<Icon icon="palette" />
+													{t(
+														field.value
+															? (`catalog.style.${field.value}` as keyof typeof t)
+															: "forms.catalog-edit-props.props.style.placeholder",
+													)}
+													<div className="flex items-center ml-auto">
+														{field.value && (
+															<InlineTriggerButton
+																className="shrink-0"
+																onClick={() => field.onChange(null)}
+															/>
 														)}
+														<Tooltip>
+															<TooltipContent>{t("pick-random-value")}</TooltipContent>
+															<TooltipTrigger asChild>
+																<span>
+																	<InlineTriggerButton
+																		className="shrink-0"
+																		icon="dices"
+																		onClick={() => {
+																			const randomStyle = Object.values(Style).at(
+																				Math.floor(
+																					Math.random() *
+																						Object.values(Style).length,
+																				),
+																			);
+																			field.onChange(randomStyle);
+																		}}
+																	/>
+																</span>
+															</TooltipTrigger>
+														</Tooltip>
+														<span className="text-muted pl-2 shrink-0 aspect-square inline-flex items-center justify-center">
+															<Icon icon="chevron-down" />
+														</span>
+													</div>
+												</PopoverTriggerButton>
+												<PopoverContent className="p-0 w-auto rounded-xl">
+													<PropertyStylePicker
+														onChange={field.onChange}
+														value={field.value}
 													/>
-												</SelectTrigger>
-												<SelectContent>
-													{Object.values(Style).map((style) => (
-														<SelectItem key={style} value={style}>
-															{t(`catalog.style.${style}`)}
-														</SelectItem>
-													))}
-												</SelectContent>
-											</Select>
+												</PopoverContent>
+											</Popover>
 										)}
 										description={t("forms.catalog-create-props.props.style.description")}
 										name="style"

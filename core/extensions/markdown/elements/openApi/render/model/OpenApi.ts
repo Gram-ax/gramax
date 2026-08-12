@@ -14,13 +14,15 @@ export function OpenApi(context: PrivateParserContext): Schema {
 		attributes: {
 			src: { type: String },
 			flag: { type: String },
+			showInfo: { type: String },
 		},
 		type: SchemaType.block,
 		transform: (node: Node): RenderableTreeNodes => {
 			context.getResourceManager().set(new Path(node.attributes.src));
 			return new Tag("OpenApi", {
 				src: node.attributes.src,
-				flag: node.attributes.flag == "true",
+				flag: node.attributes.flag === "true",
+				showInfo: node.attributes.showInfo !== "false",
 			});
 		},
 	};

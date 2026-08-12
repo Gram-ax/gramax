@@ -10,88 +10,6 @@ type RowMoveMap = Record<number, number>;
 
 const hasActiveEntries = (sort: SortRecord) => Object.values(sort).some((v) => v);
 
-const getTableData = (node: HTMLTableElement): TableDataExtended | null => {
-	const tbody = node.querySelector(":scope > tbody") as HTMLTableSectionElement;
-	if (!tbody) return null;
-
-	const rowElements = [...tbody.children].filter((el): el is HTMLTableRowElement => el.tagName === "TR");
-
-	if (rowElements.length === 0) return null;
-
-	let numCols = 0;
-	const firstRow = rowElements[0];
-	for (const cell of firstRow.cells) {
-		numCols += cell.colSpan || 1;
-	}
-
-	if (numCols === 0) return null;
-
-	const numRows = rowElements.length;
-
-	const rows: TableDataExtended["rows"] = Array.from({ length: numRows }, () => ({
-		cells: Array(numCols).fill(null),
-	}));
-
-	const colOccupiedUntil: number[] = new Array(numCols).fill(-1);
-
-	rowElements.forEach((row, rowIndex) => {
-		const initialOrder = parseInt(row.attributes.getNamedItem("initialorder")?.value, 10);
-		rows[rowIndex].initialOrder = Number.isInteger(initialOrder) ? initialOrder : undefined;
-
-		let visualCol = 0;
-
-		while (visualCol < numCols && rowIndex <= colOccupiedUntil[visualCol]) {
-			visualCol++;
-		}
-
-		[...row.cells].forEach((cell, realColStart) => {
-			while (visualCol < numCols && rowIndex <= colOccupiedUntil[visualCol]) {
-				visualCol++;
-			}
-			if (visualCol >= numCols) return;
-
-			const colspan = cell.colSpan || 1;
-			const rowspan = cell.rowSpan || 1;
-			const text = cell.textContent?.trim() || "";
-
-			for (let r = 0; r < rowspan; r++) {
-				const targetRow = rowIndex + r;
-				if (targetRow >= numRows) return;
-
-				for (let c = 0; c < colspan; c++) {
-					const targetCol = visualCol + c;
-					if (targetCol >= numCols) continue;
-
-					const targetRowCells = rows[targetRow].cells;
-					targetRowCells[targetCol] = {
-						text,
-						rowspan,
-						colspan,
-						realRowStart: rowIndex,
-						visualColStart: visualCol,
-						realColStart,
-					};
-				}
-			}
-
-			for (let c = 0; c < colspan; c++) {
-				const targetCol = visualCol + c;
-				if (targetCol < numCols) {
-					colOccupiedUntil[targetCol] = rowIndex + rowspan - 1;
-				}
-			}
-
-			visualCol += colspan;
-		});
-	});
-
-	return {
-		rows,
-		numRows,
-		numCols,
-	};
-};
-
 const getRowMoves = (tableData: TableDataExtended, activeSort: SortRecord, sortingOrder: number[]): RowMoveMap => {
 	const body = tableData.rows.slice(1);
 
@@ -214,4 +132,4 @@ const restoreOrder = (rowsArray: ReactElement[]) => {
 	return restored.map((row) => React.cloneElement(row, row.props));
 };
 
-export { canSortTable, getRowMoves, getSaved, getTableData, hasActiveEntries, restoreOrder, sortOrder };
+export { canSortTable, getRowMoves, getSaved, hasActiveEntries, restoreOrder, sortOrder };

@@ -4,6 +4,7 @@ import type { EventHandlerCollection } from "@core/Event/EventHandlerProvider";
 import type BaseCatalog from "@core/FileStructue/Catalog/BaseCatalog";
 import type RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import { PropertyTypes } from "@ext/properties/models";
+import { GitTreeScopeParser } from "@ext/versioning/GitTreeScopeParser";
 import type { Workspace } from "@ext/workspace/Workspace";
 
 export default class ScopedCatalogsResolver implements EventHandlerCollection {
@@ -30,13 +31,12 @@ export default class ScopedCatalogsResolver implements EventHandlerCollection {
 
 			const gvc = mutableCatalog.catalog?.repo?.gvc;
 			if (!gvc) return;
-			const isCommit = refname.startsWith("commit-");
-			const commitHash = isCommit ? refname.slice("commit-".length) : null;
+			const scope = GitTreeScopeParser.parse(refname) ?? { reference: refname };
 
 			const catalog = await mutableCatalog.catalog.repo.scopedCatalogs.getScopedCatalog(
 				mutableCatalog.catalog.basePath,
 				this._workspace.getFileStructure(),
-				isCommit ? { commit: commitHash } : { reference: refname },
+				scope,
 			);
 
 			mutableCatalog.catalog = await catalog.load();

@@ -187,3 +187,19 @@ fn read_dir_stats(sandbox: TempDir, #[with(&sandbox)] repo: Repo<TestCreds>) -> 
 
 	Ok(())
 }
+
+/// A version may name a branch that has no local ref here, so a reference scope has to fall back to the
+/// remote-tracking ref instead of failing to resolve.
+#[rstest]
+fn read_content_from_remote_only_branch(sandbox: TempDir, #[with(&sandbox)] repo: Repo<TestCreds>) -> Result {
+	fs::write(sandbox.path().join("file"), "content")?;
+	repo.add("file")?;
+	repo.commit_debug()?;
+
+	let commit = repo.repo().head()?.peel_to_commit()?;
+	repo.repo().reference("refs/remotes/origin/releases/v2.0", commit.id(), true, "test")?;
+
+	let content = repo.read_tree_reference("releases/v2.0")?.read_to_string("file")?;
+	assert_eq!(content, "content");
+	Ok(())
+}

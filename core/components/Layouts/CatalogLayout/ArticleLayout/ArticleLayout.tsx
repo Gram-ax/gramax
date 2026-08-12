@@ -59,7 +59,7 @@ const ArticleLayout = (props: ArticleLayoutProps) => {
 
 		observer.observe(articleContentWrapper);
 		return () => observer.disconnect();
-	}, [articleRef.current?.firstElementChild]);
+	}, []);
 
 	return (
 		<div
@@ -121,7 +121,6 @@ export default styled(ArticleLayout)`
 		height: 100vh;
 		min-width: 100%;
 		padding: 20px 40px 0px 50px;
-		color: var(--color-article-text);
 	}
 
 	.article-content {
@@ -196,7 +195,6 @@ export default styled(ArticleLayout)`
 		padding-bottom: 0;
 		justify-content: center;
 		width: ${p.isRightNavPin ? "calc(100% - var(--narrow-nav-width))" : "100%"};
-		color: var(--color-article-text);
 		${!p.useArticleDefaultStyles ? "" : p.isRightNavPin ? "" : `padding-left: calc(var(--left-navigation-content-padding-right) + 30px);`}
 	}
 

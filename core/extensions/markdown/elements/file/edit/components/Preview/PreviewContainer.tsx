@@ -1,20 +1,20 @@
-import styled from "@emotion/styled";
+import { cn } from "@core-ui/utils/cn";
 import { forwardRef } from "react";
 
 type PreviewContainerProps = React.HTMLAttributes<HTMLDivElement>;
 
 const PreviewContainerUnstyled = forwardRef<HTMLDivElement, PreviewContainerProps>((props, ref) => {
-	return <div ref={ref} {...props} />;
+	const { className, ...rest } = props;
+	return (
+		<div
+			className={cn(
+				"grid h-full w-full content-stretch [&[data-loaded=false]>div:last-of-type]:pointer-events-none [&[data-loaded=false]>div:last-of-type]:opacity-0",
+				className,
+			)}
+			ref={ref}
+			{...rest}
+		/>
+	);
 });
 
-export const PreviewContainer = styled(PreviewContainerUnstyled)`
-	width: 100%;
-	height: 100%;
-	display: grid;
-	align-content: center;
-
-	&[data-loaded="false"] > div:last-of-type {
-		opacity: 0;
-		pointer-events: none;
-	}
-`;
+export const PreviewContainer = PreviewContainerUnstyled;

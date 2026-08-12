@@ -1,7 +1,7 @@
 import AdminLoginLayout from "@ext/admin/AdminLayout";
-import localizer from "@ext/localization/core/Localizer";
 import Head from "next/head";
 import { ApplyPageMiddleware } from "../logic/Api/ApplyMiddleware";
+import { getNodeQuery } from "../logic/pageQueryUtils";
 
 export default () => {
 	return (
@@ -14,11 +14,19 @@ export default () => {
 	);
 };
 
+const getArticlePath = (query: { path?: string | string[] }) => {
+	const path = query?.path;
+	if (!path) return undefined;
+
+	return `/${(Array.isArray(path) ? path : [path]).join("/")}`;
+};
+
 export function getServerSideProps({ req, res, query }) {
-	return ApplyPageMiddleware(async function ({ req, res, query }) {
-		const articlePath = query?.path ? `/${query.path.join("/")}` : undefined;
-		query.l = localizer.extract(articlePath);
-		const ctx = await this.app.contextFactory.fromNode({ req, res, query });
+	const articlePath = getArticlePath(query);
+	const nodeQuery = getNodeQuery(query, articlePath);
+
+	return ApplyPageMiddleware(async function ({ req, res }) {
+		const ctx = await this.app.contextFactory.fromNode({ req, res, query: nodeQuery });
 
 		const data = await this.commands.page.getPageData.do({
 			options: { mode: "read" },
@@ -29,5 +37,5 @@ export function getServerSideProps({ req, res, query }) {
 		return {
 			props: data,
 		};
-	})({ req, res, query });
+	})({ req, res, query: nodeQuery });
 }

@@ -4,8 +4,17 @@ import { MainMiddleware } from "@core/Api/middleware/MainMiddleware";
 import { ApplyApiMiddleware } from "../../logic/Api/ApplyMiddleware";
 
 export default ApplyApiMiddleware(
-	(req: ApiRequest, res: ApiResponse) => {
-		res.send(null);
+	async function handler(_: ApiRequest, res: ApiResponse) {
+		const { healthcheckRegistry } = this.app;
+		if (!healthcheckRegistry) {
+			res.statusCode = 200;
+			res.send({ status: "healthy", checks: {} });
+			return;
+		}
+
+		const result = await healthcheckRegistry.checkAll();
+		res.statusCode = result.status === "healthy" ? 200 : 503;
+		res.send(result);
 	},
 	[new MainMiddleware()],
 );

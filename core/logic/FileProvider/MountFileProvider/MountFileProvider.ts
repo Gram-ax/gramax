@@ -5,6 +5,7 @@ import type FileProvider from "@core/FileProvider/model/FileProvider";
 import type ReadOnlyFileProvider from "@core/FileProvider/model/ReadOnlyFileProvider";
 import Path from "@core/FileProvider/Path/Path";
 import type { ItemRef } from "@core/FileStructue/Item/ItemRef";
+import { Level, trace } from "@ext/loggers/opentelemetry";
 import type { ItemRefStatus } from "@ext/Watchers/model/ItemStatus";
 
 export default class MountFileProvider implements FileProvider {
@@ -13,6 +14,10 @@ export default class MountFileProvider implements FileProvider {
 
 	constructor(rootPath: Path) {
 		this._rootPath = rootPath;
+	}
+
+	get kind(): "git" | "disk" {
+		return this.default().kind;
 	}
 
 	get storageId(): string {
@@ -60,6 +65,7 @@ export default class MountFileProvider implements FileProvider {
 		return this;
 	}
 
+	@trace({ level: Level.Files })
 	mount(mountpoint: Path, fp: FileProvider | ReadOnlyFileProvider, useParentPath?: boolean) {
 		if ((!mountpoint?.value || mountpoint?.value === "/") && fp.isReadOnly)
 			throw new Error("Read-only FileProvider cannot be mounted as root");
@@ -73,6 +79,7 @@ export default class MountFileProvider implements FileProvider {
 		return this;
 	}
 
+	@trace({ level: Level.Files })
 	unmount(mountpoint: Path) {
 		const fp = this._mounts.get(mountpoint.value);
 		if (fp) fp.withMountPath(null);
@@ -113,34 +120,42 @@ export default class MountFileProvider implements FileProvider {
 		return mount as FileProvider;
 	}
 
+	@trace({ level: Level.Files })
 	delete(path: Path, preferTrash?: boolean): Promise<void> {
 		return this._resolveFileProvider(path, true, true).delete(path, preferTrash);
 	}
 
+	@trace({ level: Level.Files })
 	deleteEmptyDirs(path: Path): Promise<void> {
 		return this._resolveFileProvider(path, true, false).deleteEmptyDirs(path);
 	}
 
+	@trace({ level: Level.Files })
 	write(path: Path, data: string | Buffer, compress?: CompressOptions): Promise<void> {
 		return this._resolveFileProvider(path, true).write(path, data, compress);
 	}
 
+	@trace({ level: Level.Files })
 	move(from: Path, to: Path): Promise<void> {
 		return this._resolveFileProvider(from, true, true).move(from, to);
 	}
 
+	@trace({ level: Level.Files })
 	copy(from: Path, to: Path): Promise<void> {
 		return this._resolveFileProvider(from, true, true).copy(from, to);
 	}
 
+	@trace({ level: Level.Files })
 	mkdir(path: Path, mode?: number): Promise<void> {
 		return this._resolveFileProvider(path, true).mkdir(path, mode);
 	}
 
+	@trace({ level: Level.Files })
 	createRootPathIfNeed(): Promise<void> {
 		return this._resolveFileProvider(this._rootPath, true).createRootPathIfNeed();
 	}
 
+	@trace({ level: Level.Full })
 	isRootPathExists(): Promise<boolean> {
 		return this._resolveFileProvider(this._rootPath, false).isRootPathExists();
 	}
@@ -157,42 +172,52 @@ export default class MountFileProvider implements FileProvider {
 		this._mounts.forEach((provider) => !provider.isReadOnly && (<FileProvider>provider).stopWatch());
 	}
 
+	@trace({ level: Level.Full })
 	getItems(path: Path): Promise<FileInfo[]> {
 		return this._resolveFileProvider(path, false).getItems(path);
 	}
 
+	@trace({ level: Level.Full })
 	getItemRef(path: Path): ItemRef {
 		return this._resolveFileProvider(path, false).getItemRef(path);
 	}
 
+	@trace({ level: Level.Full })
 	exists(path: Path): Promise<boolean> {
 		return this._resolveFileProvider(path, false, true).exists(path);
 	}
 
+	@trace({ level: Level.Full })
 	getStat(path: Path, lstat?: boolean): Promise<FileInfo> {
 		return this._resolveFileProvider(path, false, true).getStat(path, lstat);
 	}
 
+	@trace({ level: Level.Full })
 	read(path: Path): Promise<string> {
 		return this._resolveFileProvider(path, false).read(path);
 	}
 
+	@trace({ level: Level.Full })
 	readAsBinary(path: Path): Promise<Buffer> {
 		return this._resolveFileProvider(path, false).readAsBinary(path);
 	}
 
+	@trace({ level: Level.Full })
 	isFolder(path: Path): Promise<boolean> {
 		return this._resolveFileProvider(path, false, true).isFolder(path);
 	}
 
+	@trace({ level: Level.Full })
 	readlink(path: Path): Promise<string> {
 		return this._resolveFileProvider(path, false, true).readlink(path);
 	}
 
+	@trace({ level: Level.Full })
 	readdir(path: Path): Promise<string[]> {
 		return this._resolveFileProvider(path, false, false).readdir(path);
 	}
 
+	@trace({ level: Level.Files })
 	hardlink(target: Path, path: Path): Promise<void> {
 		return this._resolveFileProvider(path, true, true).hardlink(target, path);
 	}

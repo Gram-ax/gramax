@@ -31,7 +31,10 @@ const getAnchorHref = (anchor: Element): string | null => {
 };
 
 export const isEditableProseMirrorAnchor = (anchor: Element): boolean => {
-	return !!anchor.closest('.ProseMirror[contenteditable="true"]');
+	const contentEditable = anchor.closest("[contenteditable]");
+	if (contentEditable?.getAttribute("contenteditable")?.toLowerCase() === "false") return false;
+
+	return !!contentEditable?.closest('.ProseMirror[contenteditable="true"]');
 };
 
 const getExternalHrefFromEvent = (event: MouseEvent): string | null => {

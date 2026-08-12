@@ -32,13 +32,13 @@ const useEnterpriseWorkspaceSwitch = (gesUrl: string): UseEnterpriseWorkspaceSwi
 
 type UseEnterpriseSignInParams = {
 	gesUrl: string;
-	isBrowser: boolean;
+	isWeb: boolean;
 	isTauri: boolean;
 	apiUrlCreator: ApiUrlCreator;
 	router: Router;
 };
 
-const useEnterpriseSignIn = ({ gesUrl, isBrowser, isTauri, apiUrlCreator, router }: UseEnterpriseSignInParams) => {
+export const useEnterpriseSignIn = ({ gesUrl, isWeb, isTauri, apiUrlCreator, router }: UseEnterpriseSignInParams) => {
 	const { enterpriseWorkspace, switchWorkspace } = useEnterpriseWorkspaceSwitch(gesUrl);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: it's ok
@@ -53,25 +53,25 @@ const useEnterpriseSignIn = ({ gesUrl, isBrowser, isTauri, apiUrlCreator, router
 			}
 		}
 
-		const url = getGesSignInUrl(gesUrl, isBrowser);
-		if (isBrowser) {
+		const url = getGesSignInUrl(gesUrl, isWeb);
+		if (isWeb) {
 			window.location.replace(url);
 			return;
 		}
 
 		await resolveModule("enterpriseLogin")(url, apiUrlCreator, router);
-	}, [enterpriseWorkspace, switchWorkspace, gesUrl, isBrowser, apiUrlCreator, router]);
+	}, [enterpriseWorkspace, switchWorkspace, gesUrl, isWeb, apiUrlCreator, router]);
 };
 
 const SignInEnterprise = ({ trigger }: { trigger: JSX.Element }) => {
 	const router = useRouter();
-	const { isBrowser, isTauri } = usePlatform();
+	const { isWeb, isTauri } = usePlatform();
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const gesUrl = PageDataContextService.value.conf.activeGesUrl;
 
 	const handleSignIn = useEnterpriseSignIn({
 		gesUrl,
-		isBrowser,
+		isWeb,
 		isTauri,
 		apiUrlCreator,
 		router,

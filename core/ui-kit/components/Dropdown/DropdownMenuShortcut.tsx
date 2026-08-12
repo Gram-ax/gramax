@@ -1,7 +1,7 @@
 import { useResolveShortcut } from "@core-ui/hooks/useResolveShortcut";
 import { cn } from "@core-ui/utils/cn";
-import type { ExtractComponentGeneric } from "core/ui-kit/lib/extractComponentGeneric";
 import { DropdownMenuShortcut as UiKitDropdownMenuShortcut } from "ics-ui-kit/components/dropdown";
+import type { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
 
 type UiKitDropdownMenuShortcutProps = ExtractComponentGeneric<typeof UiKitDropdownMenuShortcut>;
 

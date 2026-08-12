@@ -16,17 +16,17 @@ export class WebBuilder extends Builder {
 		throw new Error("Web builder does not have a target");
 	}
 
-	override async build(): Promise<void> {
+	override async _build(): Promise<void> {
 		await $`bun run build`.cwd("apps/tauri").throws(true);
 	}
 
-	override async package(): Promise<void> {
-		return await this.artifact({
+	override async _package(): Promise<void> {
+		return await this._artifact({
 			srcdir: path.join(project, "apps", "tauri", "dist"),
 		});
 	}
 
-	override async sign(): Promise<void> {}
+	override async _sign(): Promise<void> {}
 
-	override async verify(): Promise<void> {}
+	override async _verify(): Promise<void> {}
 }

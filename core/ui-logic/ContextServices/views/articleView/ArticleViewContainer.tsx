@@ -1,23 +1,9 @@
 import type { ArticlePageData } from "@core/SitePresenter/types/ArticlePage";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
-import { cssMedia } from "@core-ui/utils/cssUtils";
-import styled from "@emotion/styled";
 import { usePluginEvent } from "@plugins/api/events";
+import type { ReactNode } from "react";
 
-const ArticleViewWrapper = styled.div`
-	height: inherit;
-
-	${cssMedia.narrow} {
-		height: fit-content;
-		min-height: 100dvh;
-	}
-
-	@media print {
-		display: none;
-	}
-`;
-
-const ArticleViewContainer = ({ data }: { data: ArticlePageData }) => {
+const ArticleViewContainer = ({ data, children }: { data: ArticlePageData; children?: ReactNode }) => {
 	const ArticleView = ArticleViewService.value;
 	const ArticleBottomView = ArticleViewService.getBottomView();
 
@@ -25,9 +11,9 @@ const ArticleViewContainer = ({ data }: { data: ArticlePageData }) => {
 
 	return (
 		<>
-			<ArticleViewWrapper>
-				<ArticleView data={data} />
-			</ArticleViewWrapper>
+			<div className="h-[inherit] print:hidden max-sm:h-fit max-sm:min-h-dvh flex flex-col">
+				{children ?? <ArticleView data={data} />}
+			</div>
 			{ArticleBottomView && <ArticleBottomView data={data} />}
 		</>
 	);

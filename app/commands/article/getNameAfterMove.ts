@@ -7,7 +7,6 @@ import Path from "@core/FileProvider/Path/Path";
 import type { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import { uniqueName } from "@core/utils/uniqueName";
 import { resolveArticleUniqueNamePair } from "@ext/article/utils/resolveArticleUniqueNamePair";
-import t from "@ext/localization/locale/translate";
 import { Syntax } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/model/Syntax";
 import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 import assert from "assert";
@@ -50,7 +49,7 @@ const getNameAfterMove: Command<GetNameAfterMoveProps, GetNameAfterMoveResult> =
 
 		const current = wm.current();
 
-		assert(current.path() == targetWorkspacePath, "not supported");
+		assert(current.path() === targetWorkspacePath, "not supported");
 
 		const sourceCatalog = await current.getContextlessCatalog(sourceCatalogName);
 		assert(sourceCatalog, `catalog not found: ${sourceCatalogName}`);
@@ -60,7 +59,6 @@ const getNameAfterMove: Command<GetNameAfterMoveProps, GetNameAfterMoveResult> =
 		if (createNewCatalog) {
 			targetCatalog = await current.getFileStructure().createCatalog({
 				url: uniqueName(NEW_CATALOG_NAME, Array.from(current.getAllCatalogs().keys())),
-				title: t("catalog.new-name"),
 				syntax: Syntax.xml,
 			});
 

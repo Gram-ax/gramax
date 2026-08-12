@@ -37,7 +37,7 @@ const DrawioComponent = (props: NodeViewProps): ReactElement => {
 		const imagData = refT.current?.src;
 		if (!isDataImage(imagData)) {
 			const buffer = getBuffer(nodeSrc);
-			if (!buffer || !buffer.byteLength || !refT.current) return;
+			if (!buffer?.byteLength || !refT.current) return;
 			refT.current.src = Base64ToDataImage(buffer.toString("base64"));
 		}
 	}, [nodeSrc, getBuffer]);
@@ -53,7 +53,7 @@ const DrawioComponent = (props: NodeViewProps): ReactElement => {
 	);
 
 	const openEditor = useDrawioEditor({
-		diagramsServiceUrl: pageDataContext.conf.diagramsServiceUrl,
+		diagramsServiceUrl: pageDataContext.settings?.services?.["diagram-renderer"]?.endpoint,
 		imgRef: refT,
 		saveCallBack,
 		setImgData: () => {
@@ -84,13 +84,14 @@ const DrawioComponent = (props: NodeViewProps): ReactElement => {
 
 	const saveResize = useCallback(
 		(resize: string) => {
-			updateAttributesCallback({ scale: resize });
+			void updateAttributesCallback({ scale: resize });
 		},
 		[updateAttributesCallback],
 	);
 
 	return (
 		<NodeViewContextableWrapper
+			data-component="drawio"
 			data-drag-handle
 			data-qa="qa-drawio"
 			data-resize-container

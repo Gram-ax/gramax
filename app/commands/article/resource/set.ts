@@ -4,27 +4,31 @@ import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddlewar
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import type Context from "@core/Context/Context";
 import type CompressOptions from "@core/FileProvider/model/CompressOptions";
+import { compressOptionsFor, optimalCompressRules } from "@core/FileProvider/model/CompressOptions";
 import Path from "@core/FileProvider/Path/Path";
 import type { Article } from "@core/FileStructue/Article/Article";
 import parseContent from "@core/FileStructue/Article/parseContent";
 import HashResourceManager from "@core/Hash/HashItems/HashResourceManager";
 import { uniqueName } from "@core/utils/uniqueName";
 import ArticleProvider, { type ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
-import { feature } from "@ext/toggleFeatures/features";
+import type SettingsResolver from "@ext/settings/logic/SettingsResolver";
+import { YamlSettingsStore } from "@ext/settings/logic/SettingsStore";
+import type { Workspace } from "@ext/workspace/Workspace";
 import assert from "assert";
 import { Command } from "../../../types/Command";
 
-const debugGetCompressOptions = (): Record<string, CompressOptions> => {
-	const opts = window.debug.compressOptions;
-	if (opts)
-		return {
-			png: opts,
-			jpg: opts,
-			jpeg: opts,
-			webp: opts,
-		};
-
-	return null;
+/**
+ * `compress-images.enabled` is the single user-facing switch: on, every image
+ * goes through the optimal preset (JPEG); off, the file is stored as-is.
+ */
+const getCompressOptions = (
+	settings: SettingsResolver,
+	workspace: Workspace,
+	extension: string,
+): CompressOptions | null => {
+	const compress = settings.resolveWorkspace(new YamlSettingsStore(workspace.yaml()))["compress-images"];
+	if (!compress?.enabled) return null;
+	return compressOptionsFor(optimalCompressRules(), extension);
 };
 
 const removeIndex = (name: string): string => {
@@ -62,7 +66,7 @@ const set: Command<
 	middlewares: [new DesktopModeMiddleware(), new ReloadConfirmMiddleware()],
 
 	async do({ data, src, catalogName, articlePath, ctx, providerType, force }) {
-		const { hashes, wm, parser, parserContextFactory } = this._app;
+		const { hashes, wm, parser, parserContextFactory, settings: settingsResolver } = this._app;
 		const workspace = wm.current();
 
 		const catalog = await workspace.getCatalog(catalogName, ctx);
@@ -77,7 +81,7 @@ const set: Command<
 
 		assert(article, `article not found: ${articlePath}`);
 
-		const settings = feature("compress-images") ? (debugGetCompressOptions()[src.extension] ?? null) : null;
+		const settings = getCompressOptions(settingsResolver, workspace, src.extension);
 		let outputPath =
 			settings && settings.target !== src.extension ? new Path(`${src.stripExtension}.${settings.target}`) : src;
 

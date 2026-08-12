@@ -1,5 +1,6 @@
 import { LEFT_NAV_CLASS } from "@app/config/const";
-import { classNames } from "@components/libs/classNames";
+import { cn } from "@core-ui/utils/cn";
+// biome-ignore lint/style/noRestrictedImports: will be removed with news sidebars
 import styled from "@emotion/styled";
 import LeftSidebar from "../../LeftSidebar/LeftSidebar";
 
@@ -29,7 +30,7 @@ const LeftNavigationLayout = styled(
 		className?: string;
 	}) => {
 		return (
-			<div className={classNames(className, {}, [LEFT_NAV_CLASS])} onTransitionEnd={onTransitionEnd}>
+			<div className={cn("bg-sidebar-bg", className, LEFT_NAV_CLASS)} onTransitionEnd={onTransitionEnd}>
 				<LeftSidebar
 					onContentMouseEnter={onMouseEnter}
 					onContentMouseLeave={onMouseLeave}
@@ -66,7 +67,6 @@ const LeftNavigationLayout = styled(
 	z-index: var(--z-index-nav-layout);
 	position: absolute;
 	width: var(--left-nav-width);
-	background: var(--color-nav-menu-bg);
 	transition: var(--navigation-transition);
 
 	${(p) =>

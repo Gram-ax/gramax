@@ -131,7 +131,7 @@ export const StyleGuideLlmEditor = ({
 						name="name"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>{t("enterprise.admin.check.rule-name-label")}</FormLabel>
+								<FormLabel>{t("name")}</FormLabel>
 								<FormControl>
 									<Input
 										disabled={isAnyTestRunning}
@@ -149,7 +149,7 @@ export const StyleGuideLlmEditor = ({
 						name="content"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>{t("enterprise.admin.check.rule-description-label")}</FormLabel>
+								<FormLabel>{t("description")}</FormLabel>
 								<FormControl>
 									<AutogrowTextarea
 										disabled={isAnyTestRunning}

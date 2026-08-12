@@ -45,13 +45,13 @@ editorTest.describe("Join Lists", () => {
 
 	editorTest("join ordered lists with drawio between", async ({ editor, sharedPage, basePage }) => {
 		await basePage.createFileTree(sharedPage, {
-			editor: { "new-article.svg": DRAWIO_SVG },
+			editor: { "untitled.svg": DRAWIO_SVG },
 		});
 
 		await editor.setMarkdown(md`
 				1. text
 
-				<drawio path="./new-article.svg" width="211px" height="101px"/>
+				<drawio path="./untitled.svg" width="211px" height="101px"/>
 
 				1. text
 			`);

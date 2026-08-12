@@ -1,4 +1,5 @@
 import { cn } from "@core-ui/utils/cn";
+// biome-ignore lint/style/noRestrictedImports: will be fixed in future
 import styled from "@emotion/styled";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
 import React, { type CSSProperties, type ReactNode } from "react";

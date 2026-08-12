@@ -1,15 +1,17 @@
 import getApp from "@app/node/app";
 import getCommands from "@app/node/commands";
-import isProduction from "scripts/isProduction.mjs";
+import isProduction from "../../../scripts/isProduction.mjs";
 import api from "./handlers/api";
 import auth from "./handlers/auth";
 import clientAssets from "./handlers/clientAssets";
+import health from "./handlers/health";
 import page from "./handlers/page";
 import publicApi from "./handlers/publicApi";
 import seo from "./handlers/seo";
 import DocportalApiRequest from "./logic/DocportalApiRequest";
 import DocportalApiResponse from "./logic/DocportalApiResponse";
 import type ServerContext from "./types/ServerContext";
+import { applyBasePath } from "./utils/basePath";
 import parseRequestBody from "./utils/parseRequestBody";
 
 const gzip = async (req: Request, res: Response): Promise<Response> => {
@@ -27,15 +29,18 @@ const server = Bun.serve({
 	development: isProduction() ? undefined : { hmr: true },
 	async fetch(req) {
 		const app = await getApp();
+		const url = new URL(req.url);
+		const redirect = applyBasePath(url);
+		if (redirect) return redirect;
 		const ctx: ServerContext = {
 			app,
-			path: new URL(req.url),
+			path: url,
 			commands: getCommands(app),
 			res: new DocportalApiResponse(new Response()),
 			req: new DocportalApiRequest(req, await parseRequestBody(req)),
 		};
 
-		for (const handler of [seo, publicApi, auth, clientAssets, api, page]) {
+		for (const handler of [seo, publicApi, auth, health, clientAssets, api, page]) {
 			const response = await handler(ctx);
 			if (response) return gzip(req, response);
 		}

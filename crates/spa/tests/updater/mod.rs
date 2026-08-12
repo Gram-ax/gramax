@@ -29,9 +29,11 @@ use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::EnvFilter;
 
 mod endpoint_download;
+mod endpoint_downloads_page;
 mod endpoint_get_exact_version;
 mod endpoint_get_update;
 mod endpoint_get_updates;
+mod endpoint_get_versions;
 mod get_updates;
 mod package;
 mod urls;

@@ -8,6 +8,7 @@ import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import IsReadOnlyHOC from "@core-ui/HigherOrderComponent/IsReadOnlyHOC";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import useWatch from "@core-ui/hooks/useWatch";
@@ -33,8 +34,10 @@ import { useMergeRequestStore } from "@ext/git/core/GitMergeRequest/logic/store/
 import type { MergeRequest } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
 import PublishTab from "@ext/git/core/GitPublish/PublishTab";
 import t from "@ext/localization/locale/translate";
+import PermissionService from "@ext/security/logic/Permission/components/PermissionService";
+import { editCatalogContentPermission } from "@ext/security/logic/Permission/Permissions";
 import { useIsStorageConnected } from "@ext/storage/logic/utils/useStorage";
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import ConnectStorage from "../../../../../extensions/catalog/actions/ConnectStorage";
 import Branch from "../../../../../extensions/git/actions/Branch/components/Branch";
 import Sync from "../../../../../extensions/git/actions/Sync/components/Sync";
@@ -51,6 +54,7 @@ export enum LeftNavigationTab {
 	Inbox,
 	Template,
 	Fragments,
+	AgentSkills,
 	Prompt,
 	FavoriteArticles,
 }
@@ -69,6 +73,7 @@ const ArticleStatusBar = memo(({ padding }: { padding?: string }) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const { isNext } = usePlatform();
 	const { isReadOnly } = PageDataContextService.value.conf;
+	const workspacePath = WorkspaceService.current().path;
 
 	const [branch, setBranch] = useState<GitBranchData>(null);
 	const [branchError, setBranchError] = useState<DefaultError>(null);
@@ -97,6 +102,11 @@ const ArticleStatusBar = memo(({ padding }: { padding?: string }) => {
 	const isOffline = useIsOffline();
 	const { bottomTab } = NavigationTabsService.value;
 	const isBranchTabOpened = bottomTab === LeftNavigationTab.Branch || bottomTab === LeftNavigationTab.CreateBranch;
+	const canEditCatalogContent = PermissionService.useCheckPermission(
+		editCatalogContentPermission,
+		workspacePath,
+		catalogName,
+	);
 
 	useWatch(() => {
 		mergeRequestRef.current = mergeRequest;
@@ -112,8 +122,13 @@ const ArticleStatusBar = memo(({ padding }: { padding?: string }) => {
 		async (branch: GitBranchData, caller: OnBranchUpdateCaller) => {
 			if (isNext) return;
 
+			// A corrupt/partial repo makes getDraft throw — degrade to "no draft" silently.
 			const response = await FetchService.fetch<MergeRequest | undefined>(
 				apiUrlCreatorRef.current.getDraftMergeRequest(),
+				undefined,
+				undefined,
+				undefined,
+				false,
 			);
 			const data = response.ok ? await response.json() : null;
 			const mr = data || branch?.mergeRequest;
@@ -155,7 +170,7 @@ const ArticleStatusBar = memo(({ padding }: { padding?: string }) => {
 		};
 	}, [isStorageConnected, isRepoError, catalogName, isNext, setupMergeRequestState, apiUrlCreator]);
 
-	useWatch(() => {
+	useLayoutEffect(() => {
 		BranchUpdaterService.reset();
 		NavigationTabsService.setBottom(LeftNavigationTab.None);
 		setMergeRequest(null);
@@ -183,33 +198,35 @@ const ArticleStatusBar = memo(({ padding }: { padding?: string }) => {
 
 		return [
 			isOffline && <Offline key={3} />,
-			<Sync disable={isOffline} key={0} style={{ height: "100%" }} />,
+			canEditCatalogContent && <Sync disable={isOffline} key={0} style={{ height: "100%" }} />,
 			!isNext && isReadOnly && (
 				<ProtectedBranch
 					key={1}
 					text={isRevision ? t("git.publish.error.at-revision") : t("git.publish.error.main-branch")}
 				/>
 			),
-			<IsReadOnlyHOC key={2}>
-				<ShowPublishBar
-					disable={isOffline}
-					isShow={bottomTab === LeftNavigationTab.Publish}
-					mergeRequestStatus={mergeRequestStatus}
-					onClick={() => {
-						NavigationTabsService.setBottom(
-							bottomTab === LeftNavigationTab.Publish
-								? LeftNavigationTab.None
-								: LeftNavigationTab.Publish,
-						);
-					}}
-				/>
-			</IsReadOnlyHOC>,
+			canEditCatalogContent && (
+				<IsReadOnlyHOC key={2}>
+					<ShowPublishBar
+						disable={isOffline}
+						isShow={bottomTab === LeftNavigationTab.Publish}
+						mergeRequestStatus={mergeRequestStatus}
+						onClick={() => {
+							NavigationTabsService.setBottom(
+								bottomTab === LeftNavigationTab.Publish
+									? LeftNavigationTab.None
+									: LeftNavigationTab.Publish,
+							);
+						}}
+					/>
+				</IsReadOnlyHOC>
+			),
 		];
 	};
 
 	return (
 		<Wrapper key={catalogName}>
-			{isStorageConnected && !isRepoError && (
+			{canEditCatalogContent && isStorageConnected && !isRepoError && (
 				<MergeRequestTab
 					isDraft={mergeRequestIsDraft}
 					mergeRequest={mergeRequest}
@@ -220,6 +237,7 @@ const ArticleStatusBar = memo(({ padding }: { padding?: string }) => {
 				/>
 			)}
 			<BranchTab
+				allowBranchActions={canEditCatalogContent}
 				branch={branch}
 				initNewBranch={bottomTab === LeftNavigationTab.CreateBranch}
 				onClose={() => NavigationTabsService.setBottom(LeftNavigationTab.None)}
@@ -239,12 +257,16 @@ const ArticleStatusBar = memo(({ padding }: { padding?: string }) => {
 						}
 						show={bottomTab === LeftNavigationTab.CatalogRevisions}
 					/>
-					<PublishTab
-						setShow={(show) => {
-							NavigationTabsService.setBottom(show ? LeftNavigationTab.Publish : LeftNavigationTab.None);
-						}}
-						show={bottomTab === LeftNavigationTab.Publish}
-					/>
+					{canEditCatalogContent && (
+						<PublishTab
+							setShow={(show) => {
+								NavigationTabsService.setBottom(
+									show ? LeftNavigationTab.Publish : LeftNavigationTab.None,
+								);
+							}}
+							show={bottomTab === LeftNavigationTab.Publish}
+						/>
+					)}
 				</>
 			)}
 			<StatusBar
@@ -265,19 +287,21 @@ const ArticleStatusBar = memo(({ padding }: { padding?: string }) => {
 									}}
 									show={isBranchTabOpened}
 								/>,
-								<ShowMergeRequest
-									isShow={bottomTab === LeftNavigationTab.MergeRequest}
-									key={LeftNavigationTab.MergeRequest}
-									mergeRequest={mergeRequest}
-									setShow={() => {
-										const tab =
-											bottomTab === LeftNavigationTab.MergeRequest
-												? LeftNavigationTab.None
-												: LeftNavigationTab.MergeRequest;
+								canEditCatalogContent && (
+									<ShowMergeRequest
+										isShow={bottomTab === LeftNavigationTab.MergeRequest}
+										key={LeftNavigationTab.MergeRequest}
+										mergeRequest={mergeRequest}
+										setShow={() => {
+											const tab =
+												bottomTab === LeftNavigationTab.MergeRequest
+													? LeftNavigationTab.None
+													: LeftNavigationTab.MergeRequest;
 
-										NavigationTabsService.setBottom(tab);
-									}}
-								/>,
+											NavigationTabsService.setBottom(tab);
+										}}
+									/>
+								),
 								<ShowRevisionsTab
 									isShow={bottomTab === LeftNavigationTab.CatalogRevisions}
 									key={LeftNavigationTab.CatalogRevisions}

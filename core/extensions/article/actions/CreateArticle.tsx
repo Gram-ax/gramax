@@ -2,11 +2,12 @@ import { CATEGORY_ROOT_FILENAME } from "@app/config/const";
 import { TextSize } from "@components/Atoms/Button/Button";
 import ButtonLink from "@components/Molecules/ButtonLink";
 import { useRouter } from "@core/Api/useRouter";
-import { ensureParentOpen } from "@core/SitePresenter/NavTreeStateManager";
+import { expandParentOf } from "@core/SitePresenter/NavTreeStateManager";
 import type { ClientItemRef } from "@core/SitePresenter/SitePresenter";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import { refreshPage } from "@core-ui/utils/initGlobalFuncs";
 // biome-ignore lint/style/noRestrictedImports: it's ok
 import styled from "@emotion/styled";
@@ -24,6 +25,7 @@ export const isDeepestArticle = (path: string) =>
 interface CreateArticleProps {
 	item?: ItemLink;
 	root?: ClientItemRef;
+	after?: ItemLink;
 	className?: string;
 	onCreate?: () => void;
 }
@@ -37,14 +39,15 @@ const StyledSpan = styled.span`
 `;
 
 const CreateArticleComponent = (props: CreateArticleProps) => {
-	const { item, root, className, onCreate } = props;
+	const { item, root, after, className, onCreate } = props;
 
 	const [isLoading, setIsLoading] = useState(false);
 	const content = item ? t("article.add-child") : t("article.add-root");
 
 	const router = useRouter();
 	const apiUrlCreator = ApiUrlCreatorService.value;
-	const url = apiUrlCreator.createArticle(item ? item.ref.path : root?.path);
+	const supportedLanguages = useCatalogPropsStore((state) => state.data?.supportedLanguages, "shallow");
+	const url = apiUrlCreator.createArticle(item ? item.ref.path : root?.path, after?.ref?.path);
 
 	const onClickHandler: MouseEventHandler<HTMLElement> = (e) => {
 		e?.preventDefault();
@@ -56,7 +59,7 @@ const CreateArticleComponent = (props: CreateArticleProps) => {
 
 			const mutable = { preventGoto: false };
 			const path = await response.text();
-			if (item) ensureParentOpen(path);
+			if (item) expandParentOf(path, supportedLanguages);
 			await NavigationEvents.emit("item-create", { path, mutable });
 			if (mutable.preventGoto) return;
 

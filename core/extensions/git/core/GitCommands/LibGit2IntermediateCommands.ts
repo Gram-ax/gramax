@@ -199,6 +199,9 @@ export const merge = (args: CredsArgs & { opts: MergeOptions }) => {
 	return rustCall<MergeResult>("git.merge", args);
 };
 
+export const hasMergeConflicts = (args: CredsArgs & { branch: string }) =>
+	rustCall<string[]>("git.has_merge_conflicts", args);
+
 export const push = (args: CredsArgs) => rustCall<void>("git.push", args);
 
 export const add = (args: Args & { patterns: string[]; force: boolean }) => rustCall<void>("git.add", args);
@@ -297,8 +300,9 @@ export const storageStats = (args: Args) => rustCall<StorageStats>("git.storage_
 
 export const resetRepo = () => rustCall<void>("git.reset_repo", { unused: null });
 
-export const pullLfsObjects = (args: CredsArgs & { paths: string[]; checkout: boolean; cancelToken: number }) =>
-	rustCall<void>("git.pull_lfs_objects", args);
+export const pullLfsObjects = (
+	args: CredsArgs & { scope: TreeReadScope; paths: string[]; checkout: boolean; cancelToken: number },
+) => rustCall<void>("git.pull_lfs_objects", args);
 
 export const resetFileLock = (args: Args) => rustCall<void>("git.reset_file_lock", args);
 

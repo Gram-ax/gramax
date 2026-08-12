@@ -1,3 +1,5 @@
+import { AddButton } from "@ext/enterprise/components/admin/ui-kit/AddButton";
+import t from "@ext/localization/locale/translate";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { RenderOptionProps } from "@ui-kit/AsyncSearchSelect";
 import type { ButtonProps } from "@ui-kit/Button";
@@ -9,7 +11,6 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { ModalComponent } from "../../../../../ui-kit/ModalComponent";
 import { SelectDisableItem } from "../../../../components/SelectDisableItem";
-import { TriggerAddButtonTemplate } from "../../../../components/TriggerAddButtonTemplate";
 
 interface CatalogToolbarAddBtnProps {
 	onAdd: (catalogs: string[]) => void;
@@ -55,18 +56,24 @@ export const CatalogToolbarAddBtn = ({ onAdd, existingCatalogs = [], catalogs }:
 		[catalogs, existingCatalogs],
 	);
 
-	const onSubmit = (values: z.infer<typeof formSchema>) => {
-		const catalogsToAdd = values.selectedCatalogs.map((catalog) => String(catalog.value));
-		onAdd(catalogsToAdd);
-		handleCancel();
-	};
-
-	const handleCancel = () => {
+	const handleCancel = useCallback(() => {
 		form.reset();
 		setIsModalOpen(false);
-	};
+	}, [form.reset]);
 
-	const cancelButtonProps = useMemo(() => ({ variant: "outline", onClick: handleCancel }) as ButtonProps, []);
+	const onSubmit = useCallback(
+		(values: z.infer<typeof formSchema>) => {
+			const catalogsToAdd = values.selectedCatalogs.map((catalog) => String(catalog.value));
+			onAdd(catalogsToAdd);
+			handleCancel();
+		},
+		[handleCancel, onAdd],
+	);
+
+	const cancelButtonProps = useMemo(
+		() => ({ variant: "outline", onClick: handleCancel }) as ButtonProps,
+		[handleCancel],
+	);
 	const confirmButtonProps = useMemo(
 		() =>
 			({
@@ -79,9 +86,9 @@ export const CatalogToolbarAddBtn = ({ onAdd, existingCatalogs = [], catalogs }:
 	return (
 		<ModalComponent
 			cancelButtonProps={cancelButtonProps}
-			cancelButtonText="Отмена"
+			cancelButtonText={t("enterprise.admin.cancel")}
 			confirmButtonProps={confirmButtonProps}
-			confirmButtonText="Добавить"
+			confirmButtonText={t("add")}
 			isOpen={isModalOpen}
 			modalContent={
 				<Form asChild {...form}>
@@ -90,12 +97,12 @@ export const CatalogToolbarAddBtn = ({ onAdd, existingCatalogs = [], catalogs }:
 							<FormField
 								control={({ field }) => (
 									<MultiSelect
-										emptyText="Каталоги не найдены"
-										errorText="Ошибка поиска"
-										loadingText="Ищем каталоги..."
+										emptyText={t("enterprise.admin.workspace.sections.add-catalogs.empty")}
+										errorText={t("enterprise.admin.search-error")}
+										loadingText={t("enterprise.admin.workspace.sections.add-catalogs.loading")}
 										loadOptions={loadOptions}
 										onChange={field.onChange}
-										placeholder="Найдите каталоги"
+										placeholder={t("enterprise.admin.workspace.sections.add-catalogs.title")}
 										renderOption={(props: RenderOptionProps<SearchSelectOption>) => {
 											if (props.type === "trigger") return;
 											return (
@@ -106,22 +113,22 @@ export const CatalogToolbarAddBtn = ({ onAdd, existingCatalogs = [], catalogs }:
 												/>
 											);
 										}}
-										searchPlaceholder="Введите название каталога"
+										searchPlaceholder={t("enterprise.admin.search")}
 										value={field.value}
 									/>
 								)}
-								description="Выберите каталоги для добавления в список"
+								description={t("enterprise.admin.workspace.sections.add-catalogs.description")}
 								layout="vertical"
 								name="selectedCatalogs"
-								title="Каталоги"
+								title={t("enterprise.admin.workspace.sections.dialog.catalogs")}
 							/>
 						</FormStack>
 					</form>
 				</Form>
 			}
 			onOpenChange={setIsModalOpen}
-			title="Выберите каталоги"
-			trigger={<TriggerAddButtonTemplate />}
+			title={t("enterprise.admin.workspace.sections.add-catalogs.title")}
+			trigger={<AddButton />}
 		/>
 	);
 };

@@ -6,7 +6,7 @@ import { addNotification, markNotificationAsRead } from "@ext/enterprise/notific
 import { useNotificationWebSocketStore } from "@ext/enterprise/notifications/NotificationWebSocketStore";
 import type { NotificationMessage } from "@ext/enterprise/notifications/WebSocketService/NotificationWebSocketService";
 import { getEnterpriseSourceData } from "@ext/enterprise/utils/getEnterpriseSourceData";
-import { traced } from "@ext/loggers/opentelemetry";
+import { Level, traced } from "@ext/loggers/opentelemetry";
 import { customToast, Toast } from "@ui-kit/Toast";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 
@@ -34,7 +34,7 @@ const useNotifications = ({ userEmail, gesUrl, token }: UseNotificationsParams) 
 
 			if (enterpriseService && userEmail && token) {
 				try {
-					await traced("NotificationsInit.markAsRead", () =>
+					await traced("NotificationsInit.markAsRead", { level: Level.Commands }, () =>
 						enterpriseService.markNotificationsAsRead(userEmail, [notification.notificationId], token),
 					);
 					markNotificationAsRead(notification.notificationId);
@@ -63,7 +63,7 @@ const useNotifications = ({ userEmail, gesUrl, token }: UseNotificationsParams) 
 						}
 						focus="medium"
 						onClose={() => {
-							handleRead(notification);
+							void handleRead(notification);
 							toast.dismiss(id);
 						}}
 						size="lg"
@@ -83,6 +83,7 @@ export const NotificationsInit = ({ pageProps }: { pageProps: PageProps }) => {
 	const userEmail = pageProps.context?.userInfo?.mail;
 	const gesUrl = pageProps.context?.conf?.enterprise?.gesUrl;
 	const sourceDatas = SourceDataService.value;
+	// biome-ignore lint/correctness/useExhaustiveDependencies: sourceDatas is reactive service state, token must recompute with it
 	const token = useMemo(
 		() => (gesUrl ? getEnterpriseSourceData(sourceDatas, gesUrl)?.token : undefined),
 		[sourceDatas, gesUrl],

@@ -1,5 +1,6 @@
 import { createEventEmitter } from "@core/Event/EventEmitter";
 import type { Content } from "@core/FileStructue/Article/Article";
+import { isDebugLoggingEnabled } from "@ext/loggers/isDebugLoggingEnabled";
 import type NodeTransformerFunc from "@ext/markdown/core/edit/logic/Prosemirror/NodeTransformerFunc";
 import type TokenTransformerFunc from "@ext/markdown/core/edit/logic/Prosemirror/TokenTransformerFunc";
 import editTreeToRenderTree from "@ext/markdown/core/Parser/EditTreeToRenderTree";
@@ -107,19 +108,38 @@ export default class MarkdownParser {
 
 			return newContent;
 		} catch (e) {
-			throw new ParseError(e);
+			throw new ParseError(e, content);
 		}
 	}
 
 	public async editParse(content: string, context?: PrivateParserContext): Promise<JSONContent> {
-		const schemes = this._getSchemes(context);
-		const tokens = await this._getTokens(content, schemes, context);
-		return this._editParser(tokens, schemes, context);
+		try {
+			const schemes = this._getSchemes(context);
+			const tokens = await this._getTokens(content, schemes, context);
+			return await this._editParser(tokens, schemes, context);
+		} catch (e) {
+			throw new ParseError(e, content);
+		}
 	}
 
 	public async parseToHtml(content: string, context?: ParserContext, requestUrl?: string): Promise<string> {
 		const parsedContent = await this.parse(content, context);
 		return this.getHtml(parsedContent.renderTree, context, requestUrl);
+	}
+
+	public async parseRenderableTreeNode(
+		content: string,
+		context?: PrivateParserContext,
+		parserOptions?: ParserOptions,
+	): Promise<RenderableTreeNodes> {
+		try {
+			const schemes = this._getSchemes(context);
+			const tokens = await this._getTokens(content, schemes, context);
+			const renderTreeNode = await this._getRenderableTreeNode(tokens, schemes, context);
+			return parserOptions ? this._oneElementTransformer(renderTreeNode, parserOptions) : renderTreeNode;
+		} catch (e) {
+			throw new ParseError(e, content);
+		}
 	}
 
 	public getHtml(renderTree: RenderableTreeNodes, context?: ParserContext, requestUrl?: string): string {
@@ -128,23 +148,13 @@ export default class MarkdownParser {
 		});
 	}
 
-	public async parseRenderableTreeNode(
-		content: string,
-		context?: PrivateParserContext,
-		parserOptions?: ParserOptions,
-	): Promise<RenderableTreeNodes> {
-		const schemes = this._getSchemes(context);
-		const tokens = await this._getTokens(content, schemes, context);
-		const renderTreeNode = await this._getRenderableTreeNode(tokens, schemes, context);
-		return parserOptions ? this._oneElementTransformer(renderTreeNode, parserOptions) : renderTreeNode;
-	}
-
 	public async getRenderMarkdownIt(content: string): Promise<string> {
 		await katexPluginReady;
 		const tokenizer = this._getTokenizer();
 		tokenizer.use(resolvedKatexPlugin, {
 			blockClass: "math-block",
 			errorColor: " #cc0000",
+			strict: isDebugLoggingEnabled() ? "warn" : "ignore",
 		});
 		return tokenizer.renderToHtml(content);
 	}

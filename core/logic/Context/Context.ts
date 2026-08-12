@@ -12,7 +12,7 @@ interface Context extends ToSpan {
 	get contentLanguage(): ContentLanguage;
 	get viewId(): AppliedCatalogsView;
 	get ui(): UiLanguage;
-	get theme(): Theme;
+	get theme(): Theme | undefined;
 	get domain(): string;
 }
 

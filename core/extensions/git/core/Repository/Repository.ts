@@ -14,9 +14,10 @@ import type { GitVersion } from "@ext/git/core/model/GitVersion";
 import type RepositoryStateProvider from "@ext/git/core/Repository/state/RepositoryState";
 import ScopedCatalogs from "@ext/git/core/ScopedCatalogs/ScopedCatalogs";
 import t from "@ext/localization/locale/translate";
-import type { ToSpan } from "@ext/loggers/opentelemetry";
+import { Level, type ToSpan, trace } from "@ext/loggers/opentelemetry";
 import type SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import type Storage from "@ext/storage/logic/Storage";
+import GitAttributes from "../../../../logic/GitLfs/logic/GitAttributes";
 
 export type Credentials = { data: SourceData };
 
@@ -145,6 +146,11 @@ export default abstract class Repository implements ToSpan {
 		this._storage.events.on("fetch", (e) => this._events.emit("fetch", { repo: this, force: e.force }));
 	}
 
+	@trace({ level: Level.Full })
+	async attributes(rootPath: Path = this._repoPath): Promise<GitAttributes> {
+		return await GitAttributes.parse(this._fp, rootPath);
+	}
+
 	resetCachedStatus() {
 		this.gvc?.resetCachedStatus();
 	}
@@ -168,13 +174,13 @@ export default abstract class Repository implements ToSpan {
 	}
 
 	async stash(data: SourceData, doAddBeforeStash = true): Promise<GitStash> {
-		const isBrowser = getExecutingEnvironment() === "browser";
+		const isWeb = getExecutingEnvironment() === "web";
 
-		if (!isBrowser) await this.gvc.add();
+		if (!isWeb) await this.gvc.add();
 		const changes = await this.gvc.getChanges("index");
 		if (!changes.length) return null;
 
-		return this._gvc.stash(data, isBrowser ? false : doAddBeforeStash);
+		return this._gvc.stash(data, isWeb ? false : doAddBeforeStash);
 	}
 
 	abstract publish(opts: PublishOptions): Promise<void>;

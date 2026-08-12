@@ -157,6 +157,11 @@ pub(crate) fn merge(_otel: OtelContext, repo_path: &Path, creds: AccessTokenCred
 }
 
 #[command(async)]
+pub(crate) fn has_merge_conflicts(_otel: OtelContext, repo_path: &Path, creds: AccessTokenCreds, branch: String) -> Result<Vec<PathBuf>> {
+	git::has_merge_conflicts(repo_path, creds, &branch)
+}
+
+#[command(async)]
 pub(crate) fn get_content(_otel: OtelContext, repo_path: &Path, path: &Path, oid: Option<&str>) -> Result<String> {
 	git::get_content(repo_path, path, oid)
 }
@@ -251,11 +256,12 @@ pub(crate) fn pull_lfs_objects(
 	_otel: OtelContext,
 	repo_path: &Path,
 	creds: AccessTokenCreds,
+	scope: TreeReadScope,
 	paths: Vec<PathBuf>,
 	checkout: bool,
 	cancel_token: usize,
 ) -> Result<()> {
-	git::pull_lfs_objects(repo_path, creds, paths, checkout, cancel_token.into())
+	git::pull_lfs_objects(repo_path, creds, scope, paths, checkout, cancel_token.into())
 }
 
 #[command(async)]

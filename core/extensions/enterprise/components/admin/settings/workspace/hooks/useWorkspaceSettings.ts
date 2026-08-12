@@ -1,6 +1,9 @@
 import { useScrollContainer } from "@ext/enterprise/components/admin/contexts/ScrollContainerContext";
 import { useSettings } from "@ext/enterprise/components/admin/contexts/SettingsContext";
+import { useAlertMessage } from "@ext/enterprise/components/admin/hooks/useAlertMessage";
 import type { WorkspaceSettings } from "@ext/enterprise/components/admin/settings/workspace/types/WorkspaceComponent";
+import { toGesErrorCode } from "@ext/enterprise/errors/GesError";
+import { getGesErrorBadgeText, getGesErrorTitle, getSaveErrorText } from "@ext/enterprise/errors/getGesErrorText";
 import { useCallback, useEffect, useState } from "react";
 
 const defaultSettings: WorkspaceSettings = {
@@ -19,19 +22,13 @@ const defaultSettings: WorkspaceSettings = {
 };
 
 export function useWorkspaceSettings() {
-	const { settings, updateWorkspace } = useSettings();
+	const { settings, gesUrl, update } = useSettings();
 	const workspaceSettings = settings?.workspace;
 	const [localSettings, setLocalSettings] = useState<WorkspaceSettings>(workspaceSettings || defaultSettings);
 	const [isSaving, setIsSaving] = useState(false);
 	const [isScrolled, setIsScrolled] = useState(false);
 	const scrollContainer = useScrollContainer();
-	const [saveError, setSaveError] = useState<string | null>(null);
-
-	useEffect(() => {
-		if (!saveError) return;
-		const t = setTimeout(() => setSaveError(null), 4000);
-		return () => clearTimeout(t);
-	}, [saveError]);
+	const saveError = useAlertMessage();
 
 	useEffect(() => {
 		if (workspaceSettings) {
@@ -75,15 +72,17 @@ export function useWorkspaceSettings() {
 	};
 
 	const handleSave = useCallback(async () => {
+		saveError.hide();
 		setIsSaving(true);
 		try {
-			await updateWorkspace(localSettings);
+			await update("workspace", localSettings);
 		} catch (e: unknown) {
-			setSaveError(e instanceof Error ? e.message : String(e));
+			const code = toGesErrorCode(e);
+			saveError.alert(getSaveErrorText(code, gesUrl), getGesErrorTitle(code), getGesErrorBadgeText(code));
 		} finally {
 			setIsSaving(false);
 		}
-	}, [localSettings, updateWorkspace]);
+	}, [localSettings, update, saveError.hide, saveError.alert, gesUrl]);
 
 	const updateSettings = (updates: Partial<WorkspaceSettings>) => {
 		setLocalSettings((prev) => ({ ...prev, ...updates }));

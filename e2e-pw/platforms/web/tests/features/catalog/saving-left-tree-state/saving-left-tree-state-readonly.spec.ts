@@ -19,7 +19,9 @@ catalogTest.describe("Saving Left Nav Tree State (read-only mode)", () => {
 
 	catalogTest("expanded state persists across page reload", async ({ catalogPage, sharedPage }) => {
 		const leafArticle = sharedPage.getByTitle("Leaf Article");
-		const childCategoryItem = sharedPage.locator("a", { has: sharedPage.locator('[title="Child Category"]') });
+		const childCategoryItem = sharedPage
+			.locator('[data-qa^="catalog-navigation"]')
+			.filter({ has: sharedPage.getByTitle("Child Category", { exact: true }) });
 		const childCategoryChevron = childCategoryItem.locator(".angle");
 
 		await expect(childCategoryItem).toBeVisible();
@@ -40,7 +42,9 @@ catalogTest.describe("Saving Left Nav Tree State (read-only mode)", () => {
 
 	catalogTest("collapsed state persists after expand-then-collapse", async ({ catalogPage, sharedPage }) => {
 		const leafArticle = sharedPage.getByTitle("Leaf Article");
-		const childCategoryItem = sharedPage.locator("a", { has: sharedPage.getByText("Child Category") });
+		const childCategoryItem = sharedPage
+			.locator('[data-qa^="catalog-navigation"]')
+			.filter({ has: sharedPage.getByTitle("Child Category", { exact: true }) });
 		const childCategoryChevron = childCategoryItem.locator(".angle");
 
 		// Expand first
@@ -67,10 +71,12 @@ catalogTest.describe("Saving Left Nav Tree State (read-only mode)", () => {
 		const leafArticle = sharedPage.getByTitle("Leaf Article");
 		const siblingLeaf = sharedPage.getByTitle("Sibling Leaf");
 
-		const childCategoryItem = sharedPage.locator("a", { has: sharedPage.locator('[title="Child Category"]') });
-		const siblingCategoryItem = sharedPage.locator("a", {
-			has: sharedPage.locator('[title="Sibling Category"]'),
-		});
+		const childCategoryItem = sharedPage
+			.locator('[data-qa^="catalog-navigation"]')
+			.filter({ has: sharedPage.getByTitle("Child Category", { exact: true }) });
+		const siblingCategoryItem = sharedPage
+			.locator('[data-qa^="catalog-navigation"]')
+			.filter({ has: sharedPage.getByTitle("Sibling Category", { exact: true }) });
 
 		const childCategoryChevron = childCategoryItem.locator(".angle");
 		const siblingCategoryChevron = siblingCategoryItem.locator(".angle");
@@ -107,7 +113,9 @@ catalogTest.describe("Saving Left Nav Tree State (read-only mode)", () => {
 		await catalogPage.waitForLoad();
 
 		const leafArticle = sharedPage.getByTitle("Leaf Article");
-		const childCategoryItem = sharedPage.locator("a", { has: sharedPage.locator('[title="Child Category"]') });
+		const childCategoryItem = sharedPage
+			.locator('[data-qa^="catalog-navigation"]')
+			.filter({ has: sharedPage.getByTitle("Child Category", { exact: true }) });
 		const childCategoryChevron = childCategoryItem.locator(".angle");
 
 		// Expand child category

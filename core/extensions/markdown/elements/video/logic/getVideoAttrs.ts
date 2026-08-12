@@ -6,7 +6,7 @@ const getVideoAttrs = (attrs: { [key: string]: string }) => {
 	if (!linkCreator.isExternalLink(path)) isLink = false;
 	if (!path) isLink = true;
 
-	return { title: attrs.title ?? null, path, isLink };
+	return { title: attrs.title ?? null, path, isLink, scale: attrs.scale ?? null };
 };
 
 export default getVideoAttrs;

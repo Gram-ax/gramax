@@ -1,5 +1,3 @@
-import type { Environment } from "@app/resolveModule/env";
-import type PageDataContext from "@core/Context/PageDataContext";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import PlatformService from "@core-ui/ContextServices/PlatformService";
 import ResourceService from "@core-ui/ContextServices/ResourceService/ResourceService";
@@ -8,22 +6,16 @@ import type { Editor } from "@tiptap/core";
 import type { Mark } from "@tiptap/pm/model";
 import type { EditorState } from "prosemirror-state";
 import type { EditorView } from "prosemirror-view";
-import type ApiUrlCreator from "../../../../../../ui-logic/ApiServices/ApiUrlCreator";
 import ApiUrlCreatorService from "../../../../../../ui-logic/ContextServices/ApiUrlCreator";
 import getFirstPatentByName from "../../../../../../ui-logic/utils/getFirstPatentByName";
+import { getEditorContext } from "../../../../elementsUtils/editorContext/EditorContext";
 import getFocusMark from "../../../../elementsUtils/getFocusMark";
 import getMarkPosition from "../../../../elementsUtils/getMarkPosition";
 import BaseMark from "../../../../elementsUtils/prosemirrorPlugins/BaseMark";
 import FileMenu from "../components/FileMenu";
 
 class FileFocusTooltip extends BaseMark {
-	constructor(
-		view: EditorView,
-		editor: Editor,
-		private _apiUrlCreator: ApiUrlCreator,
-		private _pageDataContext: PageDataContext,
-		private _platform: Environment,
-	) {
+	constructor(view: EditorView, editor: Editor) {
 		super(view, editor);
 		this.update(view);
 	}
@@ -42,14 +34,17 @@ class FileFocusTooltip extends BaseMark {
 		const element = getFirstPatentByName(text as HTMLElement, "gr-file");
 		if (!element || element.tagName === "BODY") return;
 
-		const aiEnabled = this._pageDataContext.conf.ai.enabled;
+		const { apiUrlCreator, pageDataContext, platform } = getEditorContext(this._editor);
+		if (!apiUrlCreator || !pageDataContext) return;
+
+		const aiEnabled = pageDataContext.conf.ai.enabled;
 
 		this._setTooltipPosition(element);
 		this._setComponent(
-			<PageDataContextService.Provider value={this._pageDataContext}>
-				<Workspace.Init pageProps={{ context: this._pageDataContext, data: null, page: "article" }}>
-					<ApiUrlCreatorService.Provider value={this._apiUrlCreator}>
-						<PlatformService.Provider value={this._platform}>
+			<PageDataContextService.Provider value={pageDataContext}>
+				<Workspace.Init pageProps={{ context: pageDataContext, data: null, page: "article" }}>
+					<ApiUrlCreatorService.Provider value={apiUrlCreator}>
+						<PlatformService.Provider value={platform}>
 							<ResourceService.Provider>
 								<FileMenu
 									aiEnabled={aiEnabled}

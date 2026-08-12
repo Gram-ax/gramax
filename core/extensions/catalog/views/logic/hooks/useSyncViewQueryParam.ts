@@ -32,6 +32,6 @@ export const useSyncViewQueryParam = () => {
 		}
 
 		const search = searchParams.toString();
-		history.replaceState(null, "", window.location.pathname + (search ? `?${search}` : ""));
+		history.replaceState(null, "", window.location.pathname + (search ? `?${search}` : "") + window.location.hash);
 	}, [catalogName]);
 };

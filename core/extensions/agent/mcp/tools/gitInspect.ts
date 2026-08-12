@@ -1,4 +1,5 @@
 import Path from "@core/FileProvider/Path/Path";
+import { getDiff } from "@ext/VersionControl/DiffHandler/DiffHandler";
 import { fail, ok, type ToolExecutionContext, type ToolExecutionResult } from "../tool";
 
 type InspectAction = "status" | "file_diff";
@@ -15,7 +16,7 @@ export async function runGitInspect({ app, input }: ToolExecutionContext): Promi
 	try {
 		const catalog = await app.wm.current().getContextlessCatalog(catalogName);
 		if (!catalog?.repo?.gvc) {
-			return fail(`git_inspect: git repository not available for catalog: ${catalogName}`);
+			return fail("Git repository not available");
 		}
 		const gvc = catalog.repo.gvc;
 
@@ -79,7 +80,7 @@ export async function runGitInspect({ app, input }: ToolExecutionContext): Promi
 		});
 
 		if (!filePath) {
-			return fail("git_inspect: file_diff requires filePath");
+			return fail("file_diff requires filePath");
 		}
 		const target = new Path(filePath);
 		const file = diff.files.find((entry) => {
@@ -90,6 +91,16 @@ export async function runGitInspect({ app, input }: ToolExecutionContext): Promi
 		if (!file) {
 			return ok({ catalogName, filePath, hasChanges: false, file: null });
 		}
+
+		const wmFp = app.wm.current().getFileProvider();
+		const currentPath = catalog.basePath.join(file.path);
+		const currentContent = await wmFp.read(currentPath).catch(() => "");
+		const previousContent = await gvc
+			.getHeadCommit()
+			.then((headCommit) => gvc.showFileContent(file.oldPath ?? file.path, headCommit))
+			.catch(() => "");
+		const hunks = getDiff(previousContent, currentContent, { words: false }).changes;
+
 		return ok({
 			catalogName,
 			filePath,
@@ -100,10 +111,11 @@ export async function runGitInspect({ app, input }: ToolExecutionContext): Promi
 				status: file.status,
 				added: file.added,
 				deleted: file.deleted,
+				hunks,
 			},
 		});
 	} catch (e) {
 		const msg = e instanceof Error ? e.message : String(e);
-		return fail(`git_inspect error: ${msg}`);
+		return fail(`Failed to inspect git: ${msg}`);
 	}
 }

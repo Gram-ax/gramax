@@ -1,17 +1,9 @@
-import styled from "@emotion/styled";
 import { Loader } from "@ui-kit/Loader";
-
-const FileLoaderContainer = styled.div`
-	position: absolute;
-	top: 50%;
-	left: 50%;
-	transform: translate(-50%, -50%);
-`;
 
 export const FileLoader = () => {
 	return (
-		<FileLoaderContainer data-loader="true">
+		<div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" data-loader="true">
 			<Loader size="3xl" />
-		</FileLoaderContainer>
+		</div>
 	);
 };

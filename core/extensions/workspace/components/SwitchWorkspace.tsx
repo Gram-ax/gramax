@@ -4,17 +4,19 @@ import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import isMobileService from "@core-ui/ContextServices/isMobileService";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
-import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import {
 	type UseSyncableWorkspacesReturn,
 	useSyncableWorkspaces,
 } from "@core-ui/ContextServices/SyncCount/useSyncableWorkspaces";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
+// biome-ignore lint/style/noRestrictedImports: idc
 import styled from "@emotion/styled";
 import type { Admin } from "@ext/enterprise/components/admin/Admin";
 import { useEnterpriseWorkspaceEdit } from "@ext/enterprise/utils/useEditEnterpriseWorkspace";
+import { useIsEnterprise } from "@ext/enterprise/utils/useIsEnterprise";
 import t, { pluralize } from "@ext/localization/locale/translate";
+import { Level } from "@ext/settings/logic/settings";
 import type CreateWorkspaceForm from "@ext/workspace/components/CreateWorkspaceForm";
 import type { ClientWorkspaceConfig, WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 import {
@@ -162,8 +164,9 @@ const WorkspaceItem = ({
 					}
 
 					setDropdownOpen(false);
-					ModalToOpenService.setValue(ModalToOpen.EditWorkspaceForm, {
-						workspace,
+					ModalToOpenService.setValue(ModalToOpen.AppSettings, {
+						defaultLevel: Level.workspace,
+						onClose: () => ModalToOpenService.resetValue(),
 					});
 				}}
 				disabledTooltip={editInfo?.loading ? undefined : editInfo?.tooltip}
@@ -179,8 +182,8 @@ const WorkspaceItem = ({
 };
 
 const SwitchWorkspace = () => {
-	const { isBrowser } = usePlatform();
-	const isEnterprise = PageDataContextService.value.conf.enterprise.gesUrl;
+	const { isWeb } = usePlatform();
+	const isEnterprise = useIsEnterprise();
 	const isMobile = isMobileService.value;
 	const syncableWorkspaces = useSyncableWorkspaces();
 	const workspaces = WorkspaceService.workspaces();
@@ -230,7 +233,7 @@ const SwitchWorkspace = () => {
 			<DropdownMenuContent align="start">
 				<DropdownMenuGroup>
 					{workspaces.map((workspace) => {
-						if (isEnterprise && isBrowser && !workspace.enterprise?.gesUrl) return null;
+						if (isEnterprise && isWeb && !workspace.enterprise?.gesUrl) return null;
 						const tooltip = formatTooltip(workspace.path, null, syncableWorkspaces);
 
 						return (
@@ -244,7 +247,7 @@ const SwitchWorkspace = () => {
 							/>
 						);
 					})}
-					{!(isEnterprise && isBrowser) && (
+					{!(isEnterprise && isWeb) && (
 						<>
 							<DropdownMenuSeparator />
 							<DropdownMenuItem

@@ -1,3 +1,4 @@
+import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import safeDecode from "@core/utils/safeDecode";
 import { useApi } from "@core-ui/hooks/useApi";
 import { isExternalLink } from "@core-ui/hooks/useExternalLink";
@@ -38,16 +39,9 @@ const LinkMenuContent = memo(({ mark, mode, setMode, onDelete, onUpdate }: LinkM
 		const hashMatch = getLinkToHeading(href);
 		const pathWithoutHash = hashMatch?.path ?? href;
 		const hash = hashMatch?.hash ?? "";
-		const parsedCatalogName = hasError
-			? undefined
-			: href
-				? href.split("/")?.[3] === "-"
-					? href.split("/")?.[5]
-					: href.split("/")?.[3]
-				: "";
-		const catalogName = isExternal ? undefined : parsedCatalogName;
+		const catalogName = isExternal ? undefined : RouterPathProvider.parsePath(pathWithoutHash).catalogName;
 		return { hash, pathWithoutHash, catalogName };
-	}, [href, isExternal, hasError]);
+	}, [href, isExternal]);
 
 	const { call: getLinkItemByPath } = useApi<LinkItem>({
 		url: (api) => api.getLinkItemByPath(isExternal ? "" : pathWithoutHash, catalogName),

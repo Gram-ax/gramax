@@ -13,8 +13,9 @@ import AddCatalogMenu from "@ext/catalog/actions/AddCatalogMenu";
 import useSignOut from "@ext/enterprise/components/SingInOut/hooks/useSignOut";
 import { GesCloudSwitchOrganization } from "@ext/enterprise-cloud/components/GesCloudOrganizationSwitch";
 import { GesCloudSignInOut } from "@ext/enterprise-cloud/components/SignInOut/GesCloudSignInOut";
+import UserMenu from "@ext/settings/components/UserMenu";
 import SwitchWorkspace from "@ext/workspace/components/SwitchWorkspace";
-import { HomeLogo } from "../../../../../apps/browser/src/components/Atoms/HomeLogo";
+import { HomeLogo } from "../../../../../apps/web/src/components/Atoms/HomeLogo";
 
 export const GesCloudTopMenu = ({ section }: { section?: Section }) => {
 	const hasWorkspace = WorkspaceService.hasActive();
@@ -36,6 +37,7 @@ export const GesCloudTopMenu = ({ section }: { section?: Section }) => {
 				{isWorkWithCatalogAllowed && <TopMenuSearch section={section} />}
 				<TopMenuSwitchUiLanguageButton />
 				<TopMenuThemeToggle />
+				<UserMenu />
 				<GesCloudSignInOut />
 			</TopMenuRightSide>
 		</TopMenuWrapper>

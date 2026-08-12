@@ -7,7 +7,12 @@ import { type IconCode, LucideIcon } from "../../../../../../components/Atoms/Ic
 
 export const iconWordLayout: WordInlineChild = async ({ tag }) => {
 	const attrs = "attributes" in tag ? tag.attributes : tag.attrs;
-	return [attrs.svg ? await getHtmlIcon(attrs.svg) : await getIconFromString(attrs.code)];
+	try {
+		return [attrs.svg ? await getHtmlIcon(attrs.svg) : await getIconFromString(attrs.code)];
+	} catch (error) {
+		console.error("Failed to render icon in Word export", { code: attrs.code, error });
+		return [];
+	}
 };
 
 export const getIconFromString = async (icon: string) => {

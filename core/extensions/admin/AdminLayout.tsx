@@ -1,5 +1,6 @@
 /** biome-ignore-all lint/correctness/useExhaustiveDependencies: it's ok */
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import { useIsEnterprise } from "@ext/enterprise/utils/useIsEnterprise";
 import t from "@ext/localization/locale/translate";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@ui-kit/Button";
@@ -21,11 +22,16 @@ const formSchema = z.object({
 const AdminLoginLayout = () => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const isLogged = PageDataContextService.value.isLogged;
-	const gesUrl = PageDataContextService.value.conf.enterprise.gesUrl;
+	const gesUrl = useIsEnterprise();
 	const router = useRouter();
-	const redirectCallback = useCallback(async () => {
-		await router.pushPath("/");
-		location.reload();
+	const redirectCallback = useCallback(() => {
+		if (typeof window === "undefined") {
+			router.pushPath("/");
+			return;
+		}
+
+		const basePath = router.basePath || "/";
+		window.location.assign(basePath.endsWith("/") ? basePath : `${basePath}/`);
 	}, [router]);
 
 	const form = useForm<z.infer<typeof formSchema>>({
@@ -34,7 +40,7 @@ const AdminLoginLayout = () => {
 	});
 
 	useEffect(() => {
-		if (isLogged || gesUrl) void redirectCallback();
+		if (isLogged || gesUrl) redirectCallback();
 	}, []);
 
 	const onSubmit = useCallback(
@@ -48,7 +54,7 @@ const AdminLoginLayout = () => {
 					false,
 				);
 
-				if (res.ok) void redirectCallback();
+				if (res.ok) redirectCallback();
 				else {
 					form.setError("password", {
 						message: t("forms.admin-login-props.validationErrors.wrongLoginOrPassword"),

@@ -313,6 +313,17 @@ impl<C: Creds> Repo<'_, C> {
 		{
 			ctx.stage = WalkStage::Ref(reference.clone());
 
+			// a ref may have no reflog at all (tags, custom namespaces, core.logAllRefUpdates=false),
+			// so its target must be visited directly — reflog entries alone don't cover it
+			if let Ok(resolved) = self.0.find_reference(&reference).and_then(|r| r.resolve()) {
+				if let Some(target) = resolved.target() {
+					let mut oids = vec![target];
+					while let Some(id) = oids.pop() {
+						self.visit_object_by_oid(id, opts, ctx, &mut oids, None)?;
+					}
+				}
+			}
+
 			if let Ok(reflog) = self.0.reflog(&reference) {
 				let mut oids = vec![];
 
@@ -444,7 +455,10 @@ impl<C: Creds> Repo<'_, C> {
 
 	#[tracing::instrument(target = TAG, skip_all, err)]
 	fn visit_objects_index(&self, opts: &mut WalkOptions, ctx: &mut WalkContext) -> Result<()> {
-		let index = self.0.index()?;
+		let mut index = self.0.index()?;
+		// repository handles are cached process-wide; reload so a stale in-memory index
+		// can't hide objects staged through another handle or process
+		index.read(false)?;
 		let mut oids = vec![];
 
 		for entry in index.iter() {

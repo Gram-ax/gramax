@@ -5,7 +5,6 @@ import type FileStructure from "@core/FileStructue/FileStructure";
 import GitCommands from "@ext/git/core/GitCommands/GitCommands";
 import type { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import type Repository from "@ext/git/core/Repository/Repository";
-import convertScopeToCommitScope from "@ext/git/core/ScopedCatalogs/convertScopeToCommitScope";
 import { addScopeToPath } from "@ext/versioning/addScopeToPath";
 import GitTreeFileProvider from "@ext/versioning/GitTreeFileProvider";
 
@@ -16,8 +15,8 @@ export default class ScopedCatalogs {
 	constructor(private _repo: Repository) {}
 
 	async getScopedCatalog(catalogPath: Path, fs: FileStructure, scope: TreeReadScope) {
-		const commitScope = await convertScopeToCommitScope(scope, this._repo.gvc);
-		const scopedPath = GitTreeFileProvider.scoped(catalogPath, commitScope);
+		const scopedPath = GitTreeFileProvider.scoped(catalogPath, scope);
+
 		if (!this._scopedCatalogs.has(scopedPath.value)) {
 			const gitTreeFileProvider = this._getGitTreeFileProvider(catalogPath, fs.fp);
 			fs.fp.mount(scopedPath, gitTreeFileProvider);

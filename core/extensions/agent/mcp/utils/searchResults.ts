@@ -1,82 +1,87 @@
-export type CompactSearchResult = {
-	hits: Array<{ itemPath: string; title: string; snippets: string[] }>;
-	truncated: boolean;
-	totalMatched: number;
-};
+import type Application from "@app/types/Application";
+import type Context from "@core/Context/Context";
+import Path from "@core/FileProvider/Path/Path";
+import type ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
+import "@core/utils/asyncUtils";
+import type { SearchArticleResult, SearchResultItem } from "@ext/serach/Searcher";
+import { agentConfig } from "../../core/agentConfig";
+import { CatalogItemLookup } from "./catalogPaths";
 
-function flattenTitleParts(parts: unknown): string {
-	if (!Array.isArray(parts)) return "";
-	return parts
-		.map((p) => (p && typeof p === "object" && "text" in p ? String((p as { text?: string }).text ?? "") : ""))
-		.join("")
-		.trim();
-}
-
-function collectScoredSnippets(node: unknown, acc: { score: number; text: string }[]): void {
-	if (!node || typeof node !== "object") return;
-	const stack: unknown[] = [node];
-	while (stack.length) {
-		const cur = stack.pop();
-		if (!cur || typeof cur !== "object") continue;
-		const o = cur as { items?: unknown[]; searchText?: unknown; score?: unknown };
-		if (typeof o.searchText === "string") {
-			const score = typeof o.score === "number" ? o.score : 0;
-			acc.push({ score, text: o.searchText });
+function collectSnippets(items: SearchResultItem[], acc: string[]): void {
+	for (const item of items) {
+		if ("searchText" in item && item.searchText) {
+			acc.push(item.searchText);
 		}
-		if (Array.isArray(o.items)) stack.push(...o.items);
+		if ("items" in item && item.items.length) {
+			collectSnippets(item.items as SearchResultItem[], acc);
+		}
 	}
 }
 
-function trimSnippet(text: string, maxChars: number): string {
-	const normalized = text.replace(/\s+/g, " ").trim();
-	if (normalized.length <= maxChars) return normalized;
-	return `${normalized.slice(0, maxChars - 1)}...`;
+export function collectSnippetsFromContent(content: string, query: string): string[] {
+	if (!query) return [];
+
+	const { searchSnippetSize, searchSnippetsPerHit } = agentConfig;
+	const snippets: string[] = [];
+	const lowerContent = content.toLowerCase();
+	const lowerQuery = query.toLowerCase();
+	let index = lowerContent.indexOf(lowerQuery);
+
+	while (index !== -1 && snippets.length < searchSnippetsPerHit) {
+		const start = Math.max(0, index - searchSnippetSize);
+		const end = Math.min(content.length, index + query.length + searchSnippetSize);
+		snippets.push(content.slice(start, end).replace(/\s+/g, " ").trim());
+		index = lowerContent.indexOf(lowerQuery, index + query.length);
+	}
+
+	return snippets;
 }
 
-function refPathToItemPath(refPath: string, catalogName: string | undefined): string {
-	const firstPart = refPath.split("/")[0]?.trim();
-	const catalog = catalogName?.trim() || firstPart;
-	if (!catalog) return refPath;
-	const prefix = `${catalog}/`;
-	return refPath.startsWith(prefix) ? refPath.slice(prefix.length) : refPath;
+async function compactSearchHit(
+	catalogName: string,
+	catalog: ContextualCatalog,
+	hit: SearchArticleResult,
+	snippetsPerHit: number,
+) {
+	const slash = hit.refPath.indexOf("/");
+	const itemPath = slash === -1 ? "" : hit.refPath.slice(slash + 1);
+	if (!itemPath) return null;
+
+	const snippetsRaw: string[] = [];
+	collectSnippets(hit.items, snippetsRaw);
+	const snippets = snippetsRaw.slice(0, snippetsPerHit).filter(Boolean);
+
+	const item = catalog.findItemByItemPath(new Path(hit.refPath));
+	const lookup = item
+		? await CatalogItemLookup.fromCatalogItem(catalog, item)
+		: new CatalogItemLookup(catalogName, itemPath);
+
+	return { ...lookup.asJSON(), snippets };
 }
 
-function hitTitle(hit: Record<string, unknown>): string {
-	if (typeof hit.title === "string") return hit.title.trim();
-	return flattenTitleParts(hit.title);
-}
-
-export function compactSearchResults(
+export async function compactSearchResults(
+	app: Application,
+	ctx: Context,
 	raw: unknown,
-	catalogName: string | undefined,
 	hitsLimit: number,
 	snippetsPerHit: number,
-	snippetMaxChars: number,
-): CompactSearchResult {
-	if (!Array.isArray(raw)) return { hits: [], truncated: false, totalMatched: 0 };
-	const totalMatched = raw.length;
-	const enriched = raw
-		.filter((x): x is Record<string, unknown> => !!x && typeof x === "object")
-		.map((hit) => {
-			const refPath = typeof hit.refPath === "string" ? hit.refPath : "";
-			const snippetsWithScore: { score: number; text: string }[] = [];
-			collectScoredSnippets(hit, snippetsWithScore);
-			snippetsWithScore.sort((a, b) => b.score - a.score);
-			const snippets = snippetsWithScore
-				.slice(0, snippetsPerHit)
-				.map((snippet) => trimSnippet(snippet.text, snippetMaxChars))
-				.filter(Boolean);
-			const score = snippetsWithScore.length ? snippetsWithScore[0]!.score : 0;
-			return {
-				itemPath: refPath ? refPathToItemPath(refPath, catalogName) : "",
-				title: hitTitle(hit),
-				snippets,
-				score,
-			};
-		})
-		.filter((hit) => hit.itemPath)
-		.sort((a, b) => b.score - a.score);
+) {
+	if (!Array.isArray(raw)) return [];
 
-	const hits = enriched.slice(0, hitsLimit).map(({ score: _score, ...publicHit }) => publicHit);
-	return { hits, truncated: totalMatched > hits.length, totalMatched };
+	const articles = raw.filter((x): x is SearchArticleResult => !!x && typeof x === "object" && "refPath" in x);
+	const resolved: Awaited<ReturnType<typeof compactSearchHit>>[] = new Array(articles.length);
+	const catalogs = new Map<string, ContextualCatalog>();
+
+	await articles.forEachAsync(async (hit, index) => {
+		const catalogName = hit.catalog.name;
+		let catalog = catalogs.get(catalogName);
+		if (!catalog) {
+			catalog = await app.wm.current().getCatalog(catalogName, ctx);
+			catalogs.set(catalogName, catalog);
+		}
+
+		resolved[index] = await compactSearchHit(catalogName, catalog, hit, snippetsPerHit);
+	});
+
+	return resolved.filter((hit): hit is NonNullable<typeof hit> => hit !== null).slice(0, hitsLimit);
 }

@@ -6,6 +6,7 @@ import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import useWatch from "@core-ui/hooks/useWatch";
 import BugsnagTrigger from "@ext/bugsnag/components/BugsnagTrigger";
 import { NotificationSettingsButton } from "@ext/enterprise/components/NotificationSettingsButton";
+import { useIsEnterprise } from "@ext/enterprise/utils/useIsEnterprise";
 import { ArticleRevisionTrigger } from "@ext/git/actions/Revisions/components/ArticleRevisionTrigger";
 import { DeleteItemTrigger } from "@ext/item/actions/DeleteArticleTrigger";
 import { SearchInScopeTrigger } from "@ext/item/actions/SearchInScopeTrigger";
@@ -37,11 +38,11 @@ const HeaderLabel: React.FC = () => (
 );
 
 const components: Record<Environment, (props: EditMenuProps) => React.ReactNode> = {
-	browser: (props) => <AnyEditorEditMenu {...props} />,
+	web: (props) => <AnyEditorEditMenu {...props} />,
 	tauri: (props) => <AnyEditorEditMenu {...props} />,
 	next: (props) => <ReadonlyEditMenu {...props} />,
-	static: (props) => <StaticEditMenu {...props} />,
-	cli: (props) => <StaticEditMenu {...props} />,
+	static: (props) => <ReadonlyEditMenu {...props} />,
+	cli: (props) => <ReadonlyEditMenu {...props} />,
 	docportal: (props) => <ReadonlyEditMenu {...props} />,
 	test: () => null,
 };
@@ -63,10 +64,10 @@ function useEditMenuItemProps(itemLink: ItemLink | CategoryLink) {
 		if (!response.ok) return;
 		const data = (await response.json()) as ClientArticleProps;
 		setItemProps(data);
-	}, [apiUrlCreator, itemLink?.ref?.path]);
+	}, [itemLink?.ref?.path]);
 
 	useWatch(() => {
-		setItemPropsData();
+		void setItemPropsData();
 	}, [itemLink?.ref?.path]);
 
 	const isLinkToValidArticle = itemProps && !itemProps.errorCode;
@@ -77,9 +78,9 @@ function useEditMenuItemProps(itemLink: ItemLink | CategoryLink) {
 }
 
 const ReadonlyEditMenu = ({ itemLink }: EditMenuProps) => {
-	const { itemProps, isLinkToValidArticle, isCategory } = useEditMenuItemProps(itemLink);
+	const isCategory = itemLink.type === ItemType.category && (itemLink as CategoryLink).items.length > 0;
 
-	if (!isLinkToValidArticle) return null;
+	if (itemLink.options?.isHasErrorCode) return null;
 
 	return (
 		<>
@@ -88,23 +89,7 @@ const ReadonlyEditMenu = ({ itemLink }: EditMenuProps) => {
 			<SearchInScopeTrigger isCategory={isCategory} itemLink={itemLink} />
 			<ArticleFavoriteSettingsButton itemLinkPath={itemLink.ref.path} />
 			<DropdownMenuSeparator />
-			<ExportToDocxOrPdf fileName={itemProps.fileName} isCategory={isCategory} itemRefPath={itemLink.ref.path} />
-		</>
-	);
-};
-
-const StaticEditMenu = ({ itemLink }: EditMenuProps) => {
-	const { itemProps, isCategory, isLinkToValidArticle } = useEditMenuItemProps(itemLink);
-
-	if (!isLinkToValidArticle) return null;
-
-	return (
-		<>
-			<HeaderLabel />
-			<DropdownMenuSeparator />
-			<SearchInScopeTrigger isCategory={isCategory} itemLink={itemLink} />
-			<DropdownMenuSeparator />
-			<ExportToDocxOrPdf fileName={itemProps.fileName} isCategory={isCategory} itemRefPath={itemLink.ref.path} />
+			<ExportToDocxOrPdf fileName={itemLink.fileName} isCategory={isCategory} itemRefPath={itemLink.ref.path} />
 		</>
 	);
 };
@@ -118,6 +103,8 @@ const AnyEditorEditMenu = (props: EditMenuProps) => {
 const EditorEditMenu = ({ itemLink, setItemLink }: EditMenuProps) => {
 	const { itemProps, setItemPropsData, isCategory, isLinkToValidArticle, isCurrentItem } =
 		useEditMenuItemProps(itemLink);
+
+	const isEnterprise = useIsEnterprise();
 
 	return (
 		<>
@@ -135,7 +122,7 @@ const EditorEditMenu = ({ itemLink, setItemLink }: EditMenuProps) => {
 					{isCurrentItem && <TemplateItemList itemRefPath={itemLink.ref.path} />}
 				</>
 			)}
-			<ArticleMoveAction articlePath={itemProps?.ref?.path} />
+			<ArticleMoveAction articlePath={itemProps?.ref?.path} itemLink={itemLink} />
 			{isLinkToValidArticle && <ArticleFavoriteSettingsButton itemLinkPath={itemLink.ref.path} />}
 			{isLinkToValidArticle && <SearchInScopeTrigger isCategory={isCategory} itemLink={itemLink} />}
 			<DropdownMenuSeparator />
@@ -156,7 +143,7 @@ const EditorEditMenu = ({ itemLink, setItemLink }: EditMenuProps) => {
 					itemRefPath={itemLink.ref.path}
 				/>
 			)}
-			{PageDataContextService.value.conf.enterprise.gesUrl && (
+			{isEnterprise && (
 				<>
 					<DropdownMenuSeparator />
 					<NotificationSettingsButton itemRefPath={itemLink.ref.path} />
@@ -166,7 +153,7 @@ const EditorEditMenu = ({ itemLink, setItemLink }: EditMenuProps) => {
 			<DropdownMenuSeparator />
 			<BugsnagTrigger itemLogicPath={itemLink.ref.path} />
 			<DropdownMenuSeparator />
-			<DeleteItemTrigger isCategory={isCategory} itemLink={itemLink} />
+			<DeleteItemTrigger itemLink={itemLink} />
 		</>
 	);
 };

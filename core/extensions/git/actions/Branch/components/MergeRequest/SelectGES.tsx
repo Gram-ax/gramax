@@ -23,11 +23,11 @@ import { useCallback, useMemo, useRef, useState } from "react";
 
 interface SelectGESProps {
 	approvers?: { label: string; value: string }[];
-	preventSearchAndStartLoading: boolean;
+	isEnabledGetUsers: boolean;
 	onChange: (approvers: { label: string; value: string }[]) => void;
 }
 
-const SelectGES = ({ approvers, onChange, preventSearchAndStartLoading }: SelectGESProps) => {
+const SelectGES = ({ approvers, onChange, isEnabledGetUsers }: SelectGESProps) => {
 	const gesUrl = PageDataContextService.value.conf.enterprise.gesUrl;
 	const enterpriseSource = getEnterpriseSourceData(SourceDataService.value, gesUrl);
 	const [options, setOptions] = useState<Signature[]>([]);
@@ -73,45 +73,47 @@ const SelectGES = ({ approvers, onChange, preventSearchAndStartLoading }: Select
 
 	return (
 		<SelectApproversInput approvers={approvers} onChange={onChange}>
-			<DropdownMenu>
-				<DropdownMenuTrigger asChild>
-					<div>
-						<InputGroupButton icon="search" />
-					</div>
-				</DropdownMenuTrigger>
-				<DropdownMenuContent className="w-72" onKeyDown={handleContentKeyDown} ref={contentRef}>
-					<DropdownMenuSearchItem
-						onChange={(e) => {
-							setSearch(e.target.value);
-							searchInputRef.current = e.target as HTMLInputElement;
-							if (!preventSearchAndStartLoading) start();
-						}}
-						onClick={(e) => e.stopPropagation()}
-						onKeyDown={handleInputKeyDown}
-						placeholder={t("search.placeholder")}
-						ref={inputRef}
-						value={search}
-					/>
-					<DropdownMenuSeparator />
-					{isLoading
-						? null
-						: filteredOptions.map((author) => (
-								<DropdownMenuCheckboxItem
-									checked={author.checked}
-									key={author.email}
-									onSelect={(e) => {
-										e.preventDefault();
-										onCheckboxChange(author);
-									}}
-								>
-									<TextOverflowTooltip>{author.email}</TextOverflowTooltip>
-								</DropdownMenuCheckboxItem>
-							))}
-					{!filteredOptions.length && !isLoading && (
-						<DropdownMenuEmptyItem>{t("list.no-results-found")}</DropdownMenuEmptyItem>
-					)}
-				</DropdownMenuContent>
-			</DropdownMenu>
+			{isEnabledGetUsers && (
+				<DropdownMenu>
+					<DropdownMenuTrigger asChild>
+						<div>
+							<InputGroupButton icon="search" />
+						</div>
+					</DropdownMenuTrigger>
+					<DropdownMenuContent className="w-72" onKeyDown={handleContentKeyDown} ref={contentRef}>
+						<DropdownMenuSearchItem
+							onChange={(e) => {
+								setSearch(e.target.value);
+								searchInputRef.current = e.target as HTMLInputElement;
+								start();
+							}}
+							onClick={(e) => e.stopPropagation()}
+							onKeyDown={handleInputKeyDown}
+							placeholder={t("search.placeholder")}
+							ref={inputRef}
+							value={search}
+						/>
+						<DropdownMenuSeparator />
+						{isLoading
+							? null
+							: filteredOptions.map((author) => (
+									<DropdownMenuCheckboxItem
+										checked={author.checked}
+										key={author.email}
+										onSelect={(e) => {
+											e.preventDefault();
+											onCheckboxChange(author);
+										}}
+									>
+										<TextOverflowTooltip>{author.email}</TextOverflowTooltip>
+									</DropdownMenuCheckboxItem>
+								))}
+						{!filteredOptions.length && !isLoading && (
+							<DropdownMenuEmptyItem>{t("list.no-results-found")}</DropdownMenuEmptyItem>
+						)}
+					</DropdownMenuContent>
+				</DropdownMenu>
+			)}
 		</SelectApproversInput>
 	);
 };

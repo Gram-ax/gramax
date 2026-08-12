@@ -38,6 +38,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@ui-kit/Select";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
 import { useCallback, useMemo, useState } from "react";
 import { type UseFormReturn, useForm } from "react-hook-form";
 import SelectGitHubStorageDataFields from "../../git/actions/Source/GitHub/components/SelectGitHubStorageDataFields";
@@ -118,7 +119,7 @@ const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
 	);
 
 	const formSubmit = (e) => {
-		form.handleSubmit(async (data) => {
+		void form.handleSubmit(async (data) => {
 			setIsLoading(true);
 			const storageData = getStorageDataByForm(sourceData, data);
 			await onSubmit?.(storageData as GitStorageData);
@@ -193,61 +194,72 @@ const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
 						<FormStack>
 							<FormField
 								control={({ field }) => (
-									<Select
-										{...field}
-										disabled={shouldDisableStorageSelect}
-										onValueChange={(val) => val && field.onChange(val)}
-									>
-										<SelectTrigger>
-											<SelectValue
-												placeholder={t("forms.clone-repo.props.storage.placeholder")}
-											/>
-										</SelectTrigger>
-										<SelectContent>
-											<SelectGroup>
-												{filteredSourceDatas.map((d) => {
-													const storageKey = getStorageNameByData(d);
-													return (
-														<SourceOption
-															key={storageKey}
-															onDelete={
-																isEnterprise
-																	? undefined
-																	: () => {
-																			if (sourceKey === storageKey) form.reset();
-																		}
-															}
-															onEdit={
-																isEnterprise
-																	? undefined
-																	: () => {
-																			onSourceClickEdit(d);
-																		}
-															}
-															onInvalid={() => {
-																onSourceClickEdit(d);
-															}}
-															source={d}
-															storageKey={storageKey}
-														/>
-													);
-												})}
-											</SelectGroup>
-											{!isEnterprise && filteredSourceDatas.length > 0 && <SelectSeparator />}
-											{!isEnterprise && (
-												<SelectOption
-													asChild
-													onPointerDown={() => setIsCreateStorageOpen(true)}
-													role="button"
-													value="add-new-storage"
-												>
-													<MenuItem>
-														<MenuItemAction icon="plus" text={t("add-storage")} />
-													</MenuItem>
-												</SelectOption>
-											)}
-										</SelectContent>
-									</Select>
+									<div className="relative">
+										{shouldDisableStorageSelect && sourceData?.isInvalid && (
+											<Tooltip>
+												<TooltipTrigger asChild>
+													<span className="absolute inset-0 z-10" tabIndex={-1} />
+												</TooltipTrigger>
+												<TooltipContent>{t("forms.clone-repo.errors.connect")}</TooltipContent>
+											</Tooltip>
+										)}
+										<Select
+											{...field}
+											disabled={shouldDisableStorageSelect}
+											onValueChange={(val) => val && field.onChange(val)}
+										>
+											<SelectTrigger>
+												<SelectValue
+													placeholder={t("forms.clone-repo.props.storage.placeholder")}
+												/>
+											</SelectTrigger>
+											<SelectContent>
+												<SelectGroup>
+													{filteredSourceDatas.map((d) => {
+														const storageKey = getStorageNameByData(d);
+														return (
+															<SourceOption
+																key={storageKey}
+																onDelete={
+																	isEnterprise
+																		? undefined
+																		: () => {
+																				if (sourceKey === storageKey)
+																					form.reset();
+																			}
+																}
+																onEdit={
+																	isEnterprise
+																		? undefined
+																		: () => {
+																				onSourceClickEdit(d);
+																			}
+																}
+																onInvalid={() => {
+																	onSourceClickEdit(d);
+																}}
+																source={d}
+																storageKey={storageKey}
+															/>
+														);
+													})}
+												</SelectGroup>
+												{!isEnterprise && filteredSourceDatas.length > 0 && <SelectSeparator />}
+												{!isEnterprise && (
+													<SelectOption
+														asChild
+														onPointerDown={() => setIsCreateStorageOpen(true)}
+														role="button"
+														value="add-new-storage"
+													>
+														<MenuItem>
+															<MenuItemAction icon="plus" text={t("add-storage")} />
+														</MenuItem>
+													</SelectOption>
+												)}
+											</SelectContent>
+										</Select>
+									</div>
 								)}
 								name="sourceKey"
 								title={t("forms.clone-repo.props.storage.name")}

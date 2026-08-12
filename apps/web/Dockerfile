@@ -1,0 +1,37 @@
+ARG USE_IMAGE_TAG="latest-dev"
+
+FROM --platform=$BUILDPLATFORM gitlab.ics-it.ru:4567/ics/doc-reader/base-image:${USE_IMAGE_TAG:-latest-dev} AS deps
+
+WORKDIR /src
+
+COPY . .
+
+RUN rm -rf services
+
+RUN ["./install-deps.sh", "--ci"]
+
+ARG BUGSNAG_API_KEY
+ARG PRODUCTION
+ARG BRANCH
+
+ENV NODE_OPTIONS=--max_old_space_size=8192 \
+    BUGSNAG_API_KEY=${BUGSNAG_API_KEY} \
+    BRANCH=${BRANCH} \
+    PRODUCTION=${PRODUCTION}
+
+RUN [ "npm", "--prefix", "apps/web", "run", "build" ]
+
+FROM gitlab.ics-it.ru:4567/ics/doc-reader/spa:${USE_IMAGE_TAG:-latest-dev} AS run
+
+WORKDIR /app
+
+ENV PORT=80
+
+COPY --from=deps /src/apps/web/dist .
+
+RUN groupadd --system --gid 10001 app && useradd --system --uid 10001 --gid app --home-dir /app --shell /usr/sbin/nologin app && \
+    chown -R 10001:10001 /app
+
+USER 10001:10001
+
+CMD spa "-p" $PORT static -d "/app" -f "index.html"

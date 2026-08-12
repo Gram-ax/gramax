@@ -8,7 +8,7 @@ import { NotificationState } from "@ext/enterprise/notifications/types";
 import type GitStorageData from "@ext/git/core/model/GitStorageData";
 import type { GitVersion } from "@ext/git/core/model/GitVersion";
 import { convertContentToUiLanguage } from "@ext/localization/locale/translate";
-import { span, trace } from "@ext/loggers/opentelemetry";
+import { addEvent, Level, trace } from "@ext/loggers/opentelemetry";
 import type MarkdownParser from "@ext/markdown/core/Parser/Parser";
 import type ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
 import extractPreviewFromEditTree from "@ext/markdown/elementsUtils/extractPreviewFromEditTree";
@@ -33,7 +33,7 @@ export default class MergeNotificationHandler implements EventHandlerCollection 
 		private _parserContextFactory: ParserContextFactory,
 	) {}
 
-	@trace()
+	@trace({ level: Level.Internal })
 	mount(): void {
 		this._workspace.events.on("merge", async ({ catalog, targetBranch, sourceData, beforeMergeCommit }) => {
 			const parser = this._parser;
@@ -67,7 +67,7 @@ export default class MergeNotificationHandler implements EventHandlerCollection 
 				const token = (sourceData as { token?: string }).token;
 				await this._dispatchNotifications(articles, catalog.props.title, gesUrl, token);
 			} catch (e) {
-				span()?.addEvent("error", { error: String(e) });
+				addEvent("error", Level.Commands, { error: String(e) });
 			} finally {
 				this._processedMerges.delete(mergeKey);
 			}
@@ -162,7 +162,7 @@ export default class MergeNotificationHandler implements EventHandlerCollection 
 	): Promise<string> {
 		const language = convertContentToUiLanguage(catalog.props?.language);
 		const context = await parserContextFactory.fromArticle(article, catalog, language);
-		const content = await parser.parse(article.content, context);
+		const content = await parser.parse(await article.getContent(), context);
 		return extractPreviewFromEditTree(content.editTree, 101);
 	}
 

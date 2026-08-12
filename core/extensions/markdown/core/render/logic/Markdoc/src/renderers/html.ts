@@ -9,7 +9,7 @@ import type Tag from "../ast/tag";
 import type { RenderableTreeNodes } from "../types";
 
 const { escapeHtml } = MarkdownIt().utils;
-const isBrowser = typeof window !== "undefined";
+const isWeb = typeof window !== "undefined";
 
 // HTML elements that do not have a matching close tag
 // Defined in the HTML standard: https://html.spec.whatwg.org/#void-elements
@@ -51,7 +51,7 @@ const getNodeData = (node: RenderableTreeNodes | JSONContent): NodeData => {
 
 // biome-ignore lint/suspicious/noExplicitAny: it's ok
 const renderString = (component: any): string => {
-	if (!isBrowser) return renderToString(component);
+	if (!isWeb) return renderToString(component);
 
 	const container = document.createElement("div");
 	const root = createRoot(container);

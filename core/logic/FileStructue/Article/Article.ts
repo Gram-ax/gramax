@@ -9,20 +9,21 @@ import type ResourceUpdater from "@core/Resource/ResourceUpdater";
 import createNewFilePathUtils from "@core/utils/createNewFilePathUtils";
 import { RwLock } from "@core/utils/rwlock";
 import type { InboxProps } from "@ext/inbox/models/types";
+import { addEvent, Level } from "@ext/loggers/opentelemetry";
 import type { ParsedContext } from "@ext/markdown/core/Parser/ParserContext/ParsedContext";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import type { JSONContent } from "@tiptap/core";
 import type { RenderableTreeNode } from "../../../extensions/markdown/core/render/logic/Markdoc";
 import type { TocItem } from "../../../extensions/navigation/article/logic/createTocItems";
 import type { Category } from "../Category/Category";
-import { Item, type ItemEvents, type ItemProps, type UpdateItemProps } from "../Item/Item";
+import { Item, type ItemEvents, type ItemProps, NAV_STRUCTURAL_PROPS, type UpdateItemProps } from "../Item/Item";
 
 export type ArticleEvents = ItemEvents;
 
 export type ArticleInitProps<P extends ItemProps> = {
 	ref: ItemRef;
 	parent: Category;
-	content: string;
+	content: string | null;
 	props: P;
 	logicPath: string;
 
@@ -54,7 +55,7 @@ export class Article<P extends ArticleProps = ArticleProps> extends Item<P> {
 	protected _fs: FileStructure;
 
 	protected _parsedContent = RwLock.store<Content>(null);
-	protected _content: string;
+	protected _content: string | null;
 	protected _lastModified: number;
 	private _errorCode?: number;
 
@@ -78,10 +79,32 @@ export class Article<P extends ArticleProps = ArticleProps> extends Item<P> {
 		return this._lastModified;
 	}
 
-	get content() {
-		const mutableContent = { content: this._content };
-		this.events.emitSync("item-get-content", { item: this, mutableContent });
+	async getContent(): Promise<string> {
+		await this._loadContent();
+		const mutableContent = { content: this._content ?? "" };
+		await this.events.emit("item-get-content", { item: this, mutableContent });
 		return mutableContent.content;
+	}
+
+	hasContent(): boolean {
+		return !this._props.shouldBeCreated;
+	}
+
+	async reloadFromDisk(catalog?: Catalog): Promise<void> {
+		this._content = null;
+		this._lastModified = Date.now();
+		await this._parsedContent.write(() => null);
+
+		if (this.props.shouldBeCreated) return;
+		try {
+			const raw = await this._fs.fp.read(this._ref.path);
+			const parsed = this._fs.parseMarkdown(raw.toString());
+			const mutable = { content: "", props: parsed.props };
+			if (catalog) await this._fs.events.emit("item-read", { catalog, mutable });
+			this._updateProps(mutable.props, NAV_STRUCTURAL_PROPS);
+		} catch (e) {
+			addEvent("article-refresh-failed", Level.Commands, { path: this._ref.path.value, error: String(e) });
+		}
 	}
 
 	get type() {
@@ -112,7 +135,7 @@ export class Article<P extends ArticleProps = ArticleProps> extends Item<P> {
 		return this._ref.path.name;
 	}
 
-	protected _updateProps(props: UpdateItemProps, additionalKeys: string[] = []) {
+	protected _updateProps(props: UpdateItemProps, additionalKeys: readonly string[] = []) {
 		const allProps = this._props as Record<string, unknown>;
 
 		for (const key of [...ArticlePropsKeys, ...additionalKeys]) {
@@ -134,7 +157,7 @@ export class Article<P extends ArticleProps = ArticleProps> extends Item<P> {
 
 	async hash(hash: Hasher, recursive = true) {
 		const hasher = await super.hash(hash);
-		hasher.hash(this._content);
+		hasher.hash(this._content ?? "");
 		if (recursive) await this.parsedContent.read((p) => p.parsedContext.getResourceManager().hash(hash));
 		return hasher;
 	}
@@ -142,13 +165,18 @@ export class Article<P extends ArticleProps = ArticleProps> extends Item<P> {
 	protected async _save(renamed?: boolean) {
 		delete this._props.shouldBeCreated;
 		delete this._props.welcome;
+		if (this._content === null)
+			await this._loadContent().catch(() => {
+				this._content = "";
+			});
+
 		await this.events.emit("item-pre-save", {
 			item: this,
-			mutable: { content: this._content, props: this._props },
+			mutable: { content: this._content ?? "", props: this._props },
 		});
 		if (this._props.title?.toString()?.trim()) delete this._props.external;
 
-		await this._fs.saveArticle(this._ref.path, this._content, this._props);
+		await this._fs.saveArticle(this._ref.path, this._content ?? "", this._props);
 		this._lastModified = Date.now();
 		await this.events.emit("item-changed", { item: this, status: renamed ? FileStatus.new : FileStatus.modified });
 	}
@@ -185,6 +213,15 @@ export class Article<P extends ArticleProps = ArticleProps> extends Item<P> {
 			this._lastModified,
 			catalog,
 		);
+	}
+
+	private async _loadContent(): Promise<void> {
+		if (this._content !== null) return;
+		if (this.props.shouldBeCreated) return;
+
+		const raw = await this._fs.fp.read(this._ref.path);
+		const parsed = this._fs.parseMarkdown(raw.toString());
+		this._content = parsed.content;
 	}
 }
 

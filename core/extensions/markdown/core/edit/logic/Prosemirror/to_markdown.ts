@@ -353,7 +353,7 @@ export class MarkdownSerializerState {
 	/// have special meaning only at the start of the line.
 	esc(str: string, startOfLine = false) {
 		let newStr = MarkdownSerializerState.escape(str);
-		if (startOfLine) newStr = newStr.replace(/^[#\-*+>]/, "\\$&").replace(/^(\s*\d+)\./, "$1\\.");
+		if (startOfLine) newStr = newStr.replace(/^[#\-*+>]/, "\\$&").replace(/^(\s*\d+)([.)])/, "$1\\$2");
 		if (this.options.escapeExtraCharacters) newStr = newStr.replace(this.options.escapeExtraCharacters, "\\$&");
 		return newStr;
 	}
@@ -389,8 +389,13 @@ export class MarkdownSerializerState {
 	}
 
 	static escape(str: string) {
+		// `_` inside a word isn't emphasis (CommonMark/markdown-it treat intra-word
+		// `_` as literal for any Unicode letter), so it must stay unescaped. The
+		// intra-word test uses a Unicode class, not `\w` (ASCII-only), otherwise
+		// Cyrillic words like `сло_во` get a spurious `\_` on save.
+		const isWordChar = (ch: string) => /[\p{L}\p{N}_]/u.test(ch);
 		const newStr = str.replace(/[`*\\~[\]_${<]/g, (m, i) =>
-			m === "_" && i > 0 && i + 1 < str.length && str[i - 1].match(/\w/) && str[i + 1].match(/\w/) ? m : `\\${m}`,
+			m === "_" && i > 0 && i + 1 < str.length && isWordChar(str[i - 1]) && isWordChar(str[i + 1]) ? m : `\\${m}`,
 		);
 		return newStr;
 	}

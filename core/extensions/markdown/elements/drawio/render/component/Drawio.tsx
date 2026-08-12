@@ -3,6 +3,7 @@ import Skeleton from "@components/Atoms/ImageSkeleton";
 import type { ResourceError } from "@core-ui/ContextServices/ResourceService/errors";
 import { useGetResource } from "@core-ui/ContextServices/ResourceService/hooks/useGetResource";
 import { useAdjustedElementSize } from "@core-ui/hooks/useAdjustedElementSize";
+import useElementInViewport from "@core-ui/hooks/useElementInViewport";
 import { resolveFileKind } from "@core-ui/utils/resolveFileKind";
 import { ArticleComponentResizer } from "@ext/article/Components/ArticleComponentResizer";
 import BlockCommentView from "@ext/markdown/elements/comment/edit/components/View/BlockCommentView";
@@ -22,11 +23,17 @@ interface DrawioProps {
 	isPrint?: boolean;
 }
 
+const DRAWIO_SKELETON_MIN_HEIGHT = "12rem";
+
 const Drawio = forwardRef((props: DrawioProps, refT: MutableRefObject<HTMLImageElement>): ReactElement => {
 	const { id, src, title, width, height, openEditor, noEm, commentId, isPrint, scale } = props;
 
 	const ref = refT || useRef<HTMLImageElement>(null);
 	const parentRef = useRef<HTMLDivElement>(null);
+	const isInViewport = useElementInViewport(parentRef, {
+		rootMargin: "600px 0px",
+		enabled: !isPrint,
+	});
 
 	const [imageSrc, setImageSrc] = useState<string>(null);
 	const [isLoaded, setIsLoaded] = useState<boolean>(false);
@@ -61,13 +68,19 @@ const Drawio = forwardRef((props: DrawioProps, refT: MutableRefObject<HTMLImageE
 		undefined,
 		undefined,
 		isPrint,
+		!isInViewport,
 	);
 
 	if (!src || error) return <DiagramError diagramName="diagrams.net" error={error} />;
 
 	const diagram = (
 		<BlockCommentView commentId={commentId} style={{ borderRadius: "var(--radius-large)" }}>
-			<Skeleton height={size?.height} isLoaded={isLoaded} width="100%">
+			<Skeleton
+				height={size?.height}
+				isLoaded={isLoaded}
+				style={!isLoaded && !size?.height ? { minHeight: DRAWIO_SKELETON_MIN_HEIGHT } : undefined}
+				width="100%"
+			>
 				<div
 					className="w-full bg-[var(--color-diagram-bg)] rounded-[var(--radius-large)] [&_img]:bg-transparent [&_img]:!shadow-none [&_img]:w-full"
 					data-focusable="true"
@@ -103,7 +116,7 @@ const Drawio = forwardRef((props: DrawioProps, refT: MutableRefObject<HTMLImageE
 			{openEditor ? (
 				diagram
 			) : (
-				<ArticleComponentResizer disabled scale={scale}>
+				<ArticleComponentResizer disabled isPrint={isPrint} scale={scale}>
 					{diagram}
 				</ArticleComponentResizer>
 			)}

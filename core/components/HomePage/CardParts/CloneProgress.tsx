@@ -61,14 +61,14 @@ const formatCollectedBytes = (data: RemoteProgress): string => {
 	return formatBytes(data.data.bytes);
 };
 
-const resolveLabelText = (data: RemoteProgress, isBrowser: boolean) => {
+const resolveLabelText = (data: RemoteProgress, isWeb: boolean) => {
 	if (!data?.type) return t("git.clone.progress.wait");
 
 	if (data.type === "queue") return t("git.clone.progress.queue");
-	if (data.type === "started") return isBrowser ? t("git.clone.progress.downloading") : t("git.clone.progress.wait");
+	if (data.type === "started") return isWeb ? t("git.clone.progress.downloading") : t("git.clone.progress.wait");
 	if (data.type === "finish") return t("git.clone.progress.finish");
 	if (
-		isBrowser &&
+		isWeb &&
 		(data.type === "sideband" ||
 			data.type === "chunkedTransfer" ||
 			data.type === "download" ||
@@ -140,7 +140,7 @@ const CloneProgress = (props: CloneProgressProps) => {
 		url: (api) => api.cancelClone(name),
 	});
 
-	const { isBrowser } = usePlatform();
+	const { isWeb } = usePlatform();
 
 	const handleCancel = useCallback(async () => {
 		if (!setIsCancel || isCancel || !progress?.cancellable) return;
@@ -150,9 +150,9 @@ const CloneProgress = (props: CloneProgressProps) => {
 
 	const tooltipContent = collectProgressInfo(progress);
 
-	const title = resolveLabelText(progress, isBrowser);
+	const title = resolveLabelText(progress, isWeb);
 	const total = !title ? formatCollectedBytes(progress) : undefined;
-	const speed = isBrowser ? undefined : formatSpeed(progress);
+	const speed = isWeb ? undefined : formatSpeed(progress);
 
 	return (
 		<Tooltip>

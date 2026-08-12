@@ -13,7 +13,6 @@ export const ArticleBreadcrumbDiffLine = memo(() => {
 	const articleProps = ArticlePropsService.value;
 	const articleRef = ArticleRefService.value;
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useEffect(() => {
 		if (!sideBarData || sideBarData.data.status !== FileStatus.rename) return;
 		const resize = () => {
@@ -38,6 +37,7 @@ export const ArticleBreadcrumbDiffLine = memo(() => {
 					.changes,
 			},
 			oldContent: [],
+			newContent: [],
 			oldDecorations: [],
 			pos: null,
 		};

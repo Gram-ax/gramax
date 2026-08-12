@@ -81,7 +81,11 @@ impl FileLock {
 				Ok(Self::Lock { path })
 			}
 			Err(e) if e.kind() == io::ErrorKind::AlreadyExists => {
-				let data = std::fs::read_to_string(path).map_err(FileLockError::Other)?;
+				let data = match std::fs::read_to_string(path) {
+					Ok(content) => content,
+					Err(e) if e.kind() == io::ErrorKind::NotFound => String::new(),
+					Err(e) => return Err(FileLockError::Other(e)),
+				};
 				Err(FileLockError::WouldBlock(data))
 			}
 			Err(e) => Err(FileLockError::Other(e)),
@@ -124,8 +128,11 @@ impl FileLock {
 			return Ok(None);
 		}
 
-		let content = std::fs::read_to_string(path).map_err(FileLockError::Other)?;
-		Ok(Some(content))
+		match std::fs::read_to_string(path) {
+			Ok(content) => Ok(Some(content)),
+			Err(e) if e.kind() == ErrorKind::NotFound => Ok(None),
+			Err(e) => Err(FileLockError::Other(e)),
+		}
 	}
 }
 

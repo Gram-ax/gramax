@@ -2,6 +2,7 @@
 import styled from "@emotion/styled";
 import DiffEntry from "@ext/git/core/Diff/components/Changes/DiffEntry";
 import { useDiffExtendedMode } from "@ext/git/core/Diff/components/store/DiffExtendedModeStore";
+import { isDiffEntryVisible } from "@ext/git/core/Diff/logic/utils/visibleDiffEntries";
 import type { DiffFlattenTreeAnyItem } from "@ext/git/core/GitDiffItemCreator/RevisionDiffPresenter";
 import t from "@ext/localization/locale/translate";
 import { useVirtualizer } from "@tanstack/react-virtual";
@@ -96,7 +97,7 @@ export const DiffEntries = memo(
 		const flatChanges: DiffFlattenTreeAnyItem[] = useMemo(() => {
 			if (!changes) return [];
 			return changes
-				.filter((entry) => !(entry.type === "resource" && !extendedMode && entry.indent > 1))
+				.filter((entry) => isDiffEntryVisible(entry, extendedMode))
 				.map((entry) => ({ ...entry, indent: hasCheckboxes ? entry.indent + 1 : entry.indent }));
 		}, [changes, hasCheckboxes, extendedMode]);
 

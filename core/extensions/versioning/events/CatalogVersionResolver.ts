@@ -18,7 +18,7 @@ export default class CatalogVersionResolver implements EventHandlerCollection {
 	) {}
 
 	mount(): void {
-		if (!["next", "tauri", "browser"].includes(getExecutingEnvironment())) return;
+		if (!["next", "tauri", "web"].includes(getExecutingEnvironment())) return;
 
 		this._workspace.events.on("on-catalog-resolve", async ({ mutableCatalog, metadata }) => {
 			const refname = metadata;

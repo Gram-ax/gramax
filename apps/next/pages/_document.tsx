@@ -1,6 +1,8 @@
 import type { OpenGraphData } from "@core/SitePresenter/SitePresenter";
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
-import ThemeService from "@ext/Theme/components/ThemeService";
+import { SETTINGS_STORAGE_KEY } from "@ext/settings/logic/cachedSettingsStore";
+import { parseSettingsCookie } from "@ext/settings/logic/cookieStorage";
+import { validateTheme } from "@ext/Theme/utils";
 import fs from "fs";
 import Document, { type DocumentContext, type DocumentInitialProps, Head, Html, Main, NextScript } from "next/document";
 import path from "path";
@@ -19,9 +21,26 @@ const varsCssContent = fs.readFileSync(path.resolve("../../core/styles/vars.css"
 const themesCssContent = fs.readFileSync(path.resolve("../../core/styles/themes.css"), "utf8");
 const firstLoadStyles = baseCssContent + varsCssContent + themesCssContent;
 
+type CapturedPageProps = {
+	context?: {
+		domain?: string;
+		conf?: { basePath?: string };
+		settings?: { general?: { theme?: unknown } };
+	};
+	openGraphData?: OpenGraphData;
+	pageUrl?: string;
+};
+
 class MyDocument extends Document<MyDocumentProps> {
 	static async getInitialProps(ctx: DocumentContext) {
-		let pageProps = null;
+		let pageProps: CapturedPageProps | null = null;
+
+		// Parse the gx-settings cookie up front. It is the authoritative source
+		// of user-level prefs on DocPortal — server config.yaml is shared, so
+		// we never mutate pageProps from it. Theme comes from the cookie directly.
+		const cookieHeader = ctx.req?.headers?.cookie;
+		const settingsOverride = parseSettingsCookie(cookieHeader, SETTINGS_STORAGE_KEY);
+		const cookieTheme = (settingsOverride as { general?: { theme?: unknown } } | undefined)?.general?.theme;
 
 		const originalRenderPage = ctx.renderPage;
 		ctx.renderPage = () =>
@@ -37,17 +56,17 @@ class MyDocument extends Document<MyDocumentProps> {
 		const props: MyDocumentProps = { ...initialProps, cssContent: "" };
 
 		props.cssContent = firstLoadStyles;
+		// Cookie wins for body data-theme — pageProps.context.settings carries
+		// only server-side overrides (env + stored) and may lack theme entirely.
+		const themeSource = cookieTheme ?? pageProps?.context?.settings?.general?.theme;
+		if (themeSource) props.theme = validateTheme(themeSource);
 
-		if (!pageProps?.context) return props;
-
-		let theme = pageProps.context.theme;
-		if (typeof theme !== "string") theme = "";
-		props.theme = ThemeService.checkTheme(theme);
-
-		props.openGraphData = pageProps.openGraphData;
-		props.domain = pageProps.context?.domain;
-		props.basePath = pageProps.context?.conf?.basePath || "";
-		props.pageUrl = pageProps.pageUrl;
+		if (pageProps?.context) {
+			props.openGraphData = pageProps.openGraphData;
+			props.domain = pageProps.context?.domain;
+			props.basePath = pageProps.context?.conf?.basePath || "";
+			props.pageUrl = pageProps.pageUrl;
+		}
 
 		return props;
 	}

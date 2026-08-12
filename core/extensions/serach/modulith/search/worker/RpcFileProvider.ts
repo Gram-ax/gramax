@@ -1,5 +1,6 @@
 import type FileProvider from "@core/FileProvider/model/FileProvider";
-import Path from "@core/FileProvider/Path/Path";
+import type Path from "@core/FileProvider/Path/Path";
+import { Level, trace } from "@ext/loggers/opentelemetry";
 import type { FsRequestMethod, FsScope, SearchWorkerOutMessage } from "@ext/serach/modulith/search/worker/types";
 
 export type PendingFsRequest = {
@@ -13,15 +14,15 @@ export type FsRpcState = {
 };
 
 export class RpcFileProvider implements FileProvider {
-	private readonly _root: Path;
-
 	constructor(
-		root: string,
+		private readonly _root: Path,
 		private readonly _scope: FsScope,
 		private readonly _postMessage: (message: SearchWorkerOutMessage) => void,
 		private readonly _fsRpcState: FsRpcState,
-	) {
-		this._root = new Path(root);
+	) {}
+
+	get kind(): "git" | "disk" {
+		throw new Error("kind is not supported in RpcFileider");
 	}
 
 	get storageId(): string {
@@ -40,38 +41,47 @@ export class RpcFileProvider implements FileProvider {
 		return this._throwNotImplemented("isFallbackOnRoot");
 	}
 
-	async isRootPathExists(): Promise<boolean> {
+	@trace({ level: Level.Full })
+	isRootPathExists(): Promise<boolean> {
 		return this._callFs("isRootPathExists", { path: "" });
 	}
 
+	@trace({ level: Level.Full })
 	exists(path: Path): Promise<boolean> {
 		return this._callFs("exists", { path: this._toFsPath(path) });
 	}
 
-	async read(path: Path): Promise<string> {
+	@trace({ level: Level.Full })
+	read(path: Path): Promise<string> {
 		return this._callFs("read", { path: this._toFsPath(path) });
 	}
 
-	async readAsArrayBuffer(path: Path): Promise<Uint8Array> {
+	@trace({ level: Level.Full })
+	readAsArrayBuffer(path: Path): Promise<Uint8Array> {
 		return this._callFs("readAsArrayBuffer", { path: this._toFsPath(path) });
 	}
 
-	async readdir(path: Path): Promise<string[]> {
+	@trace({ level: Level.Full })
+	readdir(path: Path): Promise<string[]> {
 		return this._callFs("readdir", { path: this._toFsPath(path) });
 	}
 
+	@trace({ level: Level.Files })
 	async delete(path: Path): Promise<void> {
 		await this._callFs("delete", { path: this._toFsPath(path) });
 	}
 
+	@trace({ level: Level.Files })
 	async write(path: Path, data: string | Buffer): Promise<void> {
 		await this._callFs("write", { path: this._toFsPath(path), data });
 	}
 
+	@trace({ level: Level.Files })
 	async mkdir(path: Path, mode?: number): Promise<void> {
 		await this._callFs("mkdir", { path: this._toFsPath(path), mode });
 	}
 
+	@trace({ level: Level.Files })
 	async createRootPathIfNeed(): Promise<void> {
 		await this._callFs("createRootPathIfNeed", { path: this._root.value });
 	}

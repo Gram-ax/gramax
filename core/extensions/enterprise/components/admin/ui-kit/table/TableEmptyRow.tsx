@@ -1,5 +1,6 @@
 import t from "@ext/localization/locale/translate";
 import type { ColumnDef } from "@ui-kit/DataTable";
+import { EmptyState } from "@ui-kit/EmptyState";
 import { TableCell, TableRow } from "@ui-kit/Table";
 
 interface TableEmptyRowProps<T> {
@@ -8,9 +9,9 @@ interface TableEmptyRowProps<T> {
 
 export const TableEmptyRow = <T,>({ columns }: TableEmptyRowProps<T>) => {
 	return (
-		<TableRow>
-			<TableCell className="text-center" colSpan={columns.length}>
-				{t("empty")}
+		<TableRow className="hover:bg-transparent">
+			<TableCell className="h-[84px] text-center p-0" colSpan={columns.length}>
+				<EmptyState className="p-0">{t("empty")}</EmptyState>
 			</TableCell>
 		</TableRow>
 	);

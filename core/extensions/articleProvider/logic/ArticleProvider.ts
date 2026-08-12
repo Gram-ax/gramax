@@ -42,6 +42,8 @@ export default class ArticleProvider {
 				return catalog.customProviders.templateProvider;
 			case "prompt":
 				return catalog.customProviders.promptProvider;
+			case "agentSkill":
+				return catalog.customProviders.agentResourcesProvider;
 			default:
 				throw new Error(`Unknown article provider type: ${type}`);
 		}
@@ -63,10 +65,10 @@ export default class ArticleProvider {
 		return article;
 	}
 
-	public getContent(id: ItemID) {
+	public async getContent(id: ItemID) {
 		const article = this.getArticle(id);
 		assert(article, `Article with id ${id} not found in provider`);
-		return article.content;
+		return await article.getContent();
 	}
 
 	public async getEditTreeFromContent(
@@ -104,7 +106,7 @@ export default class ArticleProvider {
 				convertContentToUiLanguage(ctx.contentLanguage || this._catalog.props.language),
 			);
 
-			await article.parsedContent.write(() => parser.parse(article.content, context));
+			await article.parsedContent.write(async () => parser.parse(await article.getContent(), context));
 		}
 
 		await article.parsedContent.write(async (p) => {
@@ -131,7 +133,7 @@ export default class ArticleProvider {
 				convertContentToUiLanguage(ctx.contentLanguage || this._catalog.props.language),
 			);
 
-			await article.parsedContent.write(() => parser.parse(article.content, context));
+			await article.parsedContent.write(async () => parser.parse(await article.getContent(), context));
 		}
 
 		return article.parsedContent.read((p) => p.editTree);

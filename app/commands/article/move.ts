@@ -11,6 +11,7 @@ import type { Article } from "@core/FileStructue/Article/Article";
 import ArticleParser from "@core/FileStructue/Article/ArticleParser";
 import type { Category } from "@core/FileStructue/Category/Category";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
+import LastVisited from "@core/SitePresenter/LastVisited";
 import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 import assert from "assert";
 
@@ -45,7 +46,7 @@ const move: Command<MoveProps, { redirectTo: string }> = Command.create({
 		const { wm, resourceUpdaterFactory } = this._app;
 
 		const current = wm.current();
-		assert(current.path() == targetWorkspacePath, "not supported");
+		assert(current.path() === targetWorkspacePath, "not supported");
 
 		assert(setName, "setName is required");
 
@@ -86,6 +87,8 @@ const move: Command<MoveProps, { redirectTo: string }> = Command.create({
 			}
 		}
 
+		const sourcePathname = await sourceCatalog.getPathname(sourceItem);
+
 		let sourceCategory: Category;
 
 		if (sourceItem.type === ItemType.article) {
@@ -115,6 +118,8 @@ const move: Command<MoveProps, { redirectTo: string }> = Command.create({
 		const sourceCatalogUpdated = await current.getContextlessCatalog(sourceCatalogName);
 
 		assert(targetItem, `target item of ${targetCatalogUpdated.name} not found: ${new Path(setName).value}`);
+
+		await targetCatalogUpdated.aliases.dropConflicting(targetItem);
 		assert(
 			!sourceCatalogUpdated.findItemByItemPath(articlePath),
 			"source item still exists in source catalog. this is an error and should not happen",
@@ -123,6 +128,15 @@ const move: Command<MoveProps, { redirectTo: string }> = Command.create({
 			!(await current.getFileProvider().exists(sourceCategory.ref.path.parentDirectoryPath)),
 			"source category parent directory should not exist",
 		);
+
+		if (sourceCatalogName !== targetCatalogName) {
+			const config = await current.config();
+			const lastVisited = new LastVisited(ctx, config.name);
+			const prevPathname = lastVisited.getLastVisitedArticle(sourceCatalog);
+			if (prevPathname && (prevPathname === sourcePathname || prevPathname.startsWith(`${sourcePathname}/`))) {
+				lastVisited.remove(sourceCatalogName);
+			}
+		}
 
 		return { redirectTo: await targetCatalogUpdated.getPathname(targetItem) };
 	},

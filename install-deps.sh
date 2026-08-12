@@ -2,114 +2,75 @@
 
 set -euo pipefail
 
-SHOULD_SKIP_NPM=false
+SKIP_NPM=false
 CI_MODE=false
-
-SHOULD_COMPILE_WASM=false
-SHOULD_COMPILE_NODE=false
-SHOULD_COMPILE_WARP=false
+COMPILE_WASM=false
+COMPILE_NODE=false
 
 for arg in "$@"; do
     case "$arg" in
-        "--skip-npm")
-            SHOULD_SKIP_NPM=true
-        ;;
-        "--ci")
-            CI_MODE=true
-        ;;
-        "--wasm")
-            SHOULD_COMPILE_WASM=true
-        ;;
-        "--node")
-            SHOULD_COMPILE_NODE=true
-        ;;
-        "--warp")
-            SHOULD_COMPILE_WARP=true
-        ;;
-        
-        "--all")
-            SHOULD_COMPILE_WASM=true
-            SHOULD_COMPILE_NODE=true
-            SHOULD_COMPILE_WARP=true
-        ;;
+        --skip-npm) SKIP_NPM=true ;;
+        --ci)       CI_MODE=true ;;
+        --wasm)     COMPILE_WASM=true ;;
+        --node)     COMPILE_NODE=true ;;
+        --all)
+            COMPILE_WASM=true
+            COMPILE_NODE=true
+            ;;
+        *) echo "Unknown arg: $arg" >&2; exit 1 ;;
     esac
 done
 
+HAS_BUN=false
+if command -v bun &> /dev/null; then
+    HAS_BUN=true
+elif [ "$CI_MODE" = true ]; then
+    echo "bun required in CI mode" >&2
+    exit 1
+fi
+
+install_once() {
+    if [ "$HAS_BUN" = true ]; then
+        bun install --cwd "$1"
+    else
+        npm --prefix "$1" --force install --cache .npm
+    fi
+}
+
 install() {
-    echo "Installing: $1"
-    local max_retries=3
-    local retry_count=0
-    
-    set +euo pipefail
-    while [ $retry_count -lt $max_retries ]; do
-        if [ $retry_count -gt 0 ]; then
-            attempt_msg=" (attempt $((retry_count + 1)))"
-        else
-            attempt_msg=""
+    local dir="$1"
+    local max=3
+    echo "Installing: $dir"
+    for attempt in $(seq 1 "$max"); do
+        if install_once "$dir"; then
+            return 0
         fi
-        
-        if command -v bun &> /dev/null; then
-            if [ "$CI_MODE" = true ]; then
-                echo "Using bun for installation in CI mode${attempt_msg}"
-                bun install --cwd "$1" && break || {
-                    echo "Failed to install packages for $1 in CI mode using bun"
-                    ((retry_count++))
-                }
-            else
-                echo "Using bun for installation${attempt_msg}"
-                bun install --cwd "$1" && break || {
-                    echo "Failed to install packages for $1 using bun"
-                    ((retry_count++))
-                }
-            fi
-        else
-            echo "Using npm for installation${attempt_msg}"
-            if [ "$CI_MODE" = true ]; then
-                echo "npm not supported for installing packages in CI mode"
-                exit 1
-            else
-                npm --prefix "$1" --force install --cache .npm && break || {
-                    echo "Failed to install packages for $1 using npm"
-                    ((retry_count++))
-                }
-            fi
-        fi
-        
-        if [ $retry_count -eq $max_retries ]; then
-            echo "Installation failed after $max_retries attempts for $1"
-            exit 1
-        else
-            echo "Retrying installation for $1..."
-            sleep 2
-        fi
+        echo "Install failed for $dir (attempt $attempt/$max)" >&2
+        [ "$attempt" -lt "$max" ] && sleep 2
     done
-    set -euo pipefail
+    echo "Installation failed after $max attempts for $dir" >&2
+    exit 1
 }
 
 fetch_gh_ratelimit() {
-    curl -s https://api.github.com/rate_limit | grep -A 2 '"core":' | grep '"remaining":' | awk '{print $2}' | tr -d ','
+    curl -fsS https://api.github.com/rate_limit \
+        | awk -F'[:,]' '/"core":/{c=1} c && /"remaining"/ {gsub(/ /,"",$2); print $2; exit}'
 }
 
-if ! "$SHOULD_SKIP_NPM"; then
+if [ "$SKIP_NPM" = false ]; then
     install "."
-    if [ -f "services/package.json" ]; then
-        install "services"
-    fi
+    [ -f services/package.json ] && install services
 fi
 
-echo "Github API rate limit: $(fetch_gh_ratelimit)"
+echo "Github API rate limit: $(fetch_gh_ratelimit || echo unknown)"
 
-if $SHOULD_COMPILE_WASM; then
-    mkdir -p apps/browser/crates/gramax-wasm/dist
-    npm --prefix apps/browser run build:wasm
+if [ "$COMPILE_WASM" = true ]; then
+    mkdir -p apps/web/crates/gramax-wasm/dist
+    bun run --cwd apps/web build:wasm
 fi
 
-if $SHOULD_COMPILE_NODE; then
-    npm --prefix apps/next/crates/next-gramax-core run build
-fi
-
-if $SHOULD_COMPILE_WARP; then
-    cargo install --path crates/spa
+if [ "$COMPILE_NODE" = true ]; then
+    bun run --cwd apps/next/crates/next-gramax-core build
 fi
 
 echo "Compiling schemes"

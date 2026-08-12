@@ -29,10 +29,17 @@ const sync: Command<{ ctx: Context; catalogName: string; articlePath: Path }, Cl
 		const storage = catalog.repo.storage;
 		if (!storage) return;
 
+		const sourceData = rp.getSourceData<GitSourceData>(ctx, await storage.getSourceName());
+		await storage.fetch(sourceData, false, false);
+
+		const syncCount = await storage.getSyncCount();
+		if (!syncCount.pull) {
+			const version = (await catalog.repo.gvc.getCurrentVersion()).toString();
+			return { mergeData: { ok: true }, isVersionChanged: false, before: version, after: version };
+		}
+
 		const currentBranchName = await catalog.repo.gvc.getCurrentBranchName();
 		const mrBefore = await catalog.repo.mergeRequests.findBySource(currentBranchName);
-
-		const sourceData = rp.getSourceData<GitSourceData>(ctx, await storage.getSourceName());
 
 		const {
 			mergeData: mergeResult,

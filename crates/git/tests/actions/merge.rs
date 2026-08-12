@@ -1,3 +1,6 @@
+use std::rc::Rc;
+
+use gramaxgit::actions::merge::Merge;
 use test_utils::git::*;
 use test_utils::*;
 
@@ -152,6 +155,173 @@ fn merge_with_rename(sandbox: TempDir, #[with(&sandbox)] repo: Repo<TestCreds>) 
 		"<<<<<<< ours:file\n456\n=======\n123\n>>>>>>> theirs:file-2\nqwer\nqwer\nqwer\nqwer\n"
 	);
 	assert!(!path.join(file).exists());
+
+	Ok(())
+}
+
+#[rstest]
+fn has_merge_conflicts_no_conflicts(sandbox: TempDir, #[with(&sandbox)] repo: Repo<TestCreds>) -> Result {
+	let path = sandbox.path();
+
+	fs::write(path.join("file"), "init")?;
+	repo.add("file")?;
+	repo.commit_debug()?;
+
+	repo.new_branch("dev")?;
+	repo.checkout("dev", false)?;
+	fs::write(path.join("file_dev"), "dev only")?;
+	repo.add("file_dev")?;
+	repo.commit_debug()?;
+
+	repo.checkout("master", false)?;
+	fs::write(path.join("file_master"), "master only")?;
+	repo.add("file_master")?;
+	repo.commit_debug()?;
+
+	let conflicts = repo.has_merge_conflicts("dev")?;
+	assert!(conflicts.is_empty());
+
+	Ok(())
+}
+
+#[rstest]
+fn has_merge_conflicts_with_conflicts(sandbox: TempDir, #[with(&sandbox)] repo: Repo<TestCreds>) -> Result {
+	let path = sandbox.path();
+
+	fs::write(path.join("file"), "init")?;
+	repo.add("file")?;
+	repo.commit_debug()?;
+
+	repo.new_branch("dev")?;
+	repo.checkout("dev", false)?;
+	fs::write(path.join("file"), "dev content")?;
+	repo.add("file")?;
+	repo.commit_debug()?;
+
+	repo.checkout("master", false)?;
+	fs::write(path.join("file"), "master content")?;
+	repo.add("file")?;
+	repo.commit_debug()?;
+
+	let conflicts = repo.has_merge_conflicts("dev")?;
+	assert_eq!(conflicts, vec![PathBuf::from("file")]);
+
+	Ok(())
+}
+
+#[rstest]
+fn has_merge_conflicts_multiple_files(sandbox: TempDir, #[with(&sandbox)] repo: Repo<TestCreds>) -> Result {
+	let path = sandbox.path();
+
+	fs::write(path.join("a"), "init")?;
+	fs::write(path.join("b"), "init")?;
+	repo.add("a")?;
+	repo.add("b")?;
+	repo.commit_debug()?;
+
+	repo.new_branch("dev")?;
+	repo.checkout("dev", false)?;
+	fs::write(path.join("a"), "dev-a")?;
+	fs::write(path.join("b"), "dev-b")?;
+	repo.add("a")?;
+	repo.add("b")?;
+	repo.commit_debug()?;
+
+	repo.checkout("master", false)?;
+	fs::write(path.join("a"), "master-a")?;
+	fs::write(path.join("b"), "master-b")?;
+	repo.add("a")?;
+	repo.add("b")?;
+	repo.commit_debug()?;
+
+	let mut conflicts = repo.has_merge_conflicts("dev")?;
+	conflicts.sort();
+	assert_eq!(conflicts, vec![PathBuf::from("a"), PathBuf::from("b")]);
+
+	Ok(())
+}
+
+#[rstest]
+fn has_merge_conflicts_with_remote_branch(_sandbox: TempDir, #[with(&_sandbox)] repos: Repos) -> Result {
+	// Create initial commit in remote and clone it
+	fs::write(repos.remote_path.join("file"), "init")?;
+	repos.remote.add_all()?;
+	repos.remote.commit_debug()?;
+
+	repos.local.repo().remote_delete("origin")?;
+	repos.local.add_remote("origin", repos.remote_path.display().to_string())?;
+	repos.local.fetch(RemoteOptions::default(), Rc::new(|_| {}))?;
+	repos.local.checkout("master", false)?;
+
+	// Make change in "file" in remote
+	fs::write(repos.remote_path.join("file"), "remote content")?;
+	repos.remote.add_all()?;
+	repos.remote.commit_debug()?;
+
+	// Make conflicting change in the same file (not committed) in local
+	fs::write(repos.local_path.join("file"), "local content")?;
+	repos.local.add_all()?;
+	repos.local.commit_debug()?;
+
+	// Fetch to update local remote-branch
+	repos.local.fetch(RemoteOptions::default(), Rc::new(|_| {}))?;
+
+	let conflicts = repos.local.has_merge_conflicts("origin/master")?;
+	assert_eq!(conflicts, vec![PathBuf::from("file")]);
+
+	Ok(())
+}
+
+#[rstest]
+fn has_merge_conflicts_remote_no_conflicts(_sandbox: TempDir, #[with(&_sandbox)] repos: Repos) -> Result {
+	fs::write(repos.remote_path.join("file"), "init")?;
+	repos.remote.add_all()?;
+	repos.remote.commit_debug()?;
+
+	repos.local.repo().remote_delete("origin")?;
+	repos.local.add_remote("origin", repos.remote_path.display().to_string())?;
+	repos.local.fetch(RemoteOptions::default(), Rc::new(|_| {}))?;
+	repos.local.checkout("master", false)?;
+
+	// Remote adds new file
+	fs::write(repos.remote_path.join("remote_file"), "remote only")?;
+	repos.remote.add_all()?;
+	repos.remote.commit_debug()?;
+
+	// Local adds another file - no conflicts
+	fs::write(repos.local_path.join("local_file"), "local only")?;
+	repos.local.add_all()?;
+	repos.local.commit_debug()?;
+
+	repos.local.fetch(RemoteOptions::default(), Rc::new(|_| {}))?;
+
+	let conflicts = repos.local.has_merge_conflicts("origin/master")?;
+	assert!(conflicts.is_empty());
+
+	Ok(())
+}
+
+#[rstest]
+fn has_merge_conflicts_with_staged_changes(sandbox: TempDir, #[with(&sandbox)] repo: Repo<TestCreds>) -> Result {
+	let path = sandbox.path();
+
+	fs::write(path.join("file"), "init")?;
+	repo.add("file")?;
+	repo.commit_debug()?;
+
+	repo.new_branch("dev")?;
+	repo.checkout("dev", false)?;
+	fs::write(path.join("file"), "dev content")?;
+	repo.add("file")?;
+	repo.commit_debug()?;
+
+	repo.checkout("master", false)?;
+	// staged but not committed change that conflicts with dev
+	fs::write(path.join("file"), "master staged content")?;
+	repo.add("file")?;
+
+	let conflicts = repo.has_merge_conflicts("dev")?;
+	assert_eq!(conflicts, vec![PathBuf::from("file")]);
 
 	Ok(())
 }

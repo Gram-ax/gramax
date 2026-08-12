@@ -1,11 +1,18 @@
 import type { EnterpriseCloudConfig, EnterpriseConfig, MetricsConfig } from "@app/config/AppConfig";
 import type ShareData from "@ext/catalog/actions/share/model/ShareData";
+import type { AppSettings } from "@ext/settings/levels/app-settings";
+import type { WorkspaceSettings } from "@ext/settings/levels/workspace-settings";
+import type { StoredSettings } from "@ext/settings/logic/types";
 import type { features } from "@ext/toggleFeatures/features";
 import type { ClientWorkspaceConfig, WorkspacePath } from "@ext/workspace/WorkspaceConfig";
-import type UiLanguage from "../../extensions/localization/core/model/Language";
 import type { ContentLanguage } from "../../extensions/localization/core/model/Language";
 import type UserInfo from "../../extensions/security/logic/User/UserInfo";
-import type Theme from "../../extensions/Theme/Theme";
+
+// Recursively partial: filterByTarget in the resolver may drop any leaf whose
+// target bits don't match the current platform, so consumers must guard with `?.`.
+export type ClientSettings =
+	| StoredSettings<typeof AppSettings>
+	| StoredSettings<typeof AppSettings & typeof WorkspaceSettings>;
 
 interface PageDataContext {
 	domain: string;
@@ -13,10 +20,8 @@ interface PageDataContext {
 	isArticle: boolean;
 	pdfTemplates: string[];
 	wordTemplates: string[];
-	theme: Theme;
 	userInfo: UserInfo;
 	language: {
-		ui: UiLanguage;
 		content: ContentLanguage;
 	};
 	workspace: {
@@ -29,9 +34,7 @@ interface PageDataContext {
 		basePath: string;
 		buildVersion: string;
 		bugsnagApiKey: string;
-		authServiceUrl: string;
 		cloudServiceUrl: string;
-		diagramsServiceUrl: string;
 		isRelease: boolean;
 		isReadOnly: boolean;
 		isProduction: boolean;
@@ -52,6 +55,8 @@ interface PageDataContext {
 			resourcesEnabled: boolean;
 		};
 	};
+	settings: ClientSettings;
+	appSettings?: StoredSettings<typeof AppSettings>;
 	permissions: string;
 	shareData?: ShareData;
 	features?: (keyof typeof features)[];

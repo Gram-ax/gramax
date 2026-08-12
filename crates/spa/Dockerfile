@@ -1,6 +1,6 @@
-ARG CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX=docker.io
+ARG NEXUS_DOCKERHUB
 
-FROM ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/rust:1.91-slim-bookworm AS build
+FROM ${NEXUS_DOCKERHUB}/rust:1.91-slim-bookworm AS build
 
 WORKDIR /src
 
@@ -11,14 +11,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 	curl \
 	git \
 	unzip \
-	&& rm -rf /var/lib/apt/lists/* \
-	&& curl -fsSL https://bun.sh/install | bash
+	&& rm -rf /var/lib/apt/lists/*
+
+ARG RUNNER_HTTPS_PROXY
+
+RUN export HTTPS_PROXY=$RUNNER_HTTPS_PROXY && \
+	curl --retry 3 --retry-delay 5 -fsSL https://bun.sh/install | bash
 
 ENV PATH="/root/.bun/bin:$PATH"
 
 RUN cargo install --path crates/spa
 
-FROM ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/oven/bun:debian AS run
+FROM ${NEXUS_DOCKERHUB}/oven/bun:debian AS run
 
 RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends \
 	curl \

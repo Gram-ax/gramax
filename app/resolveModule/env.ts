@@ -1,9 +1,10 @@
+/** biome-ignore-all lint/suspicious/noExplicitAny: it's ok */
 import "@core/utils/asyncUtils";
 import assert from "assert";
 import { defaultVariables, type EnvironmentVariable } from "../config/env";
 import viteEnv from "../config/viteenv";
 
-export type Environment = "next" | "tauri" | "browser" | "test" | "static" | "cli" | "docportal";
+export type Environment = "next" | "tauri" | "web" | "test" | "static" | "cli" | "docportal";
 
 let Env: (name: keyof EnvironmentVariable) => string;
 
@@ -17,7 +18,7 @@ const getEnv = (): string => {
 const executing = getEnv() as Environment;
 
 const initEnv = () => {
-	if (executing === "browser") {
+	if (executing === "web") {
 		Env = typeof window !== "undefined" ? ((window as any)?.getEnv ?? (() => undefined)) : () => undefined;
 	}
 

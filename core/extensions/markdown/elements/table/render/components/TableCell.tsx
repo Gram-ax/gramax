@@ -11,7 +11,7 @@ export interface TableCellProps {
 	isPrint: boolean;
 }
 
-const TableCell = ({ cellIndex, children, colwidth, isPrint, ...otherProps }: TableCellProps) => {
+const TableCell = ({ cellIndex, children, colwidth, isPrint, rowspan, colspan, ...otherProps }: TableCellProps) => {
 	const isFirstRow = typeof cellIndex === "number";
 	const { tableProps } = useTableProps() || {};
 	const { columnsValues, onFilterChange, active, canSort, onSortChange } = tableProps || {};
@@ -29,7 +29,7 @@ const TableCell = ({ cellIndex, children, colwidth, isPrint, ...otherProps }: Ta
 	};
 
 	return (
-		<td {...otherProps}>
+		<td {...otherProps} colSpan={colspan} rowSpan={rowspan}>
 			<div>{children}</div>
 			{!isPrint && isFirstRow && columnsValues && (
 				<FilterAndSortButton

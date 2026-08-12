@@ -8,10 +8,3 @@ export type GroupData = {
 export type GroupsSettings = {
 	[id: string]: GroupData;
 };
-
-export interface Group {
-	id: string;
-	group: string;
-	disabled: boolean | undefined;
-	disabledTooltip?: string;
-}

@@ -2,7 +2,7 @@ import { type Environment, getExecutingEnvironment } from "@app/resolveModule/en
 import { PlatformEnvironments } from "@plugins/api/sdk";
 
 const environmentToPlatformMap: Partial<Record<Environment, keyof typeof PlatformEnvironments>> = {
-	browser: "Browser",
+	web: "Web",
 	tauri: "Desktop",
 	next: "DocPortal",
 	static: "Static",
@@ -20,8 +20,8 @@ class PlatformService {
 		return this._platform;
 	}
 
-	get isBrowser() {
-		return this._platform === PlatformEnvironments.Browser;
+	get isWeb() {
+		return this._platform === PlatformEnvironments.Web;
 	}
 
 	get isDesktop() {
@@ -39,12 +39,17 @@ class PlatformService {
 	get isStaticCli() {
 		return this._platform === PlatformEnvironments.StaticCli;
 	}
+
+	get isHostedSsr() {
+		return this.isDocPortal || this.isStatic;
+	}
+
 	isPlatform = (platform: keyof typeof PlatformEnvironments): boolean => {
 		return environmentToPlatformMap[this._platform] === platform;
 	};
 
 	getCurrentPlatform(): keyof typeof PlatformEnvironments {
-		return environmentToPlatformMap[this._platform] || "Browser";
+		return environmentToPlatformMap[this._platform] || "Web";
 	}
 }
 

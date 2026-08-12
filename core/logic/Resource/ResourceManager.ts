@@ -7,6 +7,7 @@ import assertMaxFileSize from "@core/Resource/assertMaxFileSize";
 import type ResourceMovements from "@core/Resource/models/ResourceMovements";
 import createNewFilePathUtils from "@core/utils/createNewFilePathUtils";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
+import { addEvent, Level, traced } from "@ext/loggers/opentelemetry";
 import type { Buffer } from "buffer";
 import type FileProvider from "../FileProvider/model/FileProvider";
 import Path from "../FileProvider/Path/Path";
@@ -110,17 +111,31 @@ class ResourceManager implements Hashable {
 	}
 
 	async getContent(path: Path, ctx?: Context, silent?: boolean): Promise<Buffer> {
-		let content = null;
-		const absolutePath = await this._getReadableAbsolutePath(path);
-		try {
-			content = await this._fp.readAsBinary(absolutePath);
-		} catch {}
+		return traced(
+			"ResourceManager.getContent",
+			{ level: Level.Internal, args: [path?.value, this._basePath?.value], omitResult: true },
+			async () => {
+				let content = null;
+				const absolutePath = await this._getReadableAbsolutePath(path);
 
-		const out = { out: null };
-		if (!silent) await this._events.emit("content-read", { path: this._basePath.join(path), ctx, content, out });
+				try {
+					content = await this._fp.readAsBinary(absolutePath);
+				} catch (e) {
+					addEvent("read-failed", Level.Commands, {
+						abs: absolutePath?.value,
+						error: e instanceof Error ? e.message : String(e),
+					});
+				}
 
-		if (out.out === true) return await this.getContent(path, ctx, true);
-		return out.out ?? content;
+				const out = { out: null };
+
+				if (!silent)
+					await this._events.emit("content-read", { path: this._basePath.join(path), ctx, content, out });
+
+				if (out.out === true) return await this.getContent(path, ctx, true);
+				return out.out ?? content;
+			},
+		);
 	}
 
 	async hash(hash: Hasher) {
@@ -169,7 +184,9 @@ class ResourceManager implements Hashable {
 		if (await this._fp.exists(absolutePath)) return absolutePath;
 
 		const fallbackAbsolutePath = this._fallbackAbsolutePathResolver?.(path);
-		if (fallbackAbsolutePath && (await this._fp.exists(fallbackAbsolutePath))) return fallbackAbsolutePath;
+		if (fallbackAbsolutePath && (await this._fp.exists(fallbackAbsolutePath))) {
+			return fallbackAbsolutePath;
+		}
 
 		return absolutePath;
 	}

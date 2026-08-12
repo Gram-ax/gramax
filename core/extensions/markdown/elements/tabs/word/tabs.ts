@@ -16,11 +16,27 @@ import type { JSONContent } from "@tiptap/core";
 
 const INNER_BLOCK_WIDTH_DIFFERENCE = 310;
 
-export const tabsWordLayout: WordBlockChild = async ({ state, tag, addOptions }) => {
+export const tabsWordLayout: WordBlockChild = async ({ state, tag, addOptions, wordRenderContext }) => {
 	const { Table, TableCell, TableRow, WidthType, ImportedXmlComponent } = await docx();
 	const wordBordersType = await getWordBordersType();
 	const tabs = "children" in tag ? tag.children : tag.content;
 	if (!tabs || tabs.length === 0) return [];
+
+	if (tabs.length === 1 && wordRenderContext.catalog?.props?.resolvedView) {
+		const tab = tabs[0] as Tag | JSONContent;
+		const tabChildren = "children" in tab ? tab.children : tab.content;
+
+		return (
+			await Promise.all(
+				(tabChildren ?? []).map((child: Tag) =>
+					state.renderBlock(child, {
+						...addOptions,
+						maxTableWidth: addOptions?.maxTableWidth ?? STANDARD_PAGE_WIDTH,
+					}),
+				),
+			)
+		).flat();
+	}
 
 	const rows: InstanceType<typeof TableRow>[] = [];
 

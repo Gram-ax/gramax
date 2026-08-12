@@ -1,8 +1,10 @@
+import Path from "@core/FileProvider/Path/Path";
 import type { Article } from "@core/FileStructue/Article/Article";
 import type { Category } from "@core/FileStructue/Category/Category";
+import { ItemType } from "@core/FileStructue/Item/ItemType";
+import { AgentArticleParser } from "../parser";
 import { fail, ok, type ToolExecutionContext, type ToolExecutionResult } from "../tool";
-import { buildCatalogItemLookup } from "../utils/catalogPaths";
-import { createParserForRead } from "../utils/markdownParser";
+import { CatalogItemLookup } from "../utils/catalogPaths";
 
 type GetCatalogItemHeadingsInput = {
 	catalogName: string;
@@ -12,20 +14,24 @@ type GetCatalogItemHeadingsInput = {
 export async function runGetCatalogItemHeadings({
 	app,
 	ctx,
+	commands,
 	input,
 }: ToolExecutionContext): Promise<ToolExecutionResult> {
 	const { catalogName, itemPath } = input as GetCatalogItemHeadingsInput;
-	const lookup = buildCatalogItemLookup(catalogName, itemPath);
 	try {
-		const catalog = await app.wm.current().getCatalog(lookup.catalogName, ctx);
-		const item = catalog.findItemByItemPath<Article | Category>(lookup.fullPath);
-		if (!item) return fail(`Node not found. itemPath: ${lookup.itemPath}`);
-		const props = (item.props ?? {}) as Record<string, unknown>;
-		const propsTitle = typeof props.title === "string" ? props.title : undefined;
-		const parser = createParserForRead(item, propsTitle);
-		return ok({ itemPath: lookup.itemPath, headings: parser.getHeadingHierarchy() });
+		const catalog = await app.wm.current().getCatalog(catalogName, ctx);
+		const item = catalog.findItemByItemPath(new Path(Path.join(catalogName, itemPath))) as Article | Category;
+		if (!item) return fail(`Item not found`);
+		if (item.type !== ItemType.article && item.type !== ItemType.category) {
+			return fail(`Only article and category are supported, current type=${item.type}`);
+		}
+		const parser = await AgentArticleParser.open(app, ctx, commands, catalog, item);
+		return ok({
+			...(await CatalogItemLookup.fromCatalogItem(catalog, item)).asJSON(),
+			headings: await parser.getHeadingHierarchy(),
+		});
 	} catch (e) {
 		const msg = e instanceof Error ? e.message : String(e);
-		return fail(`Headings read error (${lookup.itemPath}): ${msg}`);
+		return fail(`Failed to read headings from item: ${msg}`);
 	}
 }

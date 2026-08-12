@@ -1,6 +1,6 @@
 import { cn } from "@core-ui/utils/cn";
 import { Indicator } from "@ui-kit/Indicator";
-import type { ExtractComponentGeneric } from "core/ui-kit/lib/extractComponentGeneric";
+import type { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
 
 type DropdownIndicatorProps = ExtractComponentGeneric<typeof Indicator>;
 

@@ -1,0 +1,20 @@
+[package]
+name = "plugin-browser-session"
+version = { workspace = true }
+authors = { workspace = true }
+edition = { workspace = true }
+links = "plugin-browser-session"
+
+[dependencies]
+tauri = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tauri-otel-context = { path = "../tauri-otel-context" }
+tokio = { version = "1.32.0", features = ["time", "sync"] }
+tracing = { workspace = true }
+nanoid = { workspace = true }
+url = { workspace = true }
+rust-i18n = { workspace = true }
+
+[build-dependencies]
+tauri-plugin = { workspace = true }

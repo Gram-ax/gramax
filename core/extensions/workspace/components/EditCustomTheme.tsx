@@ -1,3 +1,4 @@
+import { SectionContainer } from "@ext/catalog/actions/propsEditor/components/Sections/SectionContainer";
 import type DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import t from "@ext/localization/locale/translate";
 import EditStyles from "@ext/workspace/components/EditStyles";
@@ -65,7 +66,7 @@ const EditWorkspaceAssets = memo((props: EditWorkspaceAssetsProps) => {
 	);
 
 	return (
-		<>
+		<SectionContainer>
 			<FormField
 				control={({ fieldState }) => (
 					<LogoUploader
@@ -78,6 +79,7 @@ const EditWorkspaceAssets = memo((props: EditWorkspaceAssetsProps) => {
 					/>
 				)}
 				description={t("file-input.both-themes-if-no-dark")}
+				layout="vertical"
 				name="logo.light"
 				title={t("file-input.logo-light")}
 				{...formProps}
@@ -95,6 +97,7 @@ const EditWorkspaceAssets = memo((props: EditWorkspaceAssetsProps) => {
 					/>
 				)}
 				description={t("file-input.dark-theme-only")}
+				layout="vertical"
 				name="logo.dark"
 				title={t("file-input.logo-dark")}
 				{...formProps}
@@ -109,11 +112,12 @@ const EditWorkspaceAssets = memo((props: EditWorkspaceAssetsProps) => {
 					</EditStyles>
 				)}
 				description={t("workspace.css-styles-description")}
+				layout="vertical"
 				name="cssStyles"
 				title={t("workspace.css-style")}
 				{...formProps}
 			/>
-		</>
+		</SectionContainer>
 	);
 });
 

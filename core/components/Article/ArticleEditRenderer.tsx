@@ -15,6 +15,7 @@ import {
 	createOnUpdateCallback,
 	createUpdateTitleFunction,
 } from "@core-ui/utils/EditorCallbacks";
+import { createOpenApiTocItemsResolver } from "@ext/markdown/elements/openApi/edit/logic/OpenApiTocItemsStore";
 import {
 	OpenApiTocItemsStoreProvider,
 	useOpenApiTocItemsStore,
@@ -62,6 +63,15 @@ export const ArticleEditRenderer = ({ data: { content } }: ArticleComponentProps
 		propertyServiceRef.current = propertyService;
 	}, [apiUrlCreator, articleProps, propertyService.articleProperties]);
 
+	// Title the article had when it was opened. A placeholder file (untitled/new_article_*)
+	// is renamed to the title slug only after the user actually edits the title — cloned
+	// catalogs may legitimately contain such files, and renaming them on mere focus loss
+	// leaves the rest of the UI holding a stale article path.
+	const loadedTitleRef = useRef(articleProps.title);
+	useWatch(() => {
+		loadedTitleRef.current = articleProps.title;
+	}, [articleProps.ref.path]);
+
 	const updateContent = useCallback(
 		async (editor: Editor) => {
 			await editorUpdateContent({
@@ -101,20 +111,22 @@ export const ArticleEditRenderer = ({ data: { content } }: ArticleComponentProps
 	}, [cancelDebouncedUpdateContent, cancelDebouncedUpdateTitle, apiUrlCreator, articleProps.ref.path]);
 
 	const onTitleNeedsUpdate = useCallback(
-		({ newTitle, articleProps, apiUrlCreator }: { newTitle: string } & BaseEditorContext) => {
+		({ newTitle, apiUrlCreator }: { newTitle: string } & BaseEditorContext) => {
 			const maybeKebabName =
-				newTitle && NEW_ARTICLE_REGEX.test(articleProps.fileName)
+				newTitle &&
+				newTitle !== loadedTitleRef.current &&
+				NEW_ARTICLE_REGEX.test(articlePropsRef.current?.fileName)
 					? transliterate(newTitle, { kebab: true, maxLength: 50 })
 					: undefined;
 
-			if (maybeKebabName || newTitle !== articleProps.title)
+			if (maybeKebabName || newTitle !== articlePropsRef.current?.title)
 				pendingPromise.current = pendingPromise.current.finally(async () => {
 					if (lastUpdateRef.current.filename === maybeKebabName) return;
 
 					lastUpdateRef.current = { filename: maybeKebabName };
 					await updateTitle(
 						{
-							articleProps,
+							articleProps: articlePropsRef.current,
 							apiUrlCreator,
 							propertyService: propertyServiceRef.current,
 						},
@@ -128,7 +140,9 @@ export const ArticleEditRenderer = ({ data: { content } }: ArticleComponentProps
 	);
 
 	const onContentUpdate = ({ editor }: { editor: Editor }) => {
-		const tocItems = getTocItems(getLevelTocItemsByJSONContent(editor.state.doc, openApiTocItemsData));
+		const tocItems = getTocItems(
+			getLevelTocItemsByJSONContent(editor.state.doc, createOpenApiTocItemsResolver(openApiTocItemsData)),
+		);
 		if (tocItems) updateArticleProps({ tocItems: [...tocItems] });
 
 		if (typeof window !== "undefined" && window.debug) window.debug.forceSave = () => updateContent(editor);

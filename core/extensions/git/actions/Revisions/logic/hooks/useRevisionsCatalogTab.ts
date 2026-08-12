@@ -1,3 +1,4 @@
+import type { LeftNavigationTab } from "@components/Layouts/StatusBar/Extensions/ArticleStatusBar/ArticleStatusBar";
 import { useRouter } from "@core/Api/useRouter";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import FetchService from "@core-ui/ApiServices/FetchService";
@@ -8,11 +9,12 @@ import BranchUpdaterService, {
 	type OnBranchUpdateListener,
 } from "@ext/git/actions/Branch/BranchUpdaterService/logic/BranchUpdaterService";
 import OnBranchUpdateCaller from "@ext/git/actions/Branch/BranchUpdaterService/model/OnBranchUpdateCaller";
+import { PublishEmitter } from "@ext/git/actions/Publish/logic/PublishEmitter";
 import {
 	revisionCatalogStore,
 	useRevisionCatalogStore,
 } from "@ext/git/actions/Revisions/logic/store/RevisionCatalogStore";
-import getCommitOidFromPathname from "@ext/git/actions/Revisions/logic/utils/getCommitOidFromPathname";
+import { getNewCommitOidFromPathname } from "@ext/git/actions/Revisions/logic/utils/getCommitOidFromPathname";
 import SyncService from "@ext/git/actions/Sync/logic/SyncService";
 import type { DiffTree } from "@ext/git/core/GitDiffItemCreator/RevisionDiffPresenter";
 import type { GitVersionDataSet } from "@ext/git/core/GitVersionControl/GitVersionControl";
@@ -21,9 +23,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 interface UseRevisionsCatalogTabProps {
 	show: boolean;
 	setShow: (show: boolean) => void;
+	navigationBottomTab: LeftNavigationTab;
 }
 
-export const useRevisionsCatalogTab = ({ show, setShow }: UseRevisionsCatalogTabProps) => {
+export const useRevisionsCatalogTab = ({ show, setShow, navigationBottomTab }: UseRevisionsCatalogTabProps) => {
 	const router = useRouter();
 
 	const {
@@ -40,6 +43,7 @@ export const useRevisionsCatalogTab = ({ show, setShow }: UseRevisionsCatalogTab
 		setStatus,
 		setRevisionsCompare,
 		setCompareDiffTree,
+		setFilters,
 	} = useRevisionCatalogStore((state) => ({
 		revision: state.revision,
 		diffTree: state.diffTree,
@@ -54,6 +58,7 @@ export const useRevisionsCatalogTab = ({ show, setShow }: UseRevisionsCatalogTab
 		setRevisionsCompare: state.setRevisionsCompare,
 		setCompareDiffTree: state.setCompareDiffTree,
 		setScrollY: state.setScrollY,
+		setFilters: state.setFilter,
 	}));
 
 	const [latestCommitOid, setLatestCommitOid] = useState<string>(null);
@@ -163,21 +168,30 @@ export const useRevisionsCatalogTab = ({ show, setShow }: UseRevisionsCatalogTab
 		[setRevision, revision, revisions, requestDiffTree, onCompareClick],
 	);
 
+	const fetchHeadCommitOid = useCallback(async (): Promise<string | null> => {
+		const res = await FetchService.fetch<GitVersionDataSet>(
+			apiUrlCreatorRef.current.getVersionControlRevisionsUrl(undefined, 1),
+			JSON.stringify({}),
+		);
+		if (!res.ok) return null;
+		const data = await res.json();
+		return data.data?.[0]?.oid ?? null;
+	}, []);
+
 	const onOpen = useCallback(async () => {
 		if (revisions) return;
 
-		const newRevisions = await getRevisions();
-		if (!latestCommitOid) setLatestCommitOid(newRevisions?.[0]?.oid);
+		const [newRevisions, headOid] = await Promise.all([getRevisions(), fetchHeadCommitOid()]);
+		if (!latestCommitOid) setLatestCommitOid(headOid);
 
 		if (!revision && newRevisions?.[0]) {
 			const path = router.path;
-			const pathCommitOid = getCommitOidFromPathname(path);
-			const commitOid = pathCommitOid ? pathCommitOid : newRevisions[0].oid;
+			const commitOid = getNewCommitOidFromPathname(path) ?? newRevisions[0].oid;
 			setRevision(commitOid);
 		}
 
 		setRevisions(newRevisions);
-	}, [getRevisions, router, setRevision, setRevisions, revisions, revision, latestCommitOid]);
+	}, [getRevisions, fetchHeadCommitOid, router, setRevision, setRevisions, revisions, revision, latestCommitOid]);
 
 	const onClose = useCallback(async () => {
 		setRevision(null);
@@ -194,9 +208,10 @@ export const useRevisionsCatalogTab = ({ show, setShow }: UseRevisionsCatalogTab
 		setRevision(null);
 		setReachedFirstCommit(false);
 		setRevisions(null);
+		setFilters(null);
 		setScrollY(0);
 		void onClose();
-	}, [setShow, onClose, setRevision, setReachedFirstCommit, setRevisions, setScrollY]);
+	}, [setShow, onClose, setRevision, setReachedFirstCommit, setRevisions, setScrollY, setFilters]);
 
 	useEffect(() => {
 		const onUpdate: OnBranchUpdateListener = (_, caller) => {
@@ -214,24 +229,51 @@ export const useRevisionsCatalogTab = ({ show, setShow }: UseRevisionsCatalogTab
 	}, [catalogName]);
 
 	useEffect(() => {
-		const token = SyncService.events.on("finish", async ({ syncData }) => {
+		const syncToken = SyncService.events.on("finish", async ({ syncData }) => {
 			if (!syncData.isVersionChanged) return;
 
-			const [beforeRevisions, afterRevisions] = await Promise.all([
+			setRevisions(null);
+			setReachedFirstCommit(false);
+
+			const [beforeRevisions, afterRevisions, freshRevisions] = await Promise.all([
 				getRevisions(syncData.before, 1),
 				getRevisions(syncData.after, 1),
+				getRevisions(),
 			]);
+
+			setLatestCommitOid(freshRevisions?.[0]?.oid);
+			setRevisions(freshRevisions);
 
 			const fromRevision = beforeRevisions?.[0];
 			const toRevision = afterRevisions?.[0];
 			if (!fromRevision || !toRevision) return;
 
+			if (navigationBottomTab) return;
 			setRevisionsCompare({ from: fromRevision, to: toRevision });
 			setStatus("comparing");
 			setShow(true);
 		});
-		return () => SyncService.events.off(token);
-	}, [getRevisions, setRevisionsCompare, setStatus, setShow]);
+
+		const onPublishFinish = async () => {
+			const freshRevision = await getRevisions(undefined, 1);
+			if (!freshRevision?.[0]) return;
+			setLatestCommitOid(freshRevision?.[0]?.oid);
+		};
+
+		const publishToken = PublishEmitter.events.on("finish", onPublishFinish);
+		return () => {
+			SyncService.events.off(syncToken);
+			PublishEmitter.events.off(publishToken);
+		};
+	}, [
+		getRevisions,
+		setRevisionsCompare,
+		setStatus,
+		setShow,
+		navigationBottomTab,
+		setRevisions,
+		setReachedFirstCommit,
+	]);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: needs for opening/closing tab
 	useEffect(() => {
@@ -257,7 +299,7 @@ export const useRevisionsCatalogTab = ({ show, setShow }: UseRevisionsCatalogTab
 
 	const selectedCommitOid = useMemo(() => {
 		const pathnameData = RouterPathProvider.parsePath(router.path);
-		const commitOid = getCommitOidFromPathname(pathnameData.catalogName);
+		const commitOid = getNewCommitOidFromPathname(pathnameData.catalogName);
 		return commitOid ?? latestCommitOid;
 	}, [latestCommitOid, router.path]);
 

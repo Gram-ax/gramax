@@ -20,7 +20,7 @@ const useIs2Xl = () => useMediaQuery(`(min-width: ${breakpoints["2xl"]})`);
 
 export const useBreakpoint = (): Breakpoint => {
 	const { environment } = usePlatform();
-	const isSsr = environment !== "browser" && environment !== "tauri";
+	const isSsr = environment !== "web" && environment !== "tauri";
 	const [rendered, setRendered] = useState(!isSsr);
 
 	const is2Xl = useIs2Xl();

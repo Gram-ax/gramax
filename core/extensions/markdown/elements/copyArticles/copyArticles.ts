@@ -10,6 +10,7 @@ import {
 	transformPastedHTML,
 	transformPastedText,
 } from "@ext/markdown/elements/copyArticles/plugins/transformPastedTypes";
+import { getEditorContext } from "@ext/markdown/elementsUtils/editorContext/EditorContext";
 import { type Editor, Extension } from "@tiptap/core";
 import { Plugin, type Transaction } from "@tiptap/pm/state";
 import type { EditorView } from "prosemirror-view";
@@ -87,9 +88,19 @@ const CopyArticles = Extension.create<CopyArticlesOptions>({
 				props: {
 					handleDOMEvents: {
 						copy: (view: EditorView, event: ClipboardEvent) =>
-							handleCopy(view, event, this.options.articleProps, this.options.resourceService),
+							handleCopy(
+								view,
+								event,
+								getEditorContext(this.editor).articleProps,
+								this.options.resourceService,
+							),
 						cut: (view: EditorView, event: ClipboardEvent) =>
-							handleCut(view, event, this.options.articleProps, this.options.resourceService),
+							handleCut(
+								view,
+								event,
+								getEditorContext(this.editor).articleProps,
+								this.options.resourceService,
+							),
 					},
 					transformPastedHTML,
 					transformPastedText,

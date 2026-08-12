@@ -23,7 +23,28 @@ const mapFragment = (fragment: Fragment, transform: (node: Node) => Node) => {
 };
 
 export const transformPastedHTML = (html: string): string => {
-	return html?.replaceAll("[object Object]", "");
+	const document = new DOMParser().parseFromString(html.replaceAll("[object Object]", ""), "text/html");
+	const contentElementSelector = "img, audio, video, iframe, object, embed, svg, canvas, input, hr";
+	const blockElementSelector =
+		"address, article, aside, blockquote, canvas, dd, div, dl, fieldset, figcaption, figure, footer, form, h1, h2, h3, h4, h5, h6, header, hgroup, hr, li, noscript, ol, output, p, pre, section, table, tfoot, ul";
+
+	const removeEmptyElements = (parent: Element) => {
+		for (const child of Array.from(parent.childNodes)) {
+			if (!(child instanceof Element)) continue;
+
+			removeEmptyElements(child);
+
+			const textContent = child.textContent ?? "";
+			const hasEmbeddedContent =
+				child.matches(contentElementSelector) || child.querySelector(contentElementSelector);
+			const isEmpty =
+				!hasEmbeddedContent && (!textContent || (!textContent.trim() && child.matches(blockElementSelector)));
+			if (isEmpty) child.remove();
+		}
+	};
+
+	removeEmptyElements(document.body);
+	return document.body.innerHTML;
 };
 
 export const transformPastedText = (text: string, _: boolean, view: EditorView): string => {

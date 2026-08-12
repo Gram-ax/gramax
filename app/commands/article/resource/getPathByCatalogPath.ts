@@ -2,7 +2,7 @@ import { Command } from "@app/types/Command";
 import { ResponseKind } from "@app/types/ResponseKind";
 import type Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
-import assert from "assert";
+import { addEvent, Level } from "@ext/loggers/opentelemetry";
 
 const getPathByCatalogPath: Command<
 	{
@@ -20,7 +20,10 @@ const getPathByCatalogPath: Command<
 		const { wm } = this._app;
 		const workspace = wm.current();
 		const catalog = await workspace.getCatalog(catalogName, ctx);
-		assert(catalog);
+		if (!catalog) {
+			addEvent("no-catalog", Level.Internal, { catalogName });
+			return;
+		}
 
 		return catalog.basePath.join(path).value;
 	},

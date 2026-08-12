@@ -10,15 +10,13 @@ export const inlinePropertyWordLayout: WordInlineChild = async ({ state, tag, ad
 	const article = wordRenderContext.parserContext.getArticle();
 	const catalog = wordRenderContext.catalog;
 	const template = catalog.customProviders.templateProvider.getArticle(article.props.template);
-	if (!template && !catalog?.props?.resolvedView) return [];
-
 	const catalogProperties =
-		template?.props?.customProperties?.length > 0 ? template?.props?.customProperties : catalog.props.properties;
+		template?.props?.customProperties?.length > 0 ? template.props.customProperties : catalog.props.properties;
 
 	const resolved = resolveExportScopeProperty(catalog, catalogProperties, article.props?.properties, attrs.bind);
 	if (!resolved) return [];
 
-	const displayValue = getTextByProperty(resolved.property, !!resolved.property.value);
+	const displayValue = getTextByProperty(resolved.property, resolved.exists);
 
 	return state.renderInline(new Tag("p", {}, [displayValue]), { ...(addOptions ?? {}) });
 };

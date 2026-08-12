@@ -3,21 +3,37 @@ import FilePreviewError from "@ext/markdown/elements/file/edit/components/Previe
 import { PreviewContainer } from "@ext/markdown/elements/file/edit/components/Preview/PreviewContainer";
 import ExcelRenderer from "@ext/markdown/elements/file/edit/components/Preview/Views/ExcelRenderer/ExcelRenderer";
 import type { FileError } from "@ext/markdown/elements/file/edit/model/fileErrors";
-import { type ComponentType, memo, useCallback, useState } from "react";
+import { type ComponentType, type CSSProperties, memo, useCallback, useState } from "react";
 import DocxRenderer from "./Views/DocxRenderer";
+import ImageRenderer from "./Views/ImageRenderer";
 import PdfRenderer from "./Views/PdfRenderer";
 import PptxRenderer from "./Views/PptxRenderer";
+
+export interface FilePreviewMeta {
+	pageCount?: number;
+	currentPage?: number;
+	sheetName?: string;
+	sheetNames?: string[];
+	sheetCount?: number;
+}
 
 export interface FilePreviewProps {
 	file: File;
 	onError?: (error: unknown) => void;
+	onMetaChange?: (meta: Partial<FilePreviewMeta>) => void;
+	selectedSheetName?: string;
+	zoom?: number;
 }
 
 export interface RendererProps extends FilePreviewProps {
 	onLoad?: () => void;
 }
 
+const IMAGE_EXTENSIONS = ["gif", "jpeg", "jpg", "png", "webp"];
+
 const getViewByType = (extension: string): ComponentType<RendererProps> => {
+	if (IMAGE_EXTENSIONS.includes(extension)) return ImageRenderer;
+
 	switch (extension) {
 		case "docx":
 			return DocxRenderer;
@@ -41,6 +57,7 @@ export const FilePreview = memo((props: FilePreviewProps) => {
 
 	const extension: string = file ? (file?.name?.split(".").pop()?.toLowerCase() ?? "") : "";
 	const Renderer = file ? getViewByType(extension) : null;
+	const previewType = IMAGE_EXTENSIONS.includes(extension) ? "image" : extension;
 
 	const onLoad = useCallback(() => {
 		setIsLoaded(true);
@@ -54,11 +71,17 @@ export const FilePreview = memo((props: FilePreviewProps) => {
 
 	if (!Renderer) return null;
 
+	const previewStyle = previewType === "image" ? undefined : ({ zoom: props.zoom ?? 1 } as CSSProperties);
+
 	return (
-		<PreviewContainer data-loaded={isLoaded}>
+		<PreviewContainer data-loaded={isLoaded} style={previewStyle}>
 			{isLoaded ? null : <FileLoader />}
 			{error ? <FilePreviewError error={error} /> : null}
-			{!error && <Renderer {...props} onError={onError} onLoad={onLoad} />}
+			{!error && (
+				<div className="file-preview-scale h-full w-full" data-preview-type={previewType}>
+					<Renderer {...props} onError={onError} onLoad={onLoad} />
+				</div>
+			)}
 		</PreviewContainer>
 	);
 });

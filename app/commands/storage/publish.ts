@@ -6,7 +6,7 @@ import type Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
 import { getWorkspaceGesUrl } from "@ext/enterprise/utils/getWorkspaceEnterpriseConfig";
 import initReviewers from "@ext/enterprise/utils/initReviewers";
-import { span } from "@ext/loggers/opentelemetry";
+import { addEvent, Level } from "@ext/loggers/opentelemetry";
 import PublishHealthcheckMiddleware from "../../../core/extensions/enterprise/middleware/PublishHealthcheckMiddleware";
 import { Command } from "../../types/Command";
 
@@ -43,10 +43,10 @@ const publish: Command<
 			commitMessage: message,
 			filesToPublish: filePaths?.map((p) => new Path(p)),
 			data,
-			onAdd: () => span()?.addEvent("add", { paths: filePaths }),
-			onCommit: () => span()?.addEvent("commit", { message }),
+			onAdd: () => addEvent("add", Level.Important, { paths: filePaths }),
+			onCommit: () => addEvent("commit", Level.Important, { message }),
 			onPush: async () => {
-				span()?.addEvent("push", { message });
+				addEvent("push", Level.Important, { message });
 
 				await catalog.repo.gc({
 					looseObjectsLimit: 600,
@@ -56,7 +56,7 @@ const publish: Command<
 				const branch = await catalog.repo.gvc.getCurrentBranchName();
 				const mr = await catalog.repo.mergeRequests.findBySource(branch, false);
 				if (!mr) return;
-				span()?.addEvent("initReviewers", { approvers: JSON.stringify(mr.approvers), branch });
+				addEvent("initReviewers", Level.Important, { approvers: JSON.stringify(mr.approvers), branch });
 				await initReviewers(gesUrl, data, storage, mr.approvers, branch);
 			},
 		});

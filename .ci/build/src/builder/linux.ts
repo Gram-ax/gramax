@@ -19,9 +19,9 @@ export class LinuxBuilder extends Builder {
 		return "x86_64-unknown-linux-gnu";
 	}
 
-	override async build(): Promise<void> {
+	override async _build(): Promise<void> {
 		const target = this.target;
-		const config = this.createTauriConfig();
+		const config = this._createTauriConfig();
 		const profile = this.profile;
 
 		await $`cargo tauri build --ci --target ${target} -c ${config} -- --profile ${profile}`
@@ -29,49 +29,49 @@ export class LinuxBuilder extends Builder {
 			.throws(true);
 	}
 
-	override async package(): Promise<void> {
+	override async _package(): Promise<void> {
 		const appimage = path.join(this.targetDir, "bundle/appimage");
 		const deb = path.join(this.targetDir, "bundle/deb");
 		const rpm = path.join(this.targetDir, "bundle/rpm");
 
-		await this.artifact({
+		await this._artifact({
 			name: `gramax.${this.platform}.appimage`,
 			srcdir: appimage,
 			filename: `${this.opts.productName}_${this.opts.version}_amd64.AppImage`,
 		});
 
-		await this.artifact({
+		await this._artifact({
 			name: `gramax.${this.platform}.appimage.sig`,
 			srcdir: appimage,
 			filename: `${this.opts.productName}_${this.opts.version}_amd64.AppImage.sig`,
 		});
 
-		await this.artifact({
+		await this._artifact({
 			name: `gramax.${this.platform}.deb`,
 			srcdir: deb,
 			filename: `${this.opts.productName}_${this.opts.version}_amd64.deb`,
 		});
 
-		await this.artifact({
+		await this._artifact({
 			name: `gramax.${this.platform}.deb.sig`,
 			srcdir: deb,
 			filename: `${this.opts.productName}_${this.opts.version}_amd64.deb.sig`,
 		});
 
-		await this.artifact({
+		await this._artifact({
 			name: `gramax.${this.platform}.rpm`,
 			srcdir: rpm,
 			filename: `${this.opts.productName}-${this.opts.version}-1.x86_64.rpm`,
 		});
 
-		await this.artifact({
+		await this._artifact({
 			name: `gramax.${this.platform}.rpm.sig`,
 			srcdir: rpm,
 			filename: `${this.opts.productName}-${this.opts.version}-1.x86_64.rpm.sig`,
 		});
 	}
 
-	override async sign(): Promise<void> {}
+	override async _sign(): Promise<void> {}
 
-	override async verify(): Promise<void> {}
+	override async _verify(): Promise<void> {}
 }

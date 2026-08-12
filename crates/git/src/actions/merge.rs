@@ -19,6 +19,7 @@ const TAG: &str = "git:merge";
 pub trait Merge {
 	fn merge(&self, opts: MergeOptions) -> Result<MergeResult>;
 	fn format_merge_message(&self, opts: MergeMessageFormatOptions) -> Result<String>;
+	fn has_merge_conflicts(&self, branch: &str) -> Result<Vec<PathBuf>>;
 }
 
 #[derive(Deserialize, Debug)]
@@ -142,6 +143,49 @@ impl<C: ActualCreds> Merge for Repo<'_, C> {
 		};
 
 		Ok(res)
+	}
+
+	fn has_merge_conflicts(&self, branch: &str) -> Result<Vec<PathBuf>> {
+		let theirs = self
+			.branch_by_name(branch, Some(BranchType::Remote))
+			.or_else(|_| self.branch_by_name(branch, Some(BranchType::Local)))?;
+
+		let theirs_commit = self.0.find_commit(theirs.last_commit.id())?;
+		let head_commit = self.0.find_commit(
+			self.0.head()?.target().ok_or_else(|| git2::Error::from_str("HEAD has no target"))?,
+		)?;
+
+		let ancestor_oid = self.0.merge_base(head_commit.id(), theirs_commit.id())?;
+		let ancestor_tree = self.0.find_commit(ancestor_oid)?.tree()?;
+
+		let mut index = self.0.index()?;
+		index.read(false)?;
+		let ours_tree = if index.has_conflicts() {
+			head_commit.tree()?
+		} else {
+			let workdir_index_oid = index.write_tree_to(&self.0)?;
+			self.0.find_tree(workdir_index_oid)?
+		};
+
+		let mut merge_opts = git2::MergeOptions::new();
+		merge_opts.find_renames(true);
+
+		let merged = self.0.merge_trees(&ancestor_tree, &ours_tree, &theirs_commit.tree()?, Some(&merge_opts))?;
+
+		let mut paths = Vec::new();
+		for conflict in merged.conflicts()? {
+			let conflict = conflict?;
+			let path = conflict
+				.our
+				.or(conflict.their)
+				.or(conflict.ancestor)
+				.and_then(|e| String::from_utf8(e.path).ok())
+				.map(PathBuf::from);
+			if let Some(p) = path {
+				paths.push(p);
+			}
+		}
+		Ok(paths)
 	}
 
 	fn format_merge_message(&self, opts: MergeMessageFormatOptions) -> Result<String> {

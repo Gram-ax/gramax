@@ -1,4 +1,4 @@
-import { RustFs } from "@core/FileProvider/DiskFileProvider/DFPIntermediateCommands";
+import { type FsScope, RustFs } from "@core/FileProvider/DiskFileProvider/DFPIntermediateCommands";
 import type FileInfo from "@core/FileProvider/model/FileInfo";
 import type ReadOnlyFileProvider from "@core/FileProvider/model/ReadOnlyFileProvider";
 import Path from "@core/FileProvider/Path/Path";
@@ -7,9 +7,13 @@ import { LibGit2Error } from "@ext/git/core/GitCommands/errors/LibGit2Error";
 import GitErrorCode from "@ext/git/core/GitCommands/errors/model/GitErrorCode";
 import type GitCommands from "@ext/git/core/GitCommands/GitCommands";
 import type { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
+import { Level, trace } from "@ext/loggers/opentelemetry";
 import { addScopeToPath } from "@ext/versioning/addScopeToPath";
+import { GitTreeScopeParser } from "@ext/versioning/GitTreeScopeParser";
 
 export default class GitTreeFileProvider implements ReadOnlyFileProvider {
+	private _mountPath?: Path;
+
 	constructor(
 		private readonly _git: GitCommands,
 		private readonly _onlyReadHead = false,
@@ -31,17 +35,21 @@ export default class GitTreeFileProvider implements ReadOnlyFileProvider {
 		return true;
 	}
 
-	private _mountPath?: Path;
+	get kind(): "git" | "disk" {
+		return "git";
+	}
 
 	withMountPath(path: Path) {
 		this._mountPath = path;
 	}
 
+	@trace({ level: Level.Full })
 	async read(path: Path): Promise<string> {
 		const [unscoped, fs] = this._fs(path);
 		return (await fs.readFile(unscoped.value)).toString();
 	}
 
+	@trace({ level: Level.Full })
 	async readAsBinary(path: Path): Promise<Buffer> {
 		const [unscoped, fs] = this._fs(path);
 		try {
@@ -52,11 +60,18 @@ export default class GitTreeFileProvider implements ReadOnlyFileProvider {
 		}
 	}
 
+	@trace({ level: Level.Full })
 	async readdir(path: Path): Promise<string[]> {
 		const [unscoped, fs] = this._fs(path);
-		return fs.readDir(unscoped.value);
+		try {
+			return await fs.readDir(unscoped.value);
+		} catch (e) {
+			if (GitTreeFileProvider._isMissingInTree(e)) return [];
+			throw e;
+		}
 	}
 
+	@trace({ level: Level.Full })
 	async isFolder(path: Path): Promise<boolean> {
 		const [unscoped, fs] = this._fs(path);
 		const stat = await fs.stat(unscoped.value);
@@ -67,6 +82,7 @@ export default class GitTreeFileProvider implements ReadOnlyFileProvider {
 		throw new Error("Not implemented");
 	}
 
+	@trace({ level: Level.Full })
 	async getStat(path: Path): Promise<FileInfo> {
 		const [unscoped, fs] = this._fs(path);
 		const stat = await fs.stat(unscoped.value);
@@ -87,6 +103,7 @@ export default class GitTreeFileProvider implements ReadOnlyFileProvider {
 		};
 	}
 
+	@trace({ level: Level.Full })
 	async exists(path: Path): Promise<boolean> {
 		const [unscoped, fs] = this._fs(path);
 		return fs.exists(unscoped.value);
@@ -96,9 +113,16 @@ export default class GitTreeFileProvider implements ReadOnlyFileProvider {
 		throw new Error("Not implemented");
 	}
 
+	@trace({ level: Level.Full })
 	async getItems(path: Path): Promise<FileInfo[]> {
 		const [unscoped, fs] = this._fs(path);
-		const items = await fs.readDirStats(unscoped.value);
+		let items: Awaited<ReturnType<typeof fs.readDirStats>>;
+		try {
+			items = await fs.readDirStats(unscoped.value);
+		} catch (e) {
+			if (GitTreeFileProvider._isMissingInTree(e)) return [];
+			throw e;
+		}
 		return items.map((stat) => ({
 			name: stat.name,
 			path: path.join(new Path(stat.name)),
@@ -120,15 +144,30 @@ export default class GitTreeFileProvider implements ReadOnlyFileProvider {
 		return { path, storageId: this.storageId };
 	}
 
+	@trace({ level: Level.Full })
 	isRootPathExists(): Promise<boolean> {
 		return Promise.resolve(true);
+	}
+
+	/**
+	 * Native (Rust) scope + tree-relative path for `path`, mirroring how this provider's own
+	 * reads are dispatched. Lets callers run native `fs.*` commands (e.g. `fs.scan_catalog`)
+	 * directly against the git tree instead of hand-rolling an `FsScope`.
+	 */
+	getNativeScope(path: Path): { scope: FsScope; scopedPath: string } {
+		const [stripped, fs] = this._fs(path);
+		return { scope: fs.scope, scopedPath: stripped.value };
 	}
 
 	private _fs(path: Path): [Path, RustFs] {
 		const root = path.rootDirectory;
 		const name = root?.nameWithExtension ?? "";
 		const repoName = this._git.repoPath.nameWithExtension;
-		const scope = this._onlyReadHead ? "HEAD" : GitTreeFileProvider._parseScope(name);
+		const parsedScope = this._onlyReadHead ? "HEAD" : GitTreeFileProvider._parseScope(name);
+		const scope =
+			parsedScope && typeof parsedScope === "object" && "oldCommit" in parsedScope
+				? parsedScope.newCommit
+				: parsedScope;
 		const matchesRepo = name.startsWith(repoName) && (!name[repoName.length] || name[repoName.length] === ":");
 		const matchesMount = this._mountPath && name === this._mountPath.nameWithExtension;
 		const shouldStripRoot = name.includes(":") || matchesRepo || matchesMount;
@@ -141,49 +180,29 @@ export default class GitTreeFileProvider implements ReadOnlyFileProvider {
 		if (omitHead && !scope) return path;
 		let scopeValue: string;
 		if (!scope || scope === "HEAD") scopeValue = "HEAD";
+		else if ("oldCommit" in scope) scopeValue = `dif-${scope.oldCommit.commit}-${scope.newCommit.commit}`;
 		else if ("reference" in scope) scopeValue = scope.reference;
 		else if ("commit" in scope) scopeValue = `commit-${scope.commit}`;
 		return new Path(addScopeToPath(path.value, encode ? encodeURIComponent(scopeValue) : scopeValue));
 	}
 
-	static unscope(scopedPath: Path): { unscoped: Path; scope: TreeReadScope } {
-		const scope = this._parseScope(scopedPath.rootDirectory?.nameWithExtension ?? "") ?? "HEAD";
-		const idx = scopedPath.value.indexOf(":");
-		if (idx === -1) return { unscoped: null, scope: null };
-
-		const beforeIdx = scopedPath.value.slice(0, idx);
-
-		if (scope === "HEAD" || scope === null) {
-			return {
-				unscoped: new Path(beforeIdx).join(new Path(scopedPath.value.slice(idx + 5)).removeExtraSymbols),
-				scope: "HEAD",
-			};
-		}
-		if ("commit" in scope) {
-			const commitLength = scope.commit.length;
-			return {
-				unscoped: new Path(beforeIdx).join(
-					new Path(scopedPath.value.slice(idx + commitLength + 8)).removeExtraSymbols,
-				),
-				scope,
-			};
-		}
-		if ("reference" in scope) {
-			const referenceLength = encodeURIComponent(scope.reference).length;
-			return {
-				unscoped: new Path(beforeIdx).join(
-					new Path(scopedPath.value.slice(idx + referenceLength + 1)).removeExtraSymbols,
-				),
-				scope,
-			};
-		}
+	/**
+	 * A directory read against a git tree that does not contain the path (e.g. a diff scope on a commit
+	 * that predates the catalog folder) makes libgit2 raise "does not exist in the given tree". This is a
+	 * read-only tree, so an absent directory should list as empty, not throw. The Node backend surfaces
+	 * this as a {@link LibGit2Error} (`FileNotFoundError`); the browser/wasm backend wraps it as a plain
+	 * `IoError`, so also match the message.
+	 */
+	private static _isMissingInTree(e: unknown): boolean {
+		if (e instanceof LibGit2Error) return e.code === GitErrorCode.FileNotFoundError;
+		return e instanceof Error && e.message.includes("does not exist in the given tree");
 	}
 
 	private static _parseScope(rootName: string): TreeReadScope {
 		if (!rootName.includes(":")) return null;
 		const data = rootName.split(":").at(-1);
 		if (!data || data === "HEAD") return null;
-		if (data.startsWith("commit-")) return { commit: decodeURIComponent(data.slice("commit-".length)) };
-		return { reference: decodeURIComponent(data) };
+		const parsed = GitTreeScopeParser.parse(decodeURIComponent(data));
+		return parsed === "HEAD" ? null : parsed;
 	}
 }

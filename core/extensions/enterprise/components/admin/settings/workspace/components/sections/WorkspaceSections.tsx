@@ -2,12 +2,13 @@ import { closestCorners, DndContext } from "@dnd-kit/core";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { useWorkspaceSections } from "@ext/enterprise/components/admin/settings/workspace/hooks/useWorkspaceSections";
-import { Button } from "@ui-kit/Button";
-import { Icon } from "@ui-kit/Icon";
+import { AddButton } from "@ext/enterprise/components/admin/ui-kit/AddButton";
+import { SettingsSection } from "@ext/enterprise/components/admin/ui-kit/SettingsSection";
+import t from "@ext/localization/locale/translate";
 import type React from "react";
 import { useSortableSections } from "../../hooks/useSortableSections";
 import type { WorkspaceSettings } from "../../types/WorkspaceComponent";
-import { SectionDialog } from "./components/SectionDialog";
+import { SectionCard } from "./components/SectionCard";
 import { SortableSectionItem } from "./components/SortableSectionItem";
 
 interface WorkspaceSectionsProps {
@@ -36,16 +37,12 @@ export function WorkspaceSections({ localSettings, setLocalSettings, sectionReso
 	});
 
 	return (
-		<div>
-			<div className="flex items-center gap-4 mb-4">
-				<h2 className="text-xl font-medium">Секции каталогов</h2>
-
-				<Button onClick={() => openSectionDialog()} variant="outline">
-					<Icon icon="plus" />
-					Добавить секцию
-				</Button>
-			</div>
-
+		<SettingsSection
+			actions={
+				<AddButton onClick={() => openSectionDialog()} title={t("enterprise.admin.workspace.sections.add")} />
+			}
+			title={t("enterprise.admin.workspace.sections.title")}
+		>
 			<div className="flex flex-col gap-4 rounded-lg border p-4 max-h-96 overflow-y-auto overflow-x-hidden">
 				{Object.keys(localSettings.sections || {}).length > 0 ? (
 					<DndContext
@@ -71,13 +68,13 @@ export function WorkspaceSections({ localSettings, setLocalSettings, sectionReso
 					</DndContext>
 				) : (
 					<div className="text-center py-8 text-muted-foreground">
-						<p>Секции каталогов не созданы</p>
-						<p className="text-sm">Нажмите &quot;Добавить секцию&quot; для создания первой секции</p>
+						<p>{t("enterprise.admin.workspace.sections.empty")}</p>
+						<p className="text-sm">{t("enterprise.admin.workspace.sections.empty-hint")}</p>
 					</div>
 				)}
 			</div>
 
-			<SectionDialog
+			<SectionCard
 				editingKey={editingKey}
 				form={form}
 				onClose={closeDialog}
@@ -89,6 +86,6 @@ export function WorkspaceSections({ localSettings, setLocalSettings, sectionReso
 				setForm={setForm}
 				setSelectedCatalogs={setSelectedCatalogs}
 			/>
-		</div>
+		</SettingsSection>
 	);
 }

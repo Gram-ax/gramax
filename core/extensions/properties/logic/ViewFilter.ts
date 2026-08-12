@@ -228,6 +228,11 @@ class ViewFilter extends ViewSorter {
 	private _createKey(groupValue: string | string[], groupValueType: PropertyTypes): string {
 		if (groupValueType === PropertyTypes.blockMd) return "ungrouped";
 
+		// A flag is set exactly when the article carries the property (groupValue present) — pass that as
+		// isExists so getDisplayValue yields "yes"/"no", matching how the flag renders elsewhere (getRenderRows).
+		if (groupValueType === PropertyTypes.flag)
+			return String(getDisplayValue(groupValueType, groupValue, groupValue !== null && groupValue !== undefined));
+
 		const key =
 			groupValue !== null && groupValue !== undefined ? getDisplayValue(groupValueType, groupValue) : "ungrouped";
 		return String(key);

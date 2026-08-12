@@ -1,8 +1,9 @@
 import type SideBarData from "@ext/git/actions/Publish/model/SideBarData";
-import getScopeFromString from "@ext/git/core/Diff/logic/utils/getScopeFromString";
+import { getDiffCacheKey } from "@ext/git/core/Diff/logic/utils/getDiffCacheKey";
 import type { DiffTree2TreeFile, TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import BrokenRepository from "@ext/git/core/Repository/BrokenRepository";
 import { getDiff } from "@ext/VersionControl/DiffHandler/DiffHandler";
+import { GitTreeScopeParser } from "@ext/versioning/GitTreeScopeParser";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import type { Article } from "../../../../../../logic/FileStructue/Article/Article";
 import type { ReadonlyCatalog } from "../../../../../../logic/FileStructue/Catalog/ReadonlyCatalog";
@@ -14,6 +15,7 @@ interface GetArticleDiffSideBarDataParams {
 	isDeleted: boolean;
 	pathname: string;
 	logicPath: string;
+	scope?: string;
 	oldScope?: string;
 }
 
@@ -28,14 +30,35 @@ const getTreeForDiff = (scope: TreeReadScope): string => {
 	return treeForDiff;
 };
 
-const stripCatalogPrefix = (p: string, catalogName: string) =>
-	p.startsWith(`${catalogName}/`) ? p.slice(catalogName.length + 1) : p;
-
 export const getArticleDiffSideBarData = async (props: GetArticleDiffSideBarDataParams): Promise<SideBarData> => {
-	const { article, catalog, scopedCatalog, isDeleted, pathname, logicPath, oldScope } = props;
-	const repoPath = scopedCatalog.getRepositoryRelativePath(article.ref).value;
+	const { article, catalog, scopedCatalog, isDeleted, pathname, logicPath, scope, oldScope } = props;
 
-	let path = stripCatalogPrefix(repoPath, scopedCatalog.name);
+	if (!article.ref.path.value) return null;
+
+	let repoPath: string;
+	try {
+		repoPath = scopedCatalog.getRepositoryRelativePath(article.ref).value;
+	} catch {
+		// getRepositoryRelativePath asserts when the ref is not under the (scoped) catalog
+		// basePath — e.g. a diff view item that lives outside the current scope. Degrade to a
+		// hunk-less sidebar entry instead of crashing the whole diff render (Bugsnag 6a2033e0).
+		const fallbackPath = article.ref?.path?.value ?? logicPath;
+		return {
+			isResource: false,
+			pathname,
+			data: {
+				title: article.getTitle(),
+				filePath: { path: fallbackPath, oldPath: fallbackPath, hunks: [] },
+				status: isDeleted ? FileStatus.delete : FileStatus.current,
+				isChanged: true,
+				logicPath,
+				resources: [],
+				isChecked: true,
+			},
+		};
+	}
+
+	let path = repoPath;
 	let oldPath = path;
 	let status: FileStatus;
 
@@ -45,15 +68,23 @@ export const getArticleDiffSideBarData = async (props: GetArticleDiffSideBarData
 		// no-op
 	} else
 		try {
-			const parsedOldScope = getScopeFromString(oldScope);
+			const parsedOldScope = GitTreeScopeParser.parse(oldScope);
 			const treeForDiff = getTreeForDiff(parsedOldScope);
 
-			const cacheKey = treeForDiff ?? "";
+			const parsedScope = GitTreeScopeParser.parse(scope);
+			const treeForNew = getTreeForDiff(parsedScope);
+
+			const compare =
+				treeForDiff && treeForNew
+					? { type: "tree" as const, old: treeForDiff, new: treeForNew }
+					: { type: "index" as const, tree: treeForDiff };
+
+			const cacheKey = getDiffCacheKey(treeForDiff, treeForNew);
 			const cached = catalog.repo.gvc.getCachedDiff(cacheKey);
 			const diffInfo =
 				cached ??
 				(await catalog.repo.gvc.diff({
-					compare: { type: "index", tree: treeForDiff },
+					compare,
 					renames: true,
 				}));
 
@@ -69,10 +100,8 @@ export const getArticleDiffSideBarData = async (props: GetArticleDiffSideBarData
 
 			status = diffFile?.status ?? FileStatus.current;
 			if (diffFile) {
-				path = stripCatalogPrefix(diffFile.path.value, scopedCatalog.name);
-				oldPath = diffFile.oldPath?.value
-					? stripCatalogPrefix(diffFile.oldPath.value, scopedCatalog.name)
-					: path;
+				path = diffFile.path.value;
+				oldPath = diffFile.oldPath?.value ?? path;
 			}
 		} catch (e) {
 			console.error(e);

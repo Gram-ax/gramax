@@ -1,8 +1,8 @@
 import { Command } from "@app/types/Command";
 import { ResponseKind } from "@app/types/ResponseKind";
 import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddleware";
-import type { PluginFiles } from "@ext/workspace/assets/PluginsAsset";
 import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
+import type { PluginFiles } from "@plugins/core/PluginsAsset";
 
 export interface AddPluginCommand {
 	workspacePath?: WorkspacePath;
@@ -22,7 +22,7 @@ const addPlugin: Command<AddPluginCommand, void> = Command.create({
 		await assets.plugins.add(pluginId, files);
 	},
 
-	params(ctx, q, body) {
+	params(_ctx, q, body) {
 		return { workspacePath: q.id, pluginId: body.pluginId, files: body.files };
 	},
 });

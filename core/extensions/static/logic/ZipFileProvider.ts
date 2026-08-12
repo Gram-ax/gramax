@@ -2,6 +2,7 @@ import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvid
 import type FileInfo from "@core/FileProvider/model/FileInfo";
 import type Path from "@core/FileProvider/Path/Path";
 import jszip from "@dynamicImports/jszip";
+import { Level, trace } from "@ext/loggers/opentelemetry";
 import type { ItemRefStatus } from "@ext/Watchers/model/ItemStatus";
 import type { default as JSZipType } from "jszip";
 
@@ -18,6 +19,7 @@ class ZipFileProvider extends DiskFileProvider {
 		return new ZipFileProvider(zip);
 	}
 
+	@trace({ level: Level.Files })
 	async copy(from: Path, to: Path): Promise<void> {
 		const bin = await super.readAsBinary(from);
 		this.currentFolder.file(to.value, bin);
@@ -25,11 +27,13 @@ class ZipFileProvider extends DiskFileProvider {
 
 	async mkdir() {}
 
+	@trace({ level: Level.Full })
 	async read(path: Path): Promise<string> {
 		return this.currentFolder.file(path.value).async("string");
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await,
+	@trace({ level: Level.Files })
 	async write(path: Path, data: string) {
 		this.currentFolder.file(path.value, data);
 	}
@@ -46,6 +50,7 @@ class ZipFileProvider extends DiskFileProvider {
 		this._rootPath = rootPath;
 	}
 
+	@trace({ level: Level.Files })
 	async merge(other: ZipFileProvider, targetPath?: Path): Promise<void> {
 		const otherZip = other.zip;
 		const basePath = targetPath ? targetPath.value : "";
@@ -75,6 +80,7 @@ class ZipFileProvider extends DiskFileProvider {
 		throw new Error(this._getMsgNotImplemented("isFolder"));
 	}
 
+	@trace({ level: Level.Full })
 	async exists(path: Path): Promise<boolean> {
 		return !!this._zip.file(path.value);
 	}
@@ -83,6 +89,7 @@ class ZipFileProvider extends DiskFileProvider {
 		throw new Error(this._getMsgNotImplemented("getStat"));
 	}
 
+	@trace({ level: Level.Files })
 	async delete(path: Path, _preferTrash?: boolean): Promise<void> {
 		const pathname = path.value;
 		this.currentFolder.remove(pathname === "." || pathname === "/" ? "" : pathname);
@@ -92,6 +99,7 @@ class ZipFileProvider extends DiskFileProvider {
 		throw new Error(this._getMsgNotImplemented("move"));
 	}
 
+	@trace({ level: Level.Full })
 	async readAsBinary(path: Path): Promise<Buffer> {
 		return this._zip.file(path.value).async("nodebuffer");
 	}

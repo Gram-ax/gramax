@@ -14,7 +14,7 @@ import ItemExtensions from "@core/FileStructue/Item/ItemExtensions";
 import type YamlFileConfig from "@core/utils/YamlFileConfig";
 import type Repository from "@ext/git/core/Repository/Repository";
 import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
-import { span, trace, traced } from "@ext/loggers/opentelemetry";
+import { addEvent, Level, trace, traced } from "@ext/loggers/opentelemetry";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import type { ItemRefStatus } from "@ext/Watchers/model/ItemStatus";
 import WorkspaceEventHandlers from "@ext/workspace/events/WorkspaceEventHandlers";
@@ -25,6 +25,9 @@ export type WorkspaceEvents = Event<"add-catalog", { catalog: Catalog }> &
 	Event<"remove-catalog", { name: string }> &
 	Event<"merge", EventArgs<CatalogEvents, "merge">> &
 	Event<"sync", EventArgs<CatalogEvents, "sync">> &
+	Event<"checkout", EventArgs<CatalogEvents, "checkout">> &
+	Event<"reset", EventArgs<CatalogEvents, "reset">> &
+	Event<"before-connect-repository", { catalog: Catalog }> &
 	Event<"repository-set", EventArgs<CatalogEvents, "repository-set">> &
 	Event<"resolve-category", EventArgs<CatalogEvents, "resolve-category">> &
 	Event<"catalog-changed", CatalogFilesUpdated> &
@@ -47,6 +50,7 @@ export type WorkspaceInitProps = {
 export class Workspace {
 	private _entries = new Map<string, BaseCatalog>();
 	private _events = createEventEmitter<WorkspaceEvents>();
+	private _catalogReloads = new Map<string, Promise<Catalog>>();
 
 	protected constructor(
 		private _path: WorkspacePath,
@@ -57,7 +61,7 @@ export class Workspace {
 	) {}
 
 	static async init({ fs, rp, path, config, assets, onInit }: WorkspaceInitProps) {
-		return await traced("Workspace.init", { args: [path], omitResult: true }, async () => {
+		return await traced("Workspace.init", { level: Level.Commands, args: [path], omitResult: true }, async () => {
 			const entries = await fs.getCatalogEntries();
 			const workspace = new this(path, config, fs, rp, assets);
 			const events = onInit?.(workspace);
@@ -66,10 +70,10 @@ export class Workspace {
 			const mutableEntries = { entries };
 			await workspace._events.emit("on-entries-read", { mutableEntries });
 
-			fs.fp.watch(workspace._onItemChanged.bind(Workspace));
+			fs.fp.watch(workspace._onItemChanged.bind(workspace));
 			await workspace._initRepositories(mutableEntries.entries, fs.fp);
 
-			span()?.addEvent("read-workspaces", { count: mutableEntries.entries.length });
+			addEvent("read-workspaces", Level.Full, { count: mutableEntries.entries.length });
 
 			return workspace;
 		});
@@ -87,12 +91,16 @@ export class Workspace {
 		return Promise.resolve(this._config.inner());
 	}
 
+	yaml() {
+		return this._config;
+	}
+
 	async getCatalog(name: string, ctx: Context): Promise<ContextualCatalog> {
 		const catalog = await this.getContextlessCatalog(name);
 		return catalog?.ctx(ctx);
 	}
 
-	@trace()
+	@trace({ level: Level.Full })
 	async getContextlessCatalog(name: string): Promise<Catalog> {
 		const { name: n, metadata } = BaseCatalog.parseName(name);
 		const catalog = await this._entries.get(n)?.upgrade("catalog", true);
@@ -104,15 +112,41 @@ export class Workspace {
 		return mutableCatalog.catalog;
 	}
 
-	@trace()
+	@trace({ level: Level.Internal })
 	async refreshCatalog(name: string) {
 		const catalog = await this.getContextlessCatalog(name);
-		const entry = await this._fs.getCatalogByPath(catalog.basePath);
-		this._entries.set(name, entry);
-		await this._initRepositories([entry], this._fs.fp);
+		await this._reloadCatalog(catalog);
 	}
 
-	@trace()
+	// Reconcile a single catalog's in-memory state with what is currently on disk. Used by peer-refresh
+	// (replicas on a shared volume): a sibling may have cloned it (add), pulled/checked-out/reset it (refresh),
+	// or removed it (drop from memory). Returns what was done so the caller can map it to a response.
+	@trace({ level: Level.Internal })
+	async reconcileCatalogFromDisk(name: string): Promise<"refreshed" | "added" | "removed" | "not-found"> {
+		const { name: n } = BaseCatalog.parseName(name);
+		// A catalog name is a single directory segment under the workspace root. The name arrives from an
+		// untrusted peer-refresh request, so reject path separators / traversal before touching disk.
+		if (!n || n.includes("/") || n.includes("\\") || n === "." || n === "..") return "not-found";
+		const entry = await this._fs.getCatalogEntryByPath(new Path(n));
+		const inMemory = this._entries.has(n);
+
+		if (entry) {
+			if (inMemory) {
+				await this.refreshCatalog(name);
+				return "refreshed";
+			}
+			await this.addCatalog(await entry.load());
+			return "added";
+		}
+
+		if (inMemory) {
+			await this.removeCatalog(name, false);
+			return "removed";
+		}
+		return "not-found";
+	}
+
+	@trace({ level: Level.Full })
 	async getBaseCatalog(name: string): Promise<BaseCatalog> {
 		const { name: n, metadata } = BaseCatalog.parseName(name);
 		const entry = this._entries.get(n);
@@ -141,7 +175,7 @@ export class Workspace {
 		return this._assets;
 	}
 
-	@trace()
+	@trace({ level: Level.Internal })
 	async removeCatalog(name: string, deleteFromFs = true) {
 		await RepositoryProvider.resetRepo();
 		const catalog = await this.getBaseCatalog(name);
@@ -159,12 +193,12 @@ export class Workspace {
 		await this._events.emit("remove-catalog", { name });
 	}
 
-	@trace()
+	@trace({ level: Level.Internal })
 	addCatalogEntry(catalogEntry: CatalogEntry): void {
 		this._entries.set(catalogEntry.name, catalogEntry);
 	}
 
-	@trace()
+	@trace({ level: Level.Internal })
 	async addCatalog(catalog: Catalog, existingRepo?: Repository): Promise<void> {
 		this._entries.set(catalog.name, catalog);
 		const basePath = catalog.basePath;
@@ -179,19 +213,44 @@ export class Workspace {
 
 		catalog.events.on("resolve-category", (args) => this.events.emitSync("resolve-category", args));
 		catalog.events.on("update", async (arg) => {
-			const entry = await this._fs.getCatalogByPath(catalog.basePath);
-			await this.addCatalog(entry, catalog.repo);
+			const entry = await this._reloadCatalog(catalog, catalog.repo);
 			arg.catalog = entry;
 		});
 		catalog.events.on("merge", (args) => this._events.emit("merge", args));
 		catalog.events.on("sync", (args) => this._events.emit("sync", args));
+		catalog.events.on("checkout", (args) => this._events.emit("checkout", args));
+		catalog.events.on("reset", (args) => this._events.emit("reset", args));
 
 		catalog.setRepository(existingRepo?.gvc ? existingRepo : await this._rp.getRepositoryByPath(basePath, fp));
 
 		await this._events.emit("add-catalog", { catalog });
 	}
 
-	@trace({ omitArgs: true, omitResult: true })
+	@trace({ level: Level.Internal })
+	private async _reloadCatalog(catalog: Catalog, existingRepo?: Repository): Promise<Catalog> {
+		const key = catalog.basePath.value;
+		const current = this._catalogReloads.get(key);
+		if (current) {
+			addEvent("blocked-concurrent-catalog-reload", Level.Internal, { catalog: catalog.name, path: key });
+			return current;
+		}
+
+		const reload = (async () => {
+			const entry = await this._fs.getCatalogByPath(catalog.basePath);
+			await this.addCatalog(entry, existingRepo);
+			return entry;
+		})();
+
+		this._catalogReloads.set(key, reload);
+
+		try {
+			return await reload;
+		} finally {
+			if (this._catalogReloads.get(key) === reload) this._catalogReloads.delete(key);
+		}
+	}
+
+	@trace({ level: Level.Commands, omitArgs: true, omitResult: true })
 	private async _initRepositories(entries: BaseCatalog[], fp: FileProvider): Promise<void> {
 		await Promise.all(
 			entries.map(async (entry) => {
@@ -204,7 +263,7 @@ export class Workspace {
 		);
 	}
 
-	@trace()
+	@trace({ level: Level.Internal })
 	private async _onItemChanged(items: ItemRefStatus[]): Promise<void> {
 		const catalogs = this.getAllCatalogs();
 

@@ -27,7 +27,7 @@
 		"resolveJsonModule": true,
 		"esModuleInterop": true,
 		"isolatedModules": true,
-		"module": "esnext",
+		"module": "ESNext",
 		"moduleResolution": "bundler",
 
 		"paths": {

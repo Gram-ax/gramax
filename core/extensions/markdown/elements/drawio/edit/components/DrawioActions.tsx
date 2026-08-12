@@ -15,7 +15,7 @@ interface DrawioActionsProps {
 }
 
 const DrawioActions = ({ editor, node, setHasSignature, signatureRef, openEditor }: DrawioActionsProps) => {
-	const disabledEdit = !PageDataContextService.value.conf.diagramsServiceUrl;
+	const disabledEdit = !PageDataContextService.value.settings?.services?.["diagram-renderer"]?.endpoint;
 	const updateAttributes = (attributes: Record<string, string>) => {
 		editor.commands.updateAttributes(node.type, attributes);
 	};

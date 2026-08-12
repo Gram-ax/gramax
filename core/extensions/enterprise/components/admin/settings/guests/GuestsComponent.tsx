@@ -1,258 +1,77 @@
-import useCheck from "@core-ui/hooks/useCheck";
-import { useSettings } from "@ext/enterprise/components/admin/contexts/SettingsContext";
-import { useTabGuard } from "@ext/enterprise/components/admin/hooks/useTabGuard";
 import { DeleteSelectedButton } from "@ext/enterprise/components/admin/ui-kit/DeleteSelectedButton";
-import { FloatingAlert } from "@ext/enterprise/components/admin/ui-kit/FloatingAlert";
-import { Spinner } from "@ext/enterprise/components/admin/ui-kit/Spinner";
-import { StickyHeader } from "@ext/enterprise/components/admin/ui-kit/StickyHeader";
-import { TabErrorBlock } from "@ext/enterprise/components/admin/ui-kit/TabErrorBlock";
-import { TabInitialLoader } from "@ext/enterprise/components/admin/ui-kit/TabInitialLoader";
-import { TableComponent } from "@ext/enterprise/components/admin/ui-kit/table/TableComponent";
-import { TableInfoBlock } from "@ext/enterprise/components/admin/ui-kit/table/TableInfoBlock";
-import { TableToolbar } from "@ext/enterprise/components/admin/ui-kit/table/TableToolbar";
-import { TableToolbarTextInput } from "@ext/enterprise/components/admin/ui-kit/table/TableToolbarTextInput";
+import { SettingsPageLayout } from "@ext/enterprise/components/admin/ui-kit/SettingsPageLayout";
+import { SettingsSection } from "@ext/enterprise/components/admin/ui-kit/SettingsSection";
+import { SelectableTable } from "@ext/enterprise/components/admin/ui-kit/table/SelectableTable";
 import { Page } from "@ext/enterprise/types/Page";
-import { getAdminPageTitle } from "@ext/enterprise/utils/getAdminPageTitle";
 import t from "@ext/localization/locale/translate";
-import { Button, LoadingButtonTemplate } from "@ui-kit/Button";
-import { getCoreRowModel, getFilteredRowModel, useReactTable } from "@ui-kit/DataTable";
 import { Description } from "@ui-kit/Description";
 import { Field } from "@ui-kit/Field";
 import { Input } from "@ui-kit/Input";
 import { Switch } from "@ui-kit/Switch";
-import { useCallback, useEffect, useMemo, useState } from "react";
 import { GuestsToolbarAddBtn } from "./components/GuestsToolbarAddBtn";
-import { guestsTableColumns } from "./config/GuestsTableConfig";
-import type { Domain, GuestsSettings } from "./types/GuestsComponent";
-
-const defaultSettings: GuestsSettings = {
-	sessionDurationHours: 12,
-	whitelistEnabled: false,
-	domains: [],
-};
+import { useGuestsViewModel } from "./hooks/useGuestsViewModel";
+import type { Domain } from "./types/GuestsComponent";
 
 const GuestsComponent = () => {
-	const { settings, updateGuests, updateWorkspace, ensureGuestsLoaded, getTabError, isInitialLoading, isRefreshing } =
-		useSettings();
-	const guestsSettings = settings?.guests;
-	const otpEnabled = settings?.workspace?.modules?.guests ?? false;
-	const [localSettings, setLocalSettings] = useState<GuestsSettings>(guestsSettings || defaultSettings);
-	const [localOtpEnabled, setLocalOtpEnabled] = useState(otpEnabled);
-	const [isSaving, setIsSaving] = useState(false);
-	const [rowSelection, setRowSelection] = useState({});
-	const isEqual = useCheck(guestsSettings, localSettings) && otpEnabled === localOtpEnabled;
-	const [saveError, setSaveError] = useState<string | null>(null);
-
-	useEffect(() => {
-		if (guestsSettings) {
-			setLocalSettings(guestsSettings);
-		}
-	}, [guestsSettings]);
-
-	useEffect(() => {
-		setLocalOtpEnabled(otpEnabled);
-	}, [otpEnabled]);
-
-	useEffect(() => {
-		if (!saveError) return;
-		const t = setTimeout(() => setSaveError(null), 4000);
-		return () => clearTimeout(t);
-	}, [saveError]);
-
-	const handleSave = useCallback(async () => {
-		setIsSaving(true);
-		try {
-			const otpEnabledChanged = otpEnabled !== localOtpEnabled;
-
-			if (otpEnabledChanged && settings?.workspace) {
-				const workspace = { ...settings.workspace };
-				workspace.modules = { ...workspace.modules, guests: localOtpEnabled };
-
-				await updateWorkspace(workspace);
-			}
-
-			await updateGuests(localSettings);
-		} catch (e) {
-			setSaveError(e?.message);
-		} finally {
-			setIsSaving(false);
-		}
-	}, [localSettings, localOtpEnabled, otpEnabled, settings?.workspace, updateWorkspace, updateGuests]);
-
-	useTabGuard({
-		page: Page.GUESTS,
-		hasChanges: () => {
-			if (isInitialLoading("guests") || !guestsSettings) {
-				return false;
-			}
-			return !isEqual;
-		},
-		onSave: handleSave,
-		onDiscard: () => {
-			if (guestsSettings) {
-				setLocalSettings(guestsSettings);
-			}
-			setLocalOtpEnabled(otpEnabled);
-		},
-	});
-
-	const domainsData = useMemo(() => {
-		return (
-			localSettings.domains?.map((domain) => ({
-				id: domain,
-				domain: domain,
-			})) || []
-		);
-	}, [localSettings.domains]);
-
-	const table = useReactTable({
-		data: domainsData,
-		columns: guestsTableColumns,
-		getCoreRowModel: getCoreRowModel(),
-		getFilteredRowModel: getFilteredRowModel(),
-		onRowSelectionChange: setRowSelection,
-		state: {
-			rowSelection,
-		},
-	});
-
-	const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		const { name, value } = e.target;
-		setLocalSettings((prev) => ({
-			...prev,
-			[name]: name === "sessionDurationHours" ? parseInt(value, 10) || 0 : value,
-		}));
-	};
-
-	const handleAddDomain = useCallback(
-		(domain: string) => {
-			if (!localSettings) return;
-
-			if (domain && !localSettings.domains.includes(domain)) {
-				setLocalSettings((prev) => {
-					return {
-						...prev,
-						domains: [...prev.domains, domain],
-					};
-				});
-			}
-		},
-		[localSettings],
-	);
-
-	const handleDeleteSelectedDomains = useCallback(() => {
-		const selectedRows = table.getFilteredSelectedRowModel().rows;
-		const domainsToDelete = selectedRows.map((row) => row.original.domain);
-
-		setLocalSettings((prev) => ({
-			...prev,
-			domains: prev.domains?.filter((domain) => !domainsToDelete.includes(domain)) || [],
-		}));
-		setRowSelection({});
-	}, [table]);
-
-	const handleFilterChange = useCallback(
-		(value: string | null) => {
-			table.getColumn("domain")?.setFilterValue(value);
-		},
-		[table],
-	);
-
-	const tabError = getTabError("guests");
-
-	// biome-ignore lint/correctness/useExhaustiveDependencies: delete button wont appear without this
-	const selectedCount = useMemo(() => table.getFilteredSelectedRowModel().rows.length, [table, rowSelection]);
-
-	if (isInitialLoading("guests")) {
-		return <TabInitialLoader />;
-	}
-
-	if (tabError) {
-		return <TabErrorBlock message={tabError.message} onRetry={() => ensureGuestsLoaded(true)} />;
-	}
+	const { domain, form, setting } = useGuestsViewModel();
 
 	return (
 		<>
-			<StickyHeader
-				actions={
-					<>
-						{isSaving ? (
-							<LoadingButtonTemplate text={`${t("save2")}...`} />
-						) : (
-							<Button disabled={isEqual || isSaving} onClick={handleSave}>
-								{t("save")}
-							</Button>
-						)}
-					</>
-				}
-				title={
-					<>
-						{getAdminPageTitle(Page.GUESTS)} <Spinner show={isRefreshing("guests")} size="small" />
-					</>
-				}
-			/>
-			<FloatingAlert message={saveError} show={Boolean(saveError)} />
-
-			<div className="space-y-6">
-				<div>
-					<h2 className="text-xl font-medium mb-4">{t("enterprise.admin.guests.general-settings")}</h2>
+			<SettingsPageLayout
+				isInitialLoading={form.isInitialLoading}
+				isRefreshing={form.isRefreshing}
+				isSaveDisabled={form.isSaveDisabled}
+				isSaving={form.isSaving}
+				onRetry={form.retry}
+				onSave={form.onSave}
+				page={Page.GUESTS}
+				saveError={form.saveError}
+				tabError={form.tabError}
+			>
+				<SettingsSection title={t("enterprise.admin.guests.general-settings")}>
 					<Field
 						className="items-center"
 						control={() => (
 							<Switch
-								checked={localOtpEnabled}
+								checked={setting.otpEnabled}
 								id="otpEnabled"
-								onCheckedChange={(checked) => {
-									setLocalOtpEnabled(checked as boolean);
-									if (checked) {
-										setLocalSettings((prev) => ({
-											...prev,
-											whitelistEnabled: true,
-										}));
-									}
-								}}
+								onCheckedChange={setting.onOtpChange}
 								size="sm"
 							/>
 						)}
 						title={t("enterprise.admin.guests.otp-enabled")}
 					/>
 					<Description>{t("enterprise.admin.guests.otp-description")}</Description>
-				</div>
+				</SettingsSection>
 
-				{localOtpEnabled && (
+				{setting.otpEnabled && (
 					<>
-						<div>
-							<Field
-								className="items-center"
-								control={() => (
-									<Input
-										className="w-24"
-										id="sessionDurationHours"
-										min="1"
-										name="sessionDurationHours"
-										onChange={handleInputChange}
-										required
-										type="number"
-										value={localSettings.sessionDurationHours}
-									/>
-								)}
-								title={t("enterprise.admin.guests.session-duration-hours")}
-							/>
-						</div>
+						<Field
+							className="items-center"
+							control={() => (
+								<Input
+									className="w-24"
+									id="sessionDurationHours"
+									min="1"
+									name="sessionDurationHours"
+									onChange={setting.handleSessionChange}
+									required
+									type="number"
+									value={setting.localSettings.sessionDurationHours}
+								/>
+							)}
+							title={t("enterprise.admin.guests.session-duration-hours")}
+						/>
 
-						<div>
-							<h2 className="text-xl font-medium mb-4">
-								{t("enterprise.admin.guests.whitelist-settings")}
-							</h2>
-
+						<SettingsSection title={t("enterprise.admin.guests.whitelist-settings")}>
 							<Field
 								className="items-center"
 								control={() => (
 									<Switch
-										checked={localSettings.whitelistEnabled}
+										checked={setting.localSettings.whitelistEnabled}
 										id="whitelistEnabled"
 										onCheckedChange={(checked) =>
-											setLocalSettings((prev) => ({
+											setting.setLocalSettings((prev) => ({
 												...prev,
 												whitelistEnabled: checked as boolean,
 											}))
@@ -263,41 +82,42 @@ const GuestsComponent = () => {
 								title={t("enterprise.admin.guests.whitelist-enabled")}
 							/>
 
-							{localSettings.whitelistEnabled && (
-								<div className="py-4">
-									<TableInfoBlock title={t("enterprise.admin.guests.whitelist-domains")} />
-									<Description>
-										{t("enterprise.admin.guests.whitelist-domains-description")}
-									</Description>
-
-									<TableToolbar
-										input={
-											<TableToolbarTextInput
-												onChange={handleFilterChange}
-												placeholder={t("enterprise.admin.guests.whitelist-domains-placeholder")}
-												value={(table.getColumn("domain")?.getFilterValue() as string) ?? ""}
-											/>
+							{setting.localSettings.whitelistEnabled && (
+								<SettingsSection
+									className="py-4"
+									description={t("enterprise.admin.guests.whitelist-domains-description")}
+									title={t("enterprise.admin.guests.whitelist-domains")}
+									titleClassName="text-sm"
+								>
+									<SelectableTable<Domain>
+										className="mt-4"
+										columns={domain.columns}
+										data={domain.rows}
+										getRowId={domain.getId}
+										onRowSelectionChange={domain.setSelection}
+										rowSelection={domain.selection}
+										searchColumnId={domain.searchColumnId}
+										searchPlaceholder={t("enterprise.admin.guests.domains.find")}
+										toolbarActions={
+											<>
+												<DeleteSelectedButton
+													count={domain.selected.length}
+													onClick={domain.removeSelected}
+												/>
+												<GuestsToolbarAddBtn
+													existingDomains={setting.localSettings.domains || []}
+													key="add-domain"
+													onAddDomain={domain.add}
+												/>
+											</>
 										}
-									>
-										<DeleteSelectedButton
-											hidden={!selectedCount}
-											onClick={handleDeleteSelectedDomains}
-											selectedCount={selectedCount}
-										/>
-										<GuestsToolbarAddBtn
-											existingDomains={localSettings.domains || []}
-											key="add-domain"
-											onAddDomain={handleAddDomain}
-										/>
-									</TableToolbar>
-
-									<TableComponent<Domain> columns={guestsTableColumns} table={table} />
-								</div>
+									/>
+								</SettingsSection>
 							)}
-						</div>
+						</SettingsSection>
 					</>
 				)}
-			</div>
+			</SettingsPageLayout>
 		</>
 	);
 };

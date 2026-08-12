@@ -5,15 +5,17 @@ import ApiUrlCreator from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
 import CommentView from "@ext/markdown/elements/comment/edit/components/View/CommentView";
 import CommentBlockMark from "@ext/markdown/elements/comment/edit/logic/BlockMark";
+import useCommentsStorage from "@ext/markdown/elements/comment/edit/logic/hooks/useCommentsStorage";
 import { useReviewStore } from "@ext/review/logic/store/ReviewStore";
 import { scrollToReviewItem } from "@ext/review/logic/utils/scrollToReviewItem";
-import type { Editor, JSONContent, Range } from "@tiptap/core";
+import type { Editor, Range } from "@tiptap/core";
+import { useEditorState } from "@tiptap/react";
 import { createContext, memo, useCallback, useEffect, useState } from "react";
 
 interface CommentEditorProviderProps {
 	editor: Editor;
 	children: JSX.Element;
-	onCommentSaved?: (id: string, content: JSONContent[]) => void;
+	onCommentSaved?: (id: string, comment: CommentBlock) => void;
 }
 
 export type CommentEditorEvents = Event<"delete", { id: string }> & Event<"update", { id: string }>;
@@ -28,6 +30,8 @@ const CommentEditorProvider = (props: CommentEditorProviderProps): JSX.Element =
 		pendingItem: s.pendingItem,
 		setPendingItem: s.setPendingItem,
 	}));
+
+	useCommentsStorage(editor);
 
 	useEffect(() => {
 		const eventEmmiter = createEventEmitter<CommentEditorEvents>();
@@ -47,28 +51,40 @@ const CommentEditorProvider = (props: CommentEditorProviderProps): JSX.Element =
 
 	const apiUrlCreator = ApiUrlCreator.value;
 
+	const openedCommentId = useEditorState({
+		editor,
+		selector: ({ editor }) => editor?.storage?.comment?.openedComment?.id ?? null,
+	});
+
 	const loadComment = useCallback(
 		async (id: string) => {
+			const cached = editor.storage.comment.comments.get(id);
+			if (cached) return cached;
+
 			const url = apiUrlCreator.getComment(id);
 			const res = await FetchService.fetch<CommentBlock>(url);
 			if (!res.ok) return;
 
 			const comment = await res.json();
+			if (comment) editor.storage.comment.comments.set(id, comment);
 			return comment;
 		},
-		[apiUrlCreator],
+		[editor],
 	);
 
 	const saveComment = useCallback(
 		(id: string, comment: CommentBlock) => {
+			editor.storage.comment.comments.set(id, comment);
+			editor.storage.comment.deleted.delete(id);
+
 			const url = apiUrlCreator.updateComment(id);
 			FetchService.fetch(url, JSON.stringify(comment)).then((res) => {
 				if (!res.ok) return;
 				events.emit("update", { id });
-				onCommentSaved?.(id, comment.comment.content);
+				onCommentSaved?.(id, comment);
 			});
 		},
-		[apiUrlCreator, events, onCommentSaved],
+		[editor, events, onCommentSaved],
 	);
 
 	const deleteComment = useCallback(
@@ -82,18 +98,16 @@ const CommentEditorProvider = (props: CommentEditorProviderProps): JSX.Element =
 	);
 
 	return (
-		<>
-			<CommentEditorEventsContext.Provider value={events}>
-				<CommentView
-					commentId={editor.storage?.comment?.openedComment?.id}
-					deleteComment={deleteComment}
-					editor={editor}
-					loadComment={loadComment}
-					saveComment={saveComment}
-				/>
-				{children}
-			</CommentEditorEventsContext.Provider>
-		</>
+		<CommentEditorEventsContext.Provider value={events}>
+			<CommentView
+				commentId={openedCommentId}
+				deleteComment={deleteComment}
+				editor={editor}
+				loadComment={loadComment}
+				saveComment={saveComment}
+			/>
+			{children}
+		</CommentEditorEventsContext.Provider>
 	);
 };
 

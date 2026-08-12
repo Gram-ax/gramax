@@ -3,7 +3,7 @@ import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { useCallback } from "react";
 
 export function useSortableCatalogs(
-	dataIds: () => string[],
+	// biome-ignore lint/suspicious/noConfusingVoidType: idc
 	setItems: (updater: (prev: string[]) => string[]) => void | ((items: string[]) => void),
 ) {
 	const sensors = useSensors(
@@ -14,14 +14,15 @@ export function useSortableCatalogs(
 	const handleDragEnd = useCallback(
 		({ active, over }: DragEndEvent) => {
 			if (active && over && active.id !== over.id) {
-				const ids = dataIds();
-				const oldIndex = ids.indexOf(active.id as string);
-				const newIndex = ids.indexOf(over.id as string);
-				setItems((data) => arrayMove(data, oldIndex, newIndex));
+				setItems((data) => {
+					const oldIndex = data.indexOf(active.id as string);
+					const newIndex = data.indexOf(over.id as string);
+					return arrayMove(data, oldIndex, newIndex);
+				});
 			}
 		},
 
-		[setItems, dataIds],
+		[setItems],
 	);
 
 	return { sensors, handleDragEnd };

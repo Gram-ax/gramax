@@ -15,14 +15,11 @@ export const ArticleRevisionTrigger = ({ itemLink }: { itemLink: ItemLink }) => 
 		return { filter: state.filter, setFilter: state.setFilter };
 	});
 
-	const toggleArticleFilter = useCallback(
+	const openArticleHistory = useCallback(
 		(article: RevisionArticleFilter) => {
 			const existing = filter?.articles?.find((a) => a.path === article.path);
-			const newArticles = existing
-				? filter?.articles?.filter((a) => a.path !== article.path)
-				: [...(filter?.articles || []), article];
 
-			setFilter({ ...filter, articles: newArticles.length ? newArticles : null });
+			if (!existing) setFilter({ ...filter, articles: [...(filter?.articles || []), article] });
 			NavigationTabsService.setBottom(LeftNavigationTab.CatalogRevisions);
 		},
 		[filter, setFilter],
@@ -31,7 +28,7 @@ export const ArticleRevisionTrigger = ({ itemLink }: { itemLink: ItemLink }) => 
 	return (
 		<DropdownMenuItem
 			onSelect={() =>
-				toggleArticleFilter({
+				openArticleHistory({
 					path: itemLink.ref.path.split("/").slice(1).join("/"),
 					name: itemLink.title,
 					pathname: itemLink.pathname,

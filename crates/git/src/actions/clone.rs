@@ -95,7 +95,9 @@ impl<C: ActualCreds> Clone<C> for Repo<'_, C> {
 			.follow_redirects(RemoteRedirect::All)
 			.prune(FetchPrune::On)
 			.download_tags(AutotagOption::All)
-			.add_credentials_headers(&creds);
+			.proxy_options(create_proxy_options());
+
+		fetch_opts.add_credentials_headers(&creds);
 
 		if let Some(depth) = depth {
 			fetch_opts.depth(depth);
@@ -180,6 +182,7 @@ impl<C: ActualCreds> Clone<C> for Repo<'_, C> {
 
 		repo.ensure_head_exists()?;
 		repo.ensure_crlf_configured()?;
+		repo.ensure_trash_ignored()?;
 
 		drop(lock_file);
 		drop(cancel_token);

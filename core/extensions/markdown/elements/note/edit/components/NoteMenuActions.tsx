@@ -1,6 +1,7 @@
 import Icon from "@components/Atoms/Icon";
 import ActionButton from "@components/controls/HoverController/ActionButton";
 import t from "@ext/localization/locale/translate";
+import getIconColor from "@ext/markdown/elements/note/edit/logic/getNoteButtonIconColor";
 import { NoteType, noteIcons } from "@ext/markdown/elements/note/render/component/Note";
 import type { Editor } from "@tiptap/core";
 import type { Node } from "@tiptap/pm/model";
@@ -11,73 +12,56 @@ import {
 	DropdownMenuRadioItem,
 	DropdownMenuTrigger,
 } from "@ui-kit/Dropdown";
-import type { RefObject } from "react";
 
 interface NoteMenuActionsProps {
 	editor: Editor;
 	node: Node;
 	getPos: () => number;
-	updateAttributes: (attributes: Record<string, any>, transaction?: boolean) => void;
-	setShowHeadEditor: (show: boolean) => void;
-	showHeadEditor: boolean;
-	titleRef: RefObject<HTMLInputElement>;
+	updateAttributes: (attributes: Record<string, unknown>, transaction?: boolean) => void;
 }
 
 const NoteMenuActions = (props: NoteMenuActionsProps) => {
-	const { editor, node, getPos, updateAttributes, setShowHeadEditor, showHeadEditor, titleRef } = props;
+	const { editor, node, getPos, updateAttributes } = props;
+	const hasTitle = node.firstChild?.type.name === "noteTitle";
 
 	const updateType = (type: NoteType) => {
 		updateAttributes({ type });
 	};
 
-	const toggleCollapse = () => {
-		const collapsed = !node.attrs.collapsed;
-		const curTitle = node.attrs.title;
-		const title = !curTitle ? t("more") : curTitle;
-		if (titleRef.current) titleRef.current.value = title || "";
-		updateAttributes({ collapsed, title: title || "" });
-		setShowHeadEditor(true);
+	const addTitle = (text = "") => {
+		const pos = getPos() + 1;
+		editor
+			.chain()
+			.insertContentAt(pos, { type: "noteTitle", content: text ? [{ type: "text", text }] : [] })
+			.focus(pos + 1, { scrollIntoView: false })
+			.run();
+	};
+
+	const removeTitle = () => {
+		const titleNode = node.firstChild;
+		if (titleNode?.type.name !== "noteTitle") return;
+		const from = getPos() + 1;
+		editor
+			.chain()
+			.deleteRange({ from, to: from + titleNode.nodeSize })
+			.focus(from, { scrollIntoView: false })
+			.run();
 	};
 
 	const toggleHeadEditor = () => {
-		const title = titleRef.current;
-		const hasDataBlur = title?.dataset.focus;
-		const bValue = !showHeadEditor && !hasDataBlur;
+		if (hasTitle) removeTitle();
+		else addTitle();
+	};
 
-		if (node.attrs.collapsed) {
-			const curTitle = node.attrs.title;
-			const newTitle = !curTitle ? t("more") : curTitle;
-
-			updateAttributes({ title: newTitle || "" });
-
-			if (title) title.value = newTitle || "";
-		} else if (!title?.value.length && hasDataBlur) {
-			updateAttributes({ title: "" });
-			setShowHeadEditor(false);
-		} else {
-			setShowHeadEditor(bValue);
-
-			if (bValue) {
-				title?.focus();
-			}
-		}
-
-		title?.removeAttribute("data-focus");
-
-		if (!bValue) {
-			updateAttributes({ title: "" });
-			editor.commands.focus(getPos() + 1);
-		}
+	const toggleCollapse = () => {
+		const collapsed = !node.attrs.collapsed;
+		updateAttributes({ collapsed });
+		if (collapsed && !hasTitle) addTitle(t("more"));
 	};
 
 	return (
 		<>
-			<ActionButton
-				icon="heading"
-				onClick={toggleHeadEditor}
-				selected={showHeadEditor}
-				tooltipText={t("title")}
-			/>
+			<ActionButton icon="heading" onClick={toggleHeadEditor} selected={hasTitle} tooltipText={t("title")} />
 			<DropdownMenu>
 				<DropdownMenuTrigger>
 					<ActionButton icon={noteIcons[node.attrs.type]} tooltipText={t("type")} />
@@ -89,16 +73,11 @@ const NoteMenuActions = (props: NoteMenuActionsProps) => {
 						value={node.attrs.type}
 					>
 						{Object.values(NoteType).map(
-							(value, key) =>
+							(value) =>
 								value !== NoteType.hotfixes && (
-									<DropdownMenuRadioItem key={key} value={value}>
-										<Icon
-											code={noteIcons[value]}
-											style={{ color: `var(--color-admonition-${value}-br-h)` }}
-										/>
-										<span style={{ color: `var(--color-admonition-${value}-br-h)` }}>
-											{t(`${value}-text`)}
-										</span>
+									<DropdownMenuRadioItem key={value} value={value}>
+										<Icon code={noteIcons[value]} style={{ color: getIconColor(value) }} />
+										<span>{t(`${value}-text`)}</span>
 									</DropdownMenuRadioItem>
 								),
 						)}

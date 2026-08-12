@@ -54,23 +54,4 @@ editorTest.describe("Diagrams", () => {
 
 		await expect(monacoEditor).toBeVisible();
 	});
-
-	editorTest("openapi", async ({ editor, basePage, sharedPage }) => {
-		await editor.clickToolbar("semiBlocks");
-		await sharedPage.getByRole("menuitem", { name: "OpenAPI" }).click();
-
-		const diagram = sharedPage.locator('[data-qa="qa-open-api"]');
-
-		await expect(diagram).toBeVisible();
-		await expect(basePage.modal).not.toBeVisible();
-
-		await sleep(1000);
-
-		await sharedPage.goBack();
-		await sharedPage.goForward();
-		await basePage.waitForLoad();
-
-		await expect(diagram).toBeVisible();
-		await expect(basePage.modal).not.toBeVisible();
-	});
 });

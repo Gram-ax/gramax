@@ -1,10 +1,6 @@
 import type { CheckAnswer, StoredAnswer } from "@ext/markdown/elements/answer/types";
 import type { QuestionType, QuizCorrect } from "@ext/markdown/elements/question/types";
 
-export type QuizSettings = {
-	enabled: boolean;
-};
-
 export type QuizAnswer = {
 	id: string;
 	test_id: number;

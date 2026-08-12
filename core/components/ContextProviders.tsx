@@ -11,7 +11,7 @@ import type ContextService from "@core-ui/ContextServices/ContextService";
 import GitIndexService from "@core-ui/ContextServices/GitIndexService";
 import IsFirstLoadService from "@core-ui/ContextServices/IsFirstLoadService";
 import IsMacService from "@core-ui/ContextServices/IsMac";
-import LanguageService from "@core-ui/ContextServices/Language";
+import { useMigrateLegacyUiLang } from "@core-ui/ContextServices/Language";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import pagePropsUpdateService from "@core-ui/ContextServices/PagePropsUpdate";
 import PlatformService from "@core-ui/ContextServices/PlatformService";
@@ -22,6 +22,7 @@ import SourceDataService from "@core-ui/ContextServices/SourceDataService";
 import GlobalSyncCountService from "@core-ui/ContextServices/SyncCount/GlobalSyncCount";
 import SyncableWorkspacesService from "@core-ui/ContextServices/SyncCount/SyncableWorkspaces";
 import SyncIconService from "@core-ui/ContextServices/SyncIconService";
+import ViewportIntersectionService from "@core-ui/ContextServices/ViewportIntersection";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
 import LeftNavViewContentService from "@core-ui/ContextServices/views/leftNavView/LeftNavViewContentService";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
@@ -31,25 +32,30 @@ import useTauriExternalLinkInterceptor from "@core-ui/hooks/useTauriExternalLink
 import matomoMetric from "@core-ui/matomoMetric";
 import { ArticlePropsStoreProvider } from "@core-ui/stores/ArticlePropsStore/ArticlePropsStore.provider";
 import { CatalogStoreProvider } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
+import { DiffStoreProvider } from "@core-ui/stores/DiffStore/DiffStore.provider";
+import { ItemLinksStoreProvider } from "@core-ui/stores/ItemLinksStore/ItemLinksStore.provider";
 import useIsFirstLoad from "@core-ui/useIsFirstLoad";
 import { initRefresh } from "@core-ui/utils/initGlobalFuncs";
 import yandexMetric, { yandexHit as yandexMetricHit } from "@core-ui/yandexMetric";
+import AgentChatService from "@ext/agent/components/AgentChatService";
+import AgentSkillService from "@ext/agent/components/skills/AgentSkillService";
 import AudioRecorderService from "@ext/ai/components/Audio/AudioRecorderService";
 import PromptServiceProvider from "@ext/ai/components/Tab/PromptService";
 import FavoriteService from "@ext/article/Favorite/components/FavoriteService";
 import { GesCloudOrganizationStoreProvider } from "@ext/enterprise-cloud/ui-logic/stores/GesCloudOrganizationStore/GesCloudOrganizationStore.provider";
 import PublishChangesProvider from "@ext/git/core/GitPublish/PublishChangesProvider";
 import InboxService from "@ext/inbox/components/InboxService";
-import UiLanguage from "@ext/localization/core/model/Language";
 import { CommentsCounterProvider } from "@ext/markdown/elements/comment/edit/logic/stores/CommentsStore";
 import FragmentService from "@ext/markdown/elements/fragment/edit/components/Tab/FragmentService";
 import { QuestionsProvider } from "@ext/markdown/elements/question/render/logic/QuestionsProvider";
 import PropertyService from "@ext/properties/components/PropertyService";
 import permissionService from "@ext/security/logic/Permission/components/PermissionService";
+import { useHydrateSettings } from "@ext/settings/logic/hooks";
 import TemplateService from "@ext/templates/components/TemplateService";
+import { feature } from "@ext/toggleFeatures/features";
+import { useClientWorkspacePlugins } from "@plugins/bootstrap/useClientWorkspacePlugins";
 import { TooltipProvider } from "@ui-kit/Tooltip";
 import { useEffect } from "react";
-import ThemeService from "../extensions/Theme/components/ThemeService";
 import IsOpenModalService from "../ui-logic/ContextServices/IsOpenMpdal";
 import IsMobileService from "../ui-logic/ContextServices/isMobileService";
 import ModalToOpenService from "../ui-logic/ContextServices/ModalToOpenService/ModalToOpenService";
@@ -59,7 +65,6 @@ const appServices: ContextService[] = [
 	IsMobileService,
 	permissionService,
 	ApiUrlCreatorService,
-	LanguageService,
 	PageDataContextService,
 	IsMacService,
 	WorkspaceService,
@@ -93,14 +98,15 @@ export default function ContextProviders({
 	const isArticlePage = pageProps?.page === "article";
 	const [isFirstLoad, resetIsFirstLoad] = useIsFirstLoad();
 
-	if (!pageProps || !pageProps.context) return children;
+	useHydrateSettings(pageProps);
+	useMigrateLegacyUiLang();
+	// Tauri and static-export platforms load plugins through a different path; only the browser SPA needs this hook.
+	useClientWorkspacePlugins({ pageProps, platform });
+
+	if (!pageProps?.context) return children;
 
 	if (isArticlePage && !pageProps.context.language.content)
 		pageProps.context.language.content = pageProps.data.catalogProps.language;
-	if (pageProps.context.conf.forceUiLangSync) {
-		const uiLanguageByContentLanguage = UiLanguage[pageProps.context.language.content];
-		if (uiLanguageByContentLanguage) pageProps.context.language.ui = uiLanguageByContentLanguage;
-	}
 
 	const isProduction = pageProps.context.conf.isProduction;
 	const metrics = pageProps.context.conf.metrics;
@@ -119,97 +125,106 @@ export default function ContextProviders({
 	initRefresh(refreshPage, clearData);
 	return (
 		<PlatformService.Provider value={platform}>
-			<ThemeService.Provider value={pageProps.context.theme}>
-				<TooltipProvider>
-					{Inits.reduceRight(
-						(children, Provider) => {
-							return (
-								<Provider key={Provider.name} pageProps={pageProps}>
-									{children}
-								</Provider>
-							);
-						},
-						<SidebarsIsPinService.Provider>
-							<>
-								{isArticlePage ? (
-									<NavigationTabInit>
+			<TooltipProvider>
+				{Inits.reduceRight(
+					(children, Provider) => {
+						return (
+							<Provider key={Provider.name} pageProps={pageProps}>
+								{children}
+							</Provider>
+						);
+					},
+					<SidebarsIsPinService.Provider>
+						<>
+							{isArticlePage ? (
+								<NavigationTabInit>
+									<CatalogStoreProvider data={pageProps.data.catalogProps}>
 										<GitIndexService.Provider>
-											<CatalogStoreProvider data={pageProps.data.catalogProps}>
-												<ArticlePropsStoreProvider data={pageProps.data.articleProps}>
-													<QuestionsProvider
-														path={pageProps.data.articleProps.ref.path}
-														questions={pageProps.data.articleProps.questions}
-													>
-														<ArticleRefService.Provider>
-															<ResourceService.Provider>
-																<CloudStateService.Init
-																	value={{
-																		cloudServiceUrl:
-																			pageProps.context.conf.cloudServiceUrl,
-																		catalogName: pageProps.data.catalogProps.name,
-																	}}
-																>
-																	<CatalogLogoService.Init>
-																		<PromptServiceProvider>
-																			<InboxService.Provider>
-																				<PropertyService.Provider>
-																					<TemplateService.Init>
-																						<FragmentService.Init>
-																							<ModalToOpenService.Provider>
-																								<ArticleTooltipService.Provider>
-																									<IsFirstLoadService.Provider
-																										resetIsFirstLoad={
-																											resetIsFirstLoad
-																										}
-																										value={
-																											isFirstLoad
-																										}
-																									>
-																										<OnUpdateAppFuncs>
-																											<ViewContextProvider>
-																												<CommentsCounterProvider>
-																													{
-																														children
+											<DiffStoreProvider diff={pageProps.data.diff}>
+												<ItemLinksStoreProvider itemLinks={pageProps.data.itemLinks ?? []}>
+													<ArticlePropsStoreProvider data={pageProps.data.articleProps}>
+														{feature("agent-chat") && <AgentChatService.Init />}
+														<QuestionsProvider
+															path={pageProps.data.articleProps.ref.path}
+															questions={pageProps.data.articleProps.questions}
+														>
+															<ArticleRefService.Provider>
+																<ViewportIntersectionService.Provider>
+																	<ResourceService.Provider>
+																		<CloudStateService.Init
+																			value={{
+																				cloudServiceUrl:
+																					pageProps.context.conf
+																						.cloudServiceUrl,
+																				catalogName:
+																					pageProps.data.catalogProps.name,
+																			}}
+																		>
+																			<CatalogLogoService.Init>
+																				<PromptServiceProvider>
+																					<InboxService.Provider>
+																						<PropertyService.Provider>
+																							<TemplateService.Init>
+																								<FragmentService.Init>
+																									<AgentSkillService.Init>
+																										<ModalToOpenService.Provider>
+																											<ArticleTooltipService.Provider>
+																												<IsFirstLoadService.Provider
+																													resetIsFirstLoad={
+																														resetIsFirstLoad
 																													}
-																												</CommentsCounterProvider>
-																											</ViewContextProvider>
-																										</OnUpdateAppFuncs>
-																									</IsFirstLoadService.Provider>
-																								</ArticleTooltipService.Provider>
-																							</ModalToOpenService.Provider>
-																						</FragmentService.Init>
-																					</TemplateService.Init>
-																				</PropertyService.Provider>
-																			</InboxService.Provider>
-																		</PromptServiceProvider>
-																	</CatalogLogoService.Init>
-																</CloudStateService.Init>
-															</ResourceService.Provider>
-														</ArticleRefService.Provider>
-													</QuestionsProvider>
-												</ArticlePropsStoreProvider>
-											</CatalogStoreProvider>
+																													value={
+																														isFirstLoad
+																													}
+																												>
+																													<OnUpdateAppFuncs>
+																														<ViewContextProvider>
+																															<CommentsCounterProvider>
+																																{
+																																	children
+																																}
+																															</CommentsCounterProvider>
+																														</ViewContextProvider>
+																													</OnUpdateAppFuncs>
+																												</IsFirstLoadService.Provider>
+																											</ArticleTooltipService.Provider>
+																										</ModalToOpenService.Provider>
+																									</AgentSkillService.Init>
+																								</FragmentService.Init>
+																							</TemplateService.Init>
+																						</PropertyService.Provider>
+																					</InboxService.Provider>
+																				</PromptServiceProvider>
+																			</CatalogLogoService.Init>
+																		</CloudStateService.Init>
+																	</ResourceService.Provider>
+																</ViewportIntersectionService.Provider>
+															</ArticleRefService.Provider>
+														</QuestionsProvider>
+													</ArticlePropsStoreProvider>
+												</ItemLinksStoreProvider>
+											</DiffStoreProvider>
 										</GitIndexService.Provider>
-									</NavigationTabInit>
-								) : (
-									<GesCloudOrganizationStoreProvider
-										gesCloudUrl={pageProps.context.conf.enterpriseCloud?.url}
-									>
-										<ModalToOpenService.Provider>
-											<IsFirstLoadService.Provider
-												resetIsFirstLoad={resetIsFirstLoad}
-												value={isFirstLoad}
-											>
-												<OnUpdateAppFuncs>{children}</OnUpdateAppFuncs>
-											</IsFirstLoadService.Provider>
-										</ModalToOpenService.Provider>
-									</GesCloudOrganizationStoreProvider>
-								)}
-							</>
-						</SidebarsIsPinService.Provider>,
-					)}
-				</TooltipProvider>
-			</ThemeService.Provider>
+									</CatalogStoreProvider>
+								</NavigationTabInit>
+							) : (
+								<GesCloudOrganizationStoreProvider
+									gesCloudUrl={pageProps.context.conf.enterpriseCloud?.url}
+								>
+									<ModalToOpenService.Provider>
+										<IsFirstLoadService.Provider
+											resetIsFirstLoad={resetIsFirstLoad}
+											value={isFirstLoad}
+										>
+											<OnUpdateAppFuncs>{children}</OnUpdateAppFuncs>
+										</IsFirstLoadService.Provider>
+									</ModalToOpenService.Provider>
+								</GesCloudOrganizationStoreProvider>
+							)}
+						</>
+					</SidebarsIsPinService.Provider>,
+				)}
+			</TooltipProvider>
 		</PlatformService.Provider>
 	);
 }

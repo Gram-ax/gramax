@@ -1,6 +1,7 @@
 import { isTauriMobile } from "@app/resolveModule/env";
-import LanguageService from "@core-ui/ContextServices/Language";
-import UiLanguage from "@ext/localization/core/model/Language";
+import { setOnLanguageChangeCallback } from "@core-ui/ContextServices/Language";
+import UiLanguage, { resolveLanguage } from "@ext/localization/core/model/Language";
+import { cachedSettingsStore, getCachedSetting } from "@ext/settings/logic/cachedSettingsStore";
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import TauriCookie from "./cookie/TauriCookie";
@@ -15,6 +16,7 @@ const initSettings = async () => {
 };
 
 const subscribeEvents = async () => {
+	const setLanguage = (lang: UiLanguage) => cachedSettingsStore.getState().set("general.language", lang);
 	initSpellcheck();
 	await attachConsole();
 	TauriCookie.onCookieUpdated(
@@ -27,9 +29,7 @@ const subscribeEvents = async () => {
 
 	await Promise.all([
 		initZoom(current),
-		current.listen("on_language_changed", (ev) =>
-			LanguageService.setUiLanguage(UiLanguage[ev.payload as string], true),
-		),
+		current.listen("on_language_changed", (ev) => setLanguage(UiLanguage[ev.payload as string])),
 		current.listen("on_toggle_spellcheck", toggleSpellcheck),
 		current.listen("reload", () => location.reload()),
 		current.listen("refresh", () => void refreshPage()),
@@ -41,8 +41,10 @@ const subscribeEvents = async () => {
 	]);
 
 	if (!isTauriMobile()) {
-		LanguageService.onLanguageChanged((language) => void invoke("set_language", { language }));
-		await invoke("set_language", { language: LanguageService.currentUi() });
+		setOnLanguageChangeCallback((language) => void invoke("set_language", { language }));
+		// Boot-time call is what builds the per-window top menu on Windows (macOS/Linux set
+		// the app menu in Rust at startup); dropping it in !3194 made the menu disappear.
+		await invoke("set_language", { language: resolveLanguage(getCachedSetting("general.language")) });
 	}
 };
 

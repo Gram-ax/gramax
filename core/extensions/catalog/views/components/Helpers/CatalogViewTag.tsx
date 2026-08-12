@@ -1,6 +1,6 @@
 import { Tag } from "@ui-kit/Tag";
 import { TextOverflowTooltip } from "@ui-kit/Tooltip";
-import type { ExtractComponentGeneric } from "core/ui-kit/lib/extractComponentGeneric";
+import type { ExtractComponentGeneric } from "../../../../../ui-kit/lib/extractComponentGeneric";
 
 type CatalogViewTagProps = Omit<
 	ExtractComponentGeneric<typeof Tag>,

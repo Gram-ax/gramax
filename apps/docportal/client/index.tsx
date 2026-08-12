@@ -1,4 +1,5 @@
 import "./logic/polyfills";
+import "../../../core/ui-kit/index.css";
 import "../../../core/styles/main.css";
 import "../../../core/styles/chain-icon.css";
 import type { PageProps } from "@components/Pages/models/Pages";

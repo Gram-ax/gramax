@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/complexity/noStaticOnlyClass: expected*/
 import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
@@ -32,6 +33,7 @@ abstract class InboxService {
 		SetItems = setItems;
 		SetSelectedIds = setSelectedIds;
 
+		// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 		useEffect(() => {
 			if (typeof document === "undefined") return;
 			if (tooltipManager.current !== null) tooltipManager.current.destroyAll();

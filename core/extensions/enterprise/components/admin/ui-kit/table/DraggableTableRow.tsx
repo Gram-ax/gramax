@@ -1,8 +1,23 @@
-import { useSortable } from "@dnd-kit/sortable";
+import type { useSortable } from "@dnd-kit/sortable";
+import { useSortable as useSortableHook } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type { Row } from "@ui-kit/DataTable";
 import { TableRow } from "@ui-kit/Table";
-import type { CSSProperties } from "react";
+import { type CSSProperties, createContext, useContext } from "react";
+
+type SortableReturn = ReturnType<typeof useSortable>;
+
+interface DragHandleContextValue {
+	attributes: SortableReturn["attributes"];
+	listeners: SortableReturn["listeners"];
+	setActivatorNodeRef: SortableReturn["setActivatorNodeRef"];
+}
+
+const DragHandleContext = createContext<DragHandleContextValue | null>(null);
+
+export const DragHandleProvider = DragHandleContext.Provider;
+
+export const useDragHandle = () => useContext(DragHandleContext);
 
 export function DraggableTableRow<T>({
 	row,
@@ -15,7 +30,7 @@ export function DraggableTableRow<T>({
 	state?: string | false;
 	rowKey: keyof T;
 }) {
-	const { transform, setNodeRef, isDragging } = useSortable({
+	const { attributes, listeners, transform, setNodeRef, setActivatorNodeRef, isDragging } = useSortableHook({
 		id: row.original[rowKey] as string,
 	});
 
@@ -27,8 +42,10 @@ export function DraggableTableRow<T>({
 	};
 
 	return (
-		<TableRow data-state={state} ref={setNodeRef} style={style}>
-			{children}
-		</TableRow>
+		<DragHandleProvider value={{ attributes, listeners, setActivatorNodeRef }}>
+			<TableRow data-state={state} ref={setNodeRef} style={style}>
+				{children}
+			</TableRow>
+		</DragHandleProvider>
 	);
 }

@@ -32,6 +32,13 @@ export const defaultLanguage = UiLanguage.en;
 
 export const overriddenLanguage = UiLanguage[env("DEFAULT_UI_LANGUAGE") as keyof typeof UiLanguage];
 
+export const browserLanguage = (): UiLanguage | undefined => {
+	if (typeof navigator === "undefined") return undefined;
+	return UiLanguage[navigator.language?.split("-")[0] as keyof typeof UiLanguage];
+};
+
+export const resolveDefaultLanguage = (): UiLanguage => overriddenLanguage || browserLanguage() || defaultLanguage;
+
 export const resolveLanguage = (current?: UiLanguage): UiLanguage => current || overriddenLanguage || defaultLanguage;
 
 export default UiLanguage;

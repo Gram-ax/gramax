@@ -217,9 +217,32 @@ catalogTest.describe("Multi-root left tree state", () => {
 		await expect(sharedPage.getByTitle("Child One", { exact: true })).not.toBeVisible();
 	});
 
+	catalogTest("explicit collapse overrides keep roots collapsed on load", async ({ catalogPage, sharedPage }) => {
+		await sharedPage.evaluate(
+			({ msc, ft }) => {
+				localStorage.setItem(
+					"nav-tree-state",
+					JSON.stringify({
+						state: { catalogs: { "multi-root": { [msc]: false, [ft]: false } } },
+						version: 1,
+					}),
+				);
+			},
+			{ msc: MUST_STAY_CLOSED_PATH, ft: FOR_TESTING_PATH },
+		);
+
+		await sharedPage.goto("/multi-root");
+		await catalogPage.waitForLoad();
+
+		await expect(sharedPage.getByTitle("Must Stay Closed", { exact: true })).toBeVisible();
+		await expect(sharedPage.getByTitle("For Testing", { exact: true })).toBeVisible();
+		await expect(sharedPage.getByTitle("Child One", { exact: true })).not.toBeVisible();
+		await expect(sharedPage.getByTitle("For Testing Leaf", { exact: true })).not.toBeVisible();
+	});
+
 	catalogTest(
-		"empty saved state ([]) is honored: roots stay collapsed on load",
-		async ({ catalogPage, sharedPage }) => {
+		"legacy v0 saved state is discarded on load (defaults apply, old collapse forgotten)",
+		async ({ sharedPage, catalogPage }) => {
 			await sharedPage.evaluate(() => {
 				localStorage.setItem(
 					"nav-tree-state",
@@ -230,9 +253,11 @@ catalogTest.describe("Multi-root left tree state", () => {
 			await sharedPage.goto("/multi-root");
 			await catalogPage.waitForLoad();
 
-			await expect(sharedPage.getByTitle("Must Stay Closed", { exact: true })).toBeVisible();
-			await expect(sharedPage.getByTitle("Child One", { exact: true })).not.toBeVisible();
-			await expect(sharedPage.getByTitle("For Testing Leaf", { exact: true })).not.toBeVisible();
+			await expect(sharedPage.getByTitle("Child One", { exact: true })).toBeVisible();
+			await expect(sharedPage.getByTitle("Child Two", { exact: true })).toBeVisible();
+
+			const raw = await sharedPage.evaluate(() => window.localStorage.getItem("nav-tree-state"));
+			expect(raw).not.toContain('"multi-root":[');
 		},
 	);
 

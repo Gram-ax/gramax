@@ -17,7 +17,7 @@ const getContent: Command<{ ctx: Context; catalogName: string; articlePath: Path
 		const catalog = await this._app.wm.current().getCatalog(catalogName, ctx);
 		const article = catalog.findItemByItemPath<Article>(articlePath);
 		if (!article) return;
-		return article.content;
+		return article.getContent();
 	},
 
 	params(ctx, q) {

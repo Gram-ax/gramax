@@ -1,107 +1,46 @@
 import FetchService from "@core-ui/ApiServices/FetchService";
+import Method from "@core-ui/ApiServices/Types/Method";
+import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreator from "@core-ui/ContextServices/ApiUrlCreator";
+import { useAiCheck } from "@ext/ai/hooks/useAiCheck";
 import type { AiServerConfig } from "@ext/ai/models/types";
-import { type MutableRefObject, useCallback, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 
-const debounce = <T>(
-	callback: () => Promise<T>,
-	timeout: number,
-	timeoutRef: MutableRefObject<NodeJS.Timeout>,
-): Promise<T> => {
-	return new Promise((resolve) => {
-		if (timeoutRef.current) {
-			clearTimeout(timeoutRef.current);
-		}
-
-		timeoutRef.current = setTimeout(() => {
-			void (async () => {
-				try {
-					const result = await callback();
-					resolve(result);
-				} catch (error) {
-					resolve(false as T);
-				}
-			})();
-		}, timeout);
-	});
-};
-
+// AI persistence at the workspace level is funneled through /api/settings/update
+// (universal settings pipeline). The backend dispatches the `services.ai.*` slice
+// to the per-user cookie-backed AiDataProvider, leaving other workspace keys to
+// the YAML store. Read path stays on /api/ai/server/getData because the cookie
+// is request-scoped and isn't in the hydrated settings cache.
 export const useWorkspaceAi = (workspacePath: string) => {
 	const apiUrlCreator = ApiUrlCreator.value;
-	const serverTimeout = useRef<NodeJS.Timeout>();
-	const tokenTimeout = useRef<NodeJS.Timeout>();
-
-	const [isChecking, setIsChecking] = useState(false);
 	const [isSaving, setIsSaving] = useState(false);
+	const { checkServer, checkToken, isChecking } = useAiCheck();
 
-	const saveData = useCallback(
-		async (config: AiServerConfig) => {
-			try {
-				setIsSaving(true);
-				const url = apiUrlCreator.setAiData(workspacePath);
-				await FetchService.fetch(url, JSON.stringify(config));
-			} finally {
-				setIsSaving(false);
-			}
-		},
-		[workspacePath, apiUrlCreator],
-	);
+	const saveData = useCallback(async (config: AiServerConfig) => {
+		try {
+			setIsSaving(true);
+			const url = apiUrlCreator.getUpdateSettingURL("workspace");
+			await FetchService.fetch(
+				url,
+				JSON.stringify({
+					"services.ai.endpoint": config.apiUrl ?? "",
+					"services.ai.token": config.token ?? "",
+				}),
+				MimeTypes.json,
+				Method.POST,
+			);
+		} finally {
+			setIsSaving(false);
+		}
+	}, []);
 
 	const getData = useCallback(async () => {
 		const url = apiUrlCreator.getAiData(workspacePath);
 		const res = await FetchService.fetch(url);
 		if (!res.ok) return;
-
 		const data = await res.json();
 		return { aiApiUrl: data.apiUrl, aiToken: data.token };
-	}, [workspacePath, apiUrlCreator]);
+	}, [workspacePath]);
 
-	const checkToken = useCallback(
-		async (apiUrl: string, token: string): Promise<boolean> => {
-			setIsChecking(true);
-			return debounce<boolean>(
-				async () => {
-					try {
-						const url = apiUrlCreator.checkAiAuth(apiUrl);
-						const res = await FetchService.fetch(url, JSON.stringify({ token }));
-						return await res.json();
-					} finally {
-						setIsChecking(false);
-					}
-				},
-				500,
-				tokenTimeout,
-			);
-		},
-		[apiUrlCreator],
-	);
-
-	const checkServer = useCallback(
-		async (apiUrl: string): Promise<boolean> => {
-			setIsChecking(true);
-			return debounce<boolean>(
-				async () => {
-					try {
-						const url = apiUrlCreator.checkAiServer(apiUrl);
-						const res = await FetchService.fetch(url, undefined, undefined, undefined, false);
-						return await res.json();
-					} finally {
-						setIsChecking(false);
-					}
-				},
-				500,
-				serverTimeout,
-			);
-		},
-		[apiUrlCreator],
-	);
-
-	return {
-		checkServer,
-		saveData,
-		getData,
-		checkToken,
-		isChecking,
-		isSaving,
-	};
+	return { checkServer, saveData, getData, checkToken, isChecking, isSaving };
 };

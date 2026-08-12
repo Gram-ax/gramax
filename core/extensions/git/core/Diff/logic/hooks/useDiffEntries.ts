@@ -71,9 +71,10 @@ export const useDiffEntries = () => {
 		const handler = async () => {
 			let mr = BranchUpdaterService.branch?.mergeRequest;
 			if (!mr) {
+				// A corrupt/partial repo makes getDraft throw — degrade to "no draft" silently.
 				const url = apiUrlCreatorRef.current.getDraftMergeRequest();
-				const res = await FetchService.fetch(url);
-				mr = await res.json();
+				const res = await FetchService.fetch(url, undefined, undefined, undefined, false);
+				mr = res.ok ? await res.json() : null;
 			}
 			if (!mr) return;
 			mergeRequest.current = mr;

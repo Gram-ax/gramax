@@ -21,7 +21,7 @@ build-desktop-web:
     KUBERNETES_MEMORY_REQUEST: '8Gi'
     KUBERNETES_CPU_REQUEST: '1.5'
     KUBERNETES_CPU_LIMIT: '2'
-    NODE_OPTIONS: '--max-old-space-size=6144'
+    NODE_OPTIONS: '--max-old-space-size=8192'
   before_script:
     - !reference [.template.github-ssh-key, before_script]
   script:

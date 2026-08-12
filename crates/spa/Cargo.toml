@@ -23,6 +23,7 @@ elasticsearch = { version = "9.0.0-alpha.1", default-features = false, features 
 ] }
 nanoid = { workspace = true }
 prometheus-client = "0.24.0"
+quick-xml = "0.41.0"
 rayon = "1.11.0"
 reqwest = { version = "0.12.11", default-features = false, features = [
   "json",

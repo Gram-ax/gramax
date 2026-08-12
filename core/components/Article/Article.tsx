@@ -1,13 +1,12 @@
 import { ArticleComponent } from "@components/Article/ArticleComponent";
 import type {
+	ArticleDiffData,
 	ArticlePageData,
-	DiffArticlePageData,
 	EditArticlePageData,
 	MarkdownArticlePageData,
 	ReadonlyArticlePageData,
 } from "@core/SitePresenter/types/ArticlePage";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
-import useArticleScrollPosition from "@core-ui/hooks/useArticleScrollPosition";
 import { useCtrlKeyLinkHandler } from "@core-ui/hooks/useCtrlKeyLinkHandler";
 import useScrollToArticleAnchor from "@core-ui/hooks/useScrollToArticleAnchor";
 import { useAutoFocusArticle } from "@ext/article/hooks/useAutoFocusArticle";
@@ -16,7 +15,7 @@ type ArticlePageDataMap = {
 	edit: EditArticlePageData;
 	read: ReadonlyArticlePageData;
 	markdown: MarkdownArticlePageData;
-	diff: DiffArticlePageData;
+	diff: ArticleDiffData;
 };
 
 export interface ArticleComponentProps<T extends ArticlePageData["mode"]> {
@@ -29,7 +28,6 @@ const Article = ({ data }: { data: ArticlePageData }) => {
 
 	useCtrlKeyLinkHandler(); // For opening links in tauri
 	useAutoFocusArticle();
-	useArticleScrollPosition(data);
 	useScrollToArticleAnchor(data);
 
 	if (!pageDataContext.isArticle) return null;

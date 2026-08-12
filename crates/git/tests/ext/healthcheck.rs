@@ -25,6 +25,24 @@ fn healthcheck_clean_repository(_sandbox: TempDir, #[with(&_sandbox)] repo: Repo
 }
 
 #[rstest]
+fn healthcheck_removes_index_lock(_sandbox: TempDir, #[with(&_sandbox)] repo: Repo<TestCreds>) -> Result {
+	let file_name = "test_file.txt";
+
+	fs::write(_sandbox.path().join(file_name), "initial content")?;
+	repo.add(file_name)?;
+	repo.commit_debug()?;
+
+	let lock_path = repo.repo().path().join("index.lock");
+	fs::write(&lock_path, "")?;
+
+	gramaxgit::commands::healthcheck(_sandbox.path()).unwrap();
+
+	assert!(!lock_path.exists(), "healthcheck should remove a leftover index.lock");
+
+	Ok(())
+}
+
+#[rstest]
 fn healthcheck_missing_blob(_sandbox: TempDir, #[with(&_sandbox)] mut repo: Repo<TestCreds>) -> Result {
 	let file_name = "test_file.txt";
 

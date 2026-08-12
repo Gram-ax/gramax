@@ -1,7 +1,6 @@
-import { StyleGuideComponentTestButton } from "@ext/enterprise/components/admin/settings/styleGuide/components/buttons/StyleGuideComponentTestButton";
+import { StyleGuideRuleTestButton } from "@ext/enterprise/components/admin/settings/styleGuide/components/buttons/StyleGuideComponentTestButton";
 import { StyleGuideLgtEditor } from "@ext/enterprise/components/admin/settings/styleGuide/components/ruleEditor/StyleGuideLgtEditor";
 import { StyleGuideLlmEditor } from "@ext/enterprise/components/admin/settings/styleGuide/components/ruleEditor/StyleGuideLLmEditor";
-import { StyleGuideConfirmationDialog } from "@ext/enterprise/components/admin/settings/styleGuide/components/table/StyleGuideConfirmationDialog";
 import { StyleGuideRulesTable } from "@ext/enterprise/components/admin/settings/styleGuide/components/table/StyleGuideRulesTable";
 import {
 	useStyleGuideData,
@@ -15,9 +14,11 @@ import {
 	type StyleGuideRuleProvider,
 } from "@ext/enterprise/components/admin/settings/styleGuide/helpers/StyleGuideRuleAdapter";
 import { generateGuid } from "@ext/enterprise/components/admin/settings/styleGuide/utils/generateGuid";
+import { CloseConfirmationDialog } from "@ext/enterprise/components/admin/ui-kit/CloseConfirmationDialog";
+import { SaveButton } from "@ext/enterprise/components/admin/ui-kit/SaveButton";
 import { SheetComponent } from "@ext/enterprise/components/admin/ui-kit/SheetComponent";
 import t from "@ext/localization/locale/translate";
-import { Button, IconButton, LoadingButtonTemplate } from "@ui-kit/Button";
+import { IconButton } from "@ui-kit/Button";
 import { useCallback, useMemo, useRef, useState } from "react";
 import type { LgtRule, LlmRule } from "../../types";
 
@@ -209,7 +210,6 @@ export function StyleGuideRules() {
 						/>
 					))
 				}
-				showCloseButton={false}
 				title={
 					editingRule && (
 						<div className="flex items-center justify-between">
@@ -218,39 +218,30 @@ export function StyleGuideRules() {
 								{t("enterprise.admin.check.rule-title")}
 							</div>
 							<div className="flex items-center gap-2">
-								<StyleGuideComponentTestButton
+								<StyleGuideRuleTestButton
 									isUiLocked={isAnyTestRunning || !hasValidTests()}
 									rule={editingDraftRule ?? editingRule}
 								/>
-								{isSaving ? (
-									<LoadingButtonTemplate text={t("save2")} />
-								) : (
-									<Button
-										disabled={!hasUnsavedChanges || isSaving}
-										form="styleguide-form"
-										onClick={() => {
-											shouldCloseAfterSaveRef.current = false;
-										}}
-										type="submit"
-									>
-										{t("save")}
-									</Button>
-								)}
+								<SaveButton
+									disabled={!hasUnsavedChanges || isSaving}
+									form="styleguide-form"
+									isSaving={isSaving}
+									onClick={() => {
+										shouldCloseAfterSaveRef.current = false;
+									}}
+									type="submit"
+								/>
 							</div>
 						</div>
 					)
 				}
 			/>
 
-			<StyleGuideConfirmationDialog
-				formId="styleguide-form"
-				handleDiscard={handleDiscard}
+			<CloseConfirmationDialog
 				isOpen={showUnsavedDialog}
 				onClose={closeRuleDialog}
+				onDiscard={handleDiscard}
 				onOpenChange={setShowUnsavedDialog}
-				onSave={() => {
-					shouldCloseAfterSaveRef.current = true;
-				}}
 			/>
 		</div>
 	);

@@ -3,10 +3,10 @@ import asyncUtils from "@core/utils/asyncUtils";
 import { svgToBase64 } from "@core/utils/CustomLogoDriver";
 import EnterpriseApi from "@ext/enterprise/EnterpriseApi";
 import type { EnterpriseWorkspaceConfig } from "@ext/enterprise/types/UserSettings";
-import { calcPluginsHash } from "@ext/enterprise/utils/calcPluginsHash";
 import { calcTemplatesHash } from "@ext/enterprise/utils/calcTemplatesHash";
 import Theme from "@ext/Theme/Theme";
 import type { TemplateAsset } from "@ext/workspace/assets/TemplateAsset";
+import { calcPluginsHash } from "@plugins/core/calcPluginsHash";
 import { Workspace } from "../workspace/Workspace";
 
 export class EnterpriseWorkspace extends Workspace {
@@ -23,6 +23,12 @@ export class EnterpriseWorkspace extends Workspace {
 	}
 
 	private async _updateConfig(forceUpdate = false) {
+		if (this._config.get("enterprise")?.lfs) {
+			this._config.set("git", {
+				lfs: this._config.get("git")?.lfs,
+			});
+		}
+
 		if (!forceUpdate) {
 			const timeDiff = Date.now() - this._updateInterval;
 			if (Number(this._config.get("enterprise")?.lastUpdateDate) > timeDiff) return;
@@ -53,10 +59,10 @@ export class EnterpriseWorkspace extends Workspace {
 		const pdfTemplates = [];
 		const pdfTemplatesFileNames = await this._assets.pdfTemplates.list();
 		for (const fileName of pdfTemplatesFileNames) {
-			const bufferBase64 = await this._assets.pdfTemplates.getContentAsString(fileName);
+			const buffer = await this._assets.pdfTemplates.getContent(fileName);
 			pdfTemplates.push({
 				title: fileName,
-				bufferBase64: bufferBase64 ?? "",
+				bufferBase64: buffer?.toString("base64") ?? "",
 			});
 		}
 		const plugins = await this._assets.plugins.getAll();
@@ -73,7 +79,7 @@ export class EnterpriseWorkspace extends Workspace {
 				logoDark,
 			},
 			modules: this._config.get("enterprise")?.modules,
-			lfs: this._config.get("enterprise")?.lfs,
+			lfs: this._config.get("git")?.lfs ?? this._config.get("enterprise")?.lfs,
 		});
 		baseHasher.hash(calcTemplatesHash(wordTemplates));
 		baseHasher.hash(calcTemplatesHash(pdfTemplates));
@@ -95,6 +101,7 @@ export class EnterpriseWorkspace extends Workspace {
 			return;
 		}
 		if (!config) return;
+
 		this._config.set("name", config.name);
 		this._config.set("icon", config.icon);
 		this._config.set("sections", config.sections || config.groups);
@@ -102,8 +109,8 @@ export class EnterpriseWorkspace extends Workspace {
 		this._config.set("enterprise", {
 			...this._config.get("enterprise"),
 			modules: config.modules,
-			lfs: config.lfs,
 		});
+		if (config.git) this._config.set("git", config.git);
 		if (config.services) this._config.set("services", config.services);
 		this._config.set("webEditorUrl", config.webEditorUrl);
 
@@ -127,7 +134,7 @@ export class EnterpriseWorkspace extends Workspace {
 
 	private async _updateTemplates(config: EnterpriseWorkspaceConfig) {
 		await this._updateTemplatesOfType(config.wordTemplates ?? [], this._assets.wordTemplates, "base64");
-		await this._updateTemplatesOfType(config.pdfTemplates ?? [], this._assets.pdfTemplates, "utf-8");
+		await this._updateTemplatesOfType(config.pdfTemplates ?? [], this._assets.pdfTemplates, "base64");
 	}
 
 	private async _updateTemplatesOfType(
@@ -148,8 +155,6 @@ export class EnterpriseWorkspace extends Workspace {
 		// Probably related to Node vm contexts, like fetch().json() runs in its own context
 		//   while we modify Array.prototype in our test script context (created by Jest)
 		asyncUtils.forEachConcurrent(newTemplates, async (template) => {
-			if (!template.bufferBase64) return;
-
 			const existingContent = await templateAsset.getContent(template.title);
 
 			if (!existingContent) {

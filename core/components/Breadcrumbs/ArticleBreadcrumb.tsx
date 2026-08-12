@@ -1,14 +1,16 @@
 import Icon from "@components/Atoms/Icon";
 import LinksBreadcrumb from "@components/Breadcrumbs/LinksBreadcrumb";
-import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import IsMobileService from "@core-ui/ContextServices/isMobileService";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import useWatch from "@core-ui/hooks/useWatch";
+import { useArticlePropsStore } from "@core-ui/stores/ArticlePropsStore/ArticlePropsStore.provider";
 import { cn } from "@core-ui/utils/cn";
 import { cssMedia } from "@core-ui/utils/cssUtils";
+// biome-ignore lint/style/noRestrictedImports: it's ok
 import styled from "@emotion/styled";
 import getArticleItemLink from "@ext/article/LinkCreator/logic/getArticleItemLink";
-import { useDiffViewMode } from "@ext/git/core/Diff/components/store/DiffViewModeStore";
+import { useIsDoublePanel } from "@ext/git/core/Diff/components/store/DiffViewModeStore";
+import { useIsDiffView } from "@ext/git/core/Diff/logic/hooks/useIsDiffView";
 import ItemMenu from "@ext/item/EditMenu";
 import t from "@ext/localization/locale/translate";
 import NavigationDropdown from "@ext/navigation/components/NavigationDropdown";
@@ -31,12 +33,13 @@ const ArticleBreadcrumb = ({ className, itemLinks, hasPreview, showActions = tru
 	const breadcrumbRef = useRef<HTMLDivElement>(null);
 	const { articleProperties, setArticleProperties, properties } = PropertyServiceProvider.value;
 	const isMobile = IsMobileService.value;
-	const diffViewMode = useDiffViewMode();
+	const isDoublePanel = useIsDoublePanel();
+	const isDiff = useIsDiffView();
 
 	const [itemLink, setItemLink] = useState<ItemLink>(null);
 
 	const pageData = PageDataContextService.value;
-	const articleProps = ArticlePropsService.value;
+	const articleProps = useArticlePropsStore((state) => ({ ref: state.data.ref, errorCode: state.data.errorCode }));
 	const isReadOnly = pageData?.conf.isReadOnly;
 
 	useWatch(() => {
@@ -51,30 +54,26 @@ const ArticleBreadcrumb = ({ className, itemLinks, hasPreview, showActions = tru
 
 	const showArticleActions =
 		(!articleProps?.errorCode || articleProps?.errorCode === 500) && !!itemLink && showActions;
-	const isHasPreview = hasPreview || diffViewMode === "wysiwyg-double";
-
-	if (diffViewMode === "single-panel" || diffViewMode === "double-panel") return null;
+	const isHasPreview = hasPreview || (isDoublePanel && isDiff);
 
 	return (
 		<div className={cn("article-breadcrumb", className, isHasPreview && "has-preview")} ref={breadcrumbRef}>
 			<LinksBreadcrumb itemLinks={itemLinks} ref={linksRef} />
 			{!isReadOnly && showArticleActions && (
-				<>
-					<div className="article-actions" data-qa="qa-article-actions">
-						<NavigationDropdown
-							className="article-actions"
-							style={{ marginRight: "-2px" }}
-							tooltipText={t("article.actions.title")}
-							trigger={
-								<Button className="p-0 h-full" size="xs" variant="text">
-									<Icon code="ellipsis-vertical" style={{ fontSize: "1.7em" }} />
-								</Button>
-							}
-						>
-							<ItemMenu itemLink={itemLink} setItemLink={setItemLink} />
-						</NavigationDropdown>
-					</div>
-				</>
+				<div className="article-actions" data-qa="qa-article-actions">
+					<NavigationDropdown
+						className="article-actions"
+						style={{ marginRight: "-2px" }}
+						tooltipText={t("article.actions.title")}
+						trigger={
+							<Button className="p-0 h-full" size="xs" variant="text">
+								<Icon code="ellipsis-vertical" style={{ fontSize: "1.7em" }} />
+							</Button>
+						}
+					>
+						<ItemMenu itemLink={itemLink} setItemLink={setItemLink} />
+					</NavigationDropdown>
+				</div>
 			)}
 			<div className="flex min-w-0 max-w-full gap-2 ml-auto flex-row-reverse overflow-hidden">
 				<Properties

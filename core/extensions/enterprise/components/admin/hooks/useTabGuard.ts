@@ -1,6 +1,6 @@
 import type { Page } from "@ext/enterprise/types/Page";
 import { useCallback, useEffect, useRef } from "react";
-import { useGuard } from "./useGuard";
+import { useGuard } from "../contexts/GuardProvider";
 
 interface UseTabGuardOptions {
 	page: Page;

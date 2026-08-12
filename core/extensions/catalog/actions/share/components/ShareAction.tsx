@@ -4,10 +4,10 @@ import { useRouter } from "@core/Api/useRouter";
 import { getClientDomain } from "@core/utils/getClientDomain";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
-import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import { tryCopyToClipboard } from "@core-ui/utils/clipboard";
 import type ShareModal from "@ext/catalog/actions/share/components/ShareModal";
 import t from "@ext/localization/locale/translate";
+import { useSetting } from "@ext/settings/logic/hooks";
 import { Button } from "@ui-kit/Button";
 import { type ComponentProps, type ReactNode, useCallback, useMemo } from "react";
 
@@ -32,7 +32,7 @@ const setShareSkipModal = (flag: boolean) => {
 
 const ShareAction = ({ path, isArticle, children, variant = "MenuItem" }: ShareActionProps) => {
 	const router = useRouter();
-	const webEditorUrl = WorkspaceService.current()?.webEditorUrl;
+	const [webEditorUrl] = useSetting("services.web-editor.endpoint");
 	const shouldShowModal = useMemo(() => {
 		return shouldShowShareModal();
 	}, []);

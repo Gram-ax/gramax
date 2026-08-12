@@ -69,7 +69,9 @@ pub enum FsEventKind {
 #[serde(rename_all = "camelCase")]
 pub struct WorkspaceEntryDto {
 	pub rel_path: PathBuf,
-	pub name: String,
 	pub docroot_rel: Option<PathBuf>,
 	pub catalog_props: serde_json::Value,
+	pub is_git_repo: bool,
+	pub is_bare_repo: bool,
+	pub has_gitmodules: bool,
 }

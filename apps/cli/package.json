@@ -1,0 +1,28 @@
+{
+	"name": "cli",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"build": "npm run build:cli && npm run build:bundle && node build.js",
+		"build:bundle": "vite build --outDir ./dist/bundle",
+		"build:cli": "vite build --ssr src/index.ts --outDir ./dist",
+		"cli": "node ./dist/index.js"
+	},
+	"dependencies": {
+		"chalk": "^4.1.2",
+		"commander": "^12.1.0",
+		"fast-glob": "^3.3.3",
+		"fs-extra": "^11.1.1",
+		"graceful-fs": "^4.2.11",
+		"nookies": "^2.5.2",
+		"sharp": "^0.33.5",
+		"shelljs": "^0.8.5",
+		"strip-ansi": "^6.0.1",
+		"yaml": "^2.6.1"
+	},
+	"devDependencies": {
+		"@types/shelljs": "^0.8.15",
+		"vite-plugin-static-copy": "^2.3.2"
+	}
+}

@@ -1,19 +1,17 @@
 import resolveModule from "@app/resolveModule/frontend";
-import useLucideIconLists, { useIconFilter } from "@components/Atoms/Icon/lucideIconList";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import type { FormProps } from "@ext/catalog/actions/propsEditor/logic/createFormSchema";
 import ModalErrorHandler from "@ext/errorHandlers/client/components/ModalErrorHandler";
 import t from "@ext/localization/locale/translate";
+import { PopoverIconPicker } from "@ext/markdown/elements/icon/edit/components/IconPicker/PopoverIconPicker";
 import { useCreateWorkspaceActions } from "@ext/workspace/components/logic/useCreateWorkspaceActions";
 import type { ClientWorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@ui-kit/Button";
 import { Dialog, DialogBody, DialogContent } from "@ui-kit/Dialog";
 import { Form, FormField, FormFooter, FormHeader, FormStack } from "@ui-kit/Form";
-import { Icon } from "@ui-kit/Icon";
 import { Input } from "@ui-kit/Input";
-import { LazySearchSelect } from "@ui-kit/LazySearchSelect";
 import { type FormEvent, useCallback, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -52,8 +50,8 @@ const CreateWorkspaceForm = (props: WorkspaceSettingsModalProps) => {
 		mode: "onChange",
 	});
 
-	const formSubmit = (e: FormEvent) => {
-		form.handleSubmit(async (data) => {
+	const formSubmit = async (e: FormEvent) => {
+		await form.handleSubmit(async (data) => {
 			await onSubmit({ name: data.name, icon: data.icon, path: data.path }, onCloseHandler);
 			onSubmitParent?.(data as ClientWorkspaceConfig);
 			form.reset();
@@ -105,34 +103,15 @@ const CreateWorkspaceForm = (props: WorkspaceSettingsModalProps) => {
 										{...formProps}
 									/>
 									<FormField
-										control={({ field }) => {
-											// biome-ignore lint/correctness/useHookAtTopLevel: expected!?
-											const iconFilter = useIconFilter();
-											return (
-												<LazySearchSelect
-													filter={iconFilter}
-													onChange={(value) => {
-														form.setValue("icon", `${value}`);
-														field.value = `${value}`;
-													}}
-													// biome-ignore lint/correctness/useHookAtTopLevel: expected!?
-													options={useLucideIconLists().lucideIconListForUikitOptions}
-													placeholder={t("icon")}
-													renderOption={({ option, type }) => (
-														<>
-															<div className="flex items-center gap-2">
-																<Icon icon={option.value as string} />
-																{option.value}
-															</div>
-															{type === "list" && field.value === option.value && (
-																<Icon className="ml-auto" icon="check" />
-															)}
-														</>
-													)}
-													value={field.value}
-												/>
-											);
-										}}
+										control={({ field }) => (
+											<PopoverIconPicker
+												disable={["emoji", "file-input", "color"]}
+												label={field.value ? field.value : t("icon")}
+												onChange={(value) => "code" in value && field.onChange(value.code)}
+												onClear={() => field.onChange(undefined)}
+												value={field.value ? { code: field.value } : undefined}
+											/>
+										)}
 										name="icon"
 										title={t("icon")}
 										{...formProps}

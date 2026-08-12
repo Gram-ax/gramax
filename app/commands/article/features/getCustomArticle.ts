@@ -2,6 +2,7 @@ import { Command } from "@app/types/Command";
 import { ResponseKind } from "@app/types/ResponseKind";
 import type CustomArticle from "@core/SitePresenter/customArticles/model/CustomArticle";
 
+// biome-ignore lint/suspicious/noExplicitAny: idc
 const getCustomArticle: Command<{ name: CustomArticle; props: any }, { title: string; content: string }> =
 	Command.create({
 		path: "article/features/getCustomArticle",
@@ -15,7 +16,7 @@ const getCustomArticle: Command<{ name: CustomArticle; props: any }, { title: st
 
 			const article = customArticlePresenter.getArticle(name, props);
 			if (article && (await article.parsedContent.isNull())) {
-				await article.parsedContent.write(() => parser.parse(article.content));
+				await article.parsedContent.write(async () => parser.parse(await article.getContent()));
 			}
 
 			return {

@@ -2,8 +2,8 @@
 
 import DiffFileInputCdn from "@components/Atoms/FileInput/DiffFileInput/DiffFileInputCdn";
 import FileInputCdn from "@components/Atoms/FileInput/FileInputCdn";
-import LanguageServiceModule from "@core-ui/ContextServices/Language";
 import LocalizerModule from "@ext/localization/core/Localizer";
+import { getCachedSetting } from "@ext/settings/logic/cachedSettingsStore";
 import NextLink from "../../../apps/next/components/Atoms/Link";
 import NextRouter from "../../../apps/next/logic/Api/NextRouter";
 import { getPdfjs } from "../../../apps/next/pdfjs/getPdfjs";
@@ -26,7 +26,8 @@ const getTestModules = (): DynamicModules => {
 			const l = LocalizerModule.extract(window.location.pathname);
 			const headers = {
 				"Content-Type": mime,
-				"x-gramax-ui-language": LanguageServiceModule.currentUi(),
+				"x-gramax-ui-language": getCachedSetting("general.language"),
+				"x-gramax-theme": getCachedSetting("general.theme"),
 				"x-gramax-language": l,
 			};
 
@@ -56,7 +57,11 @@ const getTestModules = (): DynamicModules => {
 		openInExplorer: () => undefined,
 		openWindowWithUrl: () => undefined,
 		openInWeb: () => undefined,
+		gesCloudLogin: () => undefined,
 		getPdfjs,
+		updateCheck: () => undefined,
+		updateInstallFromCache: () => undefined,
+		updateAccept: () => undefined,
 	};
 };
 

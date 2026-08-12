@@ -1,21 +1,38 @@
-import type { ResourceParseClient, ResourceParseFormat } from "@ext/serach/modulith/resourceParse/ResourceParseClient";
 import type {
+	ResourceParseClient,
+	ResourceParseFileArgs,
+	ResourceParseFileResult,
+	ResourceParseFormat,
+} from "@ext/serach/modulith/resourceParse/ResourceParseClient";
+import type {
+	ResourceParseParseResourceFileInMessage,
+	ResourceParseParseResourceInMessage,
 	ResourceParseWorkerInMessage,
 	ResourceParseWorkerOutMessage,
 } from "@ext/serach/modulith/resourceParse/worker/types";
-import { toWorkerError } from "@ext/serach/modulith/utils/toWorkerError";
+import type { SearchArticleItems } from "@ext/serach/modulith/SearchArticle";
 import { type PoolWorker, WorkerPool } from "@ext/serach/modulith/utils/WorkerPool";
-import type { ArticleItem } from "@ics/article-search/article";
+import type { ArticleId } from "@ics/article-search/article";
 import type { Buffer } from "buffer";
 
 const MAX_WORKERS = 3;
 const WORKER_IDLE_TIMEOUT_MS = 15 * 1000;
+const WORKER_TASK_TIMEOUT_MS = 60 * 1000;
 
 type PendingRequest = {
-	resolve: (value: ArticleItem[] | null) => void;
+	resolve: (value: WorkerParseResult | null) => void;
 	reject: (reason: unknown) => void;
 	progressCallback?: (progress: number) => void;
 };
+
+type WorkerParseResult = {
+	hash?: string;
+	items: SearchArticleItems | undefined;
+};
+
+type ResourceParseWorkerRequest =
+	| Omit<ResourceParseParseResourceInMessage, "requestId">
+	| Omit<ResourceParseParseResourceFileInMessage, "requestId">;
 
 export interface ResourceParseWorker extends PoolWorker {
 	postMessage(message: ResourceParseWorkerInMessage): void;
@@ -29,18 +46,39 @@ export abstract class WorkerResourceParseClientBase implements ResourceParseClie
 	);
 
 	async parseResource(
+		articleId: ArticleId,
+		title: string,
 		format: ResourceParseFormat,
 		data: Buffer,
 		progressCallback?: (progress: number) => void,
-	): Promise<ArticleItem[] | null> {
+	): Promise<SearchArticleItems | null> {
+		const result = await this._parseResource(
+			{ type: "parseResource", format, data, articleId, title },
+			progressCallback,
+		);
+		return result?.items ?? null;
+	}
+
+	protected async _parseResourceFile(
+		args: ResourceParseFileArgs,
+		progressCallback?: (progress: number) => void,
+	): Promise<ResourceParseFileResult | null> {
+		const result = await this._parseResource({ type: "parseResourceFile", ...args }, progressCallback);
+		return result?.hash ? { hash: result.hash, items: result.items } : null;
+	}
+
+	private async _parseResource(
+		message: ResourceParseWorkerRequest,
+		progressCallback?: (progress: number) => void,
+	): Promise<WorkerParseResult | null> {
 		const requestId = this._nextRequestId();
 		try {
 			return await this._workerPool.run((worker) => {
-				return new Promise<ArticleItem[] | null>((resolve, reject) => {
+				return new Promise<WorkerParseResult | null>((resolve, reject) => {
 					this._pending.set(requestId, { resolve, reject, progressCallback });
-					worker.postMessage({ type: "parseResource", requestId, format, data });
+					worker.postMessage({ ...message, requestId });
 				});
-			});
+			}, WORKER_TASK_TIMEOUT_MS);
 		} catch (e) {
 			this._pending.delete(requestId);
 			throw e;
@@ -64,8 +102,8 @@ export abstract class WorkerResourceParseClientBase implements ResourceParseClie
 				if (type === "progress") return pending.progressCallback?.(data.progress);
 
 				this._pending.delete(data.requestId);
-				if (type === "result") pending.resolve(data.items);
-				else pending.reject(toWorkerError(data.error));
+				if (type === "result") pending.resolve({ hash: data.hash, items: data.items });
+				else pending.reject(new Error("Resource parse worker request failed", { cause: data.error }));
 				return;
 			}
 			default:

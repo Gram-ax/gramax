@@ -2,7 +2,7 @@ import blockMd from "@ext/markdown/elements/md/model/blockMdSchema";
 import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
 import { mergeAttributes, Node } from "@tiptap/core";
 import { ReactNodeViewRenderer } from "@tiptap/react";
-import EditBlock from "../component/EditBlock";
+import EditBlock from "../edit/component/EditBlock";
 
 const BlockMd = Node.create({
 	...getExtensionOptions({ schema: blockMd, name: "blockMd" }),

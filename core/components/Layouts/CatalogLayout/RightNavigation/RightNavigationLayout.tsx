@@ -1,6 +1,7 @@
 import useMediaQuery from "@core-ui/hooks/useMediaQuery";
+import { cn } from "@core-ui/utils/cn";
 import { cssMedia } from "@core-ui/utils/cssUtils";
-// biome-ignore lint/style/noRestrictedImports: expected
+// biome-ignore lint/style/noRestrictedImports: will be removed with news sidebars
 import styled from "@emotion/styled";
 import type { ReactNode } from "react";
 
@@ -13,9 +14,9 @@ interface RightNavigationLayoutProps {
 }
 
 const RightNavigationLayout = (props: RightNavigationLayoutProps) => {
-	const { rightNavigationContent, ...otherProps } = props;
+	const { rightNavigationContent, className, ...otherProps } = props;
 	return (
-		<div {...otherProps}>
+		<div className={cn("bg-sidebar-bg", className)} {...otherProps}>
 			<div className="right-nav">{rightNavigationContent}</div>
 		</div>
 	);
@@ -24,7 +25,6 @@ const RightNavigationLayout = (props: RightNavigationLayoutProps) => {
 export default styled(RightNavigationLayout)`
 	height: 100%;
 	width: var(--narrow-nav-width);
-	background: var(--color-right-nav-bg);
 	color: var(--color-primary-general);
 
 	.right-nav {

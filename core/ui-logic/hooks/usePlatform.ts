@@ -3,7 +3,7 @@ import PlatformService from "@core-ui/ContextServices/PlatformService";
 export const usePlatform = () => {
 	const Environment = PlatformService.value;
 
-	const isBrowser = Environment === "browser";
+	const isWeb = Environment === "web";
 	const isTauri = Environment === "tauri";
 	const isNext = Environment === "next";
 	const isStaticCli = Environment === "cli";
@@ -11,7 +11,7 @@ export const usePlatform = () => {
 	const isDocportal = Environment === "docportal";
 
 	return {
-		isBrowser,
+		isWeb,
 		isTauri,
 		isNext: isNext || isDocportal,
 		isDocportal,

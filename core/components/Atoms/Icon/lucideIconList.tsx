@@ -1,3 +1,4 @@
+import type { IconCode } from "@components/Atoms/Icon/LucideIcon";
 import Sidebar from "@components/Layouts/Sidebar";
 import type { ListItem } from "@components/List/Item";
 import { filter } from "@components/List/ListLayout";
@@ -44,7 +45,7 @@ export const toListItem = ({ code, svg, category }: IconListProps, inverse?: boo
 	};
 };
 
-export const toListItemByUikit = ({ code, svg, category }: IconListProps, inverse?: boolean): ListItem => {
+export const toListItemByUikit = ({ code, svg }: IconListProps): ListItem => {
 	return {
 		labelField: code,
 		element: <Sidebar leftActions={[<Icon code={code} key={0} svg={svg} />]} title={code} />,
@@ -87,7 +88,7 @@ export const iconFilter = (customIconsList?: IconEditorProps[], inverse?: boolea
 				searcher: filterItems,
 			})(input);
 		},
-		[categories],
+		[categories, customIconsList, inverse],
 	);
 
 	return transliterationSearch;
@@ -95,21 +96,22 @@ export const iconFilter = (customIconsList?: IconEditorProps[], inverse?: boolea
 
 export const useBaseLucideIconList = () => {
 	const awaitedIcons = useLucideModule();
+
 	const result = useMemo(() => {
 		const iconKeys = awaitedIcons ? Object.keys(awaitedIcons.icons) : [];
 		return iconKeys.map((code) => {
 			const kebabCode = camelToKebabCase(code);
 			return {
 				label: kebabCode,
-				value: kebabCode,
+				value: kebabCode as IconCode,
 			};
 		});
-	}, []);
+	}, [awaitedIcons]);
 
 	return result;
 };
 
-export const useIconFilter = (customIconsList?: IconEditorProps[], inverse?: boolean) => {
+export const useIconFilter = (customIconsList?: IconEditorProps[]) => {
 	const categories = useIconCategories();
 
 	const transliterationSearch = useCallback(
@@ -143,7 +145,7 @@ export const useIconFilter = (customIconsList?: IconEditorProps[], inverse?: boo
 				searcher: filterFunc,
 			})(search);
 		},
-		[categories, customIconsList, inverse],
+		[categories, customIconsList],
 	);
 
 	return transliterationSearch;

@@ -4,6 +4,7 @@ import ActionButton from "@components/controls/HoverController/ActionButton";
 import { cn } from "@core-ui/utils/cn";
 import t from "@ext/localization/locale/translate";
 import { SortState } from "@ext/markdown/elements/table/edit/model/tableTypes";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { CheckboxField, type CheckedState } from "@ui-kit/Checkbox";
 import { Command, CommandItem, CommandList } from "@ui-kit/Command";
 import {
@@ -17,7 +18,7 @@ import { Icon } from "@ui-kit/Icon";
 import { SearchSelectInput } from "@ui-kit/SearchSelect";
 import { ToggleGroup, ToggleGroupItem } from "@ui-kit/ToggleGroup";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@ui-kit/Tooltip";
-import { type ReactNode, useCallback, useMemo, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 interface FilterButtonProps {
 	columnValues: string[];
@@ -32,6 +33,9 @@ const Icons: Record<SortState, IconCode> = {
 	asc: "arrow-up-narrow-wide",
 	desc: "arrow-down-wide-narrow",
 };
+
+const FILTER_VALUE_ITEM_HEIGHT = 32;
+const FILTER_VALUE_LIST_HEIGHT_OFFSET = 210;
 
 const CommandCheckboxField = (props: React.ComponentProps<typeof CheckboxField>) => {
 	const { className, ...other } = props;
@@ -64,11 +68,50 @@ const FilterAndSortButton = (props: FilterButtonProps) => {
 
 	const [height, setHeight] = useState(478);
 	const [width, setWidth] = useState(267);
+	const [searchQuery, setSearchQuery] = useState("");
+	const [isOpen, setIsOpen] = useState(false);
+	const scrollRef = useRef<HTMLDivElement>(null);
+	const emptyValueLabel = t("properties.empty");
 
-	const sortedСolumnValues = useMemo(
+	const sortedColumnValues = useMemo(
 		() => [...columnValues].sort((a, b) => a.localeCompare(b, undefined, { numeric: true })),
 		[columnValues],
 	);
+
+	const filteredColumnValues = useMemo(() => {
+		const normalizedSearch = searchQuery.trim().toLowerCase();
+		if (!normalizedSearch) return sortedColumnValues;
+
+		return sortedColumnValues.filter((value) =>
+			(value || emptyValueLabel).toLowerCase().includes(normalizedSearch),
+		);
+	}, [emptyValueLabel, searchQuery, sortedColumnValues]);
+
+	const maxFilterListHeight = Math.max(0, height - FILTER_VALUE_LIST_HEIGHT_OFFSET);
+
+	const virtualizer = useVirtualizer({
+		count: filteredColumnValues.length,
+		enabled: isOpen,
+		estimateSize: () => FILTER_VALUE_ITEM_HEIGHT,
+		getScrollElement: () => scrollRef.current,
+		initialRect: { height: maxFilterListHeight, width },
+		overscan: 5,
+	});
+
+	const totalListHeight = virtualizer.getTotalSize();
+	const filterListHeight = Math.min(totalListHeight, maxFilterListHeight);
+
+	useEffect(() => {
+		if (!isOpen || filterListHeight <= 0 || filteredColumnValues.length === 0) return;
+
+		const frame = requestAnimationFrame(() => virtualizer.measure());
+		return () => cancelAnimationFrame(frame);
+	}, [filterListHeight, filteredColumnValues.length, isOpen, virtualizer]);
+
+	const onSearchQueryChange = useCallback((value: string) => {
+		setSearchQuery(value);
+		scrollRef.current?.scrollTo({ top: 0 });
+	}, []);
 
 	const onResizeEnd = useCallback((event: MouseEvent) => {
 		const wrapper = (event.target as HTMLDivElement)?.parentElement?.parentElement;
@@ -81,7 +124,6 @@ const FilterAndSortButton = (props: FilterButtonProps) => {
 		setHeight(height);
 	}, []);
 
-	const [isOpen, setIsOpen] = useState(false);
 	const filtered = filteredValues.length || sort;
 	const icon = filtered ? "funnel" : "funnel-plus";
 
@@ -156,7 +198,7 @@ const FilterAndSortButton = (props: FilterButtonProps) => {
 					onResizeEnd={onResizeEnd}
 					style={{ height, width }}
 				>
-					<div className="grid h-full grid-rows-[auto_auto_auto_auto_minmax(10rem,1fr)]">
+					<div className="grid h-full min-h-0 grid-rows-[auto_auto_auto_auto_minmax(0,1fr)]">
 						<FilterAndSortDropdownMenuLabel>{t("properties.view.order-by")}</FilterAndSortDropdownMenuLabel>
 						{canSort ? (
 							toggleGroup
@@ -172,9 +214,13 @@ const FilterAndSortButton = (props: FilterButtonProps) => {
 						)}
 						<DropdownMenuSeparator />
 						<FilterAndSortDropdownMenuLabel>{t("properties.view.filter")}</FilterAndSortDropdownMenuLabel>
-						<Command className="!shadow-none border-none">
-							<SearchSelectInput placeholder={t("find2")} />
-							<div className="max-h-none p-1">
+						<Command className="!shadow-none border-none h-full min-h-0" shouldFilter={false}>
+							<SearchSelectInput
+								onValueChange={onSearchQueryChange}
+								placeholder={t("find2")}
+								value={searchQuery}
+							/>
+							<div className="flex min-h-0 flex-1 flex-col p-1">
 								<CommandItem forceMount key="*">
 									<CommandCheckboxField
 										checked={checkedState}
@@ -182,17 +228,35 @@ const FilterAndSortButton = (props: FilterButtonProps) => {
 										onCheckedChange={onCheckAll}
 									/>
 								</CommandItem>
-								<CommandList key={`list-${"searchQuery"}`}>
-									{sortedСolumnValues.map((value) => (
-										<CommandItem key={`v-${value}`} title={value} value={value}>
-											<CommandCheckboxField
-												checked={!filteredValues.includes(value)}
-												className={!value && "[&_label]:text-muted"}
-												label={value || t("properties.empty")}
-												onCheckedChange={() => onCheckedChange(value)}
-											/>
-										</CommandItem>
-									))}
+								<CommandList className="min-h-0 flex-1 !max-h-none overflow-hidden">
+									<div ref={scrollRef} style={{ height: filterListHeight, overflowY: "auto" }}>
+										<div style={{ height: totalListHeight, position: "relative" }}>
+											{virtualizer.getVirtualItems().map((virtualItem) => {
+												const value = filteredColumnValues[virtualItem.index];
+
+												return (
+													<div
+														key={`v-${value}-${virtualItem.index}`}
+														style={{
+															height: virtualItem.size,
+															position: "absolute",
+															top: virtualItem.start,
+															width: "100%",
+														}}
+													>
+														<CommandItem title={value} value={value}>
+															<CommandCheckboxField
+																checked={!filteredValues.includes(value)}
+																className={!value && "[&_label]:text-muted"}
+																label={value || emptyValueLabel}
+																onCheckedChange={() => onCheckedChange(value)}
+															/>
+														</CommandItem>
+													</div>
+												);
+											})}
+										</div>
+									</div>
 								</CommandList>
 							</div>
 						</Command>

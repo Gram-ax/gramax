@@ -1,5 +1,5 @@
-import LanguageService from "@core-ui/ContextServices/Language";
 import t from "@ext/localization/locale/translate";
+import { getCachedSetting } from "@ext/settings/logic/cachedSettingsStore";
 import type { DesignerConfig, MdtChartsConfig, MdtChartsDataSource } from "mdt-charts";
 import { type AxisLabelFormat, aggregateByPeriod, formatDateForAxis } from "../../components/chart/chartUtils";
 import type { ChartValueField } from "../../components/chart/configs/MetricsChartConfig.interface";
@@ -34,6 +34,7 @@ const transformViewData = (dataSet: unknown[], labelFormat?: string): MdtChartsD
 
 	return {
 		dataSet: aggregated.map((point) => ({
+			// biome-ignore lint/style/useNamingConvention: required by chart library
 			$id: point.date,
 			date: formatDateForAxis(point.date, format),
 			views: point.views,
@@ -160,7 +161,7 @@ const createDesignerConfig = (visibleFields?: ViewMetricField[]): DesignerConfig
 		dataFormat: {
 			formatters: (value) => {
 				if (typeof value !== "number") return value?.toString() ?? "";
-				const locale = LanguageService.currentUi();
+				const locale = getCachedSetting("general.language");
 				return new Intl.NumberFormat(locale, {
 					notation: "compact",
 					maximumFractionDigits: 1,

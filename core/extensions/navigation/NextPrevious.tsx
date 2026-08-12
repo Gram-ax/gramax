@@ -1,8 +1,8 @@
-import Icon from "@components/Atoms/Icon";
 import Link from "@components/Atoms/Link";
 import UiUrlUtils from "@components/libs/UiUrlUtils";
 import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
 import { cn } from "@core-ui/utils/cn";
+import { Icon } from "@ui-kit/Icon";
 import type { ItemLink } from "./NavigationLinks";
 
 const Arrow = ({ next, link }: { next: boolean; link: ItemLink }) => {
@@ -21,16 +21,11 @@ const Arrow = ({ next, link }: { next: boolean; link: ItemLink }) => {
 				href={link}
 				onClick={() => articleElement?.scrollTo({ top: 0, left: 0, behavior: "smooth" })}
 			>
-				{next && <Icon code="arrow-right" />}
-				<span
-					className={cn(
-						"overflow-hidden whitespace-nowrap text-ellipsis pr-[var(--distance-i-span)]",
-						next ? "-order-1" : "order-1",
-					)}
-				>
+				{!next && <Icon icon="arrow-left" />}
+				<span className={cn("overflow-hidden whitespace-nowrap text-ellipsis px-[var(--distance-i-span)]")}>
 					{link.title}
 				</span>
-				{!next && <Icon code="arrow-left" />}
+				{next && <Icon icon="arrow-right" />}
 			</Link>
 		</div>
 	);

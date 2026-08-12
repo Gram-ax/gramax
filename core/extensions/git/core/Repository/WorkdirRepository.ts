@@ -4,7 +4,6 @@ import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvid
 import MountFileProvider from "@core/FileProvider/MountFileProvider/MountFileProvider";
 import type FileProvider from "@core/FileProvider/model/FileProvider";
 import Path from "@core/FileProvider/Path/Path";
-import GitAttributes from "@core/GitLfs/logic/GitAttributes";
 import type GitMergeResult from "@ext/git/actions/MergeConflictHandler/model/GitMergeResult";
 import type { GitMergeResultContent } from "@ext/git/actions/MergeConflictHandler/model/GitMergeResultContent";
 import GitError from "@ext/git/core/GitCommands/errors/GitError";
@@ -29,10 +28,11 @@ import RepositoryStateProvider, {
 	type RepositoryStashConflictState,
 	type RepositorySyncingState,
 } from "@ext/git/core/Repository/state/RepositoryState";
-import { trace } from "@ext/loggers/opentelemetry";
+import { Level, span, trace } from "@ext/loggers/opentelemetry";
 import isGitSourceType from "@ext/storage/logic/SourceDataProvider/logic/isGitSourceType";
 import type SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import type Storage from "@ext/storage/logic/Storage";
+import { FileStatus } from "@ext/Watchers/model/FileStatus";
 
 export default class WorkdirRepository extends Repository {
 	private _getRepositoryStateFirstly = true;
@@ -52,7 +52,7 @@ export default class WorkdirRepository extends Repository {
 		this._state = new RepositoryStateProvider(this, this._repoPath, this._fp);
 	}
 
-	@trace()
+	@trace({ level: Level.Full })
 	subscribeFpEvents() {
 		if (!(this._fp instanceof MountFileProvider && this._fp.default() instanceof DiskFileProvider)) return;
 		if (!this._gvc) return;
@@ -81,13 +81,33 @@ export default class WorkdirRepository extends Repository {
 		this._stagingBuffer = [];
 	}
 
-	checkoutIfCurrentBranchNotExist(): Promise<{ hasCheckout: boolean }> {
-		return Promise.resolve({ hasCheckout: false });
+	private _deletedStatusAttrs(statuses: GitStatus[], filesToPublish?: Path[]) {
+		const selected = filesToPublish?.length ? new Set(filesToPublish.map((path) => path.value)) : null;
+		const deleted = statuses.filter(
+			(status) => status.status === FileStatus.delete && (!selected || selected.has(status.path.value)),
+		);
+
+		return {
+			"deleted.count": deleted.length,
+			"deleted.paths": deleted.slice(0, 100).map((status) => status.path.value),
+			"deleted.truncated": deleted.length > 100,
+		};
 	}
 
-	@trace()
-	async attributes(): Promise<GitAttributes> {
-		return await GitAttributes.parse(this, this._fp);
+	private async _addDeletedStatusEvent(name: string, filesToPublish?: Path[]) {
+		const activeSpan = span();
+		if (!activeSpan) return;
+
+		try {
+			const statuses = await this.gvc.getChanges("index");
+			activeSpan.addEvent(name, this._deletedStatusAttrs(statuses, filesToPublish));
+		} catch (e) {
+			activeSpan.addEvent(`${name}-failed`, { error: String(e) });
+		}
+	}
+
+	checkoutIfCurrentBranchNotExist(): Promise<{ hasCheckout: boolean }> {
+		return Promise.resolve({ hasCheckout: false });
 	}
 
 	async publish(data: PublishOptions): Promise<void> {
@@ -96,6 +116,7 @@ export default class WorkdirRepository extends Repository {
 		if (onlyPush !== true) {
 			const { commitMessage, filesToPublish, onAdd, onCommit } = data;
 			onAdd?.();
+			await this._addDeletedStatusEvent("git-status-before-publish-commit", filesToPublish);
 			await this.gvc.commit(commitMessage, sourceData, null, filesToPublish);
 			onCommit?.();
 		}
@@ -113,7 +134,7 @@ export default class WorkdirRepository extends Repository {
 		return !status.length;
 	}
 
-	@trace()
+	@trace({ level: Level.Full })
 	async isShouldSync({ data, shouldFetch, onFetch }: IsShouldSyncOptions): Promise<boolean> {
 		const toPull = (await this.storage.getSyncCount()).pull;
 		if (toPull > 0) return true;
@@ -127,13 +148,13 @@ export default class WorkdirRepository extends Repository {
 		return syncCount.pull > 0;
 	}
 
-	@trace()
+	@trace({ level: Level.Full })
 	async status(cached = true): Promise<GitStatus[]> {
 		if (cached) return this.gvc.getCachedStatus("workdir");
 		return await this.gvc.getChanges("workdir");
 	}
 
-	@trace()
+	@trace({ level: Level.Internal })
 	async sync({ data, onPull, onPush }: SyncOptions): Promise<SyncResult> {
 		let toPush = (await this.storage.getSyncCount()).push;
 		if (toPush > 0) {
@@ -163,7 +184,7 @@ export default class WorkdirRepository extends Repository {
 		return { mergeData: stashMergeResult, isVersionChanged, before: beforePullVersion, after: afterPushVersion };
 	}
 
-	@trace()
+	@trace({ level: Level.Internal })
 	async checkout({ data, branch, onCheckout, onPull, force }: CheckoutOptions): Promise<GitMergeResultContent[]> {
 		const oldVersion = await this.gvc.getCurrentVersion();
 		const oldBranch = await this.gvc.getCurrentBranch();
@@ -178,8 +199,8 @@ export default class WorkdirRepository extends Repository {
 		await this.gvc.checkoutToBranch(data as GitSourceData, branch, force);
 		onCheckout?.(branch);
 
-		const isBrowser = getExecutingEnvironment() === "browser";
-		if (!isBrowser) await this.gvc.add();
+		const isWeb = getExecutingEnvironment() === "web";
+		if (!isWeb) await this.gvc.add();
 		const changes = await this.gvc.getChanges("index");
 
 		let mergeFiles: GitMergeResultContent[] = [];
@@ -212,7 +233,7 @@ export default class WorkdirRepository extends Repository {
 			throw new GitError(GitErrorCode.WorkingDirNotEmpty, null, { repositoryPath: this.gvc.getPath().value });
 	}
 
-	@trace()
+	@trace({ level: Level.Internal })
 	async merge({
 		data,
 		targetBranch,
@@ -277,7 +298,7 @@ export default class WorkdirRepository extends Repository {
 		return repState;
 	}
 
-	@trace()
+	@trace({ level: Level.Internal })
 	async deleteBranch(branchName: string, data: SourceData) {
 		const branch = await this.gvc.getBranch(branchName);
 		const branchRemoteName = branch.getData().remoteName;
@@ -310,6 +331,12 @@ export default class WorkdirRepository extends Repository {
 
 		if (paths.length === 0) return;
 
+		span()?.addEvent("git-index-add-files", {
+			"paths.count": paths.length,
+			paths: paths.slice(0, 100).map((path) => path.value),
+			truncated: paths.length > 100,
+		});
+
 		if (this._stagingPaused) {
 			this._stagingBuffer.push(...paths);
 			return;
@@ -324,7 +351,7 @@ export default class WorkdirRepository extends Repository {
 		}
 	}
 
-	@trace()
+	@trace({ level: Level.Internal })
 	private async _push({
 		data,
 		onPush,
@@ -369,7 +396,7 @@ export default class WorkdirRepository extends Repository {
 		return this._state.stashConflictResolver.convertToMergeResultContent(stashResult);
 	}
 
-	@trace()
+	@trace({ level: Level.Internal })
 	private async _pull({
 		data,
 		onPull,
@@ -383,6 +410,7 @@ export default class WorkdirRepository extends Repository {
 		const commitHeadBefore = await this.gvc.getCurrentVersion();
 
 		const stashOid = existingStash ?? (await this.stash(data));
+		await this._addDeletedStatusEvent("git-status-before-pull");
 
 		if (stashOid) {
 			const syncingState: RepositorySyncingState = {
@@ -404,7 +432,9 @@ export default class WorkdirRepository extends Repository {
 			throw e;
 		}
 
+		await this._addDeletedStatusEvent("git-status-after-pull-before-stash-apply");
 		if (stashOid) stashResult = await this.gvc.applyStash(stashOid, { deleteAfterApply: false });
+		await this._addDeletedStatusEvent("git-status-after-stash-apply");
 
 		onPull?.();
 

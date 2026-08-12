@@ -1,10 +1,13 @@
 import Icon from "@components/Atoms/Icon";
 import { RequestStatus, useApi } from "@core-ui/hooks/useApi";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
-import { formatBytes } from "@core-ui/utils/formatBytes";
+import { formatBytesParts } from "@core-ui/utils/formatBytes";
+// biome-ignore lint/style/noRestrictedImports: will be deleted soon
 import styled from "@emotion/styled";
+import { SectionContainer } from "@ext/catalog/actions/propsEditor/components/Sections/SectionContainer";
 import type { StorageStats } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import t from "@ext/localization/locale/translate";
+import { useSetting } from "@ext/settings/logic/hooks";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -46,6 +49,7 @@ type CleanupButtonProps = {
 	onClick: () => void;
 	disabled: boolean;
 	loading: boolean;
+	tooltip?: string;
 };
 
 const TreeLabel = styled.span<{ isLast?: boolean }>`
@@ -65,21 +69,32 @@ const HelpIcon = ({ content }: HelpIconProps) => (
 	</Tooltip>
 );
 
-const SizeSkeleton = () => <Skeleton className="h-5 w-16 rounded" />;
+const SizeSkeleton = () => <Skeleton className="h-5 w-20 rounded" />;
 const CountSkeleton = () => <Skeleton className="h-5 w-8 rounded" />;
+
+const Size = ({ size }: { size: number }) => {
+	const { value, unit } = formatBytesParts(size);
+	return (
+		<span className="flex items-baseline justify-end gap-1 text-sm w-20 shrink-0">
+			<span className="tabular-nums text-right">{value}</span>
+			<span className="text-left w-6 shrink-0">{unit}</span>
+		</span>
+	);
+};
 
 const GroupRow = ({ label, size, action }: GroupRowProps) => (
 	<div className="flex items-center justify-between py-2 px-1">
 		<span className="flex items-center gap-1.5 text-sm font-medium">{label}</span>
 		<div className="flex items-center gap-2">
 			{action}
-			{size === undefined ? <SizeSkeleton /> : <span className="text-sm">{formatBytes(size)}</span>}
+			{size === undefined ? <SizeSkeleton /> : <Size size={size} />}
 		</div>
 	</div>
 );
 
 const ChildRow = ({ label, tooltip, count, size, muted, isLast }: ChildRowProps) => {
 	const isLoading = count === undefined || size === undefined;
+	const [language] = useSetting("general.language");
 	return (
 		<div className="flex items-center justify-between py-1.5 pr-1">
 			<TreeLabel
@@ -90,32 +105,40 @@ const ChildRow = ({ label, tooltip, count, size, muted, isLast }: ChildRowProps)
 				<HelpIcon content={tooltip} />
 			</TreeLabel>
 			<div className="flex items-center gap-1.5">
-				{isLoading ? (
-					<>
+				<div className="flex justify-end w-20 shrink-0">
+					{isLoading ? (
 						<CountSkeleton />
-						<SizeSkeleton />
-					</>
-				) : (
-					<>
-						{count > 0 && (
-							<Counter className={muted ? "opacity-70" : ""} variant="outline">
-								{count}
+					) : (
+						count > 0 && (
+							<Counter className={muted ? "opacity-70" : ""} size="sm" variant="text">
+								{new Intl.NumberFormat(language).format(count)}
 							</Counter>
-						)}
-						<span className="text-sm">{formatBytes(size)}</span>
-					</>
-				)}
+						)
+					)}
+				</div>
+				{isLoading ? <SizeSkeleton /> : <Size size={size} />}
 			</div>
 		</div>
 	);
 };
 
-const CleanupButton = ({ onClick, disabled, loading }: CleanupButtonProps) => (
-	<Button disabled={disabled || loading} onClick={onClick} size="xs" type="button" variant="outline">
-		{loading ? <Loader size="sm" /> : <Icon code="eraser" size="0.9em" />}
-		{t("storage-stats.cleanup")}
-	</Button>
-);
+const CleanupButton = ({ onClick, disabled, loading, tooltip }: CleanupButtonProps) => {
+	const content = (
+		<Button disabled={disabled || loading} onClick={onClick} size="xs" type="button" variant="outline">
+			{loading ? <Loader size="sm" /> : <Icon code="eraser" size="0.9em" />}
+			{t("storage-stats.cleanup")}
+		</Button>
+	);
+
+	if (!tooltip) return content;
+
+	return (
+		<Tooltip>
+			<TooltipTrigger asChild>{content}</TooltipTrigger>
+			<TooltipContent>{tooltip}</TooltipContent>
+		</Tooltip>
+	);
+};
 
 export const StorageUsage = () => {
 	const catalogName = useCatalogPropsStore((state) => state.data?.name);
@@ -184,7 +207,7 @@ export const StorageUsage = () => {
 	};
 
 	return (
-		<>
+		<SectionContainer>
 			<div className="flex flex-col">
 				<GroupRow
 					action={
@@ -192,6 +215,7 @@ export const StorageUsage = () => {
 							disabled={isLoading || isError || gitCleanableCount === 0}
 							loading={isGitRunning}
 							onClick={() => setConfirmAction("gc")}
+							tooltip={t("storage-stats.tooltips.git-clear")}
 						/>
 					}
 					label={t("storage-stats.git")}
@@ -225,6 +249,7 @@ export const StorageUsage = () => {
 							disabled={isLoading || isError || lfsCleanableCount === 0}
 							loading={isLfsRunning}
 							onClick={() => setConfirmAction("lfs")}
+							tooltip={t("storage-stats.tooltips.lfs-clear")}
 						/>
 					}
 					label={t("storage-stats.lfs")}
@@ -246,7 +271,7 @@ export const StorageUsage = () => {
 			</div>
 
 			<AlertDialog onOpenChange={(open) => !open && setConfirmAction(null)} open={confirmAction !== null}>
-				<AlertDialogContent status="warning">
+				<AlertDialogContent>
 					<AlertDialogHeader>
 						<AlertDialogIcon icon="alert-circle" />
 						<AlertDialogTitle>{t("storage-stats.confirm.title")}</AlertDialogTitle>
@@ -262,6 +287,6 @@ export const StorageUsage = () => {
 					</AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>
-		</>
+		</SectionContainer>
 	);
 };

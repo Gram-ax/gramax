@@ -5,6 +5,7 @@ import type { ResourceError } from "@core-ui/ContextServices/ResourceService/err
 import { useGetResource } from "@core-ui/ContextServices/ResourceService/hooks/useGetResource";
 import ResourceService from "@core-ui/ContextServices/ResourceService/ResourceService";
 import { useAdjustedElementSize } from "@core-ui/hooks/useAdjustedElementSize";
+import useElementInViewport from "@core-ui/hooks/useElementInViewport";
 import ErrorConfirmService from "@ext/errorHandlers/client/ErrorConfirmService";
 import BlockCommentView from "@ext/markdown/elements/comment/edit/components/View/BlockCommentView";
 import getMermaidDiagram from "@ext/markdown/elements/diagrams/diagrams/mermaid/getMermaidDiagram";
@@ -17,6 +18,7 @@ const DIAGRAM_FUNCTIONS = {
 	[DiagramType.mermaid]: getMermaidDiagram,
 	[DiagramType["plant-uml"]]: getPlantUmlDiagram,
 };
+const DIAGRAM_SKELETON_MIN_HEIGHT = "12rem";
 
 interface DiagramDataProps {
 	diagramName: DiagramType;
@@ -36,18 +38,24 @@ interface DiagramDataProps {
 const DiagramData = (props: DiagramDataProps) => {
 	const { src, title, content, diagramName, openEditor, width, height, noEm, commentId, float, isPrint, scale } =
 		props;
-	const diagramsServiceUrl = PageDataContextService.value.conf.diagramsServiceUrl;
+	const diagramsServiceUrl = PageDataContextService.value.settings?.services?.["diagram-renderer"]?.endpoint;
 	const { getBuffer } = ResourceService.value;
 
 	const articleRef = ArticleRefService.value;
 	const ref = useRef<HTMLDivElement | HTMLImageElement>(null);
+	const containerRef = useRef<HTMLDivElement>(null);
 	const [data, setData] = useState(null);
 	const [isLoaded, setIsLoaded] = useState(false);
 	const [error, setError] = useState<ResourceError>(null);
 
+	const isInViewport = useElementInViewport(containerRef, {
+		rootMargin: "600px 0px",
+		enabled: !isPrint,
+	});
+
 	const getParentWidth = useCallback(
 		() => articleRef?.current?.firstElementChild?.firstElementChild?.clientWidth ?? 0,
-		[articleRef],
+		[],
 	);
 
 	const size = useAdjustedElementSize({ width, height, scale, getParentWidth });
@@ -83,6 +91,7 @@ const DiagramData = (props: DiagramDataProps) => {
 		content,
 		undefined,
 		isPrint,
+		!isInViewport,
 	);
 
 	return (
@@ -92,14 +101,21 @@ const DiagramData = (props: DiagramDataProps) => {
 			data-qa="qa-diagram-data"
 			data-resize-container={float && !openEditor ? true : undefined}
 			data-testid={diagramName}
+			ref={containerRef}
 		>
 			<BlockCommentView commentId={commentId} style={{ borderRadius: "var(--radius-large)" }}>
-				<Skeleton height={size?.height} isLoaded={isLoaded} width={size?.width}>
+				<Skeleton
+					height={size?.height}
+					isLoaded={isLoaded}
+					style={!isLoaded && !size?.height ? { minHeight: DIAGRAM_SKELETON_MIN_HEIGHT } : undefined}
+					width={size?.width}
+				>
 					<DiagramRender
 						data={data}
 						diagramName={diagramName}
 						downloadSrc={src}
 						error={error}
+						isPrint={isPrint}
 						openEditor={openEditor}
 						ref={ref}
 						scale={scale}

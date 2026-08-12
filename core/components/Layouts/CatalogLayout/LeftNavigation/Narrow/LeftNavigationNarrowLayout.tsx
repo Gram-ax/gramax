@@ -1,5 +1,6 @@
 import { LEFT_NAV_CLASS } from "@app/config/const";
 import { classNames } from "@components/libs/classNames";
+// biome-ignore lint/style/noRestrictedImports: will be deleted
 import styled from "@emotion/styled";
 import LeftSidebar from "../../../LeftSidebar/LeftSidebar";
 
@@ -20,7 +21,7 @@ const LeftNavigationNarrowLayout = styled(
 		return (
 			<div className={classNames(className, {}, [LEFT_NAV_CLASS])}>
 				<div className="header-navigation">{leftNavigationTop}</div>
-				<div className="left-sidebar-content">
+				<div className="left-sidebar-content bg-sidebar-bg">
 					<LeftSidebar shadow={isOpen} sidebarBottom={leftNavigationBottom}>
 						{leftNavigationContent}
 					</LeftSidebar>
@@ -39,7 +40,6 @@ const LeftNavigationNarrowLayout = styled(
 
 	.header-navigation {
 		width: 100%;
-		background: var(--color-nav-menu-bg);
 		z-index: var(--z-index-header-navigation);
 	}
 
@@ -48,7 +48,6 @@ const LeftNavigationNarrowLayout = styled(
 		z-index: var(--z-index-nav-layout);
 		height: calc(100dvh - var(--top-bar-height));
 		width: var(--left-nav-width);
-		background: var(--color-nav-menu-bg);
 		transition: var(--navigation-transition);
 
 		${(p) =>

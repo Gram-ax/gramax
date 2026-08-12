@@ -10,24 +10,31 @@ import { makeSourceApi } from "@ext/git/actions/Source/makeSourceApi";
 import type SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import getStorageNameByData from "@ext/storage/logic/utils/getStorageNameByData";
 import { useCallback } from "react";
+import { useIsEnterprise } from "../../../../enterprise/utils/useIsEnterprise";
 
 export type ValidateSourceFn = (source: SourceData) => Promise<boolean>;
 
 const validateSource = async (
 	source: SourceData,
 	pageData: PageDataContext,
+	isEnterprise: boolean,
 	sourceDatas: SourceData[],
 	apiUrlCreator: ApiUrlCreator,
 	onNetworkApiError: (error: NetworkApiError) => void,
 ) => {
-	const sourceApi = makeSourceApi(source, pageData.conf.authServiceUrl, onNetworkApiError);
+	const sourceApi = makeSourceApi(
+		source,
+		pageData.settings?.services?.auth?.endpoint,
+		isEnterprise ? undefined : onNetworkApiError,
+	);
+
 	if (!sourceApi) return;
 
 	const isValid = await sourceApi.isCredentialsValid();
 
 	if (!source.isInvalid === isValid) return isValid;
 
-	const sourceIndex = sourceDatas.findIndex((s) => s === source);
+	const sourceIndex = sourceDatas.indexOf(source);
 	if (sourceIndex === -1) return isValid;
 
 	source.isInvalid = !isValid;
@@ -40,11 +47,12 @@ const useValidateSource = () => {
 	const pageData = PageDataContextService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const onNetworkApiError = OnNetworkApiErrorService.value;
+	const isEnterprise = useIsEnterprise();
 
 	return useCallback(
 		(source: SourceData, sourceDatas: SourceData[]) =>
-			validateSource(source, pageData, sourceDatas, apiUrlCreator, onNetworkApiError),
-		[pageData, apiUrlCreator, onNetworkApiError],
+			validateSource(source, pageData, isEnterprise, sourceDatas, apiUrlCreator, onNetworkApiError),
+		[isEnterprise],
 	);
 };
 

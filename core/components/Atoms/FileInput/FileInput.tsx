@@ -9,8 +9,8 @@ import {
 import MergeConflictStyles from "@ext/git/actions/MergeConflictHandler/Monaco/components/MergeConflictStyles";
 import FileInputMergeConflict from "@ext/git/actions/MergeConflictHandler/Monaco/logic/FileInputMergeConflict";
 import t from "@ext/localization/locale/translate";
+import { useSetting } from "@ext/settings/logic/hooks";
 import { type CSSProperties, useLayoutEffect, useRef } from "react";
-import ThemeService from "../../../extensions/Theme/components/ThemeService";
 import Theme from "../../../extensions/Theme/Theme";
 
 const DEFAULT_LANGAUGE = getFileInputDefaultLanguage();
@@ -39,7 +39,7 @@ const FileInput = (props: Omit<FileInputProps, "theme"> & { style?: CSSPropertie
 	} = props;
 
 	const readOnly = options?.readOnly ?? false;
-	const theme = ThemeService.value;
+	const [theme] = useSetting("general.theme");
 	const ref = useRef<HTMLDivElement>(null);
 	const fileInputMergeConflict = useRef<FileInputMergeConflict>(null);
 	const FileInput = resolveModule("FileInput");

@@ -3,7 +3,7 @@ import { MainMiddleware } from "@core/Api/middleware/MainMiddleware";
 import type Middleware from "@core/Api/middleware/Middleware";
 import type Query from "@core/Api/Query";
 import type Context from "@core/Context/Context";
-import { traced } from "@ext/loggers/opentelemetry";
+import { Level, traced } from "@ext/loggers/opentelemetry";
 import type { CommandTree } from "../commands";
 import type Application from "./Application";
 import { ResponseKind } from "./ResponseKind";
@@ -44,6 +44,7 @@ export class Command<P, O> {
 		return await traced(
 			this._c.path,
 			{
+				level: Level.Commands,
 				args: this._c.flags?.includes("otel-omit-args") ? [] : (args as unknown[]),
 				omitResult: this._c.flags?.includes("otel-omit-result"),
 			},

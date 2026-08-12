@@ -46,7 +46,7 @@ export default class FragmentProvider extends ArticleProvider {
 		const fragment = this.getArticle(fragmentId);
 		if (!fragment) return;
 		if (await fragment.parsedContent.isNull())
-			await fragment.parsedContent.write(() => parser.parse(fragment.content));
+			await fragment.parsedContent.write(async () => parser.parse(await fragment.getContent()));
 
 		return await fragment.parsedContent.read((p) => {
 			return p.editTree;
@@ -67,7 +67,9 @@ export default class FragmentProvider extends ArticleProvider {
 			this._parsing.set(fragmentId, promise);
 
 			try {
-				await fragment.parsedContent.write(() => context.parser.parse(fragment.content, context));
+				await fragment.parsedContent.write(async () =>
+					context.parser.parse(await fragment.getContent(), context),
+				);
 			} finally {
 				this._parsing.delete(fragmentId);
 				resolve();

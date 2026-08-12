@@ -106,7 +106,7 @@ export default defineConfig({
 			},
 		},
 		{
-			name: "docportal-prepare",
+			name: "next-prepare",
 			testDir: "./platforms/docportal/prepare",
 			use: {
 				...devices["Desktop Chrome"],
@@ -116,9 +116,9 @@ export default defineConfig({
 			},
 		},
 		{
-			name: "docportal",
+			name: "next",
 			testDir: "./platforms/docportal/tests",
-			dependencies: ["docportal-prepare"],
+			dependencies: ["next-prepare"],
 			use: {
 				...devices["Desktop Chrome"],
 				baseURL: "http://localhost:6003",
@@ -130,7 +130,7 @@ export default defineConfig({
 			},
 		},
 		{
-			name: "docportal-enterprise",
+			name: "next-enterprise",
 			testDir: "./platforms/docportal/tests/enterprise",
 			use: {
 				...devices["Desktop Chrome"],
@@ -142,11 +142,35 @@ export default defineConfig({
 				},
 			},
 		},
+		{
+			name: "docportal-prepare",
+			testDir: "./platforms/docportal/prepare",
+			use: {
+				...devices["Desktop Chrome"],
+				baseURL: "http://127.0.0.1:6004",
+				bypassCSP: true,
+				screenshot: "on-first-failure",
+			},
+		},
+		{
+			name: "docportal",
+			testDir: "./platforms/docportal/tests",
+			dependencies: ["docportal-prepare"],
+			use: {
+				...devices["Desktop Chrome"],
+				baseURL: "http://127.0.0.1:6004",
+				bypassCSP: true,
+				screenshot: "on-first-failure",
+				launchOptions: {
+					args: ["--disable-dev-shm-usage", "--no-sandbox", "--disable-setuid-sandbox"],
+				},
+			},
+		},
 	],
 
 	webServer: isDev
 		? {
-				command: "PORT=6001 bun run --cwd ../apps/browser dev",
+				command: "PORT=6001 bun run --cwd ../apps/web dev",
 				port: 6001,
 				reuseExistingServer: true,
 				ignoreHTTPSErrors: true,

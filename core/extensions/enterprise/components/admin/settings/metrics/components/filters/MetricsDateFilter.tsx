@@ -1,12 +1,12 @@
-import LanguageService from "@core-ui/ContextServices/Language";
+import { useUiLanguage } from "@core-ui/ContextServices/Language";
 import t from "@ext/localization/locale/translate";
 import { Calendar } from "@ui-kit/Calendar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuTriggerButton } from "@ui-kit/Dropdown";
 import { Icon } from "@ui-kit/Icon";
 import dayjs from "dayjs";
 import "dayjs/locale/ru";
+// biome-ignore lint/style/noRestrictedImports: legacy styled component, migrate to Tailwind later
 import styled from "@emotion/styled";
-import { enUS, ru } from "date-fns/locale";
 import { type FC, useMemo, useState } from "react";
 import { getDateRangeForInterval, type MetricsInterval, type PresetInterval } from "../../utils";
 
@@ -49,8 +49,7 @@ const StyledDropdownMenuTriggerButton = styled(DropdownMenuTriggerButton)`
 const MetricsDateFilter: FC<MetricsDateFilterProps> = ({ interval, disabled, dateRange, onChange }) => {
 	const [isOpen, setIsOpen] = useState(false);
 
-	const language = LanguageService.currentUi();
-	const calendarLocale = language === "ru" ? ru : enUS;
+	const language = useUiLanguage();
 
 	const currentDateRange = useMemo(
 		() => ({
@@ -90,7 +89,7 @@ const MetricsDateFilter: FC<MetricsDateFilterProps> = ({ interval, disabled, dat
 					<p className="whitespace-nowrap">{getDisplayValue()}</p>
 				</StyledDropdownMenuTriggerButton>
 			</DropdownMenuTrigger>
-			<DropdownMenuContent align="end" className="p-0">
+			<DropdownMenuContent align="end" className="p-0 font-sans font-normal">
 				<div className="flex">
 					<div className="flex flex-col border-r min-w-[150px]">
 						{presetOptions.map((preset) => (
@@ -110,7 +109,6 @@ const MetricsDateFilter: FC<MetricsDateFilterProps> = ({ interval, disabled, dat
 						<Calendar
 							className="rounded-md border-0"
 							disabled={{ after: new Date() }}
-							locale={calendarLocale}
 							mode="range"
 							onSelect={handleCalendarChange}
 							selected={currentDateRange}

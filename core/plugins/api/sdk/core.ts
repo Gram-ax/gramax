@@ -1,6 +1,7 @@
 import type { PlatformServiceNew } from "@core-ui/PlatformService";
 import type { t as tSdk } from "@gramax/sdk/localization";
 import type { ModalProps, Modal as ModalSdk } from "@gramax/sdk/ui";
+import type { PluginCommandRegistryInterface } from "@plugins/registry";
 import type { EventRegistryInterface, ExtensionRegistryInterface, MenuRegistryInterface } from "@plugins/types";
 
 export enum ExtensionType {
@@ -11,13 +12,24 @@ export enum ExtensionType {
 	Component = "component",
 }
 
+export interface HttpCommandExecutor {
+	execute<TResult = unknown>(path: string, args?: unknown): Promise<TResult>;
+}
+
 export interface SdkDependencies {
 	extensions: ExtensionRegistryInterface;
 	menus: MenuRegistryInterface;
 	events: EventRegistryInterface;
+	commands: HttpCommandExecutor;
+	pluginCommands: PluginCommandRegistryInterface;
+	app: unknown;
 	t: typeof tSdk;
 	Modal: typeof ModalSdk;
 	isPlatform: typeof PlatformServiceNew.isPlatform;
+}
+
+export function tryGetPluginCommands(): PluginCommandRegistryInterface | null {
+	return (globalThis[SDK_DEPS] as SdkDependencies | undefined)?.pluginCommands ?? null;
 }
 
 export interface ModalInstance {

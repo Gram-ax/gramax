@@ -14,7 +14,7 @@ import type { ParseSpec } from "@ext/markdown/core/edit/logic/Prosemirror/from_m
 import type PrivateParserContext from "@ext/markdown/core/Parser/ParserContext/PrivateParserContext";
 import { parse } from "@ext/markdown/elements/image/render/logic/imageTransformer";
 import linkCreator from "@ext/markdown/elements/link/render/logic/linkCreator";
-import { replacePathIfNeeded } from "../../../../../../../apps/gramax-cli/src/logic/NavigationUtils";
+import { replacePathIfNeeded } from "../../../../../../../apps/cli/src/logic/NavigationUtils";
 
 const dirs = [FRAGMENTS_DIRECTORY, SNIPPETS_DIRECTORY, TEMPLATES_DIRECTORY, PROMPT_DIRECTORY, INBOX_DIRECTORY] as const;
 

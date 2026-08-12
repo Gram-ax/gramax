@@ -4,15 +4,11 @@ import getProperty from "@app/commands/article/property/get";
 import removeProperty from "@app/commands/article/property/remove";
 import update from "@app/commands/article/property/update";
 import provider from "@app/commands/article/provider";
-import createFromPath from "@app/commands/article/resource/createFromPath";
-import getPath from "@app/commands/article/resource/getPath";
-import getPathByCatalogPath from "@app/commands/article/resource/getPathByCatalogPath";
 import create from "./create";
 import app from "./editOn/app";
 import source from "./editOn/source";
 import createLinkFromHref from "./features/createLinkFromHref";
 import getArticleHeadersByRelativePath from "./features/getArticleHeadersByRelativePath";
-import getArticlePageData from "./features/getArticlePageData";
 import getBrotherFileNames from "./features/getBrotherFileNames";
 import getBrotherNames from "./features/getBrotherNames";
 import getContent from "./features/getContent";
@@ -20,14 +16,13 @@ import getCustomArticle from "./features/getCustomArticle";
 import getEditorContent from "./features/getEditorContent";
 import getLinkItems from "./features/getLinkItems";
 import getRenderContent from "./features/getRenderContent";
+import getTakenAliases from "./features/getTakenAliases";
 import setContent from "./features/setContent";
 import getNameAfterMove from "./getNameAfterMove";
 import getProps from "./getProps";
 import move from "./move";
-import get from "./resource/get";
-import getByPath from "./resource/getByPath";
-import removeResource from "./resource/remove";
-import set from "./resource/set";
+import resource from "./resource";
+
 import updateContent from "./updateContent";
 
 const article = {
@@ -41,23 +36,16 @@ const article = {
 		getRenderContent,
 		getEditorContent,
 		getBrotherFileNames,
+		getTakenAliases,
 		getRenderContentByLogicPath,
 		createLinkFromHref,
+		getBrotherNames,
 	},
 	editOn: {
 		source,
 		app,
 	},
-	resource: {
-		get,
-		set,
-		getByPath,
-		createFromPath,
-		removeResource,
-		getBrotherNames,
-		getPath,
-		getPathByCatalogPath,
-	},
+	resource,
 	property: {
 		getProperty,
 		update,
@@ -69,7 +57,6 @@ const article = {
 	create,
 	getProps,
 	updateContent,
-	getArticlePageData,
 };
 
 export default article;

@@ -1,15 +1,16 @@
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import t from "@ext/localization/locale/translate";
+import { confirmItemDelete } from "@ext/item/logic/confirmItemDelete";
+import { getItemLinkChildrenRecursively } from "@ext/item/logic/getItemLinkChildrenRecursively";
 import { useRouter } from "../../../logic/Api/useRouter";
 import FetchService from "../../../ui-logic/ApiServices/FetchService";
 import { useCatalogPropsStore } from "../../../ui-logic/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import ErrorConfirmService from "../../errorHandlers/client/ErrorConfirmService";
 import { shouldShowActionWarning } from "../../localization/actions/OtherLanguagesPresentWarning";
 import NavigationEvents from "../../navigation/NavigationEvents";
-import type { ItemLink } from "../../navigation/NavigationLinks";
+import type { CategoryLink, ItemLink } from "../../navigation/NavigationLinks";
 import DeleteItem from "./DeleteItem";
 
-export const DeleteItemTrigger = ({ itemLink, isCategory }: { itemLink: ItemLink; isCategory: boolean }) => {
+export const DeleteItemTrigger = ({ itemLink }: { itemLink: ItemLink }) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const { supportedLanguagesLength } = useCatalogPropsStore((state) => ({
 		catalogName: state.data?.name,
@@ -18,8 +19,11 @@ export const DeleteItemTrigger = ({ itemLink, isCategory }: { itemLink: ItemLink
 	const router = useRouter();
 
 	const onClickHandler = async () => {
-		const deleteConfirmText = t(isCategory ? "confirm-category-delete" : "confirm-article-delete");
-		if (!shouldShowActionWarning(supportedLanguagesLength) && !(await confirm(deleteConfirmText))) return;
+		if (
+			!shouldShowActionWarning(supportedLanguagesLength) &&
+			!(await confirmItemDelete(itemLink.title, getItemLinkChildrenRecursively(itemLink as CategoryLink).length))
+		)
+			return;
 
 		ErrorConfirmService.stop();
 		const res = await FetchService.fetch(apiUrlCreator.removeItem(itemLink.ref.path));

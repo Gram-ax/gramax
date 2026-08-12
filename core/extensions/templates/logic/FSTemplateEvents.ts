@@ -34,11 +34,13 @@ export default class FSTemplateEvents {
 	}
 
 	private async _onItemPropsUpdated({ item, catalog }: EventArgs<FSEvents, "item-props-updated">) {
-		if (item.props.template && !(item as Article).content) {
-			const mutable = { item };
-			this._onBeforeItemCreate({ mutableItem: mutable, catalog });
-			await (item as Article).updateContent("", true);
-		}
+		if (!item.props.template) return;
+		const content = await (item as Article).getContent();
+		if (content) return;
+
+		const mutable = { item };
+		this._onBeforeItemCreate({ mutableItem: mutable, catalog });
+		await (item as Article).updateContent("", true);
 	}
 
 	private _onBeforeItemCreate({ catalog, mutableItem }: EventArgs<FSEvents, "before-item-create">) {
@@ -48,8 +50,8 @@ export default class FSTemplateEvents {
 			await this._onItemPreSave({ ...args, catalog });
 		});
 
-		mutableItem.item.events.on("item-get-content", (args) => {
-			this._onItemGetContent({ ...args, catalog });
+		mutableItem.item.events.on("item-get-content", async (args) => {
+			await this._onItemGetContent({ ...args, catalog });
 		});
 	}
 
@@ -59,7 +61,7 @@ export default class FSTemplateEvents {
 		}
 	}
 
-	private _onItemGetContent({ item, mutableContent, catalog }: ItemGetContentEventArgs) {
+	private async _onItemGetContent({ item, mutableContent, catalog }: ItemGetContentEventArgs) {
 		if (item.props?.template) {
 			const templateProvider = catalog.customProviders.templateProvider;
 			const templateArticle = templateProvider.getArticle(item.props.template);
@@ -68,7 +70,7 @@ export default class FSTemplateEvents {
 				mutableContent.content = fillMarkdownTemplate(
 					item.props.fields,
 					item.props.properties,
-					templateArticle.content,
+					await templateArticle.getContent(),
 				);
 			}
 		}

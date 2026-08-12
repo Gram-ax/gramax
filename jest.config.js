@@ -18,6 +18,7 @@ module.exports = {
 		"<rootDir>/application",
 		"<rootDir>/apps/tauri",
 		"<rootDir>/.worktrees",
+		...(process.env.JEST_INCLUDE_GES === "1" ? [] : ["\\.ges\\.test\\.ts$"]),
 	],
 	reporters: ["default", ["jest-junit", { suiteName: "jest tests" }]],
 	moduleNameMapper: {
@@ -43,6 +44,7 @@ module.exports = {
 		"^@ext/(.*)$": "<rootDir>/core/extensions/$1",
 		"^@app/(.*)$": "<rootDir>/app/$1",
 		"^pdfjs-dist/build/pdf.worker.min.js\\?url$": "<rootDir>/scripts/jest/mocks/pdf.worker.min.js",
+		"^pdfjs-dist/legacy/build/pdf.mjs$": "<rootDir>/scripts/jest/mocks/pdfjs.js",
 		"excelParse\\.worker(\\.ts)?$": "<rootDir>/scripts/jest/mocks/excelParseMock.js",
 		"createExcelWorker(\\.ts)?$": "<rootDir>/scripts/jest/mocks/excelParseMock.js",
 	},

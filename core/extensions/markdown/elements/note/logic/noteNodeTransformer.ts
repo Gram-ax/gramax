@@ -1,41 +1,31 @@
 import { GFMAlerts } from "@ext/markdown/elements/note/edit/logic/github/noteFormatter";
+import { NOTE_TITLE_NODE } from "@ext/markdown/elements/note/logic/noteTitleNode";
 import { NoteType } from "@ext/markdown/elements/note/render/component/Note";
 import type { JSONContent } from "@tiptap/core";
 import type NodeTransformerFunc from "../../../core/edit/logic/Prosemirror/NodeTransformerFunc";
 
+const injectTitleNode = (node: JSONContent): JSONContent => {
+	const title = node.attrs?.title;
+	if (typeof title === "string" && title.length > 0 && node.content?.[0]?.type !== NOTE_TITLE_NODE)
+		node.content = [{ type: NOTE_TITLE_NODE, content: [{ type: "text", text: title }] }, ...(node.content ?? [])];
+	node.attrs = { ...node.attrs, title: "" };
+	return node;
+};
+
 const noteNodeTransformer: NodeTransformerFunc = (node) => {
-	if (node && node.type === "blockquote") {
-		node.attrs = {
-			title: "",
-			collapsed: false,
-			...getGFMAttrs(node),
-		};
-
+	if (node?.type === "blockquote") {
+		node.attrs = { title: "", collapsed: false, ...getGFMAttrs(node) };
 		node.type = "note";
-
-		return { isSet: true, value: node };
-	}
-
-	if (node && node.type === "cut" && node.attrs.isInline === false) {
-		const { text } = node.attrs;
-
-		node.attrs = {
-			title: text,
-			collapsed: true,
-			type: NoteType.hotfixes,
-		};
-
+	} else if (node?.type === "cut" && node.attrs.isInline === false) {
+		node.attrs = { title: node.attrs.text, collapsed: true, type: NoteType.hotfixes };
 		node.type = "note";
-
-		return { isSet: true, value: node };
-	}
-
-	if (node && node.type === "note" && node.attrs.type === "none") {
+	} else if (node?.type === "note" && node.attrs.type === "none") {
 		node.attrs.type = NoteType.note;
-		return { isSet: true, value: node };
+	} else if (node?.type !== "note") {
+		return;
 	}
 
-	return;
+	return { isSet: true, value: injectTitleNode(node) };
 };
 
 const getGFMAttrs = (node: JSONContent): { type: NoteType; title?: string } => {

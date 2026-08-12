@@ -3,6 +3,7 @@ import type Path from "@core/FileProvider/Path/Path";
 import type { GitMergeResultContent } from "@ext/git/actions/MergeConflictHandler/model/GitMergeResultContent";
 import type GitVersionControl from "@ext/git/core/GitVersionControl/GitVersionControl";
 import type { GitStatus } from "@ext/git/core/GitWatcher/model/GitStatus";
+// biome-ignore lint/style/useImportType: out of scope
 import GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 import Repository, {
 	type CheckoutOptions,

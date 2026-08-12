@@ -260,9 +260,13 @@ function getSearchRows(
 					openSideEffect,
 				});
 			} else if (item.type === "diagram") {
+				const itemFragmentInfos = item.items.map((x) =>
+					x.type === "paragraph" ? articleFragmentCounter.initFragmentInfo(x.searchText) : undefined,
+				);
+
 				const firstChildFragmentInfo =
-					item.items.length > 0 && item.items[0].type === "paragraph"
-						? articleFragmentCounter.initFragmentInfo(item.items[0].searchText)
+					itemFragmentInfos[0] != null
+						? itemFragmentInfos[0]
 						: item.title.length > 0
 							? articleFragmentCounter.initFragmentInfo(item.title.map((x) => x.text).join(""))
 							: undefined;

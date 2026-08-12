@@ -67,7 +67,7 @@ const getAllSyncCount: Command<{ ctx: Context; shouldFetch?: boolean; resetSyncC
 		},
 
 		params(ctx, q) {
-			return { ctx, shouldFetch: q.fetch === "true" };
+			return { ctx, shouldFetch: q.fetch === "true", resetSyncCount: q.resetSyncCount === "true" };
 		},
 	});
 

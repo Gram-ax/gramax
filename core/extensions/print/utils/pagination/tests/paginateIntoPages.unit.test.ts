@@ -3,15 +3,22 @@ import type { ArticlePreview, PdfPrintParams } from "@ext/print/types";
 jest.mock("../../tocPage/initTocPageContent", () => ({
 	initTocPageContent: jest.fn(),
 }));
+jest.mock("../printTemplateImages", () => ({
+	waitForPrintTemplateImages: jest.fn().mockResolvedValue(undefined),
+}));
 
 import paginateIntoPages from "@ext/print/utils/paginateIntoPages";
 import { PaginationAbortError } from "@ext/print/utils/pagination/abort";
+import { waitForPrintTemplateImages } from "@ext/print/utils/pagination/printTemplateImages";
 import { TITLE_PAGE_CLASS } from "@ext/print/utils/pagination/titlePage";
 import { initTocPageContent } from "../../tocPage/initTocPageContent";
 
 describe("paginateIntoPages integration", () => {
 	beforeEach(() => {
-		(document as any).fonts = { ready: Promise.resolve() };
+		jest.mocked(waitForPrintTemplateImages).mockResolvedValue(undefined);
+		(document as unknown as { fonts: { ready: Promise<void> } }).fonts = {
+			ready: Promise.resolve(),
+		};
 
 		window.requestAnimationFrame = (cb: FrameRequestCallback) => {
 			cb(0);
@@ -26,7 +33,7 @@ describe("paginateIntoPages integration", () => {
 		jest.spyOn(window, "getComputedStyle").mockReturnValue({
 			paddingTop: "0px",
 			paddingBottom: "0px",
-		} as any);
+		} as CSSStyleDeclaration);
 		jest.spyOn(console, "log").mockImplementation(() => {});
 	});
 
@@ -43,8 +50,14 @@ describe("paginateIntoPages integration", () => {
 		source.appendChild(heading);
 		source.appendChild(span);
 
-		Object.defineProperty(heading, "offsetHeight", { value: 40, configurable: true });
-		Object.defineProperty(span, "offsetHeight", { value: 60, configurable: true });
+		Object.defineProperty(heading, "offsetHeight", {
+			value: 40,
+			configurable: true,
+		});
+		Object.defineProperty(span, "offsetHeight", {
+			value: 60,
+			configurable: true,
+		});
 
 		const pages = document.createElement("div");
 		const params: PdfPrintParams = {
@@ -69,7 +82,7 @@ describe("paginateIntoPages integration", () => {
 
 		await paginateIntoPages(source, pages, params, { items, title: "Title" }, onDone, onProgress);
 
-		expect(initTocPageContent).toHaveBeenCalledWith(pages, items, params.titlePage);
+		expect(initTocPageContent).toHaveBeenCalledWith(pages, items, params.titlePage, params.tocPageTitle);
 		expect(pages.firstElementChild).not.toBeNull();
 		expect(pages.firstElementChild?.classList.contains(TITLE_PAGE_CLASS)).toBe(true);
 		const lastProgressCall = onProgress.mock.calls.at(-1)?.[0];
@@ -101,5 +114,45 @@ describe("paginateIntoPages integration", () => {
 				signal: controller.signal,
 			}),
 		).rejects.toThrow(PaginationAbortError);
+	});
+
+	it("waits for template images before completing pagination", async () => {
+		const source = document.createElement("div");
+		const content = document.createElement("span");
+		source.appendChild(content);
+		Object.defineProperty(content, "offsetHeight", {
+			value: 40,
+			configurable: true,
+		});
+		const pages = document.createElement("div");
+		const params: PdfPrintParams = {
+			titlePage: true,
+			tocPage: false,
+			titleNumber: false,
+		};
+		const template = ".title-page { background-image: url('/title-page.png'); }";
+		let markImageWaitStarted: VoidFunction;
+		const imageWaitStarted = new Promise<void>((resolve) => {
+			markImageWaitStarted = resolve;
+		});
+		let finishImageWait: VoidFunction;
+		const imageWait = new Promise<void>((resolve) => {
+			finishImageWait = resolve;
+		});
+		jest.mocked(waitForPrintTemplateImages).mockImplementationOnce(() => {
+			markImageWaitStarted();
+			return imageWait;
+		});
+		const onDone = jest.fn();
+
+		const pagination = paginateIntoPages(source, pages, params, { items: [], title: "Title", template }, onDone);
+		await imageWaitStarted;
+
+		expect(waitForPrintTemplateImages).toHaveBeenCalledWith(template, undefined);
+		expect(onDone).not.toHaveBeenCalled();
+
+		finishImageWait();
+		await pagination;
+		expect(onDone).toHaveBeenCalledTimes(1);
 	});
 });

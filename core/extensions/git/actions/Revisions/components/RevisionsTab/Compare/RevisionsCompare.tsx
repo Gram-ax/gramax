@@ -1,4 +1,7 @@
 import Date from "@components/Atoms/Date";
+import { TooltipIconButton } from "@components/Atoms/TooltipIconButton";
+import NavigationTabsService from "@components/Layouts/LeftNavigationTabs/NavigationTabsService";
+import { LeftNavigationTab } from "@components/Layouts/StatusBar/Extensions/ArticleStatusBar/ArticleStatusBar";
 import useSetArticleDiffView from "@core-ui/hooks/diff/useSetArticleDiffView";
 import {
 	type RevisionCommit,
@@ -6,6 +9,7 @@ import {
 	RevisionCompareItem,
 	type RevisionVariant,
 } from "@ext/git/actions/Revisions/components/RevisionsTab/Compare/RevisionCompareItem";
+import { useGotoRevision } from "@ext/git/actions/Revisions/logic/hooks/useGotoRevision";
 import { useRevisionsCompare } from "@ext/git/actions/Revisions/logic/hooks/useRevisionsCompare";
 import {
 	revisionCatalogStore,
@@ -16,14 +20,14 @@ import ScrollableDiffEntriesLayout from "@ext/git/core/Diff/components/Changes/S
 import { DiffCount } from "@ext/git/core/Diff/components/helpers/DiffCount";
 import type { DiffFlattenTreeItem } from "@ext/git/core/GitDiffItemCreator/RevisionDiffPresenter";
 import t, { pluralize } from "@ext/localization/locale/translate";
-import { Button, TriggerButton } from "@ui-kit/Button";
+import { TriggerButton } from "@ui-kit/Button";
 import { Divider } from "@ui-kit/Divider";
 import { Icon } from "@ui-kit/Icon";
 import { Indicator } from "@ui-kit/Indicator";
 import { Loader } from "@ui-kit/Loader";
 import { Popover, PopoverAnchor, PopoverContent } from "@ui-kit/Popover";
 import { TextOverflowTooltip, Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
-import { type RefObject, useCallback, useMemo, useRef, useState } from "react";
+import { type RefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 const CompareItemContent = ({ variant, circle }: { variant: RevisionVariant; circle: RevisionCommit }) => {
 	const fieldName = circle === "A" ? "from" : "to";
@@ -155,6 +159,7 @@ const CompareResults = () => {
 
 export const RevisionsCompare = ({ tabWrapperRef }: { tabWrapperRef: RefObject<HTMLDivElement> }) => {
 	const [isOpen, setIsOpen] = useState(false);
+	const bottomTab = NavigationTabsService.value.bottomTab;
 
 	const { setStatus, setRevisionsCompare, setCompareDiffTree } = useRevisionCatalogStore((state) => ({
 		setStatus: state.setStatus,
@@ -162,12 +167,30 @@ export const RevisionsCompare = ({ tabWrapperRef }: { tabWrapperRef: RefObject<H
 		setCompareDiffTree: state.setCompareDiffTree,
 	}));
 
-	const { hasFrom, hasTo } = useRevisionCatalogStore((state) => ({
+	const { hasFrom, hasTo, revisionsCompare } = useRevisionCatalogStore((state) => ({
 		hasFrom: !!state.revisionsCompare?.from,
 		hasTo: !!state.revisionsCompare?.to,
+		revisionsCompare: state.revisionsCompare,
 	}));
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: we need to close the popover when the bottom tab changes
+	useEffect(() => {
+		if ((!bottomTab || bottomTab !== LeftNavigationTab.CatalogRevisions) && isOpen) {
+			setIsOpen(false);
+		}
+	}, [bottomTab]);
+
 	const hasAny = hasFrom || hasTo;
+
+	const gotoRevision = useGotoRevision();
+
+	const onOpenCatalogCompare = useCallback(() => {
+		const from = revisionsCompare?.from;
+		const to = revisionsCompare?.to;
+		if (!from || !to) return;
+		const [older, newer] = from.timestamp < to.timestamp ? [from, to] : [to, from];
+		gotoRevision(newer.oid, older.oid);
+	}, [revisionsCompare, gotoRevision]);
 
 	const onReset = useCallback(() => {
 		setRevisionsCompare({ from: null, to: null });
@@ -186,11 +209,7 @@ export const RevisionsCompare = ({ tabWrapperRef }: { tabWrapperRef: RefObject<H
 	);
 
 	const onInteractOutside = useCallback((event) => {
-		const isRevisionsComparePopover = event.target.closest("[aria-controls='revisions-compare-popover']");
-		if (event.target.closest("[data-commits-list]") || isRevisionsComparePopover) {
-			event.preventDefault();
-			return;
-		}
+		event.preventDefault();
 	}, []);
 
 	return (
@@ -224,16 +243,24 @@ export const RevisionsCompare = ({ tabWrapperRef }: { tabWrapperRef: RefObject<H
 				>
 					<div className="flex items-center justify-between px-3 py-2.5 h-10">
 						<span className="text-sm font-semibold">{t("git.history.revisions.title")}</span>
-						{hasAny && (
-							<Button
-								className="h-auto p-1 text-xs text-muted font-normal"
+						<div className="flex items-center gap-2">
+							<TooltipIconButton
+								disabled={!hasFrom || !hasTo}
+								icon="git-compare-arrows"
+								onClick={onOpenCatalogCompare}
+								size="xs"
+								tooltip={t("git.revisions.open-catalog-compare")}
+								variant="text"
+							/>
+							<TooltipIconButton
+								disabled={!hasAny}
+								icon="rotate-ccw"
 								onClick={onReset}
 								size="xs"
+								tooltip={t("git.history.revisions.reset")}
 								variant="text"
-							>
-								{t("git.history.revisions.reset")}
-							</Button>
-						)}
+							/>
+						</div>
 					</div>
 					<Divider />
 					<div className="p-3">

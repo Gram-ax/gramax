@@ -132,6 +132,7 @@ const MediaPreview = (props: MediaPreviewProps): ReactElement => {
 			/>
 			<TransformWrapper
 				centerOnInit
+				disablePadding
 				doubleClick={{ mode: "reset" }}
 				initialScale={breakpoint === "sm" ? 1 : 0.8}
 				maxScale={3}

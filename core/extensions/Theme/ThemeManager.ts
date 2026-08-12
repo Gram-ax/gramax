@@ -1,18 +1,18 @@
-import type BrowserCookie from "@app/../apps/browser/src/logic/BrowserCookie";
 import type Cookie from "@ext/cookie/Cookie";
+import type WebCookie from "apps/web/src/logic/WebCookie";
 import Theme from "./Theme";
 
 const COOKIE_THEME = "theme";
 
 export default class ThemeManager {
 	public setTheme(cookie: Cookie, theme: Theme) {
-		if (theme?.length) (cookie as BrowserCookie).set(COOKIE_THEME, theme.toString(), undefined, { encrypt: false });
+		if (theme?.length) (cookie as WebCookie).set(COOKIE_THEME, theme.toString(), undefined, { encrypt: false });
 	}
 
 	public getTheme(cookie: Cookie): Theme {
 		try {
-			let theme = (cookie as BrowserCookie).get(COOKIE_THEME, false);
-			if (this._checkTheme(theme)) theme = (cookie as BrowserCookie).get(COOKIE_THEME, true);
+			let theme = (cookie as WebCookie).get(COOKIE_THEME, false);
+			if (this._checkTheme(theme)) theme = (cookie as WebCookie).get(COOKIE_THEME, true);
 			if (theme in Theme) return theme as Theme;
 		} catch {}
 

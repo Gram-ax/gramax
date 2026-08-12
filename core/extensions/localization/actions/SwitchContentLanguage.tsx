@@ -1,3 +1,4 @@
+import type { IconCode } from "@components/Atoms/Icon/LucideIcon";
 import ButtonLink from "@components/Molecules/ButtonLink";
 import { useRouter } from "@core/Api/useRouter";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
@@ -46,11 +47,6 @@ const SwitchContentLanguage = () => {
 	}, [currentLanguage]);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
-	useEffect(() => {
-		if (!language || !articleProps) return;
-		if (language && !supportedLanguages.includes(currentLanguage)) switchLanguage(language);
-	}, [language, supportedLanguages, articleProps]);
-
 	const switchLanguage = useCallback(
 		(code: ContentLanguage) => {
 			if (code === currentLanguage) return;
@@ -108,7 +104,7 @@ const SwitchContentLanguage = () => {
 					<>
 						<AddContentLanguage onChange={switchLanguage} setIsLoading={setIsLoading} />
 						<DropdownMenuItem onSelect={onSwitchPreviewArticle}>
-							<Icon icon="columns-2" />
+							<Icon icon={"columns-2" as IconCode} />
 							{t("multilang.preview-article")}
 							<Switch checked={showPreviewArticle} className="pointer-events-none" size="sm" />
 						</DropdownMenuItem>

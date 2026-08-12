@@ -1,10 +1,8 @@
 import { cn } from "@core-ui/utils/cn";
+// biome-ignore lint/style/noRestrictedImports: ignore for now
 import styled from "@emotion/styled";
-import {
-	columnThClassName,
-	TABLE_COLUMN_CODE_DEFAULT,
-	type TableComponentProps,
-} from "@ext/enterprise/components/admin/ui-kit/table/TableComponent";
+import { columnWidthStyle } from "@ext/enterprise/components/admin/ui-kit/table/columnWidthStyle";
+import type { TableComponentProps } from "@ext/enterprise/components/admin/ui-kit/table/TableComponent";
 import { TableEmptyRow } from "@ext/enterprise/components/admin/ui-kit/table/TableEmptyRow";
 import { TableLoadingRow } from "@ext/enterprise/components/admin/ui-kit/table/TableLoadingRow";
 import { useVirtualizer } from "@tanstack/react-virtual";
@@ -43,6 +41,7 @@ interface LazyInfinityTableProps<T> extends TableComponentProps<T> {
 	selectedRowId?: string | null;
 	responsive?: boolean;
 	isFetchingProp?: boolean;
+	controlledInitialLoad?: boolean;
 }
 
 const Wrapper = styled.div`
@@ -80,6 +79,7 @@ const LazyInfinityTableComponent = <T,>(props: LazyInfinityTableProps<T>) => {
 		selectedRowId,
 		responsive = true,
 		isFetchingProp = false,
+		controlledInitialLoad = false,
 	} = props;
 	const scrollContainerRef = useRef<HTMLDivElement>(null);
 	const [isFetching, setIsFetching] = useState(false);
@@ -90,7 +90,6 @@ const LazyInfinityTableComponent = <T,>(props: LazyInfinityTableProps<T>) => {
 	const isFetchingRef = useRef(false);
 
 	useEffect(() => {
-		// Check if deps actually changed
 		const depsChanged = deps.some((dep, i) => !Object.is(dep, depsRef.current[i]));
 		if (depsChanged) {
 			depsRef.current = deps;
@@ -98,13 +97,15 @@ const LazyInfinityTableComponent = <T,>(props: LazyInfinityTableProps<T>) => {
 			isFetchingRef.current = false;
 			setIsFetching(false);
 			lastScrollTop.current = 0;
-			setData([]);
+			if (scrollContainerRef.current) scrollContainerRef.current.scrollTop = 0;
+			if (!controlledInitialLoad) setData([]);
 		}
 		// biome-ignore lint/correctness/useExhaustiveDependencies: deps is a dynamic array passed as prop
 	}, deps);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: setData is stable callback from props
 	useEffect(() => {
+		if (controlledInitialLoad) return;
 		if (isInitialLoadComplete.current || isFetchingRef.current) return;
 
 		const loadInitialData = async () => {
@@ -133,11 +134,14 @@ const LazyInfinityTableComponent = <T,>(props: LazyInfinityTableProps<T>) => {
 			}
 		};
 
-		loadInitialData();
-	}, [loadOptions, hasMore]);
+		void loadInitialData();
+	}, [loadOptions, hasMore, controlledInitialLoad]);
 
 	const fetchMoreOnBottomReached = useCallback(async () => {
-		if (!isInitialLoadComplete.current || isFetchingRef.current) return;
+		const canStartFetch = controlledInitialLoad
+			? table.getRowModel().rows.length > 0 && !isFetchingProp
+			: isInitialLoadComplete.current;
+		if (!canStartFetch || isFetchingRef.current) return;
 
 		const scrollContainer = scrollContainerRef.current;
 		if (!scrollContainer) return;
@@ -176,7 +180,7 @@ const LazyInfinityTableComponent = <T,>(props: LazyInfinityTableProps<T>) => {
 			setIsFetching(false);
 			isFetchingRef.current = false;
 		}
-	}, [loadOptions, setData, hasMore]);
+	}, [loadOptions, setData, hasMore, controlledInitialLoad, isFetchingProp, table]);
 
 	const { rows } = table.getRowModel();
 
@@ -203,30 +207,18 @@ const LazyInfinityTableComponent = <T,>(props: LazyInfinityTableProps<T>) => {
 								return <col key={col.id} style={size ? { width: `${size}px` } : undefined} />;
 							})}
 						</colgroup>
-						<TableHeader className="h-10 bg-secondary-bg top-0">
+						<TableHeader className="bg-secondary-bg top-0">
 							{table.getHeaderGroups().map((headerGroup) => (
-								<TableRow className="h-10 items-center" key={headerGroup.id}>
-									{headerGroup.headers.map((header, idx) => {
+								<TableRow className="items-center" key={headerGroup.id}>
+									{headerGroup.headers.map((header) => {
 										const columnSize = columns.find((col) => col.id === header.column.id)?.size;
 										return (
 											<TableHead
 												className={cn(
-													columnThClassName[
-														header.column.id as keyof typeof columnThClassName
-													] || columnThClassName[TABLE_COLUMN_CODE_DEFAULT],
-													idx === 0 ? "pl-3" : "",
-													"h-10 items-center whitespace-nowrap overflow-hidden text-ellipsis",
+													"items-center whitespace-nowrap overflow-hidden text-ellipsis",
 												)}
 												key={header.id}
-												style={
-													!responsive && columnSize
-														? {
-																width: `${columnSize}px`,
-																minWidth: `${columnSize}px`,
-																maxWidth: `${columnSize}px`,
-															}
-														: undefined
-												}
+												style={responsive ? undefined : columnWidthStyle(columnSize)}
 											>
 												{header.isPlaceholder
 													? null

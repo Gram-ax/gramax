@@ -14,8 +14,12 @@ import MimeTypes from "./Types/MimeTypes";
 import type Url from "./Types/Url";
 
 export type OnDidCommandEv = { command: string; args: object; result: unknown };
+export type OnWillCommandEv = { command: string; args: object };
+export type OnSettledCommandEv = { command: string };
 
-export type FetchServiceEvents = Event<"on-did-command", OnDidCommandEv>;
+export type FetchServiceEvents = Event<"on-did-command", OnDidCommandEv> &
+	Event<"on-will-command", OnWillCommandEv> &
+	Event<"on-settled-command", OnSettledCommandEv>;
 
 /**
  * @deprecated Consider using `useApi(..)` hook instead
@@ -32,18 +36,25 @@ export default class FetchService {
 		signal?: AbortSignal,
 	): Promise<FetchResponse<T>> {
 		const command = trimRoutePrefix(url);
+		void events.emit("on-will-command", { command, args: {} });
 
-		const res = await resolveModule("Fetcher")(
-			url,
-			body,
-			mime,
-			method,
-			false,
-			(command, args, result) => {
-				void events.emit("on-did-command", { command, args, result });
-			},
-			signal,
-		);
+		const res = await (async () => {
+			try {
+				return await resolveModule("Fetcher")(
+					url,
+					body,
+					mime,
+					method,
+					false,
+					(command, args, result) => {
+						void events.emit("on-did-command", { command, args, result });
+					},
+					signal,
+				);
+			} finally {
+				void events.emit("on-settled-command", { command });
+			}
+		})();
 
 		if (res.ok) return res;
 

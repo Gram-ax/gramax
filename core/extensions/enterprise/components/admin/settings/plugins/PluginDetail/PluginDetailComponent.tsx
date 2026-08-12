@@ -3,21 +3,23 @@ import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/Moda
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import { useAdminNavigation } from "@ext/enterprise/components/admin/contexts/AdminNavigationContext";
 import { useSettings } from "@ext/enterprise/components/admin/contexts/SettingsContext";
+import { useAdminHeader } from "@ext/enterprise/components/admin/hooks/useAdminHeader";
+import { useAlertMessage } from "@ext/enterprise/components/admin/hooks/useAlertMessage";
+import { Button } from "@ext/enterprise/components/admin/ui-kit/Button";
+import { toGesErrorCode } from "@ext/enterprise/errors/GesError";
+import { getGesErrorBadgeText, getGesErrorTitle, getSaveErrorText } from "@ext/enterprise/errors/getGesErrorText";
 import { Page } from "@ext/enterprise/types/Page";
 import type { PluginsSettings } from "@ext/enterprise/types/PluginsSettings";
 import { getAdminPageTitle } from "@ext/enterprise/utils/getAdminPageTitle";
 import t from "@ext/localization/locale/translate";
 import { deletePlugin, togglePluginState } from "@plugins/store";
-import { Button } from "@ui-kit/Button";
 import { Icon } from "@ui-kit/Icon";
 import { FieldLabel } from "@ui-kit/Label";
 import { PageState, PageStateDescription, PageStateTitle } from "@ui-kit/PageState";
 import { SwitchField } from "@ui-kit/Switch";
 import type { ComponentProps } from "react";
 import { useCallback, useMemo, useState } from "react";
-import { FloatingAlert } from "../../../ui-kit/FloatingAlert";
 import { Spinner } from "../../../ui-kit/Spinner";
-import { StickyHeader } from "../../../ui-kit/StickyHeader";
 import { StyledField } from "../../../ui-kit/StyledField";
 import { TabErrorBlock } from "../../../ui-kit/TabErrorBlock";
 import { TabInitialLoader } from "../../../ui-kit/TabInitialLoader";
@@ -25,10 +27,10 @@ import { ButtonsContainer, DetailsSection, FieldsContainer } from "./PluginDetai
 
 const PluginDetailComponent = () => {
 	const { pageParams, navigate } = useAdminNavigation(Page.PLUGIN_DETAIL);
-	const { settings, updatePlugins, ensurePluginsLoaded, isInitialLoading, isRefreshing, getTabError } = useSettings();
+	const { settings, gesUrl, update, ensureLoaded, isInitialLoading, isRefreshing, getTabError } = useSettings();
 	const pluginsSettings = settings?.plugins;
 	const [isProcessing, setIsProcessing] = useState(false);
-	const [saveError, setSaveError] = useState<string | null>(null);
+	const saveError = useAlertMessage();
 	const selectedPluginId = pageParams.selectedPluginId;
 
 	const pluginConfig = useMemo(
@@ -41,6 +43,7 @@ const PluginDetailComponent = () => {
 	const handleToggleState = useCallback(async () => {
 		if (!selectedPluginId || isProcessing || !pluginsSettings) return;
 
+		saveError.hide();
 		setIsProcessing(true);
 		try {
 			const newDisabled = !isDisabled;
@@ -51,32 +54,35 @@ const PluginDetailComponent = () => {
 			const updatedSettings: PluginsSettings = {
 				plugins: updatedPlugins.filter((p) => !p.metadata.isBuiltIn),
 			};
-			await updatePlugins(updatedSettings);
+			await update("plugins", updatedSettings);
 			await togglePluginState(selectedPluginId, newDisabled);
 		} catch (e) {
-			setSaveError(e?.message);
+			const code = toGesErrorCode(e);
+			saveError.alert(getSaveErrorText(code, gesUrl), getGesErrorTitle(code), getGesErrorBadgeText(code));
 		} finally {
 			setIsProcessing(false);
 		}
-	}, [selectedPluginId, isDisabled, isProcessing, pluginsSettings, updatePlugins]);
+	}, [selectedPluginId, isDisabled, isProcessing, pluginsSettings, update, saveError.hide, saveError.alert, gesUrl]);
 
 	const handleDelete = useCallback(async () => {
 		if (!selectedPluginId || isProcessing || !pluginsSettings) return;
 
+		saveError.hide();
 		setIsProcessing(true);
 		try {
 			const updatedSettings: PluginsSettings = {
 				plugins: pluginsSettings.plugins.filter((p) => p.metadata.id !== selectedPluginId),
 			};
-			await updatePlugins(updatedSettings);
+			await update("plugins", updatedSettings);
 			deletePlugin(selectedPluginId);
 
 			navigate(Page.PLUGINS);
 		} catch (e) {
-			setSaveError(e?.message);
+			const code = toGesErrorCode(e);
+			saveError.alert(getSaveErrorText(code, gesUrl), getGesErrorTitle(code), getGesErrorBadgeText(code));
 			setIsProcessing(false);
 		}
-	}, [selectedPluginId, isProcessing, pluginsSettings, updatePlugins, navigate]);
+	}, [selectedPluginId, isProcessing, pluginsSettings, update, navigate, saveError.hide, saveError.alert, gesUrl]);
 
 	const handleOpenDeleteModal = useCallback(() => {
 		const modalId = ModalToOpenService.addModal<ComponentProps<typeof DefaultModal>>(ModalToOpen.DefaultModal, {
@@ -101,13 +107,39 @@ const PluginDetailComponent = () => {
 	}, [pluginConfig.metadata.name, handleDelete]);
 
 	const tabError = getTabError("plugins");
+	const isContentUnavailable = isInitialLoading("plugins") || Boolean(tabError) || !pluginConfig;
+
+	useAdminHeader({
+		alert: saveError,
+		title: (
+			<>
+				{getAdminPageTitle(Page.PLUGIN_DETAIL)} <Spinner show={isRefreshing("plugins")} size="small" />
+			</>
+		),
+		actions: isContentUnavailable ? undefined : (
+			<ButtonsContainer>
+				<SwitchField
+					alignment="right"
+					checked={!isDisabled}
+					className="gap-2"
+					disabled={isProcessing}
+					label={t("plugins.detail.current-status")}
+					onCheckedChange={handleToggleState}
+				/>
+				<Button disabled={isProcessing} onClick={handleOpenDeleteModal} status="error" variant="secondary">
+					<Icon icon="trash-2" size="md" />
+					{t("plugins.detail.delete")}
+				</Button>
+			</ButtonsContainer>
+		),
+	});
 
 	if (isInitialLoading("plugins")) {
 		return <TabInitialLoader />;
 	}
 
 	if (tabError) {
-		return <TabErrorBlock message={tabError.message} onRetry={() => ensurePluginsLoaded(true)} />;
+		return <TabErrorBlock code={tabError} onRetry={() => ensureLoaded("plugins", true)} />;
 	}
 
 	if (!selectedPluginId || !pluginConfig) {
@@ -121,36 +153,6 @@ const PluginDetailComponent = () => {
 
 	return (
 		<div>
-			<StickyHeader
-				actions={
-					<ButtonsContainer>
-						<SwitchField
-							alignment="right"
-							checked={!isDisabled}
-							className="gap-2"
-							disabled={isProcessing}
-							label={t("plugins.detail.current-status")}
-							onCheckedChange={handleToggleState}
-						/>
-						<Button
-							disabled={isProcessing}
-							onClick={handleOpenDeleteModal}
-							status="error"
-							variant="secondary"
-						>
-							<Icon icon="trash-2" size="md" />
-							{t("plugins.detail.delete")}
-						</Button>
-					</ButtonsContainer>
-				}
-				title={
-					<>
-						{getAdminPageTitle(Page.PLUGIN_DETAIL)} <Spinner show={isRefreshing("plugins")} size="small" />
-					</>
-				}
-			/>
-			<FloatingAlert message={saveError} show={Boolean(saveError)} />
-
 			<DetailsSection>
 				<FieldsContainer>
 					<StyledField

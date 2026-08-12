@@ -1,5 +1,5 @@
 import { useCatalogActionsContext } from "@components/Actions/CatalogActions/CatalogActionsContext";
-import RepositoryPermissionTrigger from "@ext/enterprise/components/RepositoryPermission";
+import RepositoryPermissionTrigger from "@ext/enterprise/components/RepositoryPermission/RepositoryPermission";
 import type { ReactNode } from "react";
 
 interface RepositoryPermissionItemProps {

@@ -9,9 +9,9 @@ import type {
 import { ServiceKey } from "@plugins/core/PluginContainer";
 import { getPluginIsReady } from "@plugins/store";
 import { PluginStore } from "@plugins/store/PluginStore";
-import type { GramaxData } from "apps/browser/src/Gramax";
 import type React from "react";
 import { useEffect, useRef } from "react";
+import type { GramaxData } from "../../../../apps/web/src/Gramax";
 
 type EventPayload<E extends PluginEventName> = Parameters<PluginEventMap[E]>[0];
 

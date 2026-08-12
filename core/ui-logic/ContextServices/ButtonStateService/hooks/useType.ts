@@ -1,196 +1,63 @@
-import type { Editor } from "@tiptap/core";
-import type { Mark } from "@tiptap/pm/model";
+import { getActiveNodesFromSelection } from "@core-ui/ContextServices/ButtonStateService/utils/getActiveNodesFromSelection";
+import type { Editor, NodeRange } from "@tiptap/core";
 import type { Selection } from "@tiptap/pm/state";
-import { useEffect, useRef, useState } from "react";
-import type { Attrs, Mark as MarkType, NodeType } from "./types";
-
-const markList: MarkType[] = ["link", "strong", "em", "code", "file", "comment", "s", "highlight", "fragment-link"];
+import { getMarksBetween, useEditorState } from "@tiptap/react";
+import type { Attrs, Mark, Mark as MarkType, NodeType } from "./types";
 
 type State = { actions: NodeType[]; marks: MarkType[]; attrs: Attrs; selection: Selection };
 
-export const getNodeNameFromCursor = (state: Editor["state"]) => {
-	const { selection } = state;
-	const { from, to, empty } = selection;
-	let { $anchor } = selection;
-	let headingLevel = null;
-	let noteType = null;
-	let diagramName = null;
-	let color = null;
-
-	const nodeStack = [];
-	let ignoreList = false;
-
-	const addRules = {
-		bulletList: () => {
-			if (!ignoreList) nodeStack.push("bulletList");
-			ignoreList = true;
-		},
-		orderedList: () => {
-			if (!ignoreList) nodeStack.push("orderedList");
-			ignoreList = true;
-		},
-		taskList: () => {
-			if (!ignoreList) nodeStack.push("taskList");
-			ignoreList = true;
-		},
-		heading: (node) => {
-			nodeStack.push("heading");
-			headingLevel = node.attrs?.level;
-		},
-		note: (node) => {
-			nodeStack.push("note");
-			noteType = node.attrs?.type;
-		},
-		diagrams: (node) => {
-			nodeStack.push("diagrams");
-			diagramName = node.attrs?.diagramName;
-		},
-	};
-
-	state.doc.nodesBetween(from, to, (node) => {
-		if (node.type.name === "text" && node.marks?.length > 0) {
-			node.marks?.forEach((mark) => {
-				if (mark.type.name === "highlight") {
-					color = mark.attrs?.color;
-				}
-			});
-		}
-	});
-
-	while ($anchor) {
-		const name = $anchor.parent.type.name;
-
-		if (addRules[name]) {
-			addRules[name]($anchor.parent);
-		} else {
-			nodeStack.push(name);
-		}
-
-		$anchor = $anchor.node($anchor.depth - 1) ? $anchor.doc.resolve($anchor.before($anchor.depth)) : null;
-	}
-
-	if (!nodeStack.some((nodeName) => ["paragraph", "heading", "code_block"].includes(nodeName))) {
-		const cursor = state.selection.$from;
-		const node = cursor.nodeAfter || cursor.nodeBefore;
-		const name = node?.type?.name;
-		if (name) {
-			if (addRules[name]) addRules[name](node);
-			nodeStack.unshift(name);
-		}
-	}
-
-	if (!empty) {
-		state.doc.nodesBetween(from, to, (node) => {
-			const name = node.type.name;
-
-			if (nodeStack.includes(name)) return;
-
-			if (addRules[name]) {
-				addRules[name](node);
-			} else {
-				nodeStack.push(name);
-			}
-		});
-	}
-
-	return {
-		noteType,
-		actions: nodeStack.filter(
-			(elem) => !["doc", "text", "listItem", "taskItem", "tableHeader", "tableCell", "tableRow"].includes(elem),
-		),
-		headingLevel,
-		diagramName,
-		color,
-	};
+export const getFilteredActions = (nodes: NodeRange[]) => {
+	return nodes
+		.filter(
+			({ node }) =>
+				!["doc", "text", "listItem", "taskItem", "tableHeader", "tableCell", "tableRow"].includes(
+					node.type.name,
+				),
+		)
+		.map(({ node }) => node.type.name as NodeType);
 };
 
-const getMarksAction = (editor: Editor) => {
-	const node = editor.state.selection.$from.node();
-	const marks = [];
+const arraysEqual = (a: readonly string[], b: readonly string[]) =>
+	a.length === b.length && a.every((value, index) => value === b[index]);
 
-	if (node.type.name === "paragraph" || node.type.name === "heading") {
-		const { state } = editor;
-		const { from, to, empty } = state.selection;
-
-		const addActiveMarks = (marksAtCursor: readonly Mark[]) => {
-			marksAtCursor.forEach((mark) => {
-				const markName = mark.type.name as MarkType;
-				if (markList.includes(markName) && !marks.includes(markName)) {
-					marks.push(markName);
-				}
-			});
-		};
-
-		if (empty) {
-			const headMarks = state.selection.$head.marks();
-			const marksAtCursor = headMarks.length > 0 ? headMarks : (state.storedMarks ?? []);
-			addActiveMarks(marksAtCursor);
-		} else {
-			state.doc.nodesBetween(from, to, (node) => addActiveMarks(node.marks));
-		}
-	}
-
-	return marks;
+const selectionsEqual = (a: Selection | null, b: Selection | null): boolean => {
+	if (a === b) return true;
+	if (!a || !b) return false;
+	return typeof a.eq === "function" ? a.eq(b) : false;
 };
 
-const useType = (editor: Editor) => {
-	const mirror = useRef<State>({
-		actions: [],
-		marks: [],
-		attrs: { level: null, diagramName: null, color: null },
-		selection: null,
+const statesEqual = (a: State, b: State | null): boolean => {
+	if (!b) return false;
+	if (!selectionsEqual(a.selection, b.selection)) return false;
+	if (!arraysEqual(a.actions, b.actions) || !arraysEqual(a.marks, b.marks)) return false;
+	const aAttrs = a.attrs as Record<string, unknown>;
+	const bAttrs = b.attrs as Record<string, unknown>;
+	const keys = new Set([...Object.keys(aAttrs), ...Object.keys(bAttrs)]);
+	for (const key of keys) if (aAttrs[key] !== bAttrs[key]) return false;
+	return true;
+};
+
+const useType = (editor: Editor): State => {
+	const state = useEditorState({
+		editor,
+		selector({ editor }) {
+			if (!editor?.state) return { actions: [], marks: [], attrs: {}, selection: null };
+			const nodes = getActiveNodesFromSelection(editor.state);
+			const marks = getMarksBetween(editor.state.selection.from, editor.state.selection.to, editor.state.doc);
+			return {
+				actions: getFilteredActions(nodes),
+				marks: marks.map(({ mark }) => mark.type.name as Mark),
+				attrs: {
+					level: nodes.find(({ node }) => node.type.name === "heading")?.node?.attrs?.level,
+					type: nodes.find(({ node }) => node.type.name === "note")?.node?.attrs?.type,
+					diagramName: nodes.find(({ node }) => node.type.name === "diagrams")?.node?.attrs?.diagramName,
+					color: marks.find(({ mark }) => mark.type.name === "highlight")?.mark?.attrs?.color,
+				},
+				selection: editor.state.selection,
+			};
+		},
+		equalityFn: statesEqual,
 	});
-
-	const [state, setState] = useState<State>({
-		actions: [],
-		marks: [],
-		attrs: { level: null, diagramName: null, color: null },
-		selection: null,
-	});
-
-	useEffect(() => {
-		if (!editor) return;
-		const updateState = ({ editor }: { editor: Editor }) => {
-			const { actions, headingLevel, noteType, diagramName, color } = getNodeNameFromCursor(editor.state);
-			const marks = getMarksAction(editor);
-
-			const deepDifference =
-				mirror.current.marks.toString() !== marks.toString() ||
-				mirror.current.attrs?.level !== headingLevel ||
-				mirror.current.attrs.type !== noteType ||
-				mirror.current.attrs.diagramName !== diagramName ||
-				mirror.current.attrs.color !== color;
-
-			mirror.current.attrs.level = headingLevel;
-			mirror.current.attrs.type = noteType;
-			mirror.current.attrs.diagramName = diagramName;
-			mirror.current.attrs.color = color;
-
-			if (actions.toString() !== mirror.current.actions.toString() || deepDifference) {
-				mirror.current.actions = [...actions];
-				mirror.current.marks = [...marks];
-
-				setState({
-					actions: [...mirror.current.actions],
-					marks: [...mirror.current.marks],
-					attrs: {
-						level: mirror.current.attrs?.level,
-						type: mirror.current.attrs?.type,
-						diagramName: mirror.current.attrs?.diagramName,
-						color: mirror.current.attrs?.color,
-					},
-					selection: editor.state.selection,
-				});
-			}
-		};
-
-		editor.on("update", updateState);
-		editor.on("selectionUpdate", updateState);
-		return () => {
-			editor.off("selectionUpdate", updateState);
-			editor.off("update", updateState);
-		};
-	}, [editor]);
 
 	return state;
 };

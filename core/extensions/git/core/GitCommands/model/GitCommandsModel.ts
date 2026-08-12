@@ -111,8 +111,12 @@ export type RemoteProgressPercentage = RemoteProgress & { percentage: number };
 
 export type CommitScope = { commit: string };
 
-export type TreeReadScope = CommitScope | { reference: string } | "HEAD";
+export type RevisionScope = { oldCommit: CommitScope; newCommit: CommitScope };
 
+export type TreeReadScope = CommitScope | RevisionScope | { reference: string } | "HEAD";
+
+// `date` stays a plain epoch-ms number: these end up in catalog props, which next serializes into page
+// props, and a Date instance there makes getServerSideProps throw.
 export type RefInfo =
 	| {
 			kind: "tag";
@@ -121,9 +125,9 @@ export type RefInfo =
 			oid: GitVersion;
 			isLightweight: boolean;
 			author?: string | null;
-			date?: Date;
+			date?: number;
 	  }
-	| { kind: "branch"; name: string; encodedName: string; date?: Date };
+	| { kind: "branch"; name: string; encodedName: string; date?: number };
 
 export type DirEntry = {
 	name: string;
@@ -202,6 +206,7 @@ interface GitCommandsModel {
 	checkout(data: GitSourceData, ref: string, force?: boolean): Promise<void>;
 	merge(data: SourceData, opts: MergeOptions): Promise<MergeResult>;
 	formatMergeMessage(data: SourceData, opts: MergeMessageFormatOptions): Promise<string>;
+	hasMergeConflicts(branch: string, data: GitSourceData): Promise<string[]>;
 	restore(staged: boolean, filePaths: Path[]): Promise<void>;
 	diff(opts: DiffConfig): Promise<DiffTree2TreeInfo>;
 
@@ -225,7 +230,13 @@ interface GitCommandsModel {
 
 	getHeadCommit(branch: string): Promise<GitVersion>;
 
-	pullLfsObjects(data: GitSourceData, paths: string[], checkout: boolean, cancelToken: CancelToken): Promise<void>;
+	pullLfsObjects(
+		data: GitSourceData,
+		paths: string[],
+		checkout: boolean,
+		cancelToken: CancelToken,
+		scope?: TreeReadScope,
+	): Promise<void>;
 
 	reset(opts: ResetOptions): Promise<void>;
 

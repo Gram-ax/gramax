@@ -2,13 +2,13 @@ const noop = () => {};
 const nextTick = (cb: (...args: unknown[]) => void, ...args: unknown[]) => Promise.resolve().then(() => cb(...args));
 
 const processStub = {
-	title: "browser",
+	title: "web",
 	browser: true,
 	env: {} as Record<string, string | undefined>,
 	argv: [] as string[],
 	version: "",
 	versions: {} as Record<string, string>,
-	platform: "browser" as NodeJS.Platform,
+	platform: "web" as NodeJS.Platform,
 	arch: "unknown",
 	pid: 0,
 
@@ -17,7 +17,7 @@ const processStub = {
 	},
 
 	chdir(): void {
-		throw new Error("process.chdir is not supported in browser");
+		throw new Error("process.chdir is not supported in web");
 	},
 
 	umask(): number {
@@ -61,7 +61,7 @@ const processStub = {
 
 export default processStub;
 
-export const { title, browser, env, argv, version, versions, platform, arch, pid } = processStub;
+export const { title, web, env, argv, version, versions, platform, arch, pid } = processStub;
 export const cwd = processStub.cwd.bind(processStub);
 export const chdir = processStub.chdir.bind(processStub);
 export const umask = processStub.umask.bind(processStub);

@@ -1,6 +1,7 @@
 import { getExecutingEnvironment } from "@app/resolveModule/env";
 import type ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
 import type { Category } from "@core/FileStructue/Category/Category";
+import { ItemType } from "@core/FileStructue/Item/ItemType";
 import type CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
 import LastVisited from "@core/SitePresenter/LastVisited";
 import homeSections from "@core/utils/homeSections";
@@ -8,12 +9,11 @@ import { isEditorInstance } from "@core-ui/utils/isEditorInstance";
 import CatalogViewRules from "@ext/catalog/views/logic/rules/CatalogViewRules";
 import type { CatalogView } from "@ext/catalog/views/models/CatalogViews";
 import { getArticleDiffSideBarData } from "@ext/git/core/Diff/logic/utils/getArticleDiffSideBarData";
-import getScopeFromString from "@ext/git/core/Diff/logic/utils/getScopeFromString";
 import type { RefInfo, TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import BrokenRepository from "@ext/git/core/Repository/BrokenRepository";
 import type GitRepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import { catalogHasItems, isLanguageCategory, resolveRootCategory } from "@ext/localization/core/catalogExt";
-import { span, traced } from "@ext/loggers/opentelemetry";
+import { addEvent, Level, traced } from "@ext/loggers/opentelemetry";
 import { Syntax } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/model/Syntax";
 import getArticleWithTitle from "@ext/markdown/elements/article/edit/logic/getArticleWithTitle";
 import { getStoredQuestionsByContent } from "@ext/markdown/elements/question/render/logic/getStoredQuestionsByContent";
@@ -25,6 +25,7 @@ import type { Property, PropertyID, PropertyValue } from "@ext/properties/models
 import type { QuizSettings } from "@ext/quiz/models/types";
 import RuleProvider from "@ext/rules/RuleProvider";
 import type { TemplateField } from "@ext/templates/models/types";
+import { GitTreeScopeParser } from "@ext/versioning/GitTreeScopeParser";
 import type { FileStatus } from "@ext/Watchers/model/FileStatus";
 import type { Workspace } from "@ext/workspace/Workspace";
 import type { WorkspaceConfig, WorkspaceSection } from "@ext/workspace/WorkspaceConfig";
@@ -43,10 +44,10 @@ import parseContent from "../FileStructue/Article/parseContent";
 import type { ArticleFilter, Catalog, ItemFilter } from "../FileStructue/Catalog/Catalog";
 import type { ReadonlyCatalog } from "../FileStructue/Catalog/ReadonlyCatalog";
 import type {
+	ArticleDiffData,
 	ArticlePageData,
 	ArticlePageDataWithContent,
 	ArticlePageOptions,
-	DiffArticlePageData,
 	EditArticlePageData,
 	MarkdownArticlePageData,
 	ReadonlyArticlePageData,
@@ -70,7 +71,6 @@ export type ClientCatalogProps = {
 	resolvedVersions?: RefInfo[];
 	resolvedVersion?: RefInfo;
 	syntax?: Syntax;
-	docrootIsNoneExsistent?: boolean;
 	notFound: boolean;
 	resolvedView?: CatalogView;
 	filterProperty?: PropertyID;
@@ -96,6 +96,8 @@ export type ClientArticleProps = {
 	questions?: Record<string, StoredQuestion>;
 	quiz?: QuizSettings;
 	searchPhrases?: string[];
+	aliases?: (string | { path: string; moved?: string })[];
+	aliasedFrom?: string;
 };
 
 export type ClientItemRef = {
@@ -178,7 +180,7 @@ export default class SitePresenter {
 	async getArticlePageData(
 		article: Article,
 		catalog: ReadonlyCatalog,
-		options?: ArticlePageOptions,
+		options?: ArticlePageOptions & { scopedCatalog?: ReadonlyCatalog },
 	): Promise<ArticlePageData> {
 		if (options?.mode !== "markdown") {
 			await parseContent(article, catalog, this._context, this._parser, this._parserContextFactory);
@@ -187,26 +189,40 @@ export default class SitePresenter {
 		const articleProps = await this.serializeArticleProps(article, await catalog?.getPathname(article));
 		const isReadOnly = this._isReadOnly || !!articleProps.errorCode;
 
-		if (options?.mode === "diff" && isEditorInstance()) {
-			return await this.getDiffArticlePage(article, catalog, options);
+		let categoryIsExists = true;
+		if (article.type === ItemType.category) {
+			categoryIsExists = await this._workspace.getFileProvider().exists(article.ref.path);
 		}
 
-		if (isReadOnly) return await this._getReadonlyArticlePage(article, catalog);
-		if (options?.mode === "markdown") return await this._getMarkdownArticlePage(article, catalog);
+		const isEditor = isEditorInstance();
+		const diff: ArticleDiffData =
+			options?.diff && isEditor && categoryIsExists
+				? await this.getDiffArticlePage(article, catalog, options)
+				: null;
 
-		return await this._getEditArticlePage(article, catalog);
+		if (options?.mode === "markdown" && isEditor) {
+			return { ...(await this._getMarkdownArticlePage(article, catalog)), diff };
+		}
+
+		if (isReadOnly) {
+			return { ...(await this._getReadonlyArticlePage(article, catalog)), diff };
+		}
+
+		return { ...(await this._getEditArticlePage(article, catalog)), diff };
 	}
 
 	async getArticlePageDataByPath(path: string[], options?: ArticlePageOptions): Promise<ArticlePageData> {
 		const data = await this.getArticleByPathOfCatalog(path);
 		if (!data.catalog) return null;
 		if (!data.article) {
-			if (options?.mode === "diff") return null;
+			if (options?.diff) return null;
 			data.article = catalogHasItems(data.catalog, this._context.contentLanguage || data.catalog.props.language)
 				? this._customArticlePresenter.getArticle("Article404", { path: path.join("/") })
 				: this._customArticlePresenter.getArticle("welcome");
 		}
-		return await this.getArticlePageData(data.article, data.catalog, options);
+		const pageData = await this.getArticlePageData(data.article, data.catalog, options);
+		if (pageData && data.aliasedFrom) pageData.articleProps.aliasedFrom = data.aliasedFrom;
+		return pageData;
 	}
 
 	async getCatalogNav(catalog: ReadonlyCatalog, currentItemPath: string): Promise<ItemLink[]> {
@@ -273,6 +289,7 @@ export default class SitePresenter {
 			questions: storedQuestions,
 			quiz: article.props.quiz ?? null,
 			searchPhrases: article.props.searchPhrases ?? [],
+			aliases: article.props.aliases ?? [],
 		};
 	}
 
@@ -330,7 +347,8 @@ export default class SitePresenter {
 			resolvedView: catalog.props.resolvedView ?? null,
 			resolvedVersions: catalog.props.resolvedVersions ?? null,
 			syntax: syntax?.toUpperCase() === Syntax.xml ? Syntax.xml : (syntax ?? null),
-			docrootIsNoneExsistent: catalog.props.docrootIsNoneExistent ?? null,
+			logo: catalog.props.logo ?? null,
+			logo_dark: catalog.props.logo_dark ?? null,
 			hasViews,
 		};
 	}
@@ -338,21 +356,37 @@ export default class SitePresenter {
 	async getArticleByPathOfCatalog(
 		path: string[],
 		filters = this._filters,
-	): Promise<{ article: Article; catalog: ContextualCatalog }> {
+	): Promise<{ article: Article; catalog: ContextualCatalog; aliasedFrom?: string }> {
 		const catalog = await this._workspace.getCatalog(path[0], this._context);
 		if (!catalog) return { article: null, catalog: null };
 		const itemLogicPath = Path.join(...path);
-		const root = resolveRootCategory(
-			catalog,
-			catalog.props,
-			this._context.contentLanguage || catalog.props.language,
-		);
+		const root =
+			resolveRootCategory(catalog, catalog.props, this._context.contentLanguage || catalog.props.language) ??
+			catalog.getRootCategory();
 
 		const viewFilter = new CatalogViewRules(catalog).getItemFilter();
 		const finalFilters = !root.parent
 			? [(i) => !isLanguageCategory(catalog, i), ...filters, viewFilter]
 			: [...filters, viewFilter];
 		let article = catalog.findArticle(itemLogicPath, finalFilters, root);
+
+		// Some callers only know the item's file path (articleProps.ref.path, e.g.
+		// "notes/keep.md") — ArticleUpdaterService and every refresh flow built on it.
+		// Logic paths never carry an extension, so fall back to an item-path lookup.
+		if (!article) {
+			const byItemPath = catalog.findItemByItemPath<Article>(new Path(itemLogicPath));
+			if (byItemPath && finalFilters.every((f) => f(byItemPath, catalog))) article = byItemPath;
+		}
+
+		let aliasedFrom: string;
+		if (!article) {
+			const byAlias = catalog.aliases.findArticle(itemLogicPath, finalFilters, root);
+			if (byAlias) {
+				addEvent("alias-resolved", Level.Internal, { from: itemLogicPath, to: byAlias.logicPath });
+				article = byAlias;
+				aliasedFrom = itemLogicPath;
+			}
+		}
 
 		// ! Hack, because we need to 😢
 		// ? Checks if the found category is a language category, then redirects user to first child, or to any other first in route
@@ -362,14 +396,14 @@ export default class SitePresenter {
 			else article = catalog.getRootCategory().items.find((i) => !isLanguageCategory(catalog, i)) as Article;
 		}
 
-		return { article, catalog };
+		return { article, catalog, aliasedFrom };
 	}
 
 	async getDiffArticlePage(
 		article: Article,
 		catalog: ReadonlyCatalog,
 		options?: { scope?: string; oldScope?: string; scopedCatalog?: ReadonlyCatalog },
-	): Promise<DiffArticlePageData> {
+	): Promise<ArticleDiffData> {
 		const scopedCatalog = options?.scopedCatalog ?? catalog;
 		const isDeleted = !!options?.scopedCatalog;
 
@@ -380,7 +414,6 @@ export default class SitePresenter {
 		const pathname = await catalog?.getPathname(article);
 		const logicPath = article.logicPath;
 
-		const { itemLinks, articleProps, catalogProps, rootRef } = await this._getBaseData(article, catalog);
 		const sideBarData = await getArticleDiffSideBarData({
 			article,
 			catalog,
@@ -388,14 +421,15 @@ export default class SitePresenter {
 			isDeleted,
 			pathname,
 			logicPath,
+			scope: options?.scope,
 			oldScope: options?.oldScope,
 		});
 		if (!sideBarData) return;
 
-		const scope: TreeReadScope = getScopeFromString(options?.scope) ?? null;
-		const oldScope: TreeReadScope = getScopeFromString(options?.oldScope) ?? "HEAD";
+		const scope: TreeReadScope = GitTreeScopeParser.parse(options?.scope) ?? null;
+		const oldScope: TreeReadScope = GitTreeScopeParser.parse(options?.oldScope) ?? "HEAD";
 
-		return { articleProps, catalogProps, rootRef, itemLinks, sideBarData, scope, oldScope, mode: "diff" };
+		return { sideBarData, scope, oldScope };
 	}
 
 	getRedirectOnDelete(catalog: Catalog, articlePath: Path) {
@@ -404,15 +438,19 @@ export default class SitePresenter {
 	}
 
 	private async _parseUntitledItems(catalog: ReadonlyCatalog) {
-		await traced(`${this.constructor.name}._parseUntitledItems`, { args: [catalog.name] }, async () => {
-			const untitled = catalog.getContentItems().filter((a) => !a.props.title);
-			span()?.addEvent("untitled-items", { count: untitled.length });
-			await untitled.forEachAsync(async (article) => {
-				try {
-					await parseContent(article, catalog, this._context, this._parser, this._parserContextFactory);
-				} catch {}
-			});
-		});
+		await traced(
+			`${this.constructor.name}._parseUntitledItems`,
+			{ level: Level.Internal, args: [catalog.name] },
+			async () => {
+				const untitled = catalog.getContentItems().filter((a) => !a.props.title);
+				addEvent("untitled-items", Level.Full, { count: untitled.length });
+				await untitled.forEachAsync(async (article) => {
+					try {
+						await parseContent(article, catalog, this._context, this._parser, this._parserContextFactory);
+					} catch {}
+				});
+			},
+		);
 	}
 
 	private _getSection(
@@ -425,6 +463,7 @@ export default class SitePresenter {
 		group?: string;
 	} {
 		const addedCatalogLinks: Set<CatalogLink> = new Set();
+		const catalogLinksByName = new Map(catalogLinks.map((cLink) => [cLink.name, cLink]));
 
 		const getSections = (
 			level: number,
@@ -440,10 +479,19 @@ export default class SitePresenter {
 
 				const sectionCatalogs = sectionInfo?.catalogs?.map((c) => (Number.isInteger(c) ? String(c) : c)) ?? [];
 
-				for (const cLink of catalogLinks) {
-					if (sectionCatalogs.includes(cLink.name) || (level === 0 && cLink.group === sectionName)) {
-						findCatalogLinks.push(cLink);
-						addedCatalogLinks.add(cLink);
+				const addCatalogLink = (cLink?: CatalogLink) => {
+					if (!cLink || addedCatalogLinks.has(cLink)) return;
+					findCatalogLinks.push(cLink);
+					addedCatalogLinks.add(cLink);
+				};
+
+				for (const catalogName of sectionCatalogs) {
+					addCatalogLink(catalogLinksByName.get(catalogName));
+				}
+
+				if (level === 0) {
+					for (const cLink of catalogLinks) {
+						if (cLink.group === sectionName && !sectionCatalogs.includes(cLink.name)) addCatalogLink(cLink);
 					}
 				}
 
@@ -493,7 +541,12 @@ export default class SitePresenter {
 		article: Article,
 		catalog: ReadonlyCatalog,
 	): Promise<MarkdownArticlePageData> {
-		return (await this._getArticleData(article, catalog, "markdown", article.content)) as MarkdownArticlePageData;
+		return (await this._getArticleData(
+			article,
+			catalog,
+			"markdown",
+			await article.getContent(),
+		)) as MarkdownArticlePageData;
 	}
 
 	private async _getEditArticlePage(article: Article, catalog: ReadonlyCatalog): Promise<EditArticlePageData> {

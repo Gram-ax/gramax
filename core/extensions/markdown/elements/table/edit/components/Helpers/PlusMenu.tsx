@@ -1,6 +1,5 @@
-import Icon from "@components/Atoms/Icon";
-import { classNames } from "@components/libs/classNames";
-import styled from "@emotion/styled";
+// import Icon from "@components/Atoms/Icon";
+import { cn } from "@core-ui/utils/cn";
 import t from "@ext/localization/locale/translate";
 import AggregationPopup from "@ext/markdown/elements/table/edit/components/Helpers/AggregationPopup";
 import type TableNodeSheet from "@ext/markdown/elements/table/edit/logic/TableNodeSheet";
@@ -27,10 +26,10 @@ import {
 	DropdownMenuSubTrigger,
 	DropdownMenuTrigger,
 } from "@ui-kit/Dropdown";
-import { memo, useMemo, useRef } from "react";
+import { Icon } from "@ui-kit/Icon";
+import { type HTMLAttributes, memo, useMemo, useRef } from "react";
 
 interface PlusMenuProps {
-	isHovered: boolean;
 	index: number;
 	editor: Editor;
 	pos: number;
@@ -41,12 +40,9 @@ interface PlusMenuProps {
 	dataQa?: string;
 }
 
-export const TriggerParent = styled.div`
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	width: 100%;
-`;
+export const TriggerParent = ({ className, ...props }: HTMLAttributes<HTMLDivElement>) => (
+	<div className={cn("flex w-full items-center justify-between", className)} {...props} />
+);
 
 interface TableHeaderCheckboxProps {
 	headerType: TableHeaderTypes.ROW | TableHeaderTypes.COLUMN;
@@ -189,11 +185,21 @@ const PlusMenu = (props: PlusMenuProps) => {
 	return (
 		<DropdownMenu onOpenChange={onOpenChange}>
 			<DropdownMenuTrigger
-				asChild
-				className={classNames(className, { vertical: vertical, horizontal: !vertical }, ["hidden"])}
+				className={cn(
+					"absolute cursor-pointer items-center justify-center rounded-[var(--radius-small)] border border-transparent text-[var(--color-line)]",
+					"hover:border-[var(--color-table-plus-border)] hover:bg-[var(--color-table-plus-bg)] hover:text-[var(--color-article-text)] hover:opacity-100",
+					"[&>span]:flex [&>span]:h-full [&>span]:w-full [&>span]:items-center [&>span]:justify-center",
+					className,
+					"!hidden",
+					`[&[aria-expanded="true"]]:!flex`,
+					vertical
+						? "left-[0.55em] top-1/2 h-[1.4em] w-[0.9em] -translate-y-1/2"
+						: "left-1/2 top-0 h-[0.9em] w-[1.4em] -translate-x-1/2",
+				)}
+				data-table-plus-menu={vertical ? "row" : "column"}
 				data-testid={dataQa}
 			>
-				<Icon code={vertical ? "ellipsis-vertical" : "ellipsis"} />
+				<Icon icon={vertical ? "ellipsis-vertical" : "ellipsis"} />
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="start">
 				{vertical ? (
@@ -215,7 +221,7 @@ const PlusMenu = (props: PlusMenuProps) => {
 							onSelect={rowDelete}
 							type="danger"
 						>
-							<Icon code="delete-row" />
+							<Icon icon="delete-row" />
 							{t("editor.table.row.delete")}
 						</DropdownMenuItem>
 					</>
@@ -239,7 +245,7 @@ const PlusMenu = (props: PlusMenuProps) => {
 						/>
 						<DropdownMenuSub>
 							<DropdownMenuSubTrigger>
-								<Icon code="align-justify" />
+								<Icon icon="align-justify" />
 								{t("editor.table.align.name")}
 							</DropdownMenuSubTrigger>
 							<DropdownMenuSubContent>
@@ -248,15 +254,15 @@ const PlusMenu = (props: PlusMenuProps) => {
 									value={cell?.attrs?.align || AlignEnumTypes.LEFT}
 								>
 									<DropdownMenuRadioItem value={AlignEnumTypes.LEFT}>
-										<Icon code="align-left" />
+										<Icon icon="align-left" />
 										{t("editor.table.align.left")}
 									</DropdownMenuRadioItem>
 									<DropdownMenuRadioItem value={AlignEnumTypes.CENTER}>
-										<Icon code="align-center" />
+										<Icon icon="align-center" />
 										{t("editor.table.align.center")}
 									</DropdownMenuRadioItem>
 									<DropdownMenuRadioItem value={AlignEnumTypes.RIGHT}>
-										<Icon code="align-right" />
+										<Icon icon="align-right" />
 										{t("editor.table.align.right")}
 									</DropdownMenuRadioItem>
 								</DropdownMenuRadioGroup>
@@ -269,7 +275,7 @@ const PlusMenu = (props: PlusMenuProps) => {
 							onSelect={columnDelete}
 							type="danger"
 						>
-							<Icon code="delete-column" />
+							<Icon icon="delete-column" />
 							{t("editor.table.column.delete")}
 						</DropdownMenuItem>
 					</>
@@ -279,44 +285,4 @@ const PlusMenu = (props: PlusMenuProps) => {
 	);
 };
 
-export default styled(memo(PlusMenu))`
-	display: flex;
-	position: absolute;
-	justify-content: center;
-	align-items: center;
-	border-radius: var(--radius-small);
-	color: var(--color-line);
-	cursor: pointer;
-	border: 1px solid transparent;
-
-	&:hover {
-		opacity: 1;
-		background-color: var(--color-table-plus-bg);
-		color: var(--color-article-text);
-		border: 1px solid var(--color-table-plus-border);
-	}
-
-	&.vertical {
-		top: 50%;
-		left: 0.55em;
-		transform: translateY(-50%);
-		height: 1.4em;
-		width: 0.9em;
-	}
-
-	&.horizontal {
-		top: 0;
-		left: 50%;
-		transform: translateX(-50%);
-		height: 0.9em;
-		width: 1.4em;
-	}
-
-	> span {
-		width: 100%;
-		height: 100%;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-`;
+export default memo(PlusMenu);

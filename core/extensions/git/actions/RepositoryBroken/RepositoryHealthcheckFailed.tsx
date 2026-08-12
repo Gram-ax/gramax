@@ -13,7 +13,7 @@ import styled from "@emotion/styled";
 import DefaultErrorComponent from "@ext/errorHandlers/client/components/DefaultError";
 import type GetErrorComponent from "@ext/errorHandlers/logic/GetErrorComponent";
 import useRemoteProgress from "@ext/git/actions/Clone/logic/useRemoteProgress";
-import { ErrorMessage, TechnicalDetails } from "@ext/git/actions/RepositoryBroken/TechnicalDetails";
+import { ErrorLine, TechnicalDetails } from "@ext/git/actions/RepositoryBroken/TechnicalDetails";
 import t from "@ext/localization/locale/translate";
 import { AlertConfirm } from "@ui-kit/AlertDialog";
 import { Button } from "@ui-kit/Button";
@@ -114,7 +114,7 @@ export const RepositoryHealthcheckFailed = ({ trigger, error }: RepositoryHealth
 			<DialogContent showCloseButton={!inProgress}>
 				<DialogBody className="flex flex-row items-start gap-4 lg:py-6">
 					<Icon className="text-status-warning" code="triangle-alert" size="24px" />
-					<div className="space-y-2">
+					<div className="min-w-0 flex-1 space-y-2">
 						<DialogTitle className="text-lg">{t("git.error.broken.healthcheck.title")}</DialogTitle>
 						<div className="text-primary-fg">
 							{t("git.error.broken.healthcheck.body")},&nbsp;
@@ -123,11 +123,7 @@ export const RepositoryHealthcheckFailed = ({ trigger, error }: RepositoryHealth
 							</TechnicalDetails>
 							<br />
 							{t("git.error.broken.healthcheck.body2")}
-							{(recoverError || startRecoveringError) && (
-								<ErrorMessage className="text-status-error">
-									<pre>{recoverError?.message || startRecoveringError?.message}</pre>
-								</ErrorMessage>
-							)}
+							<ErrorLine className="mt-2" error={recoverError || startRecoveringError} />
 							<div className="w-full flex justify-center">
 								{inProgress && <StyledCloneProgress name={catalogName} progress={progress} />}
 							</div>

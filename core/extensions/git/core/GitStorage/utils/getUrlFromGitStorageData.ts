@@ -6,10 +6,10 @@ const getUrlFromGitStorageData = (data: GitStorageData, gitExtension = false): s
 
 	if (data.url) {
 		if (data.url.startsWith("http")) return data.url;
-		return `${data.source.protocol || "http"}://${data.url}`;
+		return `${data.source.protocol || "https"}://${data.url}`;
 	}
 
-	return `${data.source.protocol || "http"}://${data.source.domain}/${data.group}/${data.name}${
+	return `${data.source.protocol || "https"}://${data.source.domain}/${data.group}/${data.name}${
 		gitExtension ? ".git" : ""
 	}`;
 };

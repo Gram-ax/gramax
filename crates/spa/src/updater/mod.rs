@@ -117,3 +117,30 @@ pub struct PlatformInfo {
 	pub signature: String,
 	pub url: String,
 }
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct VersionList {
+	pub channel: Channel,
+	pub packages: Vec<PackageInfo>,
+	pub versions: Vec<VersionListEntry>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct PackageInfo {
+	pub platform: Platform,
+	pub package: Package,
+	pub label: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct VersionListEntry {
+	pub version: semver::Version,
+	pub packages: Vec<VersionListPackage>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct VersionListPackage {
+	pub platform: Platform,
+	pub package: Package,
+	pub filename: String,
+}

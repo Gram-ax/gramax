@@ -1,8 +1,8 @@
 /** biome-ignore-all lint/suspicious/noExplicitAny: idc */
 
 import type Url from "@core-ui/ApiServices/Types/Url";
-import LanguageServiceModule from "@core-ui/ContextServices/Language";
 import LocalizerModule from "@ext/localization/core/Localizer";
+import { getCachedSetting } from "@ext/settings/logic/cachedSettingsStore";
 
 type NextResponse = Response & { buffer: () => Promise<Buffer> };
 
@@ -39,7 +39,8 @@ const nextFetch = async (
 	const l = LocalizerModule.extract(pathname);
 	const headers = {
 		"Content-Type": mime,
-		"x-gramax-ui-language": LanguageServiceModule.currentUi(),
+		"x-gramax-ui-language": getCachedSetting("general.language"),
+		"x-gramax-theme": getCachedSetting("general.theme"),
 		"x-gramax-language": l,
 	};
 

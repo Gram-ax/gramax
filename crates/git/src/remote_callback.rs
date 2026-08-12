@@ -36,6 +36,15 @@ impl AddCredentialsHeaders for PushOptions<'_> {
 	}
 }
 
+/// libgit2 defaults to `GIT_PROXY_NONE`, so git-over-http never goes through a proxy.
+/// `auto` makes it read `http.proxy` from git config and fall back to the platform proxy
+/// settings — the same ones the webview already uses for plain http requests.
+pub fn create_proxy_options<'c>() -> ProxyOptions<'c> {
+	let mut opts = ProxyOptions::new();
+	opts.auto();
+	opts
+}
+
 pub trait CreateRemoteCallbacks<'c> {
 	fn create_remote_callbacks(&'c self) -> RemoteCallbacks<'c>;
 }

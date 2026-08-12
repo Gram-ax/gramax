@@ -1,6 +1,7 @@
 (function () {
 	var id = "custom-style-link";
 	var styleId = "dynamic-styles";
+	var customStyle;
 
 	function loadAndMoveStyles() {
 		var link = document.getElementById(id);
@@ -20,10 +21,10 @@
 				})
 				.join("\n");
 
-			var style = document.createElement("style");
-			style.id = styleId;
-			style.textContent = cssText;
-			document.head.appendChild(style);
+			customStyle = document.createElement("style");
+			customStyle.id = styleId;
+			customStyle.textContent = cssText;
+			document.head.appendChild(customStyle);
 			link.remove();
 			startObserving();
 		}
@@ -40,23 +41,23 @@
 		}
 	}
 
-	function ensureStyleLast() {
-		var style = document.getElementById(styleId);
-		if (!style || !document.head) return;
+	function ensureStyleLast(observer) {
+		if (!customStyle || !document.head || customStyle.parentNode !== document.head) return;
+		if (document.head.lastElementChild === customStyle) return;
 
-		if (document.head.lastElementChild !== style) {
-			document.head.appendChild(style);
-		}
+		observer.disconnect();
+		document.head.appendChild(customStyle);
+		observer.observe(document.head, { childList: true, subtree: false });
 	}
 
 	function startObserving() {
 		try {
-			var obs = new MutationObserver(function () {
-				ensureStyleLast();
+			var observer = new MutationObserver(function () {
+				ensureStyleLast(observer);
 			});
-			obs.observe(document.head, { childList: true, subtree: false });
+			observer.observe(document.head, { childList: true, subtree: false });
 			setTimeout(function () {
-				obs.disconnect();
+				observer.disconnect();
 			}, 10000);
 		} catch (e) {}
 	}

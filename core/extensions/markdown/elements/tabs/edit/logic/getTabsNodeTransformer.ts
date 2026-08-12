@@ -12,16 +12,18 @@ const getTabsNodeTransformer =
 
 		const tabMatchesView = (tabProperties: PropertyValue[]): boolean => {
 			if (!resolvedView.filters || resolvedView.filters.length === 0) return true;
+			const hasNoneFilter = resolvedView.filters.some((f) => f.value?.includes("none"));
+			if (!tabProperties || tabProperties.length === 0) return !hasNoneFilter;
 
-			return resolvedView.filters.every((filter) => {
+			return !resolvedView.filters.some((filter) => {
 				const tabProperty = tabProperties?.find((p) => p.id === filter.id);
 
-				if (tabProperty && filter.value?.some((val) => tabProperty.value?.includes(val))) return false;
+				if (tabProperty?.value?.every((val) => filter.value?.includes(val))) return true;
 
-				if (filter.value?.includes("yes")) return !tabProperty;
-				if (filter.value?.includes("none")) return !!tabProperty;
+				if (filter.value?.includes("yes")) return !!tabProperty;
+				if (filter.value?.includes("none")) return !tabProperty;
 
-				return true;
+				return false;
 			});
 		};
 

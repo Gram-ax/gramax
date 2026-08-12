@@ -10,13 +10,15 @@ import { useBreakpoint } from "@core-ui/hooks/useBreakpoint";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import { cn } from "@core-ui/utils/cn";
+// biome-ignore lint/style/noRestrictedImports: legacy styled component, migrate to Tailwind later
 import styled from "@emotion/styled";
 import CreateCatalog from "@ext/catalog/actions/CreateCatalog";
 import { useButtonsHandlers } from "@ext/catalog/actions/logic/useButtonsHandlers";
+import { useIsEnterprise } from "@ext/enterprise/utils/useIsEnterprise";
 import t from "@ext/localization/locale/translate";
 import PermissionService from "@ext/security/logic/Permission/components/PermissionService";
-import { editCatalogPermission } from "@ext/security/logic/Permission/Permissions";
-import ThemeService from "@ext/Theme/components/ThemeService";
+import { editCatalogPermission, readPermission } from "@ext/security/logic/Permission/Permissions";
+import { useSetting } from "@ext/settings/logic/hooks";
 import { Button, RichButton } from "@ui-kit/Button";
 import { ContentDivider } from "@ui-kit/Divider";
 import { TextOverflowTooltip } from "@ui-kit/Tooltip";
@@ -94,7 +96,7 @@ export const TopContainerWrapper = styled.div`
 `;
 
 export const Logo = memo(({ isMobile }: { isMobile: boolean }) => {
-	const theme = ThemeService.value;
+	const [theme] = useSetting("general.theme");
 	return <img className={cn(!isMobile && "w-12 h-12", isMobile && "w-11 h-11")} src={getSrc(getLogo(theme, true))} />;
 });
 
@@ -138,13 +140,15 @@ export const EditorWelcome = () => {
 	const { onCloneClick, onImportClick } = useButtonsHandlers();
 
 	const canEditCatalog = workspacePath
-		? // biome-ignore lint/correctness/useHookAtTopLevel: expected
-			PermissionService.useCheckPermission(editCatalogPermission, workspacePath, catalogName)
+		? PermissionService.useCheckPermission(editCatalogPermission, workspacePath, catalogName)
 		: true;
+	const hasReadCatalogContentPermission = PermissionService.useCheckAnyCatalogPermission(readPermission);
+	const shouldCheckCatalogPermissions = useIsEnterprise();
+	const canCloneCatalog = !shouldCheckCatalogPermissions || hasReadCatalogContentPermission;
 
-	const canAddCatalog = (() => {
+	const canWorkWithCatalog = (() => {
 		if (isStatic) return false;
-		return canEditCatalog;
+		return canEditCatalog || canCloneCatalog;
 	})();
 
 	return (
@@ -155,43 +159,52 @@ export const EditorWelcome = () => {
 					<h1 className="text-2xl font-semibold sm:text-lg">{t("welcome.editor.title")}</h1>
 					<div
 						className="description text-base text-muted sm:text-sm font-normal"
+						// biome-ignore lint/style/useNamingConvention: React-required prop
 						dangerouslySetInnerHTML={{ __html: t("welcome.editor.description") }}
 					/>
 				</TopContainerWrapper>
 			</div>
-			{canAddCatalog && (
+			{canWorkWithCatalog && (
 				<div className="container mx-auto">
-					<IsReadOnlyHOC>
-						<CreateCatalog
-							trigger={
-								<RichButton
-									description={t("catalog.new-3")}
-									icon={"plus"}
-									size={richButtonSize}
-									title={t("catalog.new-2")}
-								/>
-							}
-						/>
-					</IsReadOnlyHOC>
-					<ContentDivider>
-						<div className="text-sm text-center font-normal text-muted">{t("or")}</div>
-					</ContentDivider>
-					<RichButton
-						description={t("catalog.clone-4")}
-						icon={"cloud-download"}
-						onClick={onCloneClick}
-						size={richButtonSize}
-						title={t("catalog.clone-2")}
-					/>
-					<IsReadOnlyHOC>
+					{canEditCatalog && (
+						<IsReadOnlyHOC>
+							<CreateCatalog
+								trigger={
+									<RichButton
+										description={t("catalog.new-3")}
+										icon={"plus"}
+										size={richButtonSize}
+										title={t("catalog.new-2")}
+									/>
+								}
+							/>
+						</IsReadOnlyHOC>
+					)}
+					{canEditCatalog && canCloneCatalog && (
+						<ContentDivider>
+							<div className="text-sm text-center font-normal text-muted">{t("or")}</div>
+						</ContentDivider>
+					)}
+					{canCloneCatalog && (
 						<RichButton
-							description={t("catalog.import-3")}
-							icon={"import"}
-							onClick={onImportClick}
+							description={t("catalog.clone-4")}
+							icon={"cloud-download"}
+							onClick={onCloneClick}
 							size={richButtonSize}
-							title={t("catalog.import-2")}
+							title={t("catalog.clone-2")}
 						/>
-					</IsReadOnlyHOC>
+					)}
+					{canEditCatalog && (
+						<IsReadOnlyHOC>
+							<RichButton
+								description={t("catalog.import-3")}
+								icon={"import"}
+								onClick={onImportClick}
+								size={richButtonSize}
+								title={t("catalog.import-2")}
+							/>
+						</IsReadOnlyHOC>
+					)}
 				</div>
 			)}
 			{!hasWorkspace && <WorkspacePath />}

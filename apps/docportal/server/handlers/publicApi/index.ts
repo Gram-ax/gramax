@@ -5,8 +5,18 @@ import articleResource from "./articleResource";
 import catalogNavigation from "./catalogNavigation";
 import catalogs from "./catalogs";
 import homeLogo from "./homeLogo";
-import { ARTICLE_HTML, ARTICLE_RESOURCE, CATALOG_NAVIGATION, CATALOGS, HOME_LOGO, USER_TOKEN } from "./routes";
+import {
+	ARTICLE_HTML,
+	ARTICLE_RESOURCE,
+	CATALOG_NAVIGATION,
+	CATALOGS,
+	HOME_LOGO,
+	USER_TOKEN,
+	WEBHOOK,
+	WEBHOOK_REFRESH,
+} from "./routes";
 import userToken from "./userToken";
+import { webhook, webhookRefresh } from "./webhook/webhook";
 
 const publicApi = async (serverContext: ServerContext) => {
 	const { req, res, path, app, commands } = serverContext;
@@ -17,6 +27,13 @@ const publicApi = async (serverContext: ServerContext) => {
 	const sitePresenter = sitePresenterFactory.fromContext(ctx);
 	const exceptionsResponse = new ExceptionsResponse(res, ctx);
 
+	if (WEBHOOK.test(path.pathname)) {
+		return webhook(req, workspace, { logger: app.logger });
+	}
+	const refreshMatch = path.pathname.match(WEBHOOK_REFRESH);
+	if (refreshMatch) {
+		return webhookRefresh(req, workspace, decodeURIComponent(refreshMatch[1]));
+	}
 	if (HOME_LOGO.test(path.pathname)) {
 		return homeLogo(req, commands);
 	}

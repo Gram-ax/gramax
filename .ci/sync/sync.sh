@@ -1,6 +1,7 @@
 #!/bin/bash
 
-git fetch --tags
+. "$CI_PROJECT_DIR/.ci/scripts/retry.sh"
+retry 3 2 -- git fetch --tags
 
 TAGS=$(git tag --sort=-creatordate | head -n 2)
 LAST_TAG=$(echo "$TAGS" | sed -n 1p)
@@ -10,7 +11,7 @@ eval "$(ssh-agent -s)"
 cat "$GITHUB_DEPLOY_PRIVATE_SSH_KEY" | ssh-add -
 ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
 
-git clone --no-checkout git@github.com:gram-ax/gramax.git temp
+retry 3 2 -- git clone --no-checkout git@github.com:gram-ax/gramax.git temp
 
 
 rm -rf .git

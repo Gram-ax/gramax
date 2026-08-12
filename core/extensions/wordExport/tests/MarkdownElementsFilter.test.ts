@@ -1,7 +1,6 @@
 import getApplication from "@app/node/app";
 import type { Article } from "@core/FileStructue/Article/Article";
 import parseContent from "@core/FileStructue/Article/parseContent";
-import t from "@ext/localization/locale/translate";
 import type { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import { getExportedKeys } from "@ext/wordExport/layouts";
 import MarkdownElementsFilter from "@ext/wordExport/MarkdownElementsFilter";
@@ -31,10 +30,9 @@ describe("Маркдаун фильтер правильно", () => {
 			markdownElementsFilter.getUnsupportedElements(p.renderTree as Tag),
 		);
 
-		expect(unsupportedElements.get("Html")).toEqual(1);
-		expect(unsupportedElements.get("OpenApi")).toEqual(1);
-		expect(unsupportedElements.get(t("diagram.error.mermaid-export-next-error"))).toEqual(1);
-		expect(unsupportedElements.size).toEqual(3);
+		expect(unsupportedElements.get("html")).toEqual(1);
+		expect(unsupportedElements.get("openapi")).toEqual(1);
+		expect(unsupportedElements.size).toEqual(2);
 	});
 
 	test("находит неподдерживаемые элементы без ключей", async () => {

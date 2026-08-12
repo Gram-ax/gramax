@@ -1,14 +1,11 @@
 import DiffFileInput from "@components/Atoms/FileInput/DiffFileInput/DiffFileInput";
 import FileInput from "@components/Atoms/FileInput/FileInput";
 import useMonacoLinesRestriction from "@components/Atoms/FileInput/hooks/useMonacoLinesRestriction";
+import { useRouter } from "@core/Api/useRouter";
 import type { EditorContext } from "@core-ui/stores/EditorStore";
 import { DiffModeView } from "@ext/git/core/Diff/components/DiffModeView";
-import {
-	updateDiffViewMode,
-	updateDisabledViewModes,
-	useDiffViewMode,
-} from "@ext/git/core/Diff/components/store/DiffViewModeStore";
-import type { DiffViewMode } from "@ext/git/core/Diff/logic/model/DiffView";
+import { setDisabledDoublePanel, setIsDoublePanel } from "@ext/git/core/Diff/components/store/DiffViewModeStore";
+import { useDiffMode } from "@ext/git/core/Diff/logic/hooks/useDiffMode";
 import type { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import type { JSONContent } from "@tiptap/core";
@@ -27,7 +24,7 @@ interface ArticleDiffModeViewProps {
 	readOnly?: boolean;
 	onWysiwygUpdate?: (editorContext: EditorContext) => void;
 	onMonacoUpdate?: (value: string) => void;
-	onViewModeChange?: (diffView: DiffViewMode) => void;
+	onViewModeChange?: () => void;
 }
 
 const ArticleDiffModeView = (props: ArticleDiffModeViewProps) => {
@@ -48,6 +45,7 @@ const ArticleDiffModeView = (props: ArticleDiffModeViewProps) => {
 		onViewModeChange,
 	} = props;
 
+	const router = useRouter();
 	const applyLinesRestrictionRef = useRef<() => void>(null);
 	const applyLinesRestriction = useMonacoLinesRestriction(
 		useMemo(
@@ -68,34 +66,33 @@ const ArticleDiffModeView = (props: ArticleDiffModeViewProps) => {
 	const hasEditTree = (() => {
 		if (isDeleted) return !!oldEditTree;
 		if (isAdded) return !!newEditTree;
+		if (changeType === FileStatus.current) return true;
 		return !!oldEditTree && !!newEditTree;
 	})();
 
-	const diffView = useDiffViewMode();
-	const isWysiwyg = diffView === "wysiwyg-single" || diffView === "wysiwyg-double";
+	const { isDoublePanel, isMarkdown, isWysiwyg } = useDiffMode();
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: router.pushQuery is stable
 	useLayoutEffect(() => {
 		if (!hasEditTree && isWysiwyg) {
-			updateDiffViewMode("single-panel");
+			router.pushQuery({ mode: "markdown" });
 		}
 
-		updateDisabledViewModes(
-			!hasEditTree
-				? ["wysiwyg-double", "wysiwyg-single"]
-				: isDeleted || isAdded
-					? ["wysiwyg-double", "double-panel"]
-					: [],
-		);
+		setDisabledDoublePanel(!hasEditTree || isDeleted || isAdded);
 
 		return () => {
-			updateDisabledViewModes([]);
+			setDisabledDoublePanel(false);
 		};
-	}, [hasEditTree, isWysiwyg, isDeleted, isAdded]);
+	}, [hasEditTree, isDeleted, isAdded, isWysiwyg]);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useEffect(() => {
-		onViewModeChange?.(diffView);
-	}, [diffView]);
+		onViewModeChange?.();
+	}, [isDoublePanel, isMarkdown]);
+
+	useEffect(() => {
+		if (isDeleted || isAdded) setIsDoublePanel(false);
+	}, [isDeleted, isAdded]);
 
 	useEffect(() => {
 		return () => {
@@ -121,7 +118,7 @@ const ArticleDiffModeView = (props: ArticleDiffModeViewProps) => {
 					/>
 				</div>
 			)}
-			{(diffView === "single-panel" || diffView === "double-panel") && (
+			{isMarkdown && (
 				<div className="w-full h-full">
 					<div className="h-full w-[var(--article-content-wrapper-width)] ml-[calc((var(--article-content-wrapper-width)-100%)/-2)]">
 						{isDeleted || isAdded ? (
@@ -157,7 +154,7 @@ const ArticleDiffModeView = (props: ArticleDiffModeViewProps) => {
 								}}
 								options={{
 									readOnly: isDeleted || readOnly,
-									renderSideBySide: diffView === "double-panel",
+									renderSideBySide: isDoublePanel,
 									useInlineViewWhenSpaceIsLimited: false,
 									renderOverviewRuler: false,
 									glyphMargin: false,

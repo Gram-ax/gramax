@@ -6,6 +6,7 @@ export const html: Schema = {
 	attributes: {
 		mode: { type: String },
 		content: { type: String },
+		scale: { type: String },
 	},
 	selfClosing: false,
 	type: SchemaType.block,

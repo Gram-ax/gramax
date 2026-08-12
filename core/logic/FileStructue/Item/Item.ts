@@ -1,5 +1,7 @@
 import { NEW_ARTICLE_REGEX } from "@app/config/const";
 import { createEventEmitter, type Event } from "@core/Event/EventEmitter";
+import { type AliasEntry, aliasPathOf } from "@core/FileStructue/Alias/AliasIndex";
+import { recordMoveAlias } from "@core/FileStructue/Alias/aliasAutowrite";
 import type { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import { roundedOrderAfter } from "@core/FileStructue/Item/ItemOrderUtils";
 import type { ItemRef } from "@core/FileStructue/Item/ItemRef";
@@ -11,6 +13,7 @@ import type { InboxProps } from "@ext/inbox/models/types";
 import t from "@ext/localization/locale/translate";
 import type { ToSpan } from "@ext/loggers/opentelemetry";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
+import assert from "assert";
 import type IPermission from "../../../extensions/security/logic/Permission/IPermission";
 import Permission from "../../../extensions/security/logic/Permission/Permission";
 import type { ClientArticleProps } from "../../SitePresenter/SitePresenter";
@@ -39,10 +42,16 @@ declare module "@core/FileStructue/Item/Item" {
 
 		searchPhrases?: string[];
 		notifications?: { state?: string; groups?: string[]; users?: string[] };
+
+		aliases?: AliasEntry[];
 	}
 }
 
 export type UpdateItemProps = (ItemProps & { fileName?: never; logicPath: string }) | ClientArticleProps | InboxProps;
+
+// Props that define the item's place in navigation: changing one requires a nav re-scan,
+// it cannot be patched into already-built ItemLinks.
+export const NAV_STRUCTURAL_PROPS = ["order", "hidden"] as const;
 
 export const ORDERING_MAX_PRECISION = 6;
 
@@ -125,17 +134,9 @@ export abstract class Item<P extends ItemProps = ItemProps> implements Hashable,
 		await this._save();
 	}
 
-	async setLastPosition() {
-		const items = this.parent.items;
-		if (items.length == 0) this.props.order = 1;
-		else this.props.order = +items[items.length - 1].props.order + 1;
-		await this.events.emit("item-order-updated", { item: this });
-		await this._save();
-	}
-
 	async setNeededPermission(permission: IPermission) {
 		this._neededPermission = permission;
-		this._props["private"] = this._neededPermission.getValues();
+		this._props.private = this._neededPermission.getValues();
 		await this._save();
 	}
 
@@ -167,13 +168,43 @@ export abstract class Item<P extends ItemProps = ItemProps> implements Hashable,
 		fileNameOnly = false,
 	): Promise<Item<P>> {
 		!fileNameOnly && this._updateProps(props);
+		if (!fileNameOnly && catalog && "aliases" in props) this._applyAliases(props.aliases, catalog);
 
 		const previousFilename = this.getFileName();
+		const previousLogicPath = this.logicPath;
 		const shouldUpdateFilename = props.fileName && previousFilename !== props.fileName;
+		const shouldRecordAlias =
+			shouldUpdateFilename && !fileNameOnly && !!catalog && !NEW_ARTICLE_REGEX.test(previousFilename);
+		if (shouldRecordAlias) catalog.aliases.assertNotManual(catalog.relativeLogicPath(previousLogicPath), this);
 		if (props.fileName) await this._updateFilename(props.fileName, resourceUpdater, catalog);
 		if (shouldUpdateFilename) await this.events.emit("item-changed", { item: this, status: FileStatus.delete });
+		if (shouldRecordAlias && this.logicPath !== previousLogicPath) {
+			const from = catalog.relativeLogicPath(previousLogicPath);
+			await catalog.aliases.stealAuto(from, this);
+			recordMoveAlias(this._props, from, catalog.relativeLogicPath(this.logicPath));
+		}
 		await this._save(shouldUpdateFilename);
 		return this;
+	}
+
+	private _applyAliases(raw: ItemProps["aliases"], catalog: Catalog): void {
+		if (!Array.isArray(raw) || !raw.length) {
+			delete this._props.aliases;
+			return;
+		}
+		const own = catalog.relativeLogicPath(this.logicPath);
+		const seen = new Set<string>();
+		const entries: ItemProps["aliases"] = [];
+		for (const entry of raw) {
+			const path = aliasPathOf(entry);
+			if (!path || seen.has(path)) continue;
+			seen.add(path);
+			assert(path !== own, `Alias '${path}' equals the item's own path`);
+			catalog.aliases.assertFree(path, this);
+			entries.push(typeof entry === "string" ? path : { ...entry, path });
+		}
+		if (entries.length) this._props.aliases = entries;
+		else delete this._props.aliases;
 	}
 
 	protected abstract _updateFilename(filename: string, ru: ResourceUpdater, catalog: Catalog): Promise<this>;

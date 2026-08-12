@@ -1,3 +1,4 @@
+import t from "@ext/localization/locale/translate";
 import type { Access } from "../../components/roles/Access";
 
 export type SVG = string;
@@ -18,8 +19,8 @@ export enum WorkspaceView {
 }
 
 export const viewOptions: { [key in WorkspaceView]: string } = {
-	[WorkspaceView.FOLDER]: "Папка",
-	[WorkspaceView.SECTION]: "Секция",
+	[WorkspaceView.FOLDER]: t("enterprise.admin.workspace.views.folder"),
+	[WorkspaceView.SECTION]: t("enterprise.admin.workspace.views.section"),
 };
 
 export const viewLabelToView: { [label: string]: WorkspaceView } = {};

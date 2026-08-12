@@ -11,7 +11,7 @@ const IMAGE_MD = '<image src="./img.png" crop="0,0,100,100" scale="50" width="50
 resizerTest.use({
 	files: {
 		editor: {
-			"new-article.md": "",
+			"untitled.md": "",
 			"img.png": IMAGE_BYTES,
 			"doc-root.yml": "syntax: xml\n",
 		},
@@ -57,7 +57,7 @@ resizerTest.describe("Resizer — Image", () => {
 			await dragResizer(60);
 			await editor.forceSave();
 
-			await editor.assertMarkdownContains(/scale="\d+"/);
+			await editor.assertMarkdownContains(/scale="\d+px"/);
 		},
 	);
 
@@ -76,10 +76,10 @@ resizerTest.describe("Resizer — Image", () => {
 			await editor.forceSave();
 
 			const md = await editor.markdown();
-			const match = md.match(/scale="(\d+)"/);
+			const match = md.match(/scale="(\d+px)"/);
 			expect(match).not.toBeNull();
 			if (!match?.[1]) return;
-			expect(parseInt(match[1])).toBeGreaterThanOrEqual(100);
+			expect(parseInt(match[1], 10)).toBeGreaterThanOrEqual(100);
 		},
 	);
 });

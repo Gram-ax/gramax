@@ -62,8 +62,8 @@ export const InlineLinkMenu = (props: InlineLinkMenuProps) => {
 			return { top: 0, left: 0, width: 0, height: 0 } as DOMRect;
 		}
 
-		const isActive = Boolean(currentMarkIsLink);
-		const findPos = isActive ? from : nextMarkIsLink ? from + 1 : from - 1;
+		const sameMarkOnBothSides = nextMarkIsLink && beforeMarkIsLink && nextMarkIsLink.eq(beforeMarkIsLink);
+		const findPos = sameMarkOnBothSides ? from : nextMarkIsLink ? from + 1 : from - 1;
 		const startPos = getMarkStartPos(editor.state.doc, "link", findPos);
 		const endPos = getMarkEndPos(editor.state.doc, "link", findPos);
 

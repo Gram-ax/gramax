@@ -87,7 +87,7 @@ impl<C: ActualCreds> RemoteConnect for Repo<'_, C> {
 		push_opts.remote_callbacks(cbs);
 		push_opts.follow_redirects(RemoteRedirect::All);
 		push_opts.add_credentials_headers(&self.1);
-		push_opts.follow_redirects(RemoteRedirect::All);
+		push_opts.proxy_options(create_proxy_options());
 
 		self.ensure_objects_dir_exists()?;
 
@@ -137,6 +137,7 @@ impl<C: ActualCreds> RemoteConnect for Repo<'_, C> {
 		opts.follow_redirects(RemoteRedirect::All);
 		opts.prune(FetchPrune::On);
 		opts.download_tags(AutotagOption::All);
+		opts.proxy_options(create_proxy_options());
 
 		let mut remote = self.ensure_remote_has_postfix(self.0.find_remote("origin")?)?;
 		self.ensure_objects_dir_exists()?;
@@ -177,7 +178,7 @@ impl<C: ActualCreds> RemoteConnect for Repo<'_, C> {
 	fn ensure_remote_connected(&self, remote: &mut git2::Remote, direction: Direction) -> Result<()> {
 		if !remote.connected() {
 			let cbs = self.create_remote_callbacks();
-			remote.connect_auth(direction, Some(cbs), None)?;
+			remote.connect_auth(direction, Some(cbs), Some(create_proxy_options()))?;
 		}
 
 		Ok(())

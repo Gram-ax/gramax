@@ -3,6 +3,11 @@ import type { ItemType } from "@core/FileStructue/Item/ItemType";
 import type { ClientItemRef } from "@core/SitePresenter/SitePresenter";
 import type { FileStatus } from "@ext/Watchers/model/FileStatus";
 
+export interface ItemLinkOptions {
+	isTemplate?: boolean;
+	isHasErrorCode?: boolean;
+}
+
 export interface CatalogLink extends BaseLink {
 	name: string;
 	logo: string;
@@ -28,11 +33,13 @@ export interface BaseLink {
 export interface ItemLink extends BaseLink {
 	type: ItemType;
 	title: string;
+	fileName: string;
 	icon: string;
 	isCurrentLink: boolean;
 	ref: ClientItemRef;
 	external?: string;
 	status?: FileStatus;
+	options?: ItemLinkOptions;
 }
 
 export interface CategoryLink extends ItemLink {

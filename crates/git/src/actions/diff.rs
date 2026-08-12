@@ -346,7 +346,7 @@ impl DiffFile {
 		Ok(diff)
 	}
 
-	pub fn from_diff_delta(repo: &Repository, commit: &Commit, delta: &DiffDelta) -> Result<Self> {
+	pub fn from_diff_delta(commit: &Commit, delta: &DiffDelta) -> Result<Self> {
 		let signature = commit.author();
 
 		Ok(Self {

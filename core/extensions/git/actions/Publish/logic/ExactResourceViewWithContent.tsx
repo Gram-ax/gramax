@@ -3,21 +3,21 @@ import DiffFileInput from "@components/Atoms/FileInput/DiffFileInput/DiffFileInp
 import FileInput from "@components/Atoms/FileInput/FileInput";
 import Path from "@core/FileProvider/Path/Path";
 import getStringByteSize from "@core/utils/getStringByteSize";
-import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import ArticleContextWrapper from "@core-ui/ScopedContextWrapper/ArticleContextWrapper";
 import CatalogContextWrapper from "@core-ui/ScopedContextWrapper/CatalogContextWrapper";
+import { useArticlePropsStore } from "@core-ui/stores/ArticlePropsStore/ArticlePropsStore.provider";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
-import { css } from "@emotion/react";
-import styled from "@emotion/styled";
+import { cn } from "@core-ui/utils/cn";
 import { OpenUnknownFile } from "@ext/git/actions/Publish/components/OpenUnknownFile";
 import { useResourceViewResolver } from "@ext/git/actions/Publish/logic/useResourceViewResolver";
 import { DOCUMENT_SIZE_LIMIT_BYTES } from "@ext/git/actions/Publish/model/consts";
-import { useDiffViewMode } from "@ext/git/core/Diff/components/store/DiffViewModeStore";
+import { useIsDoublePanel } from "@ext/git/core/Diff/components/store/DiffViewModeStore";
 import type { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import t from "@ext/localization/locale/translate";
 import type { DiffFilePaths } from "@ext/VersionControl/model/Diff";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
+import type { CSSProperties } from "react";
 
 export type ResourceType = "image" | "diagram" | "text" | "unknown";
 
@@ -41,20 +41,38 @@ interface ResourceDiffViewProps {
 	isTextTooLarge?: boolean;
 }
 
-const StatusContainer = styled.div`
-	max-width: var(--article-max-width);
-	overflow-y: auto;
+const StatusWrapper = ({ children, status, isImg }: { children: JSX.Element; status: FileStatus; isImg: boolean }) => {
+	const isNew = status === FileStatus.new;
+	const isDelete = status === FileStatus.delete;
+	const hasStatus = isNew || isDelete;
 
-	&[data-status="delete"] {
-		align-content: center;
+	if (!hasStatus) return children;
+
+	const borderColor = isNew ? "var(--color-status-new)" : "var(--color-status-deleted)";
+
+	if (isImg) {
+		return (
+			<div
+				className="[&_img]:rounded-sm [&_img]:shadow-none [&_img]:[border:2px_solid_var(--img-status-border)]"
+				style={{ "--img-status-border": borderColor } as CSSProperties}
+			>
+				{children}
+			</div>
+		);
 	}
-`;
+
+	return (
+		<div className="rounded-sm" style={{ border: `2px solid ${borderColor}` }}>
+			{children}
+		</div>
+	);
+};
 
 const DiffResourceScopesWrapper = (props: DiffResourceScopesWrapperProps) => {
 	const { children, oldScope, newScope, status, oldChildren, parentPath, type } = props;
 	const hasParentPath = !!parentPath?.path || !!parentPath?.oldPath;
 
-	const currentArticlePath = ArticlePropsService.value?.ref.path;
+	const currentArticlePath = useArticlePropsStore((s) => s.data.ref.path);
 	const catalogName = useCatalogPropsStore((state) => state.data?.name);
 
 	const newArticlePath = parentPath?.path ? Path.join(catalogName, parentPath.path) : currentArticlePath;
@@ -66,7 +84,13 @@ const DiffResourceScopesWrapper = (props: DiffResourceScopesWrapperProps) => {
 		const isDeleted = status === FileStatus.delete;
 
 		return (
-			<StatusContainer data-status={status}>
+			<div
+				className={cn(
+					"max-w-[var(--article-max-width)] overflow-y-auto",
+					status === FileStatus.delete && "content-center",
+				)}
+				data-status={status}
+			>
 				<StatusWrapper isImg={isImg} status={status}>
 					<ScopeWrapper
 						articlePath={isDeleted ? oldArticlePath : newArticlePath}
@@ -76,12 +100,18 @@ const DiffResourceScopesWrapper = (props: DiffResourceScopesWrapperProps) => {
 						{children}
 					</ScopeWrapper>
 				</StatusWrapper>
-			</StatusContainer>
+			</div>
 		);
 	}
 
 	return (
-		<StatusContainer data-status={status}>
+		<div
+			className={cn(
+				"max-w-[var(--article-max-width)] overflow-y-auto",
+				status === FileStatus.delete && "content-center",
+			)}
+			data-status={status}
+		>
 			<StatusWrapper isImg={isImg} status={FileStatus.delete}>
 				<ScopeWrapper articlePath={oldArticlePath} hasParentPath={hasParentPath} scope={oldScope}>
 					{oldChildren}
@@ -93,7 +123,7 @@ const DiffResourceScopesWrapper = (props: DiffResourceScopesWrapperProps) => {
 					{children}
 				</ScopeWrapper>
 			</StatusWrapper>
-		</StatusContainer>
+		</div>
 	);
 };
 
@@ -162,7 +192,7 @@ const ExactResourceViewWithContent = (props: UseResourceArticleViewType) => {
 			type={type}
 		>
 			{element && (
-				<Center className="article" key={id}>
+				<div className="article flex items-center justify-center w-full h-full" key={id}>
 					<DiffResourceScopesWrapper
 						newScope={newScope}
 						oldChildren={oldElement}
@@ -173,39 +203,11 @@ const ExactResourceViewWithContent = (props: UseResourceArticleViewType) => {
 					>
 						{element}
 					</DiffResourceScopesWrapper>
-				</Center>
+				</div>
 			)}
 		</ResourceDiffView>
 	);
 };
-
-const Center = styled.div`
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	width: 100%;
-	height: 100%;
-`;
-
-const StatusWrapper = styled.div<{ status: FileStatus; isImg: boolean }>`
-	${({ status, isImg }) => {
-		if (status !== FileStatus.new && status !== FileStatus.delete) return "";
-
-		const statusStyles = css`
-			border: 2px solid var(--color-status-${status === FileStatus.new ? "new" : "deleted"});
-			border-radius: 2px;
-		`;
-
-		return isImg
-			? css`
-					img {
-						${statusStyles}
-						box-shadow: none;
-					}
-			  `
-			: statusStyles;
-	}};
-`;
 
 type ContextWrapperProps = { children: JSX.Element; scope?: TreeReadScope } & (
 	| { hasParentPath: false }
@@ -226,44 +228,32 @@ const ScopeWrapper = (props: ContextWrapperProps) => {
 	return <CatalogContextWrapper scope={scope}>{children}</CatalogContextWrapper>;
 };
 
-const Message = styled.div`
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	height: 100%;
-	padding: 1rem;
-	text-align: center;
-	color: var(--color-text-secondary);
-`;
-
 const DiffMessage = ({ children, resourcePath }: { children: JSX.Element; resourcePath: string }) => {
 	const { isTauri } = usePlatform();
 	return (
-		<Message>
+		<div className="flex items-center justify-center h-full p-4 text-center text-[var(--color-text-secondary)]">
 			<div>
 				{children}
 				{isTauri && (
-					<Center className="mt-2">
+					<div className="flex items-center justify-center mt-2">
 						<OpenUnknownFile resourcePath={resourcePath} />
-					</Center>
+					</div>
 				)}
 			</div>
-		</Message>
+		</div>
 	);
 };
 
 const ResourceDiffView = (props: ResourceDiffViewProps) => {
 	const { children, type, newContent, oldContent, filePath, status, isTextTooLarge } = props;
-	const diffView = useDiffViewMode();
-
-	const isWysiwyg = diffView === "wysiwyg-single" || diffView === "wysiwyg-double";
+	const isDoublePanel = useIsDoublePanel();
 
 	const resourceView = () => {
 		if (isTextTooLarge)
 			return <DiffMessage resourcePath={filePath?.path}>{t("diff.file-too-large-for-preview")}</DiffMessage>;
 		if (type === "unknown")
 			return <DiffMessage resourcePath={filePath?.path}>{t("diff.unknown-extension")}</DiffMessage>;
-		if (isWysiwyg) return children;
+		if (children) return children;
 		if (status === FileStatus.delete || status === FileStatus.new)
 			return (
 				<FileInput
@@ -277,7 +267,7 @@ const ResourceDiffView = (props: ResourceDiffViewProps) => {
 						glyphMargin: false,
 					}}
 					style={{ padding: "0" }}
-					value={oldContent}
+					value={status === FileStatus.new ? newContent : oldContent}
 				/>
 			);
 		return (
@@ -291,7 +281,7 @@ const ResourceDiffView = (props: ResourceDiffViewProps) => {
 				}}
 				options={{
 					readOnly: true,
-					renderSideBySide: diffView === "double-panel",
+					renderSideBySide: isDoublePanel,
 					useInlineViewWhenSpaceIsLimited: false,
 					glyphMargin: false,
 				}}

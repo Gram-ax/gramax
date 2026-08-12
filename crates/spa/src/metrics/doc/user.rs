@@ -7,7 +7,9 @@ use axum_extra::extract::cookie::Cookie;
 use axum_extra::extract::cookie::SameSite;
 use axum_extra::extract::CookieJar;
 
+use crate::metrics::doc::UNIQ_ID_COOKIE_MAX_AGE;
 use crate::metrics::doc::UNIQ_ID_COOKIE_NAME;
+use crate::metrics::doc::YM_UID_COOKIE_NAME;
 use crate::updater::Channel;
 use crate::updater::Package;
 use crate::updater::Platform;
@@ -41,12 +43,18 @@ impl UserId {
 	pub fn set_cookie(self, domain: Option<String>, jar: CookieJar) -> CookieJar {
 		let mut cookie = Cookie::new(UNIQ_ID_COOKIE_NAME, self.0);
 		cookie.set_http_only(true);
+		cookie.set_same_site(SameSite::Lax);
+		cookie.set_path("/");
+		cookie.set_max_age(UNIQ_ID_COOKIE_MAX_AGE);
 		if let Some(domain) = domain {
 			cookie.set_domain(domain);
-			cookie.set_same_site(SameSite::Lax);
 		}
 		jar.add(cookie)
 	}
+}
+
+pub fn ym_uid_from_jar(jar: &CookieJar) -> Option<String> {
+	jar.get(YM_UID_COOKIE_NAME).map(|c| c.value().to_string())
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]

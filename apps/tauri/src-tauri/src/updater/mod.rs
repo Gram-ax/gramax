@@ -28,6 +28,14 @@ pub trait UpdaterExt<R: Runtime> {
 	fn updater(&self) -> State<'_, Updater<R>>;
 }
 
+#[derive(serde::Serialize, Debug, Clone, Copy)]
+#[serde(rename_all = "kebab-case")]
+pub enum UpdateCheckOutcome {
+	UpToDate,
+	UpdateFound,
+	InProgress,
+}
+
 pub struct Updater<R: Runtime> {
 	app: AppHandle<R>,
 	inner: Mutex<inner::Updater>,
@@ -57,12 +65,12 @@ impl<R: Runtime> Updater<R> {
 		})
 	}
 
-	pub async fn check(&self, silent: bool) -> Result<()> {
+	pub async fn check(&self, silent: bool) -> Result<UpdateCheckOutcome> {
 		self.span_add_endpoints();
 
 		let Ok(mut update_bytes) = self.ready_update.try_lock() else {
 			info!(target: TAG, "update already in progress - tried to lock already locked `update_bytes` mutex; skip check");
-			return Ok(());
+			return Ok(UpdateCheckOutcome::InProgress);
 		};
 
 		self.try_setup_ges_version_header().await.map_err(|e| {
@@ -72,7 +80,7 @@ impl<R: Runtime> Updater<R> {
 
 		let Some(update) = self.inner.lock().await.check().await? else {
 			info!(target: TAG, "no updates found");
-			return Ok(());
+			return Ok(UpdateCheckOutcome::UpToDate);
 		};
 
 		match update_bytes.as_ref() {
@@ -96,7 +104,7 @@ impl<R: Runtime> Updater<R> {
 		if !silent {
 			self.app.emit("update:ready", ())?;
 		}
-		Ok(())
+		Ok(UpdateCheckOutcome::UpdateFound)
 	}
 
 	pub fn is_ready(&self) -> bool {
@@ -200,7 +208,7 @@ pub fn restart_app<R: Runtime>(window: Window<R>) {
 
 #[instrument(skip(app))]
 #[command(async)]
-pub async fn update_check<R: Runtime>(app: AppHandle<R>) -> Result<()> {
+pub async fn update_check<R: Runtime>(app: AppHandle<R>) -> Result<UpdateCheckOutcome> {
 	app.updater().check(false).await.inspect_err(|e| _ = emit_error(app, e))
 }
 
@@ -226,10 +234,14 @@ pub fn update_cache_clear<R: Runtime>(app: AppHandle<R>) -> Result<()> {
 #[instrument(skip(app))]
 #[command(async)]
 pub async fn update_install_by_path<R: Runtime>(app: AppHandle<R>) -> Result<()> {
+	let updates_dir = app.updater().cache.cached_updates_dir()?;
+	std::fs::create_dir_all(&updates_dir)?;
+
 	let Some(path) = app
 		.dialog()
 		.file()
-		.add_filter("Gramax Update", &["*.tar.gz", "*.exe"])
+		.add_filter("Gramax Update", &["tar.gz", "gz", "exe"])
+		.set_directory(updates_dir)
 		.blocking_pick_file()
 		.map(|p| p.simplified().into_path().expect("invalid path"))
 	else {

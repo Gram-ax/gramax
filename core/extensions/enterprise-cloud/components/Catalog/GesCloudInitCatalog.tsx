@@ -1,15 +1,5 @@
-import { useRouter } from "@core/Api/useRouter";
-import type { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
-import FetchService from "@core-ui/ApiServices/FetchService";
-import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
-import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
-import SourceDataService from "@core-ui/ContextServices/SourceDataService";
-import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
-import { GesCloudApi } from "@ext/enterprise-cloud/GesCloudApi";
-import type GitSourceData from "@ext/git/core/model/GitSourceData.schema";
-import type GitStorageData from "@ext/git/core/model/GitStorageData";
+import { transliterate } from "@core-ui/languageConverter/transliterate";
 import t from "@ext/localization/locale/translate";
-import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button, LoadingButtonTemplate } from "@ui-kit/Button";
 import { Dialog, DialogBody, DialogContent } from "@ui-kit/Dialog";
@@ -18,30 +8,44 @@ import { Input } from "@ui-kit/Input";
 import { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import ApiUrlCreatorService from "../../../../ui-logic/ContextServices/ApiUrlCreator";
 
 const formSchema = z.object({
-	catalogName: z.string({ message: t("must-be-not-empty") }),
+	repositoryName: z
+		.string({ message: t("must-be-not-empty") })
+		.trim()
+		.min(1, { message: t("must-be-not-empty") }),
+	catalogTitle: z.string(),
 });
 
-export const GesCloudInitCatalog = ({ onClose }: { onClose: () => void }) => {
+const getRepositoryNameByTitle = (title: string) => transliterate(title, { kebab: true });
+
+type ConnectStorageResult = { success: true } | { success: false; errorCode: "REPOSITORY_ALREADY_EXISTS" } | undefined;
+
+export const GesCloudInitCatalog = ({
+	onClose,
+	connectStorage,
+	initialCatalogTitle,
+	initialRepositoryName,
+}: {
+	onClose: () => void;
+	connectStorage: (newCatalogTitle: string, newRepositoryName: string) => Promise<ConnectStorageResult>;
+	initialCatalogTitle: string;
+	initialRepositoryName: string;
+}) => {
 	const [isOpen, setIsOpen] = useState(true);
-	const catalogPropsStore = useCatalogPropsStore((state) => state, "shallow");
+	const [isRepositoryNameTouched, setIsRepositoryNameTouched] = useState(false);
 
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
 		mode: "onChange",
 		defaultValues: {
-			catalogName: catalogPropsStore.data.repositoryName,
+			repositoryName: initialRepositoryName,
+			catalogTitle: initialCatalogTitle,
 		},
 	});
 
-	const apiUrlCreator = ApiUrlCreatorService.value;
-	const { url: gesCloudUrl } = PageDataContextService.value.conf.enterpriseCloud;
-	const sourceDatas = SourceDataService.value;
-	const router = useRouter();
-
 	const [isLoading, setIsLoading] = useState(false);
+	const repositoryNameFieldValue = form.watch("repositoryName");
 
 	const onOpenChange = useCallback(
 		(open: boolean) => {
@@ -55,36 +59,38 @@ export const GesCloudInitCatalog = ({ onClose }: { onClose: () => void }) => {
 		async (formData: z.infer<typeof formSchema>) => {
 			setIsLoading(true);
 			try {
-				const oldCatalogName = catalogPropsStore.data.repositoryName;
-				const newCatalogName = formData.catalogName;
-
-				const gitlabSourceData = sourceDatas.find((sourceData) => sourceData.sourceType === SourceType.gitLab);
-				const gesCloudApi = new GesCloudApi(gesCloudUrl);
-				const initData = await gesCloudApi.getCatalogInitData();
-
-				const data: GitStorageData = {
-					source: gitlabSourceData as GitSourceData,
-					name: newCatalogName,
-					group: initData.git.group,
-				};
-				const res = await FetchService.fetch<ClientCatalogProps>(
-					apiUrlCreator.getInitEnterpriseCloudCatalogUrl(oldCatalogName, newCatalogName),
-					JSON.stringify(data),
-					MimeTypes.json,
-				);
-				if (res.ok) {
-					const newCatalogProps = await res.json();
-					catalogPropsStore.update(newCatalogProps);
-					router.pushPath(newCatalogProps.link.pathname);
+				const result = await connectStorage(formData.catalogTitle, formData.repositoryName);
+				if (result?.success === false && result.errorCode === "REPOSITORY_ALREADY_EXISTS") {
+					form.setError("repositoryName", {
+						message: t("enterprise.init-repo.already-exists"),
+					});
+					return;
 				}
-				onOpenChange(false);
-				return res.ok;
+				if (result?.success) onOpenChange(false);
 			} finally {
 				setIsLoading(false);
 			}
 		},
-		[catalogPropsStore, apiUrlCreator, gesCloudUrl, sourceDatas, router, onOpenChange],
+		[connectStorage, form, onOpenChange],
 	);
+
+	const handleCatalogTitleChange = useCallback(
+		(value: string, onChange: (value: string) => void) => {
+			onChange(value);
+			if (!isRepositoryNameTouched) {
+				form.setValue("repositoryName", getRepositoryNameByTitle(value), {
+					shouldDirty: true,
+					shouldValidate: true,
+				});
+			}
+		},
+		[form, isRepositoryNameTouched],
+	);
+
+	const handleRepositoryNameChange = useCallback((value: string, onChange: (value: string) => void) => {
+		setIsRepositoryNameTouched(true);
+		onChange(value);
+	}, []);
 
 	return (
 		<Dialog onOpenChange={onOpenChange} open={isOpen}>
@@ -92,15 +98,44 @@ export const GesCloudInitCatalog = ({ onClose }: { onClose: () => void }) => {
 				<Form asChild {...form}>
 					<form onSubmit={form.handleSubmit(handleSubmit)}>
 						<FormHeader
-							description={t("forms.enterprise-cloud-publish-new-catalog.description")}
-							icon="plug"
-							title={t("forms.enterprise-cloud-publish-new-catalog.name")}
+							description={t("enterprise-cloud.forms.publish-new-catalog.description")}
+							icon="folder-plus"
+							title={t("enterprise-cloud.forms.publish-new-catalog.name")}
 						/>
 						<DialogBody>
 							<FormStack>
+								<p
+									className="article !bg-transparent"
+									dangerouslySetInnerHTML={{
+										// biome-ignore lint/style/useNamingConvention: expected
+										__html: t("enterprise-cloud.forms.publish-new-catalog.message").replace(
+											"{{repositoryName}}",
+											initialRepositoryName,
+										),
+									}}
+								></p>
 								<FormField
-									control={({ field }) => <Input {...field} />}
-									name="catalogName"
+									control={({ field }) => (
+										<Input
+											{...field}
+											onChange={(event) =>
+												handleCatalogTitleChange(event.target.value, field.onChange)
+											}
+										/>
+									)}
+									name="catalogTitle"
+									title={t("forms.catalog-edit-props.props.title.name")}
+								/>
+								<FormField
+									control={({ field }) => (
+										<Input
+											{...field}
+											onChange={(event) =>
+												handleRepositoryNameChange(event.target.value, field.onChange)
+											}
+										/>
+									)}
+									name="repositoryName"
 									required
 									title={t("forms.catalog-edit-props.props.url.name")}
 								/>
@@ -115,7 +150,7 @@ export const GesCloudInitCatalog = ({ onClose }: { onClose: () => void }) => {
 									/>
 								) : (
 									<Button
-										disabled={!form.getValues("catalogName")}
+										disabled={!repositoryNameFieldValue?.trim()}
 										startIcon="cloud-upload"
 										type="submit"
 										variant="outline"

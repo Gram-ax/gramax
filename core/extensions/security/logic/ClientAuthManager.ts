@@ -14,7 +14,7 @@ interface EnterpriseInfoData {
 	catalogPermission: PermissionMapJSONData;
 	updateDate: string;
 	catalogsProps: {
-		[catalogName: string]: { branches?: string[]; mainBranch: string };
+		[catalogName: string]: { branches?: string[]; mainBranch: string; mainBranchProtected: boolean };
 	};
 }
 

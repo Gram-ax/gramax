@@ -4,9 +4,8 @@ import { handleDelete } from "@ext/markdown/elements/list/edit/logic/keymaps/han
 import taskListPlugin from "@ext/markdown/elements/list/edit/models/listItem/logic/taskListPlugin";
 import { listItem } from "@ext/markdown/elements/list/edit/models/listItem/model/listItemSchema";
 import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
-import { wrappingInputRule } from "@tiptap/core";
-import ListItem, { type ListItemOptions } from "@tiptap/extension-list-item";
-import { TaskItem } from "@tiptap/extension-task-item";
+import { mergeAttributes, wrappingInputRule } from "@tiptap/core";
+import { ListItem, type ListItemOptions, TaskItem } from "@tiptap/extension-list";
 
 export const CHECKED_ATTR = "checked";
 
@@ -15,7 +14,7 @@ const taskItemInputRegex = /^\s*(\[([( |x])?\])\s$/;
 const listTypes = [
 	{
 		itemName: "listItem",
-		wrapperNames: ["orderedList", "bulletList"],
+		wrapperNames: ["orderedList", "bulletList", "taskList"],
 	},
 ];
 
@@ -24,6 +23,14 @@ const CustomListItem = ListItem.extend<ListItemOptions>({
 
 	addOptions(options) {
 		return { ...options, simple: options?.simple ?? true, HTMLAttributes: {} };
+	},
+
+	renderHTML({ HTMLAttributes }) {
+		return [
+			"li",
+			mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, { "data-component": "list-item" }),
+			0,
+		];
 	},
 
 	addNodeView() {
@@ -42,7 +49,7 @@ const CustomListItem = ListItem.extend<ListItemOptions>({
 						checked: match[match.length - 1] === "x",
 						isTaskItem: true,
 					}),
-					joinPredicate: (match, node) => node.type === this.type,
+					joinPredicate: (_, node) => node.type === this.type,
 				}),
 			),
 		];

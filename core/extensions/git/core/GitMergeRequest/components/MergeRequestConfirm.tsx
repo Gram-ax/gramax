@@ -65,7 +65,7 @@ const MergeRequestConfirm = (props: MergeRequestConfirmProps) => {
 					<AlertDialogTitle>{t("git.merge-requests.confirm.title")}</AlertDialogTitle>
 					<AlertDialogDescription>
 						{/** biome-ignore lint/style/useNamingConvention: expected */}
-						<span className="article bg-transparent" dangerouslySetInnerHTML={{ __html: bodyHtml }} />
+						<span className="article !bg-transparent" dangerouslySetInnerHTML={{ __html: bodyHtml }} />
 					</AlertDialogDescription>
 				</AlertDialogHeader>
 				<AlertDialogFooter>

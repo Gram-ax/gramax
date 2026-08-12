@@ -9,7 +9,8 @@ export type CatalogSettingsModalProps = {
 };
 
 export type FormProps = {
-	labelClassName: string;
+	labelClassName?: string;
+	layout?: "vertical" | "horizontal";
 };
 
 export type SelectOption = {
@@ -32,6 +33,17 @@ export type CreateFormSchema = {
 	allCatalogNames: string[];
 	validateEncodingSymbolsUrl: (value: string) => boolean;
 };
+
+const logoStateSchema = z.union([
+	z.object({ type: z.literal("icon"), code: z.string(), color: z.string().nullable() }),
+	z.object({ type: z.literal("emoji"), emoji: z.string() }),
+	z.object({
+		type: z.literal("file"),
+		preview: z.string(),
+		content: z.string().optional(),
+		file: z.instanceof(File).nullable(),
+	}),
+]);
 
 export const createFormSchema = ({ allCatalogNames, validateEncodingSymbolsUrl }: CreateFormSchema) =>
 	z.object({
@@ -63,8 +75,8 @@ export const createFormSchema = ({ allCatalogNames, validateEncodingSymbolsUrl }
 		),
 		logo: z
 			.object({
-				light: z.object({ content: z.string(), fileName: z.string(), type: z.string() }).nullable().optional(),
-				dark: z.object({ content: z.string(), fileName: z.string(), type: z.string() }).nullable().optional(),
+				light: logoStateSchema.nullable().optional(),
+				dark: logoStateSchema.nullable().optional(),
 			})
 			.optional(),
 		syntax: z.optional(z.string().nullable()),

@@ -115,7 +115,14 @@ const CloneWithShareData = (props: CloneWithShareDataProps) => {
 					<AlertDialogCancel onClick={() => onCreateSourceDataClose?.(false)}>
 						{t("cancel")}
 					</AlertDialogCancel>
-					<AlertDialogAction onClick={openCreateStorageModal}>{t("add-storage")}</AlertDialogAction>
+					<AlertDialogAction
+						onClick={(event) => {
+							event.preventDefault();
+							openCreateStorageModal();
+						}}
+					>
+						{t("add-storage")}
+					</AlertDialogAction>
 				</AlertDialogFooter>
 			</AlertDialogContent>
 		</AlertDialog>

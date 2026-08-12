@@ -1,8 +1,16 @@
 import { useDebounce } from "@core-ui/hooks/useDebounce";
 import useWatch from "@core-ui/hooks/useWatch";
-import styled from "@emotion/styled";
+import { cn } from "@core-ui/utils/cn";
 import type { FilterState, TableDataExtended } from "@ext/markdown/elements/table/edit/model/tableTypes";
-import { type DetailedHTMLProps, type HTMLAttributes, useCallback, useMemo, useState } from "react";
+import {
+	type CSSProperties,
+	type DetailedHTMLProps,
+	type HTMLAttributes,
+	useCallback,
+	useId,
+	useMemo,
+	useState,
+} from "react";
 
 export const CELL_MIN_WIDTH = "3em";
 export const PADDING_LEFT_RIGHT = "1.5em";
@@ -69,43 +77,49 @@ interface TableWrapperProps extends DetailedHTMLProps<HTMLAttributes<HTMLDivElem
 	activeFilter?: FilterState;
 }
 
-const TableWrapperDiv = styled.div<{ filterCSS: string }>`
-	width: max-content;
-	padding: ${PADDING_TOP_BOTTOM} ${PADDING_LEFT_RIGHT};
+type HiddenRows = ReturnType<typeof computeHiddenRows>;
 
-	table {
-		display: table;
-		border-collapse: separate;
-		padding: 0;
-		border-top: 0.625px solid var(--color-table-border);
-		border-bottom: 0.625px solid var(--color-table-border);
+const getFilterCSS = (filterClassName: string, hiddenRows: HiddenRows) => {
+	const { hiddenRowIndices, protectedCells } = hiddenRows;
+	if (!hiddenRowIndices.length) return "";
 
-		tbody {
-			tr {
-				td {
-					border: 0.625px solid var(--color-table-border) ;
-				}
+	return hiddenRowIndices
+		.map((rowIndex) => {
+			const currentProtectedCells = protectedCells[rowIndex];
+			const protectedCellsSelector = currentProtectedCells
+				? `:not(${Array.from(currentProtectedCells)
+						.map((cellIndex) => `td:nth-of-type(${cellIndex + 1})`)
+						.join(",")})`
+				: "";
+			const rowSelector = `.${filterClassName} > table > tbody > tr:nth-of-type(${rowIndex + 1})`;
 
-				td:last-of-type {
-					border-right: 1.25px solid var(--color-table-border) ;
-				}
-
-				td:first-of-type {
-					border-left: 1.25px solid var(--color-table-border) ;
-				}
+			return `${rowSelector} {
+				height: 0;
 			}
-			tr:hover {
-				.button-container:not(.filtered) {
-					opacity: 0.5
-				}
+
+			${rowSelector} > td${protectedCellsSelector} {
+				border: none;
+				font-size: 0;
+				padding: 0;
+				overflow: hidden;
 			}
-		}
-	}
 
-	${({ filterCSS }) => filterCSS}
-`;
+			${rowSelector} > td${protectedCellsSelector} > * {
+				height: 0;
+			}`;
+		})
+		.join(" ");
+};
 
-const TableWrapper = ({ tableData, activeFilter, children, ...rest }: TableWrapperProps) => {
+const TableFilterStyles = ({ filterClassName, hiddenRows }: { filterClassName: string; hiddenRows: HiddenRows }) => {
+	const filterCSS = useMemo(() => getFilterCSS(filterClassName, hiddenRows), [filterClassName, hiddenRows]);
+
+	if (!filterCSS) return null;
+	return <style>{filterCSS}</style>;
+};
+
+const TableWrapper = ({ tableData, activeFilter, children, className, style, ...rest }: TableWrapperProps) => {
+	const filterClassName = `table-filter-${useId().replace(/:/g, "")}`;
 	const getHiddenRows = useCallback(
 		() => computeHiddenRows(tableData ?? null, activeFilter ?? {}),
 		[tableData, activeFilter],
@@ -123,40 +137,39 @@ const TableWrapper = ({ tableData, activeFilter, children, ...rest }: TableWrapp
 		setHiddenRows(getHiddenRows());
 	}, [activeFilter, tableData?.numRows]);
 
-	const filterCSS = useMemo(() => {
-		const { hiddenRowIndices, protectedCells } = hiddenRows;
-		if (!hiddenRowIndices.length) return "";
-
-		return `> table > tbody { ${hiddenRowIndices
-			.map((rowIndex) => {
-				const currentProtectedCells = protectedCells[rowIndex];
-				const protectedCellsSelector = currentProtectedCells
-					? `:not(${Array.from(currentProtectedCells)
-							.map((cellIndex) => `td:nth-of-type(${cellIndex + 1})`)
-							.join(",")})`
-					: "";
-
-				return `> tr:nth-of-type(${rowIndex + 1}) {
-					height: 0;
-
-					> td${protectedCellsSelector} {
-						border: none;
-						font-size: 0;
-						padding: 0;
-					    overflow: hidden;
-						> * {
-							height: 0;
-						}
-					}
-				}`;
-			})
-			.join(" ")}`;
-	}, [hiddenRows]);
+	const wrapperStyle = {
+		...style,
+		"--table-border-width": "0.625px",
+		"--table-wrapper-padding-x": PADDING_LEFT_RIGHT,
+		"--table-wrapper-padding-y": PADDING_TOP_BOTTOM,
+	} as CSSProperties;
 
 	return (
-		<TableWrapperDiv data-table-wrapper="" filterCSS={filterCSS} {...rest}>
+		<div
+			className={cn(
+				filterClassName,
+				className,
+				"w-max px-[var(--table-wrapper-padding-x)] py-[var(--table-wrapper-padding-y)]",
+				"[&>table]:table [&>table]:border-separate [&>table]:p-0",
+				"[&>table]:[border-bottom:var(--table-border-width)_solid_var(--color-table-border)]",
+				"[&>table]:[border-top:var(--table-border-width)_solid_var(--color-table-border)]",
+				"[.article_&>table]:table [.article_&>table]:border-separate [.article_&>table]:p-0",
+				"[.article_&>table]:[border-bottom:var(--table-border-width)_solid_var(--color-table-border)]",
+				"[.article_&>table]:[border-top:var(--table-border-width)_solid_var(--color-table-border)]",
+				"[&>table>tbody>tr>td]:[border:var(--table-border-width)_solid_var(--color-table-border)]",
+				"[&>table>tbody>tr>td:first-of-type]:[border-left:calc(var(--table-border-width)*2)_solid_var(--color-table-border)]",
+				"[&>table>tbody>tr>td:last-of-type]:[border-right:calc(var(--table-border-width)*2)_solid_var(--color-table-border)]",
+				"[&>table>tfoot>tr>td:first-of-type]:[border-left:calc(var(--table-border-width)*2)_solid_var(--color-table-border)]",
+				"[&>table>tfoot>tr>td:last-of-type]:[border-right:calc(var(--table-border-width)*2)_solid_var(--color-table-border)]",
+				"[&>table>tbody>tr:hover_.button-container:not(.filtered)]:opacity-50",
+			)}
+			data-table-wrapper=""
+			style={wrapperStyle}
+			{...rest}
+		>
+			<TableFilterStyles filterClassName={filterClassName} hiddenRows={hiddenRows} />
 			{children}
-		</TableWrapperDiv>
+		</div>
 	);
 };
 

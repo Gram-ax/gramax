@@ -131,6 +131,13 @@ describe("RouterPathProvider", () => {
 			});
 		});
 
+		it("должен разбирать desktop-ссылку с origin tauri://localhost как путь редактора", () => {
+			const web = RouterPathProvider.parsePath("github.com/user/repo/master/-/file");
+			const desktop = RouterPathProvider.parsePath("tauri://localhost/github.com/user/repo/master/-/file");
+
+			expect(desktop).toEqual(web);
+		});
+
 		it("должен разбирать путь с сепаратором", () => {
 			const result = RouterPathProvider.parsePath("source/group/repo/branch/-/file");
 
@@ -375,6 +382,11 @@ describe("RouterPathProvider", () => {
 
 			expect(RouterPathProvider.isEditorPathname("github.com/user/repo/master/-/file")).toBe(true);
 			expect(RouterPathProvider.isEditorPathname("test.local/group/repo/-/-/file")).toBe(true);
+
+			// Desktop (Tauri) links carry the app origin `tauri://localhost/...`
+			expect(RouterPathProvider.isEditorPathname("tauri://localhost/github.com/user/repo/master/-/file")).toBe(
+				true,
+			);
 		});
 
 		it("должен возвращать false для путей не редактора", () => {

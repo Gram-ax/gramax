@@ -1,4 +1,4 @@
-import { span, trace } from "@ext/loggers/opentelemetry";
+import { addEvent, Level, trace } from "@ext/loggers/opentelemetry";
 
 export enum WebSocketMessageType {
 	ConnectionEstablished = "connectionEstablished",
@@ -7,7 +7,7 @@ export enum WebSocketMessageType {
 type EventListener = (data: unknown) => void;
 
 export class WebSocketClient<TMessage = unknown> {
-	protected ws: WebSocket | null = null;
+	protected _ws: WebSocket | null = null;
 	private _reconnectTimeout: NodeJS.Timeout | null = null;
 	private _reconnectAttempts = 0;
 	private _maxReconnectAttempts = 10;
@@ -15,79 +15,79 @@ export class WebSocketClient<TMessage = unknown> {
 	private _maxReconnectDelay = 30000;
 	private _shouldReconnect = true;
 	private _listeners = new Map<string, Set<EventListener>>();
-	protected url: string | null = null;
+	protected _url: string | null = null;
 
-	@trace()
-	protected connectToUrl(url: string): void {
-		this.url = url;
+	@trace({ level: Level.Internal })
+	protected _connectToUrl(url: string): void {
+		this._url = url;
 		this._shouldReconnect = true;
 		this._reconnectAttempts = 0;
 		this._connect();
 	}
 
 	private _connect(): void {
-		if (!this.url) {
-			span()?.addEvent("connectionFailed", { reason: "missingUrl" });
+		if (!this._url) {
+			addEvent("connectionFailed", Level.Commands, { reason: "missingUrl" });
 			return;
 		}
 
 		if (
-			this.ws?.readyState === WebSocket.OPEN ||
-			this.ws?.readyState === WebSocket.CONNECTING ||
-			this.ws?.readyState === WebSocket.CLOSING
+			this._ws?.readyState === WebSocket.OPEN ||
+			this._ws?.readyState === WebSocket.CONNECTING ||
+			this._ws?.readyState === WebSocket.CLOSING
 		) {
 			return;
 		}
 
 		try {
-			span()?.addEvent("connecting", { url: this.url });
-			this.ws = new WebSocket(this.url);
+			addEvent("connecting", Level.Internal, { url: this._url });
+			this._ws = new WebSocket(this._url);
 
-			this.ws.onopen = () => {
-				span()?.addEvent("connected");
+			this._ws.onopen = () => {
+				addEvent("connected", Level.Important);
 				this._reconnectAttempts = 0;
-				this.onConnected();
+				this._onConnected();
 			};
 
-			this.ws.onmessage = (event) => {
+			this._ws.onmessage = (event) => {
 				try {
 					const data = JSON.parse(event.data) as TMessage;
-					this.handleMessage(data);
+					this._handleMessage(data);
 				} catch (error) {
-					span()?.addEvent("messageParseError", { error: String(error) });
+					addEvent("messageParseError", Level.Commands, { error: String(error) });
 				}
 			};
 
-			this.ws.onerror = (error) => {
-				span()?.addEvent("websocketError", { error: String(error) });
-				this.emit("error", error);
+			this._ws.onerror = (error) => {
+				addEvent("websocketError", Level.Commands, { error: String(error) });
+				this._emit("error", error);
 			};
 
-			this.ws.onclose = (event) => {
-				span()?.addEvent("connectionClosed", { code: event.code });
-				this.ws = null;
-				this.emit("disconnect", { code: event.code });
+			this._ws.onclose = (event) => {
+				addEvent("connectionClosed", Level.Important, { code: event.code });
+				this._ws = null;
+				this._emit("disconnect", { code: event.code });
 
 				if (this._shouldReconnect && this._reconnectAttempts < this._maxReconnectAttempts) {
 					this._scheduleReconnect();
 				} else if (this._reconnectAttempts >= this._maxReconnectAttempts) {
-					span()?.addEvent("maxReconnectAttempts", { attempts: this._maxReconnectAttempts });
-					this.emit("maxReconnectAttempts", {});
+					addEvent("maxReconnectAttempts", Level.Commands, { attempts: this._maxReconnectAttempts });
+					this._emit("maxReconnectAttempts", {});
 				}
 			};
 		} catch (error) {
-			span()?.addEvent("connectionError", { error: String(error) });
-			this.emit("error", error);
+			addEvent("connectionError", Level.Commands, { error: String(error) });
+			this._emit("error", error);
 			this._scheduleReconnect();
 		}
 	}
 
-	protected handleMessage(data: TMessage): void {
-		this.emit("message", data);
+	protected _handleMessage(data: TMessage): void {
+		this._emit("message", data);
 	}
 
-	protected onConnected(): void {
-		this.emit("connect", {});
+	protected _onConnected(): void {
+		this._emit("connect", {});
 	}
 
 	private _scheduleReconnect(): void {
@@ -96,7 +96,7 @@ export class WebSocketClient<TMessage = unknown> {
 		this._reconnectAttempts++;
 		const delay = Math.min(this._baseReconnectDelay * 2 ** (this._reconnectAttempts - 1), this._maxReconnectDelay);
 
-		span()?.addEvent("reconnectScheduled", {
+		addEvent("reconnectScheduled", Level.Internal, {
 			delay,
 			attempt: this._reconnectAttempts,
 			maxAttempts: this._maxReconnectAttempts,
@@ -115,12 +115,12 @@ export class WebSocketClient<TMessage = unknown> {
 			this._reconnectTimeout = null;
 		}
 
-		if (this.ws) {
-			this.ws.close();
-			this.ws = null;
+		if (this._ws) {
+			this._ws.close();
+			this._ws = null;
 		}
 
-		span()?.addEvent("disconnected");
+		addEvent("disconnected", Level.Important);
 	}
 
 	on(event: string, listener: EventListener): void {
@@ -137,30 +137,30 @@ export class WebSocketClient<TMessage = unknown> {
 		}
 	}
 
-	protected emit(event: string, data: unknown): void {
+	protected _emit(event: string, data: unknown): void {
 		const eventListeners = this._listeners.get(event);
 		if (eventListeners) {
 			for (const listener of eventListeners) {
 				try {
 					listener(data);
 				} catch (error) {
-					span()?.addEvent("listenerError", { event, error: String(error) });
+					addEvent("listenerError", Level.Commands, { event, error: String(error) });
 				}
 			}
 		}
 	}
 
-	protected sendRaw(data: unknown): void {
-		if (this.ws?.readyState === WebSocket.OPEN) {
-			this.ws.send(JSON.stringify(data));
+	protected _sendRaw(data: unknown): void {
+		if (this._ws?.readyState === WebSocket.OPEN) {
+			this._ws.send(JSON.stringify(data));
 		}
 	}
 
 	isConnected(): boolean {
-		return this.ws?.readyState === WebSocket.OPEN;
+		return this._ws?.readyState === WebSocket.OPEN;
 	}
 
 	getState(): number | null {
-		return this.ws?.readyState ?? null;
+		return this._ws?.readyState ?? null;
 	}
 }

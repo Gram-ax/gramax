@@ -15,11 +15,11 @@ use crate::creds::Creds;
 use crate::error::OrUtf8Err;
 use crate::prelude::Branch;
 use crate::repo::Repo;
+use crate::utils::md_frontmatter::MdFrontmatterParser;
 use crate::OidInfo;
 use crate::Result;
 use crate::ShortInfo;
 use crate::SignatureInfo;
-use crate::utils::md_frontmatter::MdFrontmatterParser;
 
 const TAG: &str = "git:history";
 
@@ -58,7 +58,6 @@ pub struct CommitFilterOptions {
 	pub after_date: Option<String>,
 	pub paths: Option<Vec<String>>,
 }
-
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -218,7 +217,7 @@ impl<C: Creds> History for Repo<'_, C> {
 					}),
 					None,
 				)?;
-				
+
 				let mut file_changes = file_changes.into_inner();
 
 				file_changes.sort_by(|a, b| b.1.cmp(&a.1));
@@ -226,31 +225,31 @@ impl<C: Creds> History for Repo<'_, C> {
 					file_changes
 						.into_iter()
 						.map(|(path, _, deleted)| {
-						let title = if path.ends_with(".md") {
-							let tree = if deleted {
-								parent_tree.as_ref()
-							} else {
-								Some(&commit_tree)
-							};
+							let title = if path.ends_with(".md") {
+								let tree = if deleted { parent_tree.as_ref() } else { Some(&commit_tree) };
 
-							tree
-								.and_then(|t| t.get_path(std::path::Path::new(&path)).ok())
-								.and_then(|entry| entry.to_object(&self.0).ok())
-								.and_then(|obj| obj.into_blob().ok())
-								.and_then(|blob| {
-									let content = std::str::from_utf8(blob.content()).ok()?;
-									MdFrontmatterParser.parse_frontmatter(content).ok()?.title
-								})
-						} else {
-							None
-						};
+								tree
+									.and_then(|t| t.get_path(std::path::Path::new(&path)).ok())
+									.and_then(|entry| entry.to_object(&self.0).ok())
+									.and_then(|obj| obj.into_blob().ok())
+									.and_then(|blob| {
+										let content = std::str::from_utf8(blob.content()).ok()?;
+										MdFrontmatterParser.parse_frontmatter(content).ok()?.title
+									})
+							} else {
+								None
+							};
 							ChangedFileInfo { path, title }
 						})
 						.collect(),
 				);
 			}
 
-			let stat = StatInfo { added: diff_stats.insertions(), deleted: diff_stats.deletions(), changed_files };
+			let stat = StatInfo {
+				added: diff_stats.insertions(),
+				deleted: diff_stats.deletions(),
+				changed_files,
+			};
 
 			let timestamp = commit_time * 1000;
 			let summary = commit.summary().or_utf8_err()?.to_string();
@@ -346,14 +345,14 @@ impl<C: Creds> History for Repo<'_, C> {
 				break;
 			}
 
-			// skip merge commits
-			if c.parent_count() > 1 {
+			let is_merge = c.parent_count() > 1;
+			let newer_commit = std::mem::replace(&mut older_commit, c);
+
+			if is_merge {
 				continue;
 			}
 
 			inspected += 1;
-
-			let newer_commit = std::mem::replace(&mut older_commit, c);
 			let newer_commit_tree = newer_commit.tree()?;
 			let older_commit_tree = older_commit.tree()?;
 
@@ -377,7 +376,7 @@ impl<C: Creds> History for Repo<'_, C> {
 				Some(delta) if delta.status() == Delta::Modified => {
 					found += 1;
 					if found > offset {
-						history.push(DiffFile::from_diff_delta(&self.0, &newer_commit, &delta)?);
+						history.push(DiffFile::from_diff_delta(&newer_commit, &delta)?);
 					}
 					continue;
 				}
@@ -401,7 +400,7 @@ impl<C: Creds> History for Repo<'_, C> {
 				}
 				found += 1;
 				if found > offset {
-					let diff = DiffFile::from_diff_delta(&self.0, &newer_commit, &delta)?;
+					let diff = DiffFile::from_diff_delta(&newer_commit, &delta)?;
 					history.push(diff);
 				}
 				continue;
@@ -418,7 +417,7 @@ impl<C: Creds> History for Repo<'_, C> {
 				}
 				found += 1;
 				if found > offset {
-					let diff = DiffFile::from_diff_delta(&self.0, &newer_commit, &delta)?;
+					let diff = DiffFile::from_diff_delta(&newer_commit, &delta)?;
 					history.push(diff);
 				}
 				continue;
@@ -432,7 +431,7 @@ impl<C: Creds> History for Repo<'_, C> {
 			if let Some(delta) = diff.deltas().find(|delta| delta.new_file().path().is_some_and(|p| p.eq(&path))) {
 				found += 1;
 				if found > offset {
-					let diff = DiffFile::from_diff_delta(&self.0, &older_commit, &delta)?;
+					let diff = DiffFile::from_diff_delta(&older_commit, &delta)?;
 					history.push(diff);
 				}
 			}

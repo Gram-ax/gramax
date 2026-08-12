@@ -1,4 +1,4 @@
-import { PageComponents } from "@ext/enterprise/types/EnterpriseAdmin";
+import { adminPageDescriptors } from "@ext/enterprise/model/AdminPageModel";
 import type { Page } from "@ext/enterprise/types/Page";
 
 export interface PageRendererProps {
@@ -6,7 +6,7 @@ export interface PageRendererProps {
 }
 
 export const PageRenderer = ({ page }: PageRendererProps) => {
-	const Component = PageComponents[page];
+	const Component = adminPageDescriptors[page]?.component;
 	if (!Component) return null;
 	return <Component />;
 };

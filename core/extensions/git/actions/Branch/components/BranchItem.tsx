@@ -127,6 +127,7 @@ const GitDateSideBar = (props: GitDateSideBarProps) => {
 		canSwitchBranch,
 		className,
 		disable,
+		showBranchMenu,
 	} = props;
 
 	const hasMergeRequest = !!mergeRequest;
@@ -155,15 +156,17 @@ const GitDateSideBar = (props: GitDateSideBarProps) => {
 					<Sidebar
 						disable={disable}
 						rightActions={
-							!isNext && [
-								<BranchMenu
-									branchName={title}
-									currentBranchName={currentBranchName}
-									key={1}
-									onMergeRequestCreate={onMergeRequestCreate}
-									refreshList={refreshList}
-								/>,
-							]
+							showBranchMenu && !isNext
+								? [
+										<BranchMenu
+											branchName={title}
+											currentBranchName={currentBranchName}
+											key={1}
+											onMergeRequestCreate={onMergeRequestCreate}
+											refreshList={refreshList}
+										/>,
+									]
+								: null
 						}
 						titleComponent={
 							<BranchLayout

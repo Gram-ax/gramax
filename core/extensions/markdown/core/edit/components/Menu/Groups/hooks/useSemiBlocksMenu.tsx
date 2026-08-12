@@ -101,13 +101,15 @@ const useSemiBlocksMenu = ({ editor, fileName, isSmallEditor, includeResources }
 					label: t("fragments"),
 					node: <FragmentsButton editor={editor} />,
 				});
-			items.push({
-				key: "question",
-				section: Sections.Tools,
-				type: "action",
-				label: t("editor.question.name"),
-				node: <QuestionMenuButton editor={editor} />,
-			});
+			if (!isSmallEditor) {
+				items.push({
+					key: "question",
+					section: Sections.Tools,
+					type: "action",
+					label: t("editor.question.name"),
+					node: <QuestionMenuButton editor={editor} />,
+				});
+			}
 			if (isTabsSupported)
 				items.push({
 					key: "tabs",

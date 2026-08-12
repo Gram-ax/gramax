@@ -1,5 +1,6 @@
 use tauri::*;
-use tauri_otel_context::OtelContext;
+use tracing::Span;
+use tracing_opentelemetry::OpenTelemetrySpanExt;
 
 use std::collections::HashMap;
 use std::path::Path;
@@ -16,8 +17,15 @@ const TAG: &str = "app:settings";
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(transparent)]
-pub struct Settings(HashMap<String, String>);
+pub struct Settings(HashMap<String, serde_json::Value>);
 
+impl Settings {
+	pub fn get(&self, key: &str) -> Option<&serde_json::Value> {
+		self.0.get(key)
+	}
+}
+
+#[derive(Debug)]
 struct SettingsStateInner {
 	last_time_changed: u64,
 	data: Settings,
@@ -25,13 +33,21 @@ struct SettingsStateInner {
 
 type SettingsState = Mutex<SettingsStateInner>;
 
-#[command]
-pub fn get_settings<R: Runtime>(_otel: OtelContext, manager: AppHandle<R>) -> Result<Settings> {
+impl Default for SettingsStateInner {
+	fn default() -> Self {
+		Self {
+			last_time_changed: time_now(),
+			data: Settings(HashMap::new()),
+		}
+	}
+}
+
+pub fn get_settings_inner<R: Runtime>(manager: &AppHandle<R>) -> Result<Settings> {
 	let path = manager.path().app_data_dir()?.join(SETTINGS_FILE_NAME);
 
 	match manager.try_state::<SettingsState>() {
-		Some(state) => get_actual_settings(&manager, &state, &path)?,
-		None => init_settings_state(&manager, &path)?,
+		Some(state) => get_actual_settings(manager, &state, &path)?,
+		None => init_settings_state(manager, &path)?,
 	}
 
 	let state = manager.state::<SettingsState>().lock().unwrap().data.clone();
@@ -39,7 +55,12 @@ pub fn get_settings<R: Runtime>(_otel: OtelContext, manager: AppHandle<R>) -> Re
 }
 
 #[command]
-pub fn set_settings<R: Runtime>(_otel: OtelContext, manager: AppHandle<R>, data: HashMap<String, String>) -> Result<()> {
+pub fn get_settings<R: Runtime>(manager: AppHandle<R>) -> Result<Settings> {
+	get_settings_inner(&manager)
+}
+
+#[command]
+pub fn set_settings<R: Runtime>(manager: AppHandle<R>, data: HashMap<String, serde_json::Value>) -> Result<()> {
 	let path = manager.path().app_data_dir()?.join(SETTINGS_FILE_NAME);
 
 	std::fs::write(path, serde_json::to_string(&data)?)?;
@@ -52,6 +73,27 @@ pub fn set_settings<R: Runtime>(_otel: OtelContext, manager: AppHandle<R>, data:
 	Ok(())
 }
 
+pub fn update_setting<R: Runtime>(manager: &AppHandle<R>, key: &str, value: serde_json::Value) -> Result<()> {
+	let path = manager.path().app_data_dir()?.join(SETTINGS_FILE_NAME);
+
+	match manager.try_state::<SettingsState>() {
+		Some(state) => get_actual_settings(manager, &state, &path)?,
+		None => init_settings_state(manager, &path)?,
+	}
+
+	let state = manager.state::<SettingsState>();
+	let mut state_guard = state.lock().unwrap();
+
+	state_guard.data.0.insert(key.to_string(), value);
+	state_guard.last_time_changed = time_now();
+
+	std::fs::write(&path, serde_json::to_string(&state_guard.data.0)?)?;
+
+	manager.emit("settings-data-updated", &state_guard.data)?;
+	Ok(())
+}
+
+#[instrument(skip(app, state))]
 fn get_actual_settings<R: Runtime>(app: &AppHandle<R>, state: &SettingsState, path: &Path) -> Result<()> {
 	if !path.exists() {
 		return Ok(());
@@ -62,13 +104,16 @@ fn get_actual_settings<R: Runtime>(app: &AppHandle<R>, state: &SettingsState, pa
 	if state.last_time_changed < modified {
 		state.last_time_changed = modified;
 		let content = std::fs::read_to_string(path)?;
-		match serde_json::from_str::<HashMap<String, String>>(&content) {
+		match serde_json::from_str::<HashMap<String, serde_json::Value>>(&content) {
 			Ok(data) => {
 				state.data = Settings(data);
 				app.emit("settings-data-updated", &state.data)?;
 			}
 			Err(e) => {
-				error!(target: TAG, "failed to parse settings file at {}; state wasn't updated; err: {:?}", path.display(), e);
+				error!(target: TAG, "failed to parse settings file at {}; state was not updated", path.display());
+				Span::current().set_status(opentelemetry::trace::Status::Error {
+					description: e.to_string().into(),
+				});
 			}
 		}
 	}
@@ -76,34 +121,35 @@ fn get_actual_settings<R: Runtime>(app: &AppHandle<R>, state: &SettingsState, pa
 	Ok(())
 }
 
+#[instrument(skip(manager))]
 fn init_settings_state<R: Runtime, M: Manager<R>>(manager: &M, path: &Path) -> Result<()> {
 	if !path.exists() {
 		warn!(target: TAG, "settings file {} doesn't exist; state not inited", path.display());
-		let state = SettingsStateInner {
-			last_time_changed: time_now(),
-			data: Settings(HashMap::new()),
-		};
-		manager.manage::<SettingsState>(Mutex::new(state));
+		manager.manage::<SettingsState>(Mutex::default());
 		return Ok(());
 	}
 
 	let content = std::fs::read_to_string(path)?;
-	let data = match serde_json::from_str::<HashMap<String, String>>(&content) {
+	let data = match serde_json::from_str::<HashMap<String, serde_json::Value>>(&content) {
 		Ok(data) => data,
 		Err(err) => {
-			error!(target: TAG, "failed to parse settings file at {}; state not inited; err: {:?}", path.display(), err);
+			error!(target: TAG, "failed to parse settings file at {}; state not inited", path.display());
+			Span::current().set_status(opentelemetry::trace::Status::Error {
+				description: err.to_string().into(),
+			});
+			manager.manage::<SettingsState>(Mutex::default());
 			return Ok(());
 		}
 	};
 
 	let state = SettingsStateInner {
-		last_time_changed: time_now(),
 		data: Settings(data),
+		..SettingsStateInner::default()
 	};
 
 	let is_managed = manager.manage::<SettingsState>(Mutex::new(state));
 	if !is_managed {
-		error!(target: TAG, "failed to manage settings state; state possibly wasn't updated");
+		error!(target: TAG, "failed to manage settings state; state possibly was not updated");
 		return Ok(());
 	}
 

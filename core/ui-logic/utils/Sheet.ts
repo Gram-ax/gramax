@@ -67,7 +67,8 @@ class Sheet<T> implements SheetInterface<T> {
 	}
 
 	public getCell(row: number, column: number): SheetCell<T> {
-		const cell = this._sheet[row][column];
+		const cell = this._sheet[row]?.[column];
+		if (cell === undefined) return null;
 
 		if (this._isMergedCell(cell)) {
 			return cell.content;
@@ -84,7 +85,7 @@ class Sheet<T> implements SheetInterface<T> {
 	}
 
 	public getMasterCell(row: number, column: number): { row: number; column: number; content: T } {
-		const cell = this._sheet[row][column];
+		const cell = this._sheet[row]?.[column];
 
 		if (this._isMergedCell(cell)) return { row, column, content: cell.content };
 
@@ -103,7 +104,7 @@ class Sheet<T> implements SheetInterface<T> {
 	}
 
 	public getCellSpan(row: number, column: number): { colspan: number; rowspan: number } | null {
-		const cell = this._sheet[row][column];
+		const cell = this._sheet[row]?.[column];
 
 		if (this._isMergedCell(cell)) {
 			return { colspan: cell.colspan, rowspan: cell.rowspan };
@@ -185,6 +186,8 @@ class Sheet<T> implements SheetInterface<T> {
 	}
 
 	public getRow(row: number): SheetRow<T> {
+		if (!this._sheet[row]) return [];
+
 		if (this.isCellMerged(row, 0)) {
 			const masterCell = this.getMasterCell(row, 0);
 			if (masterCell) {

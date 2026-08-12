@@ -44,6 +44,7 @@ const FragmentsButton = ({ editor }: FragmentsButtonProps) => {
 		parse: "json",
 	});
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: it's ok
 	const onItemSelect = useCallback(
 		async (fragment: ProviderItemProps) => {
 			const res = await FetchService.fetch<FragmentRenderData>(apiUrlCreator.getFragmentRenderData(fragment.id));
@@ -65,6 +66,7 @@ const FragmentsButton = ({ editor }: FragmentsButtonProps) => {
 		FragmentService.openItem(fragment);
 	}, []);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: it's ok
 	const addNewFragment = useCallback(async () => {
 		openFragmentTab();
 		const newFragment = await FragmentService.addNewFragment(apiUrlCreator);
@@ -78,6 +80,10 @@ const FragmentsButton = ({ editor }: FragmentsButtonProps) => {
 		[getFragments, status],
 	);
 
+	const isReady = status === RequestStatus.Ready;
+	const hasFragments = fragmentsList.length > 0;
+	const showList = !isReady || hasFragments;
+
 	return (
 		<DropdownMenuSub onOpenChange={onOpenChange}>
 			<DropdownMenuSubTrigger disabled={disabled}>
@@ -88,7 +94,7 @@ const FragmentsButton = ({ editor }: FragmentsButtonProps) => {
 			</DropdownMenuSubTrigger>
 			<ToolbarDropdownMenuSubContent
 				alignOffset={!isMobile ? -18 : 0}
-				className={cn(!isMobile && "px-3 py-3 pl-2")}
+				className={cn(!isMobile && (showList ? "px-3 py-3 pl-2" : "px-3 py-3"))}
 				contentClassName="p-0 lg:shadow-hard-base"
 				sideOffset={!isMobile ? 2 : 6}
 				style={{
@@ -99,37 +105,39 @@ const FragmentsButton = ({ editor }: FragmentsButtonProps) => {
 					{fragmentsList?.length > 5 && (
 						<CommandInput autoFocus placeholder={`${t("find2")} ${t("fragment").toLowerCase()}`} />
 					)}
-					<CommandList>
-						<CommandEmpty>{t("list.no-results-found")}</CommandEmpty>
-						<CommandGroup>
-							{status === RequestStatus.Ready ? (
-								fragmentsList.map((fragment) => (
-									<CommandItem key={fragment.id} onSelect={() => void onItemSelect(fragment)}>
-										<div className="flex flex-row items-center gap-2 overflow-hidden w-full">
-											<div className="min-w-0 flex-1">
-												<TextOverflowTooltip className="block w-full">
-													{fragment.title}
-												</TextOverflowTooltip>
+					{showList && (
+						<CommandList>
+							<CommandEmpty>{t("list.no-results-found")}</CommandEmpty>
+							<CommandGroup>
+								{isReady ? (
+									fragmentsList.map((fragment) => (
+										<CommandItem key={fragment.id} onSelect={() => void onItemSelect(fragment)}>
+											<div className="flex flex-row items-center gap-2 overflow-hidden w-full">
+												<div className="min-w-0 flex-1">
+													<TextOverflowTooltip className="block w-full">
+														{fragment.title}
+													</TextOverflowTooltip>
+												</div>
+												<MenuItemIconButton
+													className="ml-auto flex-shrink-0 hover:!bg-white [&:hover_svg]:!text-black"
+													icon="pen"
+													onClick={() => onEditClick(fragment)}
+												/>
 											</div>
-											<MenuItemIconButton
-												className="ml-auto flex-shrink-0 hover:!bg-white [&:hover_svg]:!text-black"
-												icon="pen"
-												onClick={() => onEditClick(fragment)}
-											/>
+										</CommandItem>
+									))
+								) : (
+									<CommandItem disabled>
+										<div className="flex items-center gap-2">
+											<Loader size="sm" />
+											{t("loading")}
 										</div>
 									</CommandItem>
-								))
-							) : (
-								<CommandItem disabled>
-									<div className="flex items-center gap-2">
-										<Loader size="sm" />
-										{t("loading")}
-									</div>
-								</CommandItem>
-							)}
-						</CommandGroup>
-					</CommandList>
-					{fragmentsList.length > 0 && <CommandSeparator className="mt-1 mb-1" />}
+								)}
+							</CommandGroup>
+						</CommandList>
+					)}
+					{hasFragments && <CommandSeparator className="mt-1 mb-1" />}
 					<CommandGroup>
 						<CommandItem onSelect={addNewFragment}>
 							<div className="flex items-center gap-2">

@@ -1,6 +1,8 @@
+import { getExecutingEnvironment } from "@app/resolveModule/env";
 import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import { SilentMiddleware } from "@core/Api/middleware/SilentMiddleware";
+import { getAutoPullSourceData } from "@core/AutoPull/AutoPull";
 import type Context from "@core/Context/Context";
 import { Command } from "../../types/Command";
 
@@ -20,7 +22,10 @@ const fetchCmd: Command<{ ctx: Context; catalogName: string }, void> = Command.c
 		const storage = catalog?.repo.storage;
 		if (!storage) return;
 
-		const data = rp.getSourceData(ctx, await storage.getSourceName());
+		const sourceName = await storage.getSourceName();
+		const data =
+			rp.getSourceData(ctx, sourceName) ??
+			(getExecutingEnvironment() === "next" ? getAutoPullSourceData(sourceName, await storage.getType()) : null);
 		if (!data) return;
 
 		await storage.fetch(data, catalog.repo.isBare, false);

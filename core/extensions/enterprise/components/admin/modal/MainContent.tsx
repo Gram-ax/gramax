@@ -1,16 +1,18 @@
+import { cn } from "@core-ui/utils/cn";
 import { AdminHeaderProvider } from "@ext/enterprise/components/admin/contexts/AdminHeaderContext";
 import type { PluginDetailParams } from "@ext/enterprise/components/admin/contexts/AdminNavigationContext";
 import { ScrollContainerProvider } from "@ext/enterprise/components/admin/contexts/ScrollContainerContext";
-import { useWorkspaceEditorOptions } from "@ext/enterprise/components/admin/hooks/useWorkspaceEditorOptions";
+import { useAdminPage } from "@ext/enterprise/components/admin/hooks/useAdminPage";
+import { AdminHeaderOutlet } from "@ext/enterprise/components/admin/modal/AdminHeaderOutlet";
 import { PageRenderer } from "@ext/enterprise/components/admin/modal/PageRenderer";
 import { AdminPageSidebarItem } from "@ext/enterprise/components/admin/sidebar/AdminPageSidebarItem";
 import { PluginsSidebarMenu } from "@ext/enterprise/components/admin/sidebar/PluginsSidebarMenu";
 import { AdminSidebarHeader } from "@ext/enterprise/components/admin/sidebar/SidebarHeaderContent";
-import { Spinner } from "@ext/enterprise/components/admin/ui-kit/Spinner";
-import { adminPageModelsArr } from "@ext/enterprise/model/AdminPageModel";
-import type { Page } from "@ext/enterprise/types/Page";
+import { TabErrorBlock } from "@ext/enterprise/components/admin/ui-kit/TabErrorBlock";
+import type { GesErrorCode } from "@ext/enterprise/errors/GesError";
+import { adminPageDescriptors, sidebarPageDescriptors } from "@ext/enterprise/model/AdminPageModel";
+import { Page } from "@ext/enterprise/types/Page";
 import t from "@ext/localization/locale/translate";
-import { Alert, AlertDescription } from "@ui-kit/Alert";
 import { IconButton } from "@ui-kit/Button";
 import { DialogClose } from "@ui-kit/Dialog";
 import { Divider } from "@ui-kit/Divider";
@@ -24,45 +26,24 @@ import {
 	SidebarRail,
 	SidebarSeparator,
 	SidebarTrigger,
+	useSidebar,
 } from "@ui-kit/Sidebar";
-import { type MutableRefObject, useEffect, useRef } from "react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
+import { useEffect } from "react";
 
-const WorkspaceEditorErrorMessage = () => {
-	return (
-		<div className="flex items-center justify-center h-screen">
-			<div className="w-full max-w-md">
-				<Alert focus="medium" status="error">
-					<AlertDescription>{t("enterprise.admin.error.loading-settings")}</AlertDescription>
-				</Alert>
-			</div>
-		</div>
-	);
-};
-
-const WorkspaceEditorLoading = () => {
-	return (
-		<div className="flex items-center justify-center h-screen">
-			<Spinner size="xl" />
-		</div>
-	);
-};
-
-export function MainContent() {
+export const MainContent = () => {
 	useEffect(() => {
 		const url = new URL(window.location.href);
 		url.search = "";
 		window.history.replaceState(null, "", url.toString());
 	}, []);
 
-	const { settings, error, scrollContainerRef, page, pageParams, tryNavigate } = useWorkspaceEditorOptions();
+	const { settings, globalError, retry, scrollContainerRef, page, pageParams, tryNavigate } = useAdminPage();
 
-	if (error) {
-		return <WorkspaceEditorErrorMessage />;
-	}
-
-	if (!settings) {
-		return <WorkspaceEditorLoading />;
-	}
+	// biome-ignore lint/correctness/useExhaustiveDependencies(tryNavigate): one time setup
+	useEffect(() => {
+		void tryNavigate(Page.WORKSPACE);
+	}, []);
 
 	return (
 		// The MainContentBodyHeader is sticky with a z-index and overlaps the sidebar, specifically the SidebarRail
@@ -78,7 +59,7 @@ export function MainContent() {
 					<SidebarGroup className="p-0 font-normal">
 						<SidebarGroupContent>
 							<SidebarMenu>
-								{adminPageModelsArr.map((model) => (
+								{sidebarPageDescriptors.map((model) => (
 									<AdminPageSidebarItem
 										activePage={page}
 										key={model.page}
@@ -99,47 +80,78 @@ export function MainContent() {
 				<SidebarSeparator />
 				<SidebarRail />
 			</Sidebar>
-			<MainContentBody page={page} scrollContainerRef={scrollContainerRef} />
+			<MainContentBody
+				globalError={globalError}
+				onRetry={retry}
+				page={page}
+				scrollContainerRef={scrollContainerRef}
+			/>
 		</SidebarProvider>
 	);
-}
+};
 
 interface MainContentBodyProps {
 	page: Page;
 	scrollContainerRef: React.MutableRefObject<HTMLDivElement | null>;
+	globalError: GesErrorCode | null;
+	onRetry: () => void;
 }
 
 const MainContentBody = (props: MainContentBodyProps) => {
-	const { page, scrollContainerRef } = props;
-	const headerRef = useRef<HTMLElement>();
+	const { page, scrollContainerRef, globalError, onRetry } = props;
+	const pageDescriptor = adminPageDescriptors[page];
 	return (
-		<main className="flex flex-col w-full max-w-full overflow-y-auto" ref={scrollContainerRef}>
-			<AdminHeaderProvider value={{ headerRef }}>
-				<MainContentBodyHeader headerRef={headerRef} />
-				<div className="flex-1 p-6">
-					<ScrollContainerProvider container={scrollContainerRef.current}>
-						<PageRenderer page={page} />
-					</ScrollContainerProvider>
+		<main
+			className={cn(
+				"flex flex-col w-full max-w-full overflow-y-auto",
+				pageDescriptor?.fullscreen && "h-full overflow-hidden",
+			)}
+			ref={scrollContainerRef}
+		>
+			<AdminHeaderProvider>
+				<MainContentBodyHeader />
+				<div className={cn("flex-1 p-6", pageDescriptor?.fullscreen && "min-h-0")}>
+					{globalError ? (
+						<TabErrorBlock code={globalError} onRetry={onRetry} />
+					) : (
+						<ScrollContainerProvider container={scrollContainerRef.current}>
+							<PageRenderer page={page} />
+						</ScrollContainerProvider>
+					)}
 				</div>
 			</AdminHeaderProvider>
 		</main>
 	);
 };
 
-interface MainContentBodyHeaderProps {
-	headerRef: MutableRefObject<HTMLElement>;
-}
-
-const MainContentBodyHeader = (props: MainContentBodyHeaderProps) => {
-	const { headerRef } = props;
+const MainContentBodyHeader = () => {
+	const { state } = useSidebar();
 	return (
 		// ml-[1px] is to fix the overlap of sidebar border
 		//   because backdrop-blur touches border and feels like 1 pixel cut off
-		<div className="sticky shrink-0 top-0 z-[15] h-[3.75rem] pl-4 pt-3 pb-2 pr-3 backdrop-blur-[0.875rem] ml-[1px]">
-			<div className="flex items-center gap-4 h-full">
-				<SidebarTrigger aria-label="Open sidebar" className="-mr-2 p-1.5 h-[unset]" />
+		<div className="sticky shrink-0 top-0 z-[15] min-h-[3.75rem] pl-3.5 pt-3 pb-2 pr-3 backdrop-blur-[0.875rem] ml-[1px]">
+			<div className="flex items-center gap-4 h-10">
+				<Tooltip>
+					<TooltipContent className="font-sans font-normal">
+						<p>
+							{state === "expanded"
+								? t("enterprise.admin.hide-sidebar")
+								: t("enterprise.admin.show-sidebar")}
+						</p>
+					</TooltipContent>
+					<TooltipTrigger asChild>
+						<SidebarTrigger
+							aria-label="Open sidebar"
+							className="-mr-2 h-[unset]"
+							size="md"
+							variant="text"
+						/>
+					</TooltipTrigger>
+				</Tooltip>
 				<Divider className="h-5" orientation="vertical" />
-				<div className="flex-1 min-w-0" ref={headerRef as MutableRefObject<HTMLDivElement>}></div>
+				<div className="flex-1 min-w-0">
+					<AdminHeaderOutlet />
+				</div>
 				<DialogClose asChild>
 					<IconButton className="p-2.5 -ml-1" icon="X" variant="link" />
 				</DialogClose>

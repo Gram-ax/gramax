@@ -11,11 +11,10 @@ import getSideBarElementByModelIdx, {
 import { useResourceView } from "@ext/git/actions/Publish/logic/useResourceView";
 import type SideBarData from "@ext/git/actions/Publish/model/SideBarData";
 import type SideBarResourceData from "@ext/git/actions/Publish/model/SideBarResourceData";
-import { useDiffViewMode } from "@ext/git/core/Diff/components/store/DiffViewModeStore";
-import getScopeFromString from "@ext/git/core/Diff/logic/utils/getScopeFromString";
-import getScopeString from "@ext/git/core/Diff/logic/utils/getScopeString";
+import { useDiffMode } from "@ext/git/core/Diff/logic/hooks/useDiffMode";
 import type { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import type { DiffFlattenTreeAnyItem } from "@ext/git/core/GitDiffItemCreator/RevisionDiffPresenter";
+import { GitTreeScopeParser } from "@ext/versioning/GitTreeScopeParser";
 import { useCallback, useRef } from "react";
 
 interface SetArticleDiffViewProps {
@@ -36,7 +35,7 @@ const parsePathnameScope = (pathname: string): { cleanPath: string; scopeFromPat
 	if (!pathnameData.catalogName?.includes(":")) return { cleanPath: pathname, scopeFromPathname: null };
 	const [catalogBase, scopeStr] = pathnameData.catalogName.split(":");
 	const cleanPath = RouterPathProvider.getPathname({ ...pathnameData, catalogName: catalogBase }).value;
-	return { cleanPath, scopeFromPathname: getScopeFromString(scopeStr) };
+	return { cleanPath, scopeFromPathname: GitTreeScopeParser.parse(scopeStr) };
 };
 
 const setArticleView = (props: SetArticleViewProps) => {
@@ -45,7 +44,7 @@ const setArticleView = (props: SetArticleViewProps) => {
 		const sideBarResourceData = data.sideBarDataElement as SideBarResourceData;
 		const parentPath = sideBarResourceData.parentPath;
 
-		const relativeTo = new Path(parentPath.path);
+		const relativeTo = parentPath.path ? new Path(parentPath.path) : undefined;
 		const oldRelativeTo = parentPath.oldPath ? new Path(parentPath.oldPath) : undefined;
 
 		const resourceView = useResourceView({
@@ -72,9 +71,9 @@ const setArticleView = (props: SetArticleViewProps) => {
 
 		router.setPreventNextPushRefresh(false);
 		router.pushPath(cleanPath, {
-			mode: "diff",
-			scope: getScopeString(scope),
-			oldScope: getScopeString(effectiveDeleteScope),
+			diff: "1",
+			scope: GitTreeScopeParser.toString(scope),
+			oldScope: GitTreeScopeParser.toString(effectiveDeleteScope),
 		});
 	}
 };
@@ -93,14 +92,13 @@ const SetArticleDiffView = (props: SetArticleDiffViewProps) => {
 };
 
 const useSetArticleDiffView = (scope?: TreeReadScope, deleteScope?: TreeReadScope) => {
-	const diffViewMode = useDiffViewMode();
-	const isWysiwyg = diffViewMode === "wysiwyg-single" || diffViewMode === "wysiwyg-double";
+	const { isWysiwyg } = useDiffMode();
 	const useDefaultStylesRef = useRef(isWysiwyg);
 	const router = useRouter();
 
 	useWatch(() => {
 		useDefaultStylesRef.current = isWysiwyg;
-	}, [diffViewMode]);
+	}, [isWysiwyg]);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	const SetArticleDiffViewMemo = useCallback(

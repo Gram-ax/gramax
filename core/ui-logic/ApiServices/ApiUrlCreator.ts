@@ -2,6 +2,7 @@ import type { CatalogMoveConflictResolution } from "@app/commands/catalog/move";
 import type { Router } from "@core/Api/Router";
 import type CustomArticle from "@core/SitePresenter/customArticles/model/CustomArticle";
 import type { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
+import { getNewCommitOidFromPathname } from "@ext/git/actions/Revisions/logic/utils/getCommitOidFromPathname";
 import type { GcOptions, TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import type { DiffItemContentScope } from "@ext/git/core/GitDiffItemCreator/DiffItemContent/DiffItemContent";
 import type UiLanguage from "@ext/localization/core/model/Language";
@@ -10,6 +11,7 @@ import type { Syntax } from "@ext/markdown/core/edit/logic/Formatter/Formatters/
 import type { ArticleLanguage } from "@ext/serach/modulith/SearchArticle";
 import type { ResourceFilter } from "@ext/serach/Searcher";
 import type { SearcherType } from "@ext/serach/SearcherManager";
+import type { LevelName } from "@ext/settings/logic/settings";
 import type SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import type Theme from "@ext/Theme/Theme";
 import { ExportFormat } from "@ext/wordExport/components/ItemExport";
@@ -334,10 +336,22 @@ export default class ApiUrlCreator {
 		return Url.fromBasePath(`api/enterpriseCloud/addWorkspace`, this._basePath);
 	}
 
-	public getInitEnterpriseCloudCatalogUrl(oldCatalogName: string, newCatalogName: string) {
+	public getInitEnterpriseCloudCatalogUrl(
+		oldCatalogName: string,
+		newCatalogTitle: string,
+		newRepositoryName: string,
+	) {
 		return Url.fromBasePath(`api/enterpriseCloud/initNewCatalog`, this._basePath, {
 			oldCatalogName,
-			newCatalogName,
+			newCatalogTitle,
+			newRepositoryName,
+		});
+	}
+
+	public getEnterpriseCloudCatalogRepositoryNameUrl(oldCatalogName: string, catalogTitle: string) {
+		return Url.fromBasePath(`api/enterpriseCloud/getCatalogRepositoryName`, this._basePath, {
+			oldCatalogName,
+			catalogTitle,
 		});
 	}
 
@@ -371,6 +385,14 @@ export default class ApiUrlCreator {
 
 	public setGesUrl(gesUrl: string) {
 		return Url.fromBasePath(`api/enterprise/setGesUrl`, this._basePath, { gesUrl });
+	}
+
+	public setGesCloudUrl(gesCloudUrl: string) {
+		return Url.fromBasePath(`api/enterpriseCloud/setGesCloudUrl`, this._basePath, { gesCloudUrl });
+	}
+
+	public switchGesCloudOrganization(apiUrl: string, redirectUrl: string) {
+		return Url.fromBasePath(`api/enterpriseCloud/switchOrganization`, this._basePath, { apiUrl, redirectUrl });
 	}
 
 	public getAuthSsoUrl(data: string, sign: string, from: string) {
@@ -508,6 +530,7 @@ export default class ApiUrlCreator {
 	public getVersionControlStatuses() {
 		return Url.fromBasePath(`/api/versionControl/statuses`, this._basePath, {
 			catalogName: this._catalogName,
+			commitOid: getNewCommitOidFromPathname(this._catalogName),
 		});
 	}
 
@@ -607,6 +630,24 @@ export default class ApiUrlCreator {
 
 	public updateLfsOptions() {
 		return Url.fromBasePath("/api/versionControl/lfs/updateLfsOptions", this._basePath, {
+			catalogName: this._catalogName,
+		});
+	}
+
+	public checkWorkspaceLfsDivergence() {
+		return Url.fromBasePath("/api/versionControl/lfs/checkWorkspaceLfsDivergence", this._basePath, {
+			catalogName: this._catalogName,
+		});
+	}
+
+	public getWorkspaceLfsMigrationStats() {
+		return Url.fromBasePath("/api/versionControl/lfs/getWorkspaceLfsMigrationStats", this._basePath, {
+			catalogName: this._catalogName,
+		});
+	}
+
+	public applyWorkspaceLfsMigration() {
+		return Url.fromBasePath("/api/versionControl/lfs/applyWorkspaceLfsMigration", this._basePath, {
 			catalogName: this._catalogName,
 		});
 	}
@@ -739,6 +780,10 @@ export default class ApiUrlCreator {
 		return Url.fromBasePath(`/api/agent/session/state`, this._basePath, { sessionId });
 	}
 
+	public getAgentSessionContextUrl(sessionId: string) {
+		return Url.fromBasePath(`/api/agent/session/context`, this._basePath, { sessionId });
+	}
+
 	public getAgentSessionListUrl() {
 		return Url.fromBasePath(`/api/agent/session/list`, this._basePath, {});
 	}
@@ -755,12 +800,28 @@ export default class ApiUrlCreator {
 		return Url.fromBasePath(`/api/agent/session/restore`, this._basePath, {});
 	}
 
+	public getAgentSessionDraftUrl(sessionId: string | null) {
+		return Url.fromBasePath(`/api/agent/session/draft`, this._basePath, { sessionId: sessionId ?? "" });
+	}
+
+	public getAgentSessionSaveDraftUrl() {
+		return Url.fromBasePath(`/api/agent/session/saveDraft`, this._basePath, {});
+	}
+
 	public getAgentMessageSendUrl() {
 		return Url.fromBasePath(`/api/agent/message/send`, this._basePath, {});
 	}
 
-	public getAgentToolExecuteUrl() {
-		return Url.fromBasePath(`/api/agent/tool/execute`, this._basePath, {});
+	public getAgentBrowserRevealUrl(sessionId: string) {
+		return Url.fromBasePath(`/api/agent/browser/reveal`, this._basePath, { sessionId });
+	}
+
+	public getAgentBrowserSetAllowedUrl() {
+		return Url.fromBasePath(`/api/agent/browser/setBrowserAllowed`, this._basePath, {});
+	}
+
+	public getAgentSkillsListUrl(catalogName: string | null) {
+		return Url.fromBasePath(`/api/agent/skills/list`, this._basePath, { catalogName });
 	}
 
 	public mergeInto(branchName: string, deleteAfterMerge?: boolean, squash?: boolean) {
@@ -815,12 +876,24 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public getSetThemeURL(theme: string) {
-		return Url.fromBasePath("/api/theme/set", this._basePath, { theme });
+	public getVideoUrl(path: string) {
+		return Url.fromBasePath("/api/elements/video/getUrl", this._basePath, {
+			path: path,
+			catalogName: this._catalogName,
+			articlePath: this._articlePath,
+		});
 	}
 
 	public getSetLanguageURL(language: UiLanguage) {
 		return Url.fromBasePath("/api/lang/set", this._basePath, { language });
+	}
+
+	public getUpdateSettingURL(level: LevelName = "app") {
+		return Url.fromBasePath("/api/settings/update", this._basePath, { level });
+	}
+
+	public getResetSettingURL(level: LevelName = "app") {
+		return Url.fromBasePath("/api/settings/reset", this._basePath, { level });
 	}
 
 	public createCatalog() {
@@ -917,10 +990,11 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public createArticle(parentPath?: string) {
+	public createArticle(parentPath?: string, afterPath?: string) {
 		return Url.fromBasePath(`/api/article/create`, this._basePath, {
 			catalogName: this._catalogName,
 			parentPath,
+			afterPath,
 		});
 	}
 
@@ -983,9 +1057,16 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public getCurrentArticlePageData() {
-		return Url.fromBasePath(`/api/article/features/getArticlePageData`, this._basePath, {
-			path: this._articlePath,
+	public getArticlePageData(articlePath?: string, catalogName?: string) {
+		return Url.fromBasePath(`/api/page/getArticlePageData`, this._basePath, {
+			path: articlePath || this._articlePath,
+			catalogName: catalogName || this._catalogName,
+		});
+	}
+
+	public getArticleTakenAliases(itemPath: string) {
+		return Url.fromBasePath(`/api/article/features/getTakenAliases`, this._basePath, {
+			path: itemPath,
 			catalogName: this._catalogName,
 		});
 	}
@@ -1270,6 +1351,10 @@ export default class ApiUrlCreator {
 		});
 	}
 
+	public handleFsEvents() {
+		return Url.fromBasePath("/api/fs/handleEvents", this._basePath);
+	}
+
 	public getEditTreeInGramaxDir(id: string, type: ArticleProviderType) {
 		return Url.fromBasePath(`/api/article/provider/getEditTree`, this._basePath, {
 			id,
@@ -1384,20 +1469,18 @@ export default class ApiUrlCreator {
 		});
 	}
 
+	public getAllComments(articlePath?: string) {
+		return Url.fromBasePath(`/api/comments/getAll`, this._basePath, {
+			catalogName: this._catalogName,
+			articlePath: articlePath || this._articlePath,
+		});
+	}
+
 	public updateComment(id: string) {
 		return Url.fromBasePath(`/api/comments/update`, this._basePath, {
 			catalogName: this._catalogName,
 			articlePath: this._articlePath,
 			id,
-		});
-	}
-
-	public copyComment(id: string, copyPath: string) {
-		return Url.fromBasePath(`/api/comments/copy`, this._basePath, {
-			catalogName: this._catalogName,
-			articlePath: this._articlePath,
-			id,
-			copyPath,
 		});
 	}
 
@@ -1452,10 +1535,12 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public getPathnameToRevision(commitOid: string) {
+	public getPathnameToRevision(commitOid: string, oldCommitOid?: string) {
 		return Url.fromBasePath(`/api/versionControl/revision/getRevisionPathname`, this._basePath, {
 			catalogName: this._catalogName,
+			articlePath: this._articlePath,
 			commitOid,
+			oldCommitOid,
 		});
 	}
 
@@ -1503,6 +1588,22 @@ export default class ApiUrlCreator {
 	public checkHasCatalogView() {
 		return Url.fromBasePath(`/api/catalog/views/check`, this._basePath, {
 			catalogName: this._catalogName,
+		});
+	}
+
+	public getOpenApiAllRefFiles(
+		src: string,
+		mimeType?: MimeTypes,
+		catalogName?: string,
+		itemId?: string,
+		providerType?: ArticleProviderType,
+	) {
+		return Url.fromBasePath(`/api/article/resource/openApi/getAllRefFiles`, this._basePath, {
+			catalogName: catalogName ?? this._catalogName,
+			articlePath: itemId || this._articlePath,
+			mimeType,
+			src,
+			providerType,
 		});
 	}
 

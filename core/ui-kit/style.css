@@ -8,10 +8,6 @@ ol[data-sonner-toaster] {
 	cursor: pointer !important;
 }
 
-[data-radix-select-trigger] {
-	font-weight: 400;
-}
-
 .interactive-tooltip {
 	pointer-events: auto !important;
 }

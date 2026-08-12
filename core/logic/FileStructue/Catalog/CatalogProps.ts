@@ -32,8 +32,13 @@ export type CatalogProps = FSLocalizationProps & {
 	optionalCategoryIndex?: boolean;
 
 	logo?: string;
+	logo_dark?: string;
 
 	docrootIsNoneExistent?: boolean;
+
+	isGitRepo?: boolean;
+	isBareRepo?: boolean;
+	hasGitmodules?: boolean;
 };
 
 export const ExcludedProps: (keyof CatalogProps)[] = [

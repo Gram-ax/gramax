@@ -2,7 +2,7 @@ import inlineMdComponent from "@ext/markdown/elements/md/model/inlineMdSchema";
 import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
 import { mergeAttributes, Node } from "@tiptap/core";
 import { ReactNodeViewRenderer } from "@tiptap/react";
-import EditInline from "../component/EditInline";
+import EditInline from "../edit/component/EditInline";
 
 const InlineMdComponent = Node.create({
 	...getExtensionOptions({ schema: inlineMdComponent, name: "inlineMd_component" }),

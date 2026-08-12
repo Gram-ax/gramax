@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/correctness/useExhaustiveDependencies: apiUrlCreator */
 import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpdaterService";
 import Icon from "@components/Atoms/Icon";
 import FetchService from "@core-ui/ApiServices/FetchService";
@@ -39,7 +40,7 @@ const BranchMenu = (props: BranchMenuProps) => {
 
 	const setCreateMergeRequestModal = useCallback(() => {
 		ModalToOpenService.setValue<ComponentProps<typeof CreateMergeRequestModal>>(ModalToOpen.CreateMergeRequest, {
-			preventSearchAndStartLoading: isEnterprise,
+			isEnabledGetUsers: false,
 			useGesUsersSelect: isEnterprise,
 			sourceBranchRef: currentBranchName,
 			targetBranchRef: branchName,
@@ -48,8 +49,8 @@ const BranchMenu = (props: BranchMenuProps) => {
 				const result = await new EnterpriseApi(gesUrl).isEnabledGetUsers();
 				ModalToOpenService.updateArgs<ComponentProps<typeof CreateMergeRequestModal>>((prevArgs) => ({
 					...prevArgs,
-					useGesUsersSelect: result,
-					preventSearchAndStartLoading: false,
+					isEnabledGetUsers: result,
+					useGesUsersSelect: isEnterprise,
 				}));
 			},
 			onSubmit: async (mergeRequest: CreateMergeRequest) => {
@@ -91,7 +92,7 @@ const BranchMenu = (props: BranchMenuProps) => {
 				ModalToOpenService.resetValue();
 			},
 		});
-	}, [currentBranchName, branchName, refreshList, apiUrlCreator]);
+	}, [currentBranchName, branchName, refreshList]);
 
 	const deleteBranch = useCallback(async () => {
 		if (isLoading) return;
@@ -103,13 +104,13 @@ const BranchMenu = (props: BranchMenuProps) => {
 		} finally {
 			setIsLoading(false);
 		}
-	}, [branchName, refreshList, apiUrlCreator, isLoading]);
+	}, [branchName, refreshList, isLoading]);
 
 	return (
 		<div className="right-extensions" style={{ marginRight: "-8px" }}>
 			<DropdownMenu>
 				<DropdownMenuTrigger asChild>
-					<Icon code="ellipsis-vertical" isAction tooltipContent={t("actions")} />
+					<Icon code="ellipsis-vertical" isAction />
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align="start">
 					{hasMergeRequest ? (
@@ -150,6 +151,7 @@ const BranchMenu = (props: BranchMenuProps) => {
 							<span
 								className="article"
 								dangerouslySetInnerHTML={{
+									// biome-ignore lint/style/useNamingConvention: intended
 									__html: t("git.branch.delete.confirm.description").replace(
 										"{{branch}}",
 										branchName,

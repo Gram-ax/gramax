@@ -233,8 +233,8 @@ describe("getTabsNodeTransformer", () => {
 		});
 	});
 
-	describe("multiple filters", () => {
-		test("all filters must pass (AND logic)", async () => {
+	describe("multiple filters (OR logic)", () => {
+		test("tab is hidden if ANY filter matches it", async () => {
 			const view: CatalogView = {
 				id: "v1",
 				name: "V",
@@ -257,12 +257,104 @@ describe("getTabsNodeTransformer", () => {
 
 			const result = await transform(node);
 
-			// Tab 0: matches env=dev filter → removed by env, matches platform=ios → removed by platform
-			// Tab 1: matches env=dev → removed by env, no platform prop → passes platform
-			// Tab 2: no env prop → passes env, matches platform=ios → removed by platform
-			// Tab 3: no match → passes both
+			// Tab 0: env=dev matches → hidden
+			// Tab 1: env=dev matches → hidden
+			// Tab 2: platform=ios matches → hidden
+			// Tab 3: no filter matches → visible
 			expect(result.value.content).toHaveLength(1);
 			expect(result.value.content[0].attrs.property[0].value).toEqual(["prod"]);
+		});
+
+		test("tab with only one matching filter among many is still hidden", async () => {
+			const view: CatalogView = {
+				id: "v1",
+				name: "V",
+				filters: [
+					{ id: "env", value: ["dev"] },
+					{ id: "platform", value: ["android"] },
+				],
+				properties: [],
+			};
+			const transform = getTabsNodeTransformer(makeContext(view));
+			const node = makeTabsNode([
+				makeTab([{ id: "env", value: ["dev"] }]),
+				makeTab([{ id: "env", value: ["prod"] }]),
+			]);
+
+			const result = await transform(node);
+
+			expect(result.value.content).toHaveLength(1);
+			expect(result.value.content[0].attrs.property[0].value).toEqual(["prod"]);
+		});
+	});
+
+	describe("tab with multiple property values", () => {
+		test("tab is NOT hidden if it has a value outside the filter", async () => {
+			const view: CatalogView = {
+				id: "v1",
+				name: "V",
+				filters: [{ id: "env", value: ["dev"] }],
+				properties: [],
+			};
+			const transform = getTabsNodeTransformer(makeContext(view));
+			const node = makeTabsNode([makeTab([{ id: "env", value: ["dev", "prod"] }])]);
+
+			const result = await transform(node);
+
+			expect(result.value.content).toHaveLength(1);
+		});
+
+		test("tab IS hidden when all its values are covered by the filter", async () => {
+			const view: CatalogView = {
+				id: "v1",
+				name: "V",
+				filters: [{ id: "env", value: ["dev", "staging"] }],
+				properties: [],
+			};
+			const transform = getTabsNodeTransformer(makeContext(view));
+			const node = makeTabsNode([
+				makeTab([{ id: "env", value: ["dev", "staging"] }]),
+				makeTab([{ id: "env", value: ["prod"] }]),
+			]);
+
+			const result = await transform(node);
+
+			expect(result.value.content).toHaveLength(1);
+			expect(result.value.content[0].attrs.property[0].value).toEqual(["prod"]);
+		});
+	});
+
+	describe("tabs without properties and 'none' filter", () => {
+		test("tab without properties is hidden when 'none' filter is present", async () => {
+			const view: CatalogView = {
+				id: "v1",
+				name: "V",
+				filters: [{ id: "env", value: ["none"] }],
+				properties: [],
+			};
+			const transform = getTabsNodeTransformer(makeContext(view));
+			const node = makeTabsNode([makeTab([{ id: "env", value: ["prod"] }]), makeTab([])]);
+
+			const result = await transform(node);
+
+			expect(result.value.content).toHaveLength(1);
+			expect(result.value.content[0].attrs.property[0].value).toEqual(["prod"]);
+		});
+
+		test("tab without properties is visible when no 'none' filter", async () => {
+			const view: CatalogView = {
+				id: "v1",
+				name: "V",
+				filters: [{ id: "env", value: ["dev"] }],
+				properties: [],
+			};
+			const transform = getTabsNodeTransformer(makeContext(view));
+			const node = makeTabsNode([makeTab([{ id: "env", value: ["dev"] }]), makeTab([])]);
+
+			const result = await transform(node);
+
+			expect(result.value.content).toHaveLength(1);
+			expect(result.value.content[0].attrs.property).toEqual([]);
 		});
 	});
 

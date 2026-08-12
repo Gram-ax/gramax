@@ -16,7 +16,8 @@ monaco.editor.defineTheme("new-vs-dark", {
 	inherit: true,
 	rules: [],
 	colors: {
-		"editor.background": "#020617",
+		"editor.background": "#00000000",
+		focusBorder: "#00000000",
 	},
 });
 
@@ -25,7 +26,8 @@ monaco.editor.defineTheme("article-dark", {
 	inherit: true,
 	rules: [],
 	colors: {
-		"editor.background": "#1a1e33",
+		"editor.background": "#00000000",
+		focusBorder: "#00000000",
 	},
 });
 

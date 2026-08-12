@@ -55,6 +55,29 @@ pub struct RepoTreeScope<'t, 'r: 't, C: Creds> {
 	tree: Tree<'t>,
 }
 
+impl<'t, C: Creds> RepoTreeScope<'t, '_, C> {
+	pub fn tree(&self) -> &Tree<'t> {
+		&self.tree
+	}
+}
+
+impl<'r, C: Creds> Repo<'r, C> {
+	/// The remote-tracking ref for a branch that has no local ref here, e.g. `refs/remotes/origin/dev`
+	/// for `dev`. Tries `origin` first, then every other configured remote.
+	fn find_remote_tracking_reference(&self, name: &str) -> Option<Reference<'_>> {
+		if let Ok(reference) = self.0.find_reference(&format!("refs/remotes/origin/{name}")) {
+			return Some(reference);
+		}
+
+		let remotes = self.0.remotes().ok()?;
+		remotes
+			.iter()
+			.flatten()
+			.filter(|remote| *remote != "origin")
+			.find_map(|remote| self.0.find_reference(&format!("refs/remotes/{remote}/{name}")).ok())
+	}
+}
+
 impl<'r, C: Creds> RepoSelectTreeScope<'r, C> for Repo<'r, C> {
 	fn read_tree_head(&self) -> Result<RepoTreeScope<'_, 'r, C>> {
 		Ok(RepoTreeScope {
@@ -72,10 +95,13 @@ impl<'r, C: Creds> RepoSelectTreeScope<'r, C> for Repo<'r, C> {
 
 	fn read_tree_reference(&self, reference: &str) -> Result<RepoTreeScope<'_, 'r, C>> {
 		let reference = match reference {
+			// A branch listed as a version may exist only as a remote-tracking ref (never checked out
+			// here), so fall back to refs/remotes/<remote>/<name> before giving up.
 			reference if !reference.starts_with("refs/") => self
 				.0
 				.find_reference(&format!("refs/heads/{reference}"))
-				.or_else(|_| self.0.find_reference(&format!("refs/tags/{reference}")))?,
+				.or_else(|_| self.0.find_reference(&format!("refs/tags/{reference}")))
+				.or_else(|err| self.find_remote_tracking_reference(reference).ok_or(err))?,
 			reference => self.0.find_reference(reference)?,
 		};
 

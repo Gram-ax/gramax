@@ -6,6 +6,7 @@ import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
 import { ResourceError } from "@core-ui/ContextServices/ResourceService/errors";
 import { useGetResource } from "@core-ui/ContextServices/ResourceService/hooks/useGetResource";
 import ResourceService from "@core-ui/ContextServices/ResourceService/ResourceService";
+import useElementInViewport from "@core-ui/hooks/useElementInViewport";
 import { isExternalLink } from "@core-ui/hooks/useExternalLink";
 import { cn } from "@core-ui/utils/cn";
 import getAdjustedSize from "@core-ui/utils/getAdjustedSize";
@@ -52,8 +53,8 @@ export const ImageContext = createContext<ImageContextType>({
 
 interface ImageRProps {
 	src: string;
-	onLoad: (e) => void;
-	onError: (e) => void;
+	onLoad: ReactEventHandler<HTMLImageElement>;
+	onError: ReactEventHandler<HTMLImageElement>;
 	openEditor?: () => void;
 }
 
@@ -71,10 +72,7 @@ const ImageR = forwardRef<HTMLImageElement, ImageRProps>((props, ref) => {
 	} = useContext(ImageContext);
 
 	return (
-		<div
-			className="image-container flex max-w-full relative justify-center rounded-[var(--radius-small)]"
-			data-focusable="true"
-		>
+		<div className="image-container flex max-w-full relative justify-center rounded-sm" data-focusable="true">
 			<Image
 				alt={alt}
 				id={id}
@@ -178,7 +176,7 @@ const ImageRenderer = memo((props: ImageProps): ReactElement => {
 
 		const adjusted = getAdjustedSize(croppedW, croppedH, parentWidth, scale);
 		return { width: `${adjusted.width}px`, height: `${adjusted.height}px` };
-	}, [articleRef, width, height, crop, scale]);
+	}, [width, height, crop, scale]);
 
 	const isGif = new Path(realSrc).extension === "gif";
 	const { getBuffer } = ResourceService.value;
@@ -188,7 +186,15 @@ const ImageRenderer = memo((props: ImageProps): ReactElement => {
 	const imgRef = useRef<HTMLImageElement>(null);
 	const initialLoadDoneRef = useRef<boolean>(false);
 
-	const onError = useCallback(() => {
+	// Fetch the image resource only once it scrolls near the viewport, so an article with many
+	// images no longer loads every resource up front. Print/export and GIFs load eagerly: print
+	// needs all resources ready for pagination, and the GIF branch renders without mainContainerRef.
+	const isInViewport = useElementInViewport(mainContainerRef, {
+		rootMargin: "600px 0px",
+		enabled: !isPrint && !isGif,
+	});
+
+	const onError: ReactEventHandler<HTMLImageElement> = useCallback(() => {
 		setError(new ResourceError("Image error", realSrc));
 	}, [realSrc]);
 
@@ -199,8 +205,11 @@ const ImageRenderer = memo((props: ImageProps): ReactElement => {
 
 	const setSrc = useCallback((newSrc: Blob) => {
 		setImageSrc((prev) => {
-			if (prev) URL.revokeObjectURL(prev);
-			return URL.createObjectURL(newSrc);
+			if (prev) {
+				URL.revokeObjectURL(prev);
+			}
+			const url = URL.createObjectURL(newSrc);
+			return url;
 		});
 	}, []);
 
@@ -261,7 +270,7 @@ const ImageRenderer = memo((props: ImageProps): ReactElement => {
 		undefined,
 		hasParentPath,
 		isPrint,
-		shouldSkipLoadResource,
+		shouldSkipLoadResource || !isInViewport,
 	);
 
 	if (isGif) {
@@ -309,19 +318,23 @@ const ImageRenderer = memo((props: ImageProps): ReactElement => {
 			}}
 		>
 			<div
-				className={cn("[page-break-inside:avoid] break-inside-avoid select-none box-border", className)}
+				className={cn(
+					"[page-break-inside:avoid] break-inside-avoid select-none box-border mb-[0.5em]",
+					className,
+				)}
 				data-component="image"
 				data-float={float && !openEditor ? float : undefined}
 				data-resize-container={float && !openEditor ? true : undefined}
 				data-testid="image"
 			>
 				<ArticleComponentResizer
-					disabled={!isLoaded}
+					disabled={!isLoaded || !openEditor}
+					isPrint={isPrint}
 					onChange={saveResize}
 					scale={scale}
 					selected={showResizer}
 				>
-					<div className="flex w-full !mb-[0.5em]" ref={mainContainerRef}>
+					<div className="flex w-full" ref={mainContainerRef}>
 						<HoverableActions
 							actionsOptions={IMAGE_ACTIONS_OPTIONS}
 							hoverElementRef={hoverElementRef}
@@ -330,9 +343,9 @@ const ImageRenderer = memo((props: ImageProps): ReactElement => {
 							setIsHovered={setIsHovered}
 						>
 							<div className="w-full [&_img]:select-none [&_img]:w-full" ref={imageContainerRef}>
-								<BlockCommentView className="!rounded-[var(--radius-small)]" commentId={commentId}>
+								<BlockCommentView className="rounded-sm" commentId={commentId}>
 									<ImageSkeleton
-										className="rounded-[var(--radius-small)]"
+										className="rounded-sm"
 										height={size?.height}
 										isLoaded={!!error || isLoaded}
 										width={size?.width}

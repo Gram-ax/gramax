@@ -1,18 +1,44 @@
 use std::io::BufWriter;
 use std::path::PathBuf;
+use std::sync::OnceLock;
 
 use tracing::level_filters::LevelFilter;
 use tracing_subscriber::layer::SubscriberExt;
+use tracing_subscriber::reload;
 use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::EnvFilter;
+use tracing_subscriber::Registry;
 
 use tauri::*;
 
 const MAX_FILE_COUNT: usize = 10;
 
+static FILTER_RELOAD_HANDLE: OnceLock<reload::Handle<EnvFilter, Registry>> = OnceLock::new();
+
+/// Live-reload the min tracing level without restart (backs the runtime otel level switch from JS).
+/// Crate-scoped `RUST_LOG` directives (`crate=level`) are preserved; only the global level is replaced.
+pub fn reload_filter(directive: &str) -> std::result::Result<(), String> {
+	let handle = FILTER_RELOAD_HANDLE.get().ok_or_else(|| "tracing is not initialized".to_string())?;
+
+	let scoped = std::env::var("RUST_LOG")
+		.unwrap_or_default()
+		.split(',')
+		.filter(|d| d.contains('='))
+		.collect::<Vec<_>>()
+		.join(",");
+	let directives =
+		if scoped.is_empty() { directive.to_string() } else { format!("{directive},{scoped}") };
+
+	let filter = EnvFilter::builder().parse(directives).map_err(|err| err.to_string())?;
+	handle.reload(filter).map_err(|err| err.to_string())
+}
+
 pub fn init_tracing<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
 	let filter = tracing_subscriber::EnvFilter::try_from_default_env()
 		.unwrap_or(EnvFilter::builder().with_default_directive(LevelFilter::INFO.into()).from_env_lossy());
+
+	let (filter, reload_handle) = reload::Layer::new(filter);
+	let _ = FILTER_RELOAD_HANDLE.set(reload_handle);
 
 	let logs_dir = app.path().app_data_dir()?.join("logs");
 	let log_file = create_log_file(&logs_dir)?;

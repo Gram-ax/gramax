@@ -30,7 +30,7 @@ export const InvalidEmailCell = ({ value, maxWidthClassName = "max-w-[260px]" }:
 						<Icon className="shrink-0 h-4 w-4" icon="alert-triangle" />
 					</span>
 				</TooltipTrigger>
-				<TooltipContent>{errorText}</TooltipContent>
+				<TooltipContent className="font-sans font-normal">{errorText}</TooltipContent>
 			</Tooltip>
 		</TooltipProvider>
 	);

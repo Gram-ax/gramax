@@ -84,7 +84,7 @@ const SemiBlocks = ({ editor, includeResources, fileName, isSmallEditor }: SemiB
 					</ToolbarTriggerChevron>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent
-					className="shadow-hard-base overflow-hidden"
+					className="shadow-hard-base overflow-hidden flex flex-col"
 					onCloseAutoFocus={onCloseAutoFocus}
 					onKeyDown={handleContentKeyDown}
 					side="top"
@@ -100,7 +100,7 @@ const SemiBlocks = ({ editor, includeResources, fileName, isSmallEditor }: SemiB
 					/>
 					<DropdownMenuSeparator />
 					<div
-						className="flex flex-col overflow-x-hidden overflow-y-auto max-h-1/2 lg:max-h-[30rem]"
+						className="flex flex-1 flex-col min-h-0 overflow-x-hidden overflow-y-auto lg:max-h-[30rem]"
 						ref={listRef}
 						style={fixedHeight != null ? { height: fixedHeight } : undefined}
 					>

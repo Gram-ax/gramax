@@ -1,5 +1,5 @@
 export default {
-	getBrowserModules: async () => [],
+	getWebModules: async () => [],
 	getNextModules: async () => [],
 	getTestModules: async () => [],
 	getTauriModules: async () => [],

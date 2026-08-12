@@ -20,7 +20,7 @@ const createFormSchema = (existingUsers: string[]) =>
 				message: t("enterprise-guest.validationErrors.emailInvalidFormat"),
 			})
 			.refine((email) => !existingUsers.includes(email), {
-				message: t("enterprise.admin.resources.users.already-exist"),
+				message: t("enterprise.admin.users.errors.exists"),
 			}),
 	});
 
@@ -47,24 +47,27 @@ export const GesCloudInviteUserModal = ({ onInvite, existingUsers, onClose }: Us
 	const formSchema = createFormSchema(existingUsers);
 	const form = useForm<FormData>({
 		resolver: zodResolver(formSchema),
+		mode: "onChange",
 		defaultValues: {
 			email: "",
 		},
 	});
 
-	const handleInviteUser = useCallback(async () => {
-		const email = form.getValues("email");
-		if (!email || isLoading) return;
+	const handleInviteUser = useCallback(
+		async (data: FormData) => {
+			if (isLoading) return;
 
-		setIsLoading(true);
-		try {
-			await onInvite(email);
-			form.reset();
-			onOpenChangeHandler(false);
-		} finally {
-			setIsLoading(false);
-		}
-	}, [form, onInvite, isLoading, onOpenChangeHandler]);
+			setIsLoading(true);
+			try {
+				await onInvite(data.email);
+				form.reset();
+				onOpenChangeHandler(false);
+			} finally {
+				setIsLoading(false);
+			}
+		},
+		[form, onInvite, isLoading, onOpenChangeHandler],
+	);
 
 	const handleCancel = useCallback(() => {
 		if (!isLoading) {

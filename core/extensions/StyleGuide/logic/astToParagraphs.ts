@@ -44,7 +44,7 @@ function astToParagraphs(ast: JSONContent): CheckChunk[] {
 					}
 					return child.text;
 				})
-				.join(" ");
+				.join("");
 			if (!text) return;
 			extractSentences(text).forEach((s) => {
 				result.push({

@@ -19,12 +19,12 @@ export default class CatalogPage extends BasePage {
 			const catalog = await app.wm.current().getContextlessCatalog(catalogName!);
 			const article = catalog.findArticle(itemLogicPath!.join("/"), []);
 
-			if (markdownOnly) return { md: article.content };
+			if (markdownOnly) return { md: await article.getContent() };
 
 			const parsedContent = await article.parsedContent.read();
 
 			return {
-				md: article.content,
+				md: await article.getContent(),
 				html: await parsedContent.getHtmlValue.get(),
 				editTree: parsedContent.editTree,
 				toc: parsedContent.tocItems,
@@ -58,7 +58,8 @@ export default class CatalogPage extends BasePage {
 		return this._page.evaluate((catalogName) => {
 			const raw = window.localStorage.getItem("nav-tree-state");
 			const stored = raw ? JSON.parse(raw) : {};
-			return stored?.state?.catalogs?.[catalogName] ?? [];
+			const overrides: Record<string, boolean> = stored?.state?.catalogs?.[catalogName] ?? {};
+			return Object.keys(overrides).filter((path) => overrides[path] === true);
 		}, catalogName);
 	}
 }

@@ -8,16 +8,18 @@ import type {
 import type { JSONContent } from "@tiptap/core";
 import type { Decoration } from "prosemirror-view";
 
-type OldContent = {
+type ChangedContent = {
 	oldContent: JSONContent;
+	newContent: JSONContent;
+	/** @deprecated used only by the legacy diff renderer (feature flag `new-diffs` off) */
 	oldDecorations: Decoration[];
 };
 
-export type ProseMirrorModifiedDiffLine = ModifiedDiffLine & OldContent;
+export type ProseMirrorModifiedDiffLine = ModifiedDiffLine & ChangedContent;
 
-export type ProseMirrorDeletedDiffLine = DeletedDiffLine & OldContent;
+export type ProseMirrorDeletedDiffLine = DeletedDiffLine & ChangedContent;
 
-export type ProseMirrorBreadcrumbDiffLine = BreadcrumbDiffLine & OldContent;
+export type ProseMirrorBreadcrumbDiffLine = BreadcrumbDiffLine & ChangedContent;
 
 export type ProseMirrorDiffLine =
 	| AddedDiffLine

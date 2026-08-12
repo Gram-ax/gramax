@@ -1,5 +1,6 @@
 /** biome-ignore-all lint/suspicious/noExplicitAny: it's ok */
-import type FileProvider from "core/logic/FileProvider/model/FileProvider";
+
+import type FileProvider from "@core/FileProvider/model/FileProvider";
 import type { JSHandle } from "playwright";
 
 export class FPContext {

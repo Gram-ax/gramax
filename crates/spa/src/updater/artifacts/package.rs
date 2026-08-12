@@ -3,7 +3,7 @@ use serde::Serialize;
 
 use crate::updater::artifacts::error::PackageError;
 
-#[derive(Hash, Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Hash, Eq, PartialEq, Ord, PartialOrd, Clone, Copy, Debug)]
 pub enum PlatformPackage {
 	WindowsX86_64Nsis,
 	DarwinX86_64Dmg,
@@ -141,6 +141,19 @@ impl PlatformPackage {
 			PlatformPackage::LinuxRpm => "gramax.linux-x86_64.rpm.sig",
 			PlatformPackage::AndroidApk => "gramax.android.apk.sig",
 			PlatformPackage::IosIpa => "gramax.ios.ipa.sig",
+		}
+	}
+
+	pub const fn label(&self) -> &'static str {
+		match self {
+			PlatformPackage::WindowsX86_64Nsis => "win",
+			PlatformPackage::DarwinX86_64Dmg => "mac-intel",
+			PlatformPackage::DarwinAarch64Dmg => "mac-silicon",
+			PlatformPackage::LinuxAppImage => "appimage",
+			PlatformPackage::LinuxDeb => "deb",
+			PlatformPackage::LinuxRpm => "rpm",
+			PlatformPackage::AndroidApk => "apk",
+			PlatformPackage::IosIpa => "ipa",
 		}
 	}
 

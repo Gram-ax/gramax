@@ -1,20 +1,47 @@
 #![allow(dead_code)]
 
+use std::collections::HashMap;
 use std::path::{Path, PathBuf};
+use std::sync::atomic::AtomicU64;
+use std::sync::atomic::Ordering;
+use std::sync::Mutex;
+use std::sync::OnceLock;
 
 use gramaxcore::commands as core;
+use gramaxcore::scan::catalog::CatalogTreeDto;
 use gramaxcore::scan::workspace::ScanOpts;
 use gramaxcore::scan::workspace::WorkspaceEntryDto;
+use gramaxcore::watch::FsEvent;
+use gramaxcore::watch::WatchHandle;
+use gramaxcore::watch::WatchOpts;
 use gramaxcore::Result as CoreResult;
 use gramaxfs::commands as fs;
 use gramaxfs::commands::FsScope;
 use gramaxfs::DirStat;
 
+use serde::Serialize;
 use tauri::command;
+use tauri::Emitter;
+use tauri::Runtime;
+use tauri::Window;
 use tauri_otel_context::OtelContext;
 
 use gramaxfs::error::Result;
 use gramaxfs::FileInfo;
+
+static WATCHERS: OnceLock<Mutex<HashMap<u64, (PathBuf, WatchHandle)>>> = OnceLock::new();
+static NEXT_WATCH_ID: AtomicU64 = AtomicU64::new(1);
+
+fn watchers() -> &'static Mutex<HashMap<u64, (PathBuf, WatchHandle)>> {
+	WATCHERS.get_or_init(|| Mutex::new(HashMap::new()))
+}
+
+#[derive(Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+struct FsEventPayload {
+	id: u64,
+	events: Vec<FsEvent>,
+}
 
 #[command]
 pub(crate) fn read_dir(_otel: OtelContext, scope: FsScope, path: &Path) -> Result<Vec<String>> {
@@ -79,4 +106,50 @@ pub(crate) fn delete_empty_dirs(_otel: OtelContext, scope: FsScope, path: &Path)
 #[command(async)]
 pub(crate) fn scan_workspace(_otel: OtelContext, scope: FsScope, path: &Path, opts: ScanOpts) -> CoreResult<Vec<WorkspaceEntryDto>> {
 	core::scan_workspace(scope, path, &opts)
+}
+
+#[command(async)]
+pub(crate) fn scan_catalog(
+	_otel: OtelContext,
+	scope: FsScope,
+	path: &Path,
+	docroot_rel: Option<PathBuf>,
+	opts: ScanOpts,
+) -> CoreResult<CatalogTreeDto> {
+	core::scan_catalog(scope, path, docroot_rel.as_deref(), &opts)
+}
+
+#[command(async)]
+pub(crate) fn watch_workspace<R: Runtime>(window: Window<R>, _otel: OtelContext, scope: FsScope, opts: Option<WatchOpts>) -> CoreResult<u64> {
+	let FsScope::Disk { root } = &scope else {
+		return Err(gramaxcore::Error::Other("unsupported scope; only disk is supported".to_string()));
+	};
+
+	let id = NEXT_WATCH_ID.fetch_add(1, Ordering::SeqCst);
+	let key = root.canonicalize().unwrap_or_else(|_| root.to_path_buf());
+
+	let handle = core::watch_workspace(scope, opts.unwrap_or_default(), move |events| {
+		let _ = window.emit("fs-event", FsEventPayload { id, events });
+	})?;
+
+	let mut map = watchers().lock().unwrap();
+	let stale: Vec<u64> = map.iter().filter(|(_, (p, _))| p == &key).map(|(k, _)| *k).collect();
+
+	for old in stale {
+		if let Some((_, h)) = map.remove(&old) {
+			h.stop();
+		}
+	}
+
+	map.insert(id, (key, handle));
+	Ok(id)
+}
+
+#[command]
+pub(crate) fn unwatch_workspace(_otel: OtelContext, id: u64) -> CoreResult<()> {
+	if let Some((_, h)) = watchers().lock().unwrap().remove(&id) {
+		h.stop();
+	}
+
+	Ok(())
 }

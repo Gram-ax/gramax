@@ -28,14 +28,14 @@ pub fn window_post_init<R: Runtime>(w: &WebviewWindow<R>) -> Result<()> {
 
 	w.app_handle().manage(DefaultFallbackUrl(w.url()?));
 
-	crate::logging::force_find_processes(&w.app_handle())?;
+	crate::logging::force_find_processes(w.app_handle())?;
 
 	Ok(())
 }
 
 #[tracing::instrument(skip_all)]
 pub fn init_app<R: Runtime>(app: &mut App<R>) -> InitResult {
-	crate::logging::init_mem_watching(&app.handle())?;
+	crate::logging::init_mem_watching(app.handle())?;
 
 	#[cfg(target_os = "macos")]
 	macos_init_spellcheck(&app.config().identifier);
@@ -75,6 +75,15 @@ pub fn init_app<R: Runtime>(app: &mut App<R>) -> InitResult {
 	std::env::set_var("GRAMAX_VERSION", app.package_info().version.to_string());
 	std::env::set_var("USER_DATA_PATH", user_data_path(app));
 	std::env::set_var("OS", std::env::consts::OS);
+
+	#[cfg(target_os = "macos")]
+	{
+		let is_installed = cfg!(debug_assertions)
+			|| std::env::current_exe()
+				.map(|p| p.to_string_lossy().contains("/Applications/"))
+				.unwrap_or(false);
+		std::env::set_var("MACOS_IS_INSTALLED", if is_installed { "true" } else { "false" });
+	}
 
 	let documents_dir = &app.path().document_dir();
 

@@ -33,7 +33,7 @@ const updateContent: Command<{ ctx: Context; articlePath: Path; catalogName: str
 			);
 			const markdown = await formatter.render(editTree, context);
 			await article.updateContent(markdown);
-			await article.parsedContent.write(() => parser.parse(article.content, context));
+			await article.parsedContent.write(async () => parser.parse(await article.getContent(), context));
 			await article.events.emit("item-update-content", { item: article });
 		},
 

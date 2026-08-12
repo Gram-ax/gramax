@@ -5,10 +5,12 @@
 	color: #2f3337;
 	background: #f6f6f6;
 }
+
 [data-theme] .hljs-comment {
 	font-style: italic;
 	color: #656e77;
 }
+
 [data-theme] .hljs-keyword,
 [data-theme] .hljs-selector-tag,
 [data-theme] .hljs-meta-keyword,
@@ -20,9 +22,11 @@
 [data-theme] .hljs-attr {
 	color: #015692;
 }
+
 [data-theme] .hljs-attribute {
 	color: #803378;
 }
+
 [data-theme] .hljs-name,
 [data-theme] .hljs-type,
 [data-theme] .hljs-number,
@@ -34,6 +38,7 @@
 [data-theme] .hljs-literal {
 	color: #b75501;
 }
+
 [data-theme] .hljs-string,
 [data-theme] .hljs-regexp,
 [data-theme] .hljs-symbol,
@@ -44,25 +49,30 @@
 [data-theme] .hljs-meta-string {
 	color: #54790d;
 }
+
 [data-theme] .hljs-bullet,
 [data-theme] .hljs-code {
 	color: #535a60;
 }
+
 [data-theme] .hljs-deletion {
 	color: #c02d2e;
 }
+
 [data-theme] .hljs-addition {
 	color: #2f6f44;
 }
+
 [data-theme] .hljs-emphasis {
 	font-style: italic;
 }
+
 [data-theme] .hljs-strong {
 	font-weight: bold;
 }
 
 /*!
-  Theme: StackOverflow 
+  Theme: StackOverflow
 */
 
 @media not print {
@@ -73,19 +83,23 @@
 		color: #dcdcdc;
 		background: #1e1e1e;
 	}
+
 	[data-theme="dark"] .hljs {
 		color: #ffffff;
 		background: #1c1b1b;
 	}
+
 	[data-theme="dark"] .hljs-subst {
 		color: #ffffff;
 	}
+
 	[data-theme="dark"] .hljs-comment {
 		color: #999999;
 	}
+
 	[data-theme="dark"] .hljs-keyword,
 	[data-theme="dark"] .hljs-selector-tag,
-	[data-theme="dark"] .hljs-meta .hljs-keyword,
+	[data-theme="dark"] .hljs-meta,
 	[data-theme="dark"] .hljs-doctag,
 	[data-theme="dark"] .hljs-section {
 		color: #88aece;
@@ -94,9 +108,11 @@
 	[data-theme="dark"] .hljs-attr {
 		color: #88aece;
 	}
+
 	[data-theme="dark"] .hljs-attribute {
 		color: #c59bc1;
 	}
+
 	[data-theme="dark"] .hljs-name,
 	[data-theme="dark"] .hljs-type,
 	[data-theme="dark"] .hljs-number,
@@ -105,9 +121,11 @@
 	[data-theme="dark"] .hljs-template-tag {
 		color: #f08d49;
 	}
+
 	[data-theme="dark"] .hljs-selector-class {
 		color: #88aece;
 	}
+
 	[data-theme="dark"] .hljs-string,
 	[data-theme="dark"] .hljs-regexp,
 	[data-theme="dark"] .hljs-symbol,
@@ -117,31 +135,39 @@
 	[data-theme="dark"] .hljs-selector-attr {
 		color: #b5bd68;
 	}
+
 	[data-theme="dark"] .hljs-meta,
 	[data-theme="dark"] .hljs-selector-pseudo {
 		color: #88aece;
 	}
+
 	[data-theme="dark"] .hljs-built_in,
 	[data-theme="dark"] .hljs-title,
 	[data-theme="dark"] .hljs-literal {
 		color: #f08d49;
 	}
+
 	[data-theme="dark"] .hljs-bullet,
 	[data-theme="dark"] .hljs-code {
 		color: #cccccc;
 	}
+
 	[data-theme="dark"] .hljs-meta .hljs-string {
 		color: #b5bd68;
 	}
+
 	[data-theme="dark"] .hljs-deletion {
 		color: #de7176;
 	}
+
 	[data-theme="dark"] .hljs-addition {
 		color: #76c490;
 	}
+
 	[data-theme="dark"] .hljs-emphasis {
 		font-style: italic;
 	}
+
 	[data-theme="dark"] .hljs-strong {
 		font-weight: bold;
 	}

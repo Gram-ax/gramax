@@ -1,26 +1,8 @@
-import styled from "@emotion/styled";
 import type { RendererProps } from "@ext/markdown/elements/file/edit/components/Preview/FilePreview";
 import { useEffect, useMemo, useRef, useState } from "react";
 import createExcelWorker from "./createExcelWorker";
 import type { ExcelParseResponse } from "./excelParse.worker";
 import { type AOAColumn, type Row, VirtualTable } from "./VirtualTable";
-
-const ExcelContainer = styled.div`
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	width: 100%;
-	height: 100%;
-`;
-
-const DataGridContainer = styled.div`
-	width: min(95vw, 100%);
-	height: min(85vh, 100%);
-
-	> div:first-of-type {
-		height: 100%;
-	}
-`;
 
 const encodeCol = (n: number): string => {
 	let name = "";
@@ -32,7 +14,7 @@ const encodeCol = (n: number): string => {
 	return name;
 };
 
-const ExcelRenderer = ({ file, onLoad, onError }: RendererProps) => {
+const ExcelRenderer = ({ file, onLoad, onError, onMetaChange, selectedSheetName }: RendererProps) => {
 	const [rows, setRows] = useState<Row[]>([]);
 	const [maxCols, setMaxCols] = useState(0);
 	const workerRef = useRef<Worker>(null);
@@ -52,6 +34,11 @@ const ExcelRenderer = ({ file, onLoad, onError }: RendererProps) => {
 			const colCount = response.data.reduce<number>((max, row) => Math.max(max, Object.keys(row).length), 0);
 			setRows(response.data);
 			setMaxCols(colCount);
+			onMetaChange?.({
+				sheetCount: response.sheetCount,
+				sheetName: response.sheetName,
+				sheetNames: response.sheetNames,
+			});
 			onLoad?.();
 		};
 
@@ -61,8 +48,10 @@ const ExcelRenderer = ({ file, onLoad, onError }: RendererProps) => {
 
 		const loadData = async () => {
 			try {
+				setRows([]);
+				setMaxCols(0);
 				const buffer = await file.arrayBuffer();
-				worker.postMessage(buffer, [buffer]);
+				worker.postMessage({ buffer, sheetName: selectedSheetName }, [buffer]);
 			} catch (err) {
 				onError?.(err);
 			}
@@ -74,7 +63,7 @@ const ExcelRenderer = ({ file, onLoad, onError }: RendererProps) => {
 			worker.terminate();
 			workerRef.current = null;
 		};
-	}, [file, onLoad, onError]);
+	}, [file, onLoad, onError, onMetaChange, selectedSheetName]);
 
 	const columns: AOAColumn[] = useMemo(
 		() =>
@@ -87,11 +76,11 @@ const ExcelRenderer = ({ file, onLoad, onError }: RendererProps) => {
 	);
 
 	return (
-		<ExcelContainer>
-			<DataGridContainer>
+		<div className="box-border flex h-full min-h-[420px] w-full flex-col items-center justify-center pb-6">
+			<div className="min-h-0 w-full flex-1 overflow-hidden rounded-lg border border-primary-border bg-secondary-bg [&>div:first-of-type]:h-full">
 				<VirtualTable columns={columns} rows={rows} />
-			</DataGridContainer>
-		</ExcelContainer>
+			</div>
+		</div>
 	);
 };
 

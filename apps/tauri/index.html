@@ -11,6 +11,7 @@
 		<script>
 			const global = {};
 		</script>
+		<%- bodyDatasetInjector %>
 		<%- polyfill %>
 		<script defer type="module" src="./src/index.tsx"></script>
 	</head>
@@ -18,6 +19,5 @@
 <body id="custom-style">
   <div id="root"></div>
 </body>
-<%- bodyDatasetInjector %>
 
 </html>

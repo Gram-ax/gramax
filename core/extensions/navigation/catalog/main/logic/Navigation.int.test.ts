@@ -1,4 +1,5 @@
 import getApplication from "@app/node/app";
+import type { Category } from "@core/FileStructue/Category/Category";
 import EnterpriseUser from "@ext/enterprise/EnterpriseUser";
 import Permission from "@ext/security/logic/Permission/Permission";
 import StrictPermissionMap from "@ext/security/logic/PermissionMap/StrictPermissionMap";
@@ -57,6 +58,19 @@ describe("Navigation правильно", () => {
 		expect(navItemLinks.length).toEqual(1);
 	});
 
+	test("добавляет ошибку index article в options категории", async () => {
+		const { nav, navIndexArticleTestCatalog, navIndexArticleItemRef } = await getNavigationData();
+		const category = navIndexArticleTestCatalog.findItemByItemRef<Category>(navIndexArticleItemRef);
+		category.errorCode = 500;
+
+		try {
+			const navItemLinks = await nav.getCatalogNav(navIndexArticleTestCatalog, navIndexArticleItemRef.path.value);
+			expect(navItemLinks[0].options).toEqual({ isHasErrorCode: true });
+		} finally {
+			category.errorCode = null;
+		}
+	});
+
 	test("фильтрует навигацию в каталоге по правилам", async () => {
 		const { nav, navTestCatalog, navEmptyCategoryItemRef } = await getNavigationData();
 		const catalog = navTestCatalog;
@@ -75,17 +89,17 @@ describe("Navigation правильно", () => {
 		expect(catalogLinks.map((cl) => cl.title)).toEqual([
 			"Многоуровневый каталог",
 			"data",
-			"NavigationArticleCatalog",
-			"NavigationIndexCatalog",
-			"PropertyCatalog",
-			"RefsCatalog",
-			"RulesCategoryTestCatalog",
-			"RulseArticleTestCatalog",
-			"RulseCatalogTestCatalog",
 			"Test-catalog",
 			"Test-catalog",
 			"Test-catalog",
 			"Test-catalog",
+			"Untitled",
+			"Untitled",
+			"Untitled",
+			"Untitled",
+			"Untitled",
+			"Untitled",
+			"Untitled",
 			"Последний каталог",
 		]);
 	});

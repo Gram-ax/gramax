@@ -25,12 +25,13 @@ const columns: ColumnDef<QuizTest>[] = [
 		id: TABLE_EDIT_COLUMN_CODE,
 		accessorKey: "id",
 		header: "",
+		size: 32,
 		enableHiding: false,
 		cell: () => <IconButton className="h-auto p-0 align-middle" icon={"maximize-2"} size="md" variant="text" />,
 	},
 	{
 		accessorKey: "user",
-		header: () => t("enterprise.admin.quiz.users-test-table.user"),
+		header: () => t("user"),
 		cell: ({ row }) => <TextOverflowTooltip className="align-middle">{row.original.user_mail}</TextOverflowTooltip>,
 	},
 	{
@@ -42,15 +43,15 @@ const columns: ColumnDef<QuizTest>[] = [
 	},
 	{
 		accessorKey: "result",
-		header: () => t("enterprise.admin.quiz.users-test-table.result.name"),
+		header: () => t("enterprise.admin.result"),
 		cell: ({ row }) => {
 			const isNullQuestion = row.original.successful === null;
 			return (
 				<div className="flex items-center gap-2">
 					<TextOverflowTooltip className="align-middle">
 						{row.original.successful === true || row.original.successful === null
-							? t("enterprise.admin.quiz.users-test-table.result.passed")
-							: t("enterprise.admin.quiz.users-test-table.result.failed")}
+							? t("enterprise.admin.passed")
+							: t("enterprise.admin.failed")}
 					</TextOverflowTooltip>
 					<Tooltip>
 						<TooltipTrigger asChild>
@@ -61,7 +62,7 @@ const columns: ColumnDef<QuizTest>[] = [
 								variant="text"
 							/>
 						</TooltipTrigger>
-						<TooltipContent>
+						<TooltipContent className="font-sans font-normal">
 							{isNullQuestion
 								? t("enterprise.admin.quiz.users-test-table.result.free")
 								: t("enterprise.admin.quiz.users-test-table.result.tooltip")
@@ -75,7 +76,7 @@ const columns: ColumnDef<QuizTest>[] = [
 	},
 	{
 		accessorKey: "version",
-		header: () => t("enterprise.admin.quiz.users-test-table.version"),
+		header: () => t("version"),
 		cell: ({ row }) => (
 			<span>
 				<TextOverflowTooltip className="align-middle cursor">

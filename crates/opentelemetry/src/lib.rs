@@ -51,8 +51,24 @@ pub struct OtelSpanEvent {
 	pub name: String,
 	#[serde(default, alias = "timestamp", deserialize_with = "deserialize_event_time")]
 	pub time: Option<f64>,
+	#[serde(default, skip_serializing_if = "Option::is_none")]
+	pub level: Option<String>,
 	#[serde(default, skip_serializing_if = "serde_json::Map::is_empty")]
 	pub attributes: serde_json::Map<String, serde_json::Value>,
+}
+
+/// Map a Rust `tracing` level onto the Gramax verbosity scale
+/// (ascending: commands < important < internal < files < full).
+/// ERROR collapses into `commands` (always visible; errors also ride the span status),
+/// WARN maps to `important`.
+pub fn map_tracing_level(level: &str) -> &'static str {
+	match level {
+		"TRACE" => "full",
+		"DEBUG" => "files",
+		"INFO" => "internal",
+		"WARN" => "important",
+		_ => "commands",
+	}
 }
 
 fn deserialize_event_time<'de, D: serde::Deserializer<'de>>(deserializer: D) -> std::result::Result<Option<f64>, D::Error> {
@@ -98,6 +114,9 @@ impl From<&SpanData> for OtelSpan {
 				"target" => target = Some(kv.value.as_str().into_owned()),
 				"args" => args = Some(to_json(&kv.value)),
 				"res" => result = Some(to_json(&kv.value)),
+				"level" => {
+					attrs.insert(key.to_string(), map_tracing_level(&kv.value.as_str()).into());
+				}
 				_ => {
 					attrs.insert(key.to_string(), to_json(&kv.value));
 				}
@@ -148,6 +167,12 @@ impl From<&opentelemetry::trace::Event> for OtelSpanEvent {
 			.ok()
 			.map(|d| d.as_secs_f64());
 
+		let level = event
+			.attributes
+			.iter()
+			.find(|kv| kv.key.as_str() == "level")
+			.map(|kv| map_tracing_level(&kv.value.as_str()).to_string());
+
 		let attributes = event
 			.attributes
 			.iter()
@@ -162,6 +187,7 @@ impl From<&opentelemetry::trace::Event> for OtelSpanEvent {
 				event.name.to_string()
 			},
 			time: timestamp,
+			level,
 			attributes,
 		}
 	}

@@ -77,4 +77,21 @@ editorTest.describe("Link", () => {
 
 		await expect(linkToolbar).toHaveText(linkExample.slice(0, -1));
 	});
+
+	editorTest("current article in link menu has selected state", async ({ editor, catalogPage }) => {
+		await editor.type("Hello");
+		await editor.press("ControlOrMeta+Shift+ArrowLeft");
+
+		const inlineToolbar = catalogPage.raw.locator('[role="article-inline-toolbar"]');
+		await expect(inlineToolbar).toBeVisible();
+		await inlineToolbar.locator('[data-qa="link-button"]').click();
+
+		await expect(catalogPage.raw.getByPlaceholder("Enter link or search for articles")).toBeVisible();
+
+		await expect(
+			catalogPage.raw.locator('[data-slot="command-item"][data-selected="true"]', {
+				hasText: "Untitled",
+			}),
+		).toBeVisible();
+	});
 });

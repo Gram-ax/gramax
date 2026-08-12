@@ -282,7 +282,7 @@
 				"name": "Heading",
 				"attributes": {
 					"level": 2,
-					"id": "заголовок-2",
+					"id": "заголовок-2-1",
 					"isCustomId": false
 				},
 				"children": ["Заголовок 2"]
@@ -300,7 +300,7 @@
 				"name": "Heading",
 				"attributes": {
 					"level": 3,
-					"id": "заголовок-3",
+					"id": "заголовок-3-1",
 					"isCustomId": false
 				},
 				"children": ["Заголовок 3"]
@@ -318,7 +318,7 @@
 				"name": "Heading",
 				"attributes": {
 					"level": 4,
-					"id": "заголовок-4",
+					"id": "заголовок-4-1",
 					"isCustomId": false
 				},
 				"children": ["Заголовок 4"]
@@ -383,14 +383,14 @@
 					" ",
 					{
 						"$$mdtype": "Tag",
+						"name": "Link",
 						"attributes": {
-							"hash": "",
 							"href": "https://translate.google.com/",
-							"isFile": false,
-							"resourcePath": ""
+							"resourcePath": "",
+							"hash": "",
+							"isFile": false
 						},
-						"children": ["another link"],
-						"name": "Link"
+						"children": ["another link"]
 					}
 				]
 			},
@@ -1102,28 +1102,55 @@
 				"children": ["--"]
 			},
 			{
-				"$$mdtype": "Tag",
-				"name": "Cmd",
-				"attributes": {
-					"text": "Это кнопка"
+				"type": "inlineMd_component",
+				"attrs": {
+					"tag": [
+						{
+							"$$mdtype": "Tag",
+							"name": "Cmd",
+							"attributes": {
+								"text": "Это кнопка"
+							},
+							"children": []
+						}
+					],
+					"text": "[cmd:Это кнопка]"
 				},
-				"children": []
+				"content": []
 			},
 			{
-				"$$mdtype": "Tag",
-				"name": "Cmd",
-				"attributes": {
-					"text": "alien"
+				"type": "inlineMd_component",
+				"attrs": {
+					"tag": [
+						{
+							"$$mdtype": "Tag",
+							"name": "Cmd",
+							"attributes": {
+								"text": "alien"
+							},
+							"children": []
+						}
+					],
+					"text": "[cmd:alien]"
 				},
-				"children": []
+				"content": []
 			},
 			{
-				"$$mdtype": "Tag",
-				"name": "Kbd",
-				"attributes": {
-					"text": "Ctrl+Z"
+				"type": "inlineMd_component",
+				"attrs": {
+					"tag": [
+						{
+							"$$mdtype": "Tag",
+							"name": "Kbd",
+							"attributes": {
+								"text": "Ctrl+Z"
+							},
+							"children": []
+						}
+					],
+					"text": "[kbd:Ctrl+Z]"
 				},
-				"children": []
+				"content": []
 			},
 			{
 				"$$mdtype": "Tag",
@@ -1143,13 +1170,22 @@
 				]
 			},
 			{
-				"$$mdtype": "Tag",
-				"name": "Cmd",
-				"attributes": {
-					"text": "Кнопка",
-					"icon": "columns-4"
+				"type": "inlineMd_component",
+				"attrs": {
+					"tag": [
+						{
+							"$$mdtype": "Tag",
+							"name": "Cmd",
+							"attributes": {
+								"text": "Кнопка",
+								"icon": "columns-4"
+							},
+							"children": []
+						}
+					],
+					"text": "[cmd:Кнопка:columns-4]"
 				},
-				"children": []
+				"content": []
 			},
 			{
 				"type": "icon",
@@ -1800,35 +1836,71 @@
 				"attributes": {},
 				"children": [
 					{
-						"$$mdtype": "Tag",
-						"name": "Alfa",
-						"attributes": {},
-						"children": []
-					},
-					" ",
-					{
-						"$$mdtype": "Tag",
-						"name": "Beta",
-						"attributes": {},
-						"children": []
-					},
-					" ",
-					{
-						"$$mdtype": "Tag",
-						"name": "Issue",
-						"attributes": {
-							"id": "иссуе"
+						"type": "inlineMd_component",
+						"attrs": {
+							"tag": [
+								{
+									"$$mdtype": "Tag",
+									"name": "Alfa",
+									"attributes": {},
+									"children": []
+								}
+							],
+							"text": "[alfa]"
 						},
-						"children": []
+						"content": []
 					},
 					" ",
 					{
-						"$$mdtype": "Tag",
-						"name": "Module",
-						"attributes": {
-							"id": "модуль"
+						"type": "inlineMd_component",
+						"attrs": {
+							"tag": [
+								{
+									"$$mdtype": "Tag",
+									"name": "Beta",
+									"attributes": {},
+									"children": []
+								}
+							],
+							"text": "[beta]"
 						},
-						"children": []
+						"content": []
+					},
+					" ",
+					{
+						"type": "inlineMd_component",
+						"attrs": {
+							"tag": [
+								{
+									"$$mdtype": "Tag",
+									"name": "Issue",
+									"attributes": {
+										"id": "иссуе"
+									},
+									"children": []
+								}
+							],
+							"text": "[issue:иссуе]"
+						},
+						"content": []
+					},
+					" ",
+					{
+						"type": "inlineMd_component",
+						"attrs": {
+							"tag": [
+								{
+									"$$mdtype": "Tag",
+									"name": "Module",
+									"attributes": {
+										"id": "модуль"
+									},
+									"children": []
+								}
+							],
+							"text": "[module:модуль]"
+						},
+						"content": []
 					}
 				]
 			},
@@ -1838,21 +1910,39 @@
 				"attributes": {},
 				"children": [
 					{
-						"$$mdtype": "Tag",
-						"name": "Who",
-						"attributes": {
-							"text": "who"
+						"type": "inlineMd_component",
+						"attrs": {
+							"tag": [
+								{
+									"$$mdtype": "Tag",
+									"name": "Who",
+									"attributes": {
+										"text": "who"
+									},
+									"children": []
+								}
+							],
+							"text": "[who:who]"
 						},
-						"children": []
+						"content": []
 					},
 					" ",
 					{
-						"$$mdtype": "Tag",
-						"name": "When",
-						"attributes": {
-							"text": "when"
+						"type": "inlineMd_component",
+						"attrs": {
+							"tag": [
+								{
+									"$$mdtype": "Tag",
+									"name": "When",
+									"attributes": {
+										"text": "when"
+									},
+									"children": []
+								}
+							],
+							"text": "[when:when]"
 						},
-						"children": []
+						"content": []
 					}
 				]
 			},
@@ -1950,15 +2040,24 @@
 				"children": [
 					"Пример ",
 					{
-						"$$mdtype": "Tag",
-						"name": "Term",
-						"attributes": {
-							"title": "термс",
-							"summary": "",
-							"url": null,
-							"children": null
+						"type": "inlineMd_component",
+						"attrs": {
+							"tag": [
+								{
+									"$$mdtype": "Tag",
+									"name": "Term",
+									"attributes": {
+										"title": "термс",
+										"summary": "",
+										"url": null,
+										"children": null
+									},
+									"children": []
+								}
+							],
+							"text": "[term:md:термс]"
 						},
-						"children": []
+						"content": []
 					},
 					"."
 				]

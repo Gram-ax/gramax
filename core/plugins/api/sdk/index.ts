@@ -1,5 +1,6 @@
+export { default as Path } from "../../../logic/FileProvider/Path/Path";
+export { pluginCommandExecutor } from "./commands";
 export { ExtensionType, initializeSdk } from "./core";
-export { Extension } from "./editor";
 export type { PluginEventMap, PluginEventName } from "./events";
 export { t } from "./localization";
 export { Plugin } from "./plugin";

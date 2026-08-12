@@ -1,4 +1,5 @@
 import { TooltipIconButton } from "@components/Atoms/TooltipIconButton";
+// biome-ignore lint/style/noRestrictedImports: expected
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import NavigationDropdown from "@ext/navigation/components/NavigationDropdown";
@@ -46,7 +47,7 @@ const IconsWrapper = styled.div`
 `;
 
 export type HeaderProps = {
-	title: string;
+	title?: string;
 	show: boolean;
 	onClose?: () => void;
 	actions?: JSX.Element;
@@ -56,6 +57,7 @@ export type HeaderProps = {
 
 const Header = (props: HeaderProps) => {
 	const { title, rightExtension, onClose, actions, leftExtension } = props;
+	if (!title && !rightExtension && !leftExtension && !actions) return null;
 
 	return (
 		<Wrapper>
@@ -64,10 +66,12 @@ const Header = (props: HeaderProps) => {
 					<IconsWrapper>{leftExtension}</IconsWrapper>
 				</Part>
 			)}
-			<Part className="flex-1">
-				{title && <Title className="tab-wrapper-title">{title}</Title>}
-				{rightExtension}
-			</Part>
+			{(title || rightExtension) && (
+				<Part className="flex-1">
+					{title && <Title className="tab-wrapper-title text-muted">{title}</Title>}
+					{rightExtension}
+				</Part>
+			)}
 			{onClose && (
 				<Part className="shrink-0">
 					<IconsWrapper>

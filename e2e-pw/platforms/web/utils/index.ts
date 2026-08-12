@@ -8,7 +8,7 @@ import { fileURLToPath } from "url";
 declare global {
 	interface Window {
 		app?: Promise<Application>;
-		debug: typeof import("@gramax/apps/browser/src/debug") & {
+		debug: typeof import("@gramax/apps/web/src/debug") & {
 			forceSave?: (() => Promise<void>) | null;
 			editor?: import("@tiptap/core").Editor | null;
 		};
@@ -47,7 +47,7 @@ export const uploadAndExtractZip = async (page: PlaywrightPage, zip: string): Pr
 	}, zipData);
 };
 
-export type SourceData = Parameters<typeof import("@gramax/apps/browser/src/debug").setSourceData>[0];
+export type SourceData = Parameters<typeof import("@gramax/apps/web/src/debug").setSourceData>[0];
 
 export const setStorage = async (page: PlaywrightPage, sourceData: SourceData): Promise<void> => {
 	await page.evaluate(async (sourceData) => {

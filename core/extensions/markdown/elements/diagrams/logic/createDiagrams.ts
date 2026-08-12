@@ -44,12 +44,15 @@ const createDiagrams = async (
 	};
 	try {
 		const newSize = getNaturalSize(
-			await DIAGRAM_FUNCTIONS?.[diagramName](file, pageDataContext.conf.diagramsServiceUrl),
+			await DIAGRAM_FUNCTIONS?.[diagramName](
+				file,
+				pageDataContext.settings?.services?.["diagram-renderer"]?.endpoint,
+			),
 		);
 
 		if (newSize) {
-			attributes.width = newSize.width + "px";
-			attributes.height = newSize.height + "px";
+			attributes.width = `${newSize.width}px`;
+			attributes.height = `${newSize.height}px`;
 		}
 	} catch (error) {
 		console.error("Error creating diagram:", error);

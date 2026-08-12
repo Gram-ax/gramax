@@ -1,19 +1,20 @@
 import XmlFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/XmlFormatter";
 import type { NodeSerializerSpec } from "@ext/markdown/core/edit/logic/Prosemirror/to_markdown";
+import { getNoteBody, getNoteTitle } from "@ext/markdown/elements/note/logic/noteTitleNode";
 import { NoteType } from "@ext/markdown/elements/note/render/component/Note";
 import type { Node } from "@tiptap/pm/model";
 
 export const getNoteAttributes = (node: Node) => {
 	return {
 		type: node.attrs.type !== NoteType.note ? node.attrs.type : "",
-		title: node.attrs.title,
-		collapsed: node.attrs.collapsed == true ? "true" : "",
+		title: getNoteTitle(node),
+		collapsed: node.attrs.collapsed === true ? "true" : "",
 	};
 };
 
 const noteFormatter: NodeSerializerSpec = async (state, node) => {
 	state.write(`${XmlFormatter.openTag("note", getNoteAttributes(node))}\n\n`);
-	await state.renderContent(node);
+	await state.renderContent(getNoteBody(node));
 	state.write(XmlFormatter.closeTag("note"));
 	state.closeBlock(node);
 };

@@ -1,12 +1,18 @@
+// biome-ignore lint/style/noRestrictedImports: legacy styled component, migrate to Tailwind later
 import styled from "@emotion/styled";
+import { useSetting } from "@ext/settings/logic/hooks";
 import hsluv from "hsluv";
-import objectHash from "object-hash";
-import ThemeService from "../../extensions/Theme/components/ThemeService";
 import Theme from "../../extensions/Theme/Theme";
 
+const getHue = (name: string) => {
+	let hash = 5381;
+	for (let i = 0; i < name.length; i++) hash = Math.imul(hash, 33) ^ name.charCodeAt(i);
+	return ((hash >>> 0) % 18) * 20;
+};
+
 const UserCircle = styled(({ name, className }: { name: string; className?: string }) => {
-	const hue: number = (Number(objectHash({ i: name }).replace(/[^\d;]/g, "")) % 18) * 20;
-	const theme = ThemeService.value;
+	const hue = getHue(name);
+	const [theme] = useSetting("general.theme");
 	const saturation = theme === Theme.dark ? 52 : 50;
 	const lightness = theme === Theme.dark ? 60 : 80;
 	return (

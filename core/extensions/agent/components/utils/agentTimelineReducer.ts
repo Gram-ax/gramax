@@ -1,36 +1,39 @@
 import { type AgentTimelineEntry, isPlainObject } from "@ext/agent/components/utils/agentTimeline";
 import type { AgentEvent } from "@ext/agent/core/events";
-import t from "@ext/localization/locale/translate";
 
-function isWhitespaceOnlyContent(content: string): boolean {
+const isWhitespaceOnlyContent = (content: string): boolean => {
 	return content.trim().length === 0;
-}
+};
 
-function findLastMeaningfulEntryIndex(entries: AgentTimelineEntry[]): number {
+const findLastMeaningfulEntryIndex = (entries: AgentTimelineEntry[]): number => {
 	for (let i = entries.length - 1; i >= 0; i--) {
 		const entry = entries[i];
 		if (entry.kind !== "message") return i;
 		if (entry.content.trim().length > 0) return i;
 	}
 	return -1;
-}
+};
 
-export function hasAgentResponseEvent(events: AgentEvent[]): boolean {
+const findStreamingAssistantIndex = (entries: AgentTimelineEntry[]): number => {
+	const lastIndex = entries.length - 1;
+	const last = entries[lastIndex];
+	if (last?.kind === "message" && last.role === "assistant" && last.streaming) return lastIndex;
+	return -1;
+};
+
+export const hasAgentResponseEvent = (events: AgentEvent[]): boolean => {
 	return events.some(
 		(e) =>
 			e.type === "assistant_delta" ||
 			e.type === "assistant_message" ||
 			e.type === "tool_call_requested" ||
 			e.type === "tool_result" ||
+			e.type === "turn_finished" ||
 			e.type === "error",
 	);
-}
+};
 
-export function hasRefreshPageEvent(events: AgentEvent[]): boolean {
-	return events.some((e) => e.type === "tool_result" && e.refreshPage === true);
-}
-
-export function reduceTimeline(prev: AgentTimelineEntry[], incoming: AgentEvent[]): AgentTimelineEntry[] {
+export const reduceTimeline = (prev: AgentTimelineEntry[], incoming: AgentEvent[]): AgentTimelineEntry[] => {
 	const next = [...prev];
 	for (const e of incoming) {
 		switch (e.type) {
@@ -40,13 +43,15 @@ export function reduceTimeline(prev: AgentTimelineEntry[], incoming: AgentEvent[
 					role: "user",
 					content: e.content,
 					ts: e.ts,
+					attachments: e.attachments,
 				});
 				break;
 			case "assistant_delta": {
-				const last = next.at(-1);
+				const streamingIdx = findStreamingAssistantIndex(next);
+				const target = streamingIdx >= 0 ? next[streamingIdx] : undefined;
 				const contentIsWhitespaceOnly = isWhitespaceOnlyContent(e.content);
-				if (last?.kind === "message" && last.role === "assistant" && last.streaming) {
-					next[next.length - 1] = { ...last, content: last.content + e.content, ts: e.ts };
+				if (target?.kind === "message" && target.role === "assistant") {
+					next[streamingIdx] = { ...target, content: target.content + e.content, ts: e.ts };
 				} else {
 					const lastMeaningfulEntryIndex = findLastMeaningfulEntryIndex(next);
 					const lastMeaningfulEntry =
@@ -68,9 +73,10 @@ export function reduceTimeline(prev: AgentTimelineEntry[], incoming: AgentEvent[
 				break;
 			}
 			case "assistant_message": {
-				const last = next.at(-1);
-				if (last?.kind === "message" && last.role === "assistant" && last.streaming) {
-					next[next.length - 1] = { ...last, content: e.content, streaming: false, ts: e.ts };
+				const streamingIdx = findStreamingAssistantIndex(next);
+				const target = streamingIdx >= 0 ? next[streamingIdx] : undefined;
+				if (target?.kind === "message" && target.role === "assistant") {
+					next[streamingIdx] = { ...target, content: e.content, streaming: false, ts: e.ts };
 				} else {
 					next.push({
 						kind: "message",
@@ -97,6 +103,7 @@ export function reduceTimeline(prev: AgentTimelineEntry[], incoming: AgentEvent[
 					ts: e.ts,
 					name: e.name,
 					toolCallId: e.toolCallId,
+					content: e.content,
 					contentPreview: e.contentPreview,
 					fullLength: e.fullLength,
 					isError: e.isError,
@@ -106,13 +113,21 @@ export function reduceTimeline(prev: AgentTimelineEntry[], incoming: AgentEvent[
 				next.push({
 					kind: "error",
 					ts: e.ts,
-					message: t("agent.chat-error.agent-failed"),
+					message: e.message,
+					errorType: e.errorType,
 				});
 				break;
-			case "turn_completed": {
+			case "turn_finished": {
 				const last = next.at(-1);
 				if (last?.kind === "message" && last.role === "assistant" && last.streaming) {
 					next[next.length - 1] = { ...last, streaming: false };
+				}
+				if (e.status === "cancelled") {
+					next.push({ kind: "cancelled", ts: e.ts });
+				}
+				const hasUserMessage = next.some((entry) => entry.kind === "message" && entry.role === "user");
+				if (hasUserMessage) {
+					next.push({ kind: "turn_duration", ts: e.ts });
 				}
 				break;
 			}
@@ -121,4 +136,4 @@ export function reduceTimeline(prev: AgentTimelineEntry[], incoming: AgentEvent[
 		}
 	}
 	return next;
-}
+};

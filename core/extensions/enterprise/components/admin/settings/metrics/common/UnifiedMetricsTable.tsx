@@ -88,7 +88,6 @@ export function UnifiedMetricsTable<TRow, TSortBy extends string = string, TCurs
 		if (isInitialMount.current) {
 			isInitialMount.current = false;
 
-			// On initial mount, use initialData if available
 			if (initialData?.rows && initialData.rows.length > 0) {
 				setTableState({
 					rows: initialData.rows,
@@ -100,7 +99,6 @@ export function UnifiedMetricsTable<TRow, TSortBy extends string = string, TCurs
 			}
 		}
 
-		// If deps changed OR no initial data, reset and fetch fresh data
 		setTableState({
 			rows: [],
 			hasMore: true,
@@ -150,7 +148,6 @@ export function UnifiedMetricsTable<TRow, TSortBy extends string = string, TCurs
 	});
 
 	const loadOptions = useCallback(async (): Promise<RequestData<TRow>> => {
-		// Block LazyInfinityTable's own initial fetch while loadInitialData is running
 		if (isFetchingInitialRef.current) {
 			return { data: [], has_more: false, next_cursor: null };
 		}
@@ -199,6 +196,7 @@ export function UnifiedMetricsTable<TRow, TSortBy extends string = string, TCurs
 			<div className="flex-1 min-h-0">
 				<LazyInfinityTable<TRow>
 					columns={columns}
+					controlledInitialLoad
 					deps={dependencies}
 					hasMore={tableState.hasMore}
 					isFetchingProp={tableState.loading}

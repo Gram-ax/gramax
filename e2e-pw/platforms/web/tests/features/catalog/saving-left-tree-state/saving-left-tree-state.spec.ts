@@ -20,7 +20,9 @@ catalogTest.describe("Saving Left Nav Tree State (edit mode)", () => {
 		await catalogPage.waitForLoad();
 
 		const leafArticle = sharedPage.getByTitle("Leaf Article");
-		const childCategoryItem = sharedPage.locator("a", { has: sharedPage.locator('[title="Child Category"]') });
+		const childCategoryItem = sharedPage
+			.locator('[data-qa^="catalog-navigation"]')
+			.filter({ has: sharedPage.getByTitle("Child Category", { exact: true }) });
 		const childCategoryChevron = childCategoryItem.locator(".angle");
 
 		// Child category is visible (parent is open at root level), leaf is not
@@ -44,7 +46,9 @@ catalogTest.describe("Saving Left Nav Tree State (edit mode)", () => {
 		await catalogPage.waitForLoad();
 
 		const leafArticle = sharedPage.getByTitle("Leaf Article");
-		const childCategoryItem = sharedPage.locator("a", { has: sharedPage.getByText("Child Category") });
+		const childCategoryItem = sharedPage
+			.locator('[data-qa^="catalog-navigation"]')
+			.filter({ has: sharedPage.getByTitle("Child Category", { exact: true }) });
 		const childCategoryChevron = childCategoryItem.locator(".angle");
 
 		// Expand first
@@ -73,10 +77,12 @@ catalogTest.describe("Saving Left Nav Tree State (edit mode)", () => {
 		const leafArticle = sharedPage.getByTitle("Leaf Article");
 		const siblingLeaf = sharedPage.getByTitle("Sibling Leaf");
 
-		const childCategoryItem = sharedPage.locator("a", { has: sharedPage.locator('[title="Child Category"]') });
-		const siblingCategoryItem = sharedPage.locator("a", {
-			has: sharedPage.locator('[title="Sibling Category"]'),
-		});
+		const childCategoryItem = sharedPage
+			.locator('[data-qa^="catalog-navigation"]')
+			.filter({ has: sharedPage.getByTitle("Child Category", { exact: true }) });
+		const siblingCategoryItem = sharedPage
+			.locator('[data-qa^="catalog-navigation"]')
+			.filter({ has: sharedPage.getByTitle("Sibling Category", { exact: true }) });
 
 		const childCategoryChevron = childCategoryItem.locator(".angle");
 		const siblingCategoryChevron = siblingCategoryItem.locator(".angle");
@@ -111,12 +117,12 @@ catalogTest.describe("Saving Left Nav Tree State (edit mode)", () => {
 		const leafArticle = sharedPage.getByTitle("Leaf Article");
 		const siblingLeaf = sharedPage.getByTitle("Sibling Leaf");
 
-		const childCategoryItem = sharedPage.locator("a", {
-			has: sharedPage.locator('[title="Child Category"]'),
-		});
-		const siblingCategoryItem = sharedPage.locator("a", {
-			has: sharedPage.locator('[title="Sibling Category"]'),
-		});
+		const childCategoryItem = sharedPage
+			.locator('[data-qa^="catalog-navigation"]')
+			.filter({ has: sharedPage.getByTitle("Child Category", { exact: true }) });
+		const siblingCategoryItem = sharedPage
+			.locator('[data-qa^="catalog-navigation"]')
+			.filter({ has: sharedPage.getByTitle("Sibling Category", { exact: true }) });
 
 		await expect(childCategoryItem).toBeVisible();
 		await expect(siblingCategoryItem).toBeVisible();
@@ -157,7 +163,9 @@ catalogTest.describe("Saving Left Nav Tree State (edit mode)", () => {
 			await catalogPage.waitForLoad();
 
 			const leafArticle = sharedPage.getByTitle("Leaf Article");
-			const childCategoryItem = sharedPage.locator("a", { has: sharedPage.locator('[title="Child Category"]') });
+			const childCategoryItem = sharedPage
+				.locator('[data-qa^="catalog-navigation"]')
+				.filter({ has: sharedPage.getByTitle("Child Category", { exact: true }) });
 			const childCategoryChevron = childCategoryItem.locator(".angle");
 
 			// Ensure child-category starts collapsed (previous tests may leave it expanded)
@@ -175,10 +183,13 @@ catalogTest.describe("Saving Left Nav Tree State (edit mode)", () => {
 				.toContain("test-catalog/parent-category/child-category/_index.md");
 
 			// Delete child-category via the edit menu
-			sharedPage.once("dialog", (dialog) => dialog.accept());
 			await childCategoryItem.hover();
 			await childCategoryItem.locator("[aria-haspopup='menu']").click();
 			await sharedPage.getByRole("menuitem", { name: /delete/i }).click();
+			await sharedPage
+				.getByRole("alertdialog")
+				.getByRole("button", { name: /delete/i })
+				.click();
 
 			await catalogPage.waitForLoad();
 

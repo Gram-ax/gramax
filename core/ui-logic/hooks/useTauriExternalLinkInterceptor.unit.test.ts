@@ -54,4 +54,21 @@ describe("isEditableProseMirrorAnchor", () => {
 		expect(anchor).not.toBeNull();
 		expect(isEditableProseMirrorAnchor(anchor as Element)).toBe(false);
 	});
+
+	test("returns false for anchors inside a non-editable ProseMirror node view", () => {
+		document.body.innerHTML = `
+			<div class="ProseMirror" contenteditable="true">
+				<div contenteditable="false" data-node-view-wrapper="">
+					<div data-component="fragment">
+						<a href="https://gram.ax/">Gramax</a>
+					</div>
+				</div>
+			</div>
+		`;
+
+		const anchor = document.querySelector("a");
+
+		expect(anchor).not.toBeNull();
+		expect(isEditableProseMirrorAnchor(anchor as Element)).toBe(false);
+	});
 });

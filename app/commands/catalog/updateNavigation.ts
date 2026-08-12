@@ -4,6 +4,7 @@ import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddlewar
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import type Context from "@core/Context/Context";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
+import { resolveRootCategory } from "@ext/localization/core/catalogExt";
 import DragTree from "@ext/navigation/catalog/drag/logic/DragTree";
 import DragTreeTransformer from "@ext/navigation/catalog/drag/logic/DragTreeTransformer";
 import type { ItemLink } from "@ext/navigation/NavigationLinks";
@@ -34,17 +35,19 @@ const updateNavigation: Command<
 		const catalog = await workspace.getContextlessCatalog(catalogName);
 		const fp = workspace.getFileProvider();
 		const sitePresenter = sitePresenterFactory.fromContext(ctx);
-		const dragTree = new DragTree(fp, resourceUpdaterFactory.withContext(ctx));
+		const rootCategoryRef = resolveRootCategory(catalog, catalog.props, ctx.contentLanguage)?.ref;
+		const dragTree = new DragTree(fp, resourceUpdaterFactory.withContext(ctx), rootCategoryRef);
 		const ancestors = await dragTree.findOrderingAncestors(newLevNav, draggedItemPath, catalog);
 		if (!ancestors) return;
 
 		let newLogicPath: string;
 		if (ancestors.parent.type !== ItemType.article) {
-			const prev = ancestors.prev != ancestors.parent ? ancestors.prev : null;
+			const prev = ancestors.prev !== ancestors.parent ? ancestors.prev : null;
 			await ancestors.dragged.setOrderAfter(ancestors.parent, prev);
 			newLogicPath = await dragTree.drag(
 				oldLevNav,
 				newLevNav,
+				draggedItemPath,
 				catalog,
 				sitePresenter.parseAllItems.bind(sitePresenter),
 			);
@@ -53,6 +56,7 @@ const updateNavigation: Command<
 			newLogicPath = await dragTree.drag(
 				oldLevNav,
 				newLevNav,
+				draggedItemPath,
 				catalog,
 				sitePresenter.parseAllItems.bind(sitePresenter),
 				ancestors.parent,

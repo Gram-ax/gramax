@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/correctness/useExhaustiveDependencies: it's ok */
 import Button, { TextSize } from "@components/Atoms/Button/Button";
 import Icon from "@components/Atoms/Icon";
 import Input from "@components/Atoms/Input";
@@ -28,6 +29,7 @@ interface BranchActionsProps {
 	setShow: (show: boolean) => void;
 	setContentHeight?: (height: number) => void;
 	allowAddNewBranch?: boolean;
+	allowBranchActions?: boolean;
 	onSwitchBranch?: (isNewBranchCreated: boolean) => void;
 	onMergeRequestCreate?: () => void;
 }
@@ -39,6 +41,7 @@ const getBranchListItems = (
 	refreshList: () => void,
 	canSwitchBranch: (branchName: string) => boolean,
 	switchBranch: (branchName: string) => void,
+	allowBranchActions: boolean,
 	onMergeRequestCreate?: () => void,
 ) => {
 	return branches.map((b) => {
@@ -60,7 +63,7 @@ const getBranchListItems = (
 				mergeRequest={b.mergeRequest}
 				onMergeRequestCreate={onMergeRequestCreate}
 				refreshList={refreshList}
-				showBranchMenu
+				showBranchMenu={allowBranchActions}
 				switchBranch={switchBranch}
 				title={b.name}
 			/>
@@ -80,6 +83,7 @@ const BranchActions = (props: BranchActionsProps) => {
 		setContentHeight,
 		isInitNewBranch,
 		setIsInitNewBranch,
+		allowBranchActions = true,
 	} = props;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const router = useRouter();
@@ -194,9 +198,18 @@ const BranchActions = (props: BranchActionsProps) => {
 				getNewBranches,
 				canSwitchBranch,
 				switchBranch,
+				allowBranchActions,
 				onMergeRequestCreate,
 			),
-		[branches, currentBranch, switchBranch, getNewBranches, onMergeRequestCreate, canSwitchBranch],
+		[
+			branches,
+			currentBranch,
+			switchBranch,
+			getNewBranches,
+			onMergeRequestCreate,
+			canSwitchBranch,
+			allowBranchActions,
+		],
 	);
 
 	useEffect(() => {
@@ -224,7 +237,6 @@ const BranchActions = (props: BranchActionsProps) => {
 		setBranches(branches);
 	}, [newBranches, currentBranch]);
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useEffect(() => {
 		if (!containerRef.current || !tabWrapperRef.current || !show || searchValue.length || isLoadingSearch) return;
 		const mainElement = tabWrapperRef.current;
@@ -264,7 +276,6 @@ const BranchActions = (props: BranchActionsProps) => {
 		void getNewBranches();
 	}, [getNewBranches]);
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useEffect(() => {
 		if (show) modalOnOpenHandler();
 		else modalOnCloseHandler();
@@ -278,7 +289,8 @@ const BranchActions = (props: BranchActionsProps) => {
 		[allBranches],
 	);
 
-	if (apiProcess || isLoadingData) return <Loader className="py-6" ref={containerRef} size="3xl" />;
+	if (apiProcess || isLoadingData)
+		return <Loader className="py-6" ref={containerRef} role="progressbar" size="3xl" />;
 
 	return (
 		<div className="pt-2 text-xs" ref={containerRef}>

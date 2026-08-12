@@ -11,6 +11,7 @@ const OpenApiFormatter =
 				{
 					src: node.attrs.src,
 					...(typeof node.attrs.flag === "boolean" ? { flag: `${node.attrs.flag}` } : {}),
+					...(node.attrs.showInfo === false ? { showInfo: "false" } : {}),
 				},
 				true,
 			),

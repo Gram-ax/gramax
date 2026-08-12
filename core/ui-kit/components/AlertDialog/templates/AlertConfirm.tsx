@@ -12,11 +12,11 @@ import {
 	AlertDialogTitle,
 	AlertDialogTrigger,
 } from "ics-ui-kit/components/alert-dialog";
-import { type ComponentProps, useState } from "react";
+import { type ComponentProps, type ReactNode, useState } from "react";
 
 export type AlertConfirmProps = {
-	title: string;
-	description: string;
+	title: ReactNode;
+	description: ReactNode;
 
 	children?: JSX.Element;
 	icon?: IconCode;
@@ -57,10 +57,12 @@ export const AlertConfirm = (props: AlertConfirmProps) => {
 				}}
 				status={status}
 			>
-				<AlertDialogHeader>
+				{/* keep the lg grid layout (icon column + left-aligned text) at all widths — the default
+				    switches to a centered column below lg, which breaks in narrow desktop windows */}
+				<AlertDialogHeader className="grid grid-cols-[0_1fr] items-start gap-y-4 has-[>svg]:grid-cols-[1.5rem_1fr] has-[>svg]:gap-x-4">
 					<AlertDialogIcon icon={icon} />
-					<AlertDialogTitle>{title}</AlertDialogTitle>
-					<AlertDialogDescription>{description}</AlertDialogDescription>
+					<AlertDialogTitle className="col-start-2 mb-0 text-left">{title}</AlertDialogTitle>
+					<AlertDialogDescription className="col-start-2 text-left">{description}</AlertDialogDescription>
 				</AlertDialogHeader>
 				<AlertDialogFooter>
 					<AlertDialogCancel
@@ -68,18 +70,20 @@ export const AlertConfirm = (props: AlertConfirmProps) => {
 							onCancel?.();
 							setOpen(false);
 						}}
-						variant="text"
+						variant="outline"
 					>
 						{cancelText}
 					</AlertDialogCancel>
-					<AlertDialogAction
-						onClick={() => {
-							onConfirm?.();
-							setOpen(false);
-						}}
-					>
-						{confirmText}
-					</AlertDialogAction>
+					{onConfirm && (
+						<AlertDialogAction
+							onClick={() => {
+								onConfirm?.();
+								setOpen(false);
+							}}
+						>
+							{confirmText}
+						</AlertDialogAction>
+					)}
 				</AlertDialogFooter>
 			</AlertDialogContent>
 		</AlertDialog>

@@ -19,10 +19,11 @@ interface CodeBlockProps {
 	style?: HTMLAttributes<HTMLPreElement>["style"];
 	withoutHighlight?: boolean;
 	isPrint?: boolean;
+	className?: string;
 }
 
 const CodeBlock = (props: CodeBlockProps) => {
-	const { language = "", children = "", withoutHighlight, style, isPrint } = props;
+	const { language = "", children = "", withoutHighlight, style, isPrint, className } = props;
 	const trimVal = children.trim();
 	const [coppedIsExpanded, setCoppedIsExpanded] = useState(false);
 	const normalizedLang = normalizeLangName(language);
@@ -61,6 +62,7 @@ const CodeBlock = (props: CodeBlockProps) => {
 	return (
 		<StyledCodeBlock
 			className={cn(
+				className,
 				`[&_.child-wrapper]:py-[1.375em]`,
 				`[&_.child-wrapper]:px-[1.625em]`,
 				isPrint && "[&_.child-wrapper]:!whitespace-pre-wrap",

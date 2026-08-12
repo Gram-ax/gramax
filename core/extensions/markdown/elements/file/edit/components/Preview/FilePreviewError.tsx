@@ -1,5 +1,4 @@
 import AlertError from "@components/AlertError";
-import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import {
 	type FileError,
@@ -16,11 +15,6 @@ const getErrorMessage = (error: FileError) => {
 	return error.message;
 };
 
-const AlertContainer = styled.div`
-    width: min(var(--article-max-width), 95dvw);
-    justify-self: center;
-`;
-
 const FilePreviewError = ({ error }: FilePreviewErrorProps) => {
 	const alertTitle = t("file-preview.render-error");
 
@@ -35,9 +29,9 @@ const FilePreviewError = ({ error }: FilePreviewErrorProps) => {
 	const errorMessage = getErrorMessage(error);
 	error.message = errorMessage ?? error.message;
 	return (
-		<AlertContainer>
+		<div className="w-full max-w-5xl justify-self-center">
 			<AlertError error={error} title={alertTitle} />
-		</AlertContainer>
+		</div>
 	);
 };
 

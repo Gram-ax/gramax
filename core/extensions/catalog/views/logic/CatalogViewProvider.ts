@@ -24,7 +24,7 @@ export class CatalogViewProvider {
 		private _catalog: Catalog,
 	) {
 		this._viewsPath = new Path([this._catalog.basePath.value, GRAMAX_DIRECTORY, CATALOG_VIEWS_DIRECTORY]);
-		const isReadOnly = getExecutingEnvironment() !== "browser" && getExecutingEnvironment() !== "tauri";
+		const isReadOnly = getExecutingEnvironment() !== "web" && getExecutingEnvironment() !== "tauri";
 		if (!isReadOnly) return;
 
 		this._readViewsIfNeeded({ isReadOnly });

@@ -3,7 +3,7 @@
 		// Environment setup & latest features
 		"lib": ["ESNext"],
 		"target": "ESNext",
-		"module": "Preserve",
+		"module": "NodeNext",
 		"moduleDetection": "force",
 
 		"jsx": "react-jsx",

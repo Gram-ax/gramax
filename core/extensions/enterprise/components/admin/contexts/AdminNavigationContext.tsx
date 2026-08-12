@@ -6,37 +6,25 @@ export interface PluginDetailParams {
 	selectedPluginId: string;
 }
 
-export interface UserGroupsParams {
-	entityId: string;
-}
-
-export interface ResourcesParams {
-	groupId: string;
-	repositoryId?: string;
-}
-
 export type PageParams = {
 	[Page.PLUGIN_DETAIL]: PluginDetailParams;
-	[Page.USER_GROUPS]: UserGroupsParams;
 	[Page.STYLEGUIDE]: undefined;
 	[Page.QUIZ]: undefined;
-	[Page.EDITORS]: undefined;
+	[Page.USERS]: undefined;
+	[Page.GROUPS]: undefined;
 	[Page.WORKSPACE]: undefined;
-	[Page.RESOURCES]: ResourcesParams;
+	[Page.RESOURCES]: undefined;
 	[Page.MAIL]: undefined;
 	[Page.GUESTS]: undefined;
 	[Page.PLUGINS]: undefined;
 	[Page.METRICS]: undefined;
 	[Page.VIEW_METRICS]: undefined;
-	[Page.ROLES]: undefined;
 	[Page.SEARCH_METRICS]: undefined;
-	[Page.ROLES]: undefined;
+	[Page.ACCESS_TOKENS]: undefined;
 };
 
 const getDefaultPageParams = (): Partial<PageParams> => ({
 	[Page.PLUGIN_DETAIL]: { selectedPluginId: "" },
-	[Page.USER_GROUPS]: { entityId: "" },
-	[Page.RESOURCES]: { groupId: "" },
 });
 
 interface AdminNavigationContextValue {
@@ -50,11 +38,10 @@ const AdminNavigationContext = createContext<AdminNavigationContextValue | undef
 
 interface AdminNavigationProviderProps {
 	children: ReactNode;
-	initialPage?: Page;
 }
 
-export const AdminNavigationProvider = ({ children, initialPage = Page.WORKSPACE }: AdminNavigationProviderProps) => {
-	const [page, setPage] = useState<Page>(initialPage);
+export const AdminNavigationProvider = ({ children }: AdminNavigationProviderProps) => {
+	const [page, setPage] = useState<Page>(null);
 	const [pageParams, setPageParams] = useState<PageParams[Page]>(undefined);
 
 	const navigate = useCallback(<P extends Page>(newPage: P, params?: PageParams[P]) => {

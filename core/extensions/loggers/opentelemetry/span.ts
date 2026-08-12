@@ -8,7 +8,41 @@ export interface ToSpan {
 export enum SpanAttribute {
 	Args = "args",
 	Result = "res",
+	Level = "level",
 }
+
+/**
+ * Verbosity levels, ascending. A chosen minimum level shows itself and everything LESS verbose.
+ * Commands (quietest, default) — command executions, init, high-level actions and failure signals;
+ * Important — significant supplementary logs inside commands and lifecycle signals, above internal detail;
+ * Internal — state-changing internal work (git, catalog, file structure, resources) and its key reads;
+ * Files — plus write operations of FileProvider implementations;
+ * Full (firehose) — plus all reads and hot paths.
+ * Warn/Error are not levels — errors are carried by span status + recordException.
+ * Off is a threshold-only value ("logging disabled", the `logging.level` setting) — never tag a span with it.
+ */
+export enum Level {
+	Off = "off",
+	Commands = "commands",
+	Important = "important",
+	Internal = "internal",
+	Files = "files",
+	Full = "full",
+}
+
+const LEVEL_RANK: Record<Level, number> = {
+	[Level.Off]: -1,
+	[Level.Commands]: 0,
+	[Level.Important]: 1,
+	[Level.Internal]: 2,
+	[Level.Files]: 3,
+	[Level.Full]: 4,
+};
+
+export const levelRank = (level: Level): number => LEVEL_RANK[level];
+
+/** True when `level` should be captured given the active `threshold` (min level). */
+export const isLevelEnabled = (level: Level, threshold: Level): boolean => levelRank(level) <= levelRank(threshold);
 
 export type Span = {
 	name: string;
@@ -84,7 +118,7 @@ export class OtelSpanEncoder {
 		if ("toSpan" in value && typeof value.toSpan === "function") {
 			const span = value.toSpan();
 			if (typeof span === "object" && span !== null) {
-				if (value.constructor) span.constructor = value.constructor.name;
+				if (!Array.isArray(span) && value.constructor) span.constructor = value.constructor.name;
 				return this._resolveDeep(span, depth + 1, limit, seen);
 			}
 			return span;

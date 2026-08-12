@@ -14,11 +14,11 @@ export const makeSourceApi = (
 	if (sourceApi) return sourceApi;
 };
 
-export const useMakeSourceApi = (source: SourceData, authServiceUrl?: string): SourceAPI => {
+export const useMakeSourceApi = (source: SourceData, authServiceUrl?: string, sendError = true): SourceAPI => {
 	const onNetworkApiError = OnNetworkApiErrorService.value;
 	const sourceApi = useMemo(
-		() => makeSourceApi(source, authServiceUrl, onNetworkApiError),
-		[source, authServiceUrl, onNetworkApiError],
+		() => makeSourceApi(source, authServiceUrl, sendError ? onNetworkApiError : undefined),
+		[source, authServiceUrl, sendError],
 	);
 	return sourceApi;
 };

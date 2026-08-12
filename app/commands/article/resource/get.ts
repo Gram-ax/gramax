@@ -6,7 +6,7 @@ import parseContent from "@core/FileStructue/Article/parseContent";
 import HashResourceManager from "@core/Hash/HashItems/HashResourceManager";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ArticleProvider, { type ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
-import assert from "assert";
+import { addEvent, Level } from "@ext/loggers/opentelemetry";
 import type { Article } from "../../../../core/logic/FileStructue/Article/Article";
 
 const get: Command<
@@ -26,18 +26,24 @@ const get: Command<
 	kind: ResponseKind.blob,
 
 	async do({ src, mimeType, catalogName, articlePath, ifNotExistsErrorText, ctx, providerType }) {
-		const { parser, parserContextFactory, wm } = this._app;
+		const { parser, parserContextFactory, wm, healthcheckRegistry } = this._app;
 		const workspace = wm.current();
-
 		const mime = mimeType ?? MimeTypes?.[src.extension] ?? `application/${src.extension}`;
 		const catalog = await workspace.getCatalog(catalogName, ctx);
-		assert(catalog);
+		if (!catalog) {
+			addEvent("no-catalog", Level.Internal, { catalogName });
+			return;
+		}
 
 		const article = providerType
 			? ArticleProvider.getProvider(catalog, providerType).getArticle(articlePath.value)
 			: catalog.findItemByItemPath<Article>(articlePath);
 
-		if (!article) return;
+		if (!article) {
+			addEvent("no-article", Level.Internal, { articlePath: articlePath?.value });
+			return;
+		}
+
 		await parseContent(article, catalog, ctx, parser, parserContextFactory);
 
 		ifNotExistsErrorText &&
@@ -46,8 +52,9 @@ const get: Command<
 			));
 
 		const hashItem = await article.parsedContent.read((p) => {
-			if (!p.parsedContext?.getResourceManager()) return null;
-			return new HashResourceManager(src, p.parsedContext.getResourceManager(), ctx);
+			const rm = p.parsedContext?.getResourceManager();
+			if (!rm) return null;
+			return new HashResourceManager(src, rm, ctx, healthcheckRegistry);
 		});
 
 		return { hashItem, mime };

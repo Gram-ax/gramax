@@ -1,12 +1,6 @@
-import type { ClientAccess } from "../components/admin/settings/resources/types/ResourcesComponent";
+import type { ResourcesSettings } from "../components/admin/settings/resources/types/ResourcesComponent";
 
-export interface ResourceConfig {
-	id: string;
-	mainBranch: string;
-	access: ClientAccess;
-}
-
-export async function getResourceConfig(gesUrl: string, resourceId: string): Promise<ResourceConfig | null> {
+export async function getResourceConfig(gesUrl: string, resourceId: string): Promise<ResourcesSettings | null> {
 	try {
 		const response = await fetch(
 			`${gesUrl}/enterprise/config/resources/getOne?resourceId=${encodeURIComponent(resourceId)}`,

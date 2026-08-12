@@ -6,6 +6,7 @@ import { ImageDimensionsFinder } from "@ext/markdown/elements/image/word/ImageDi
 import type { ImageDimensions } from "@ext/wordExport/options/WordTypes";
 import { SCALE } from "@ext/wordExport/options/wordExportSettings";
 
+// biome-ignore lint/complexity/noStaticOnlyClass: provides shared protected helpers for environment-specific image processors
 export class BaseImageProcessor {
 	static async getFileByPath(path: Path, resourceManager: ResourceManager) {
 		const content = await resourceManager.getContent(path);
@@ -34,9 +35,20 @@ export class BaseImageProcessor {
 		return svgToPng(svgCode, size, SCALE);
 	}
 
-	protected static _calculateScaledDimension(value?: number, defaultValue?: number, scale?: number): number {
-		if (!scale) return value ?? defaultValue;
-		return value ? (value * scale) / 100 : (defaultValue * scale) / 100;
+	protected static _calculateScaledDimension(value?: number, defaultValue?: number, scale?: number | string): number {
+		const maxDimension = value ?? defaultValue;
+		if (maxDimension === undefined || !Number.isFinite(maxDimension) || maxDimension <= 0) {
+			throw new Error("Image maximum dimension must be a finite positive number");
+		}
+		if (!scale) return maxDimension;
+
+		if (typeof scale === "string" && scale.endsWith("px")) {
+			const pixelValue = parseFloat(scale);
+			return Number.isFinite(pixelValue) && pixelValue > 0 ? Math.min(pixelValue, maxDimension) : maxDimension;
+		}
+
+		const percentage = typeof scale === "number" ? scale : Number(scale);
+		return Number.isFinite(percentage) && percentage > 0 ? (maxDimension * percentage) / 100 : maxDimension;
 	}
 
 	protected static _scaleSize(size: ImageDimensions, targetWidth: number) {

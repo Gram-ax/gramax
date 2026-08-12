@@ -1,3 +1,5 @@
+use std::path::{Path, PathBuf};
+
 use tauri::*;
 
 mod mem;
@@ -7,8 +9,75 @@ mod tracing;
 pub use mem::force_find_processes;
 pub use mem::init_mem_watching;
 pub use tracing::init_tracing;
+pub use tracing::reload_filter;
 
-pub fn collect_logs<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
+const LATEST_FILE: &str = "gx-latest.ndjson";
+
+#[derive(Clone, Copy)]
+pub enum LogScope {
+	Session,
+	Today,
+	Last7Days,
+	All,
+}
+
+impl LogScope {
+	fn archive_tag(self) -> &'static str {
+		match self {
+			LogScope::Session => "session",
+			LogScope::Today => "today",
+			LogScope::Last7Days => "7d",
+			LogScope::All => "all",
+		}
+	}
+
+	fn window_days(self) -> Option<i64> {
+		match self {
+			LogScope::Today => Some(1),
+			LogScope::Last7Days => Some(7),
+			_ => None,
+		}
+	}
+}
+
+fn scoped_files(logs_dir: &Path, scope: LogScope) -> std::io::Result<Vec<PathBuf>> {
+	if let LogScope::Session = scope {
+		let latest = logs_dir.join(LATEST_FILE);
+		return Ok(if latest.exists() { vec![latest] } else { vec![] });
+	}
+
+	let prefixes: Option<Vec<String>> = scope.window_days().map(|days| {
+		let today = chrono::Local::now().date_naive();
+		(0..days)
+			.map(|i| format!("gx-{}", (today - chrono::Duration::days(i)).format("%Y-%m-%d")))
+			.collect()
+	});
+
+	let mut files = Vec::new();
+	for entry in std::fs::read_dir(logs_dir)? {
+		let entry = entry?;
+		let name = entry.file_name();
+		let Some(name) = name.to_str() else { continue };
+
+		if name == LATEST_FILE || !name.starts_with("gx-") || !name.ends_with(".ndjson") {
+			continue;
+		}
+
+		let included = match &prefixes {
+			Some(prefixes) => prefixes.iter().any(|p| name.starts_with(p)),
+			None => true,
+		};
+
+		if included {
+			files.push(entry.path());
+		}
+	}
+
+	files.sort();
+	Ok(files)
+}
+
+pub fn collect_logs<R: Runtime>(app: &AppHandle<R>, scope: LogScope) -> tauri::Result<()> {
 	use crate::error::ShowError as _;
 	use std::io::BufWriter;
 	use tauri_plugin_dialog::DialogExt;
@@ -18,11 +87,19 @@ pub fn collect_logs<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
 		return Ok(());
 	}
 
-	let archive_name = format!("logs-{}.tar.xz", chrono::Local::now().format("%Y-%m-%d_%H-%M-%S"));
+	let files = scoped_files(&logs_dir, scope)?;
+	if files.is_empty() {
+		return Ok(());
+	}
+
+	let archive_name = format!("logs-{}-{}.tar.xz", scope.archive_tag(), chrono::Local::now().format("%Y-%m-%d_%H-%M-%S"));
 
 	let mut data = vec![];
 	let mut tar = tar::Builder::new(&mut data);
-	tar.append_dir_all("logs", logs_dir)?;
+	for file in &files {
+		let entry_name = file.file_name().and_then(|n| n.to_str()).unwrap_or("log.ndjson");
+		tar.append_path_with_name(file, format!("logs/{entry_name}"))?;
+	}
 	tar.finish()?;
 
 	let Some(out_path) = app

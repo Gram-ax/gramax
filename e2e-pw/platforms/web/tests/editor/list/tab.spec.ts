@@ -2,7 +2,7 @@ import { md } from "@utils/utils";
 import { editorTest } from "@web/fixtures/editor.fixture";
 
 editorTest.use({
-	experimentalFeatures: ["opentelemetry-logs"],
+	verboseLogging: true,
 });
 
 editorTest.describe("List Tab", () => {

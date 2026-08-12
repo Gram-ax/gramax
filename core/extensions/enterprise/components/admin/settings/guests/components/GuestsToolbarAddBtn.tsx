@@ -1,12 +1,13 @@
+import { AddButton } from "@ext/enterprise/components/admin/ui-kit/AddButton";
 import { ModalComponent } from "@ext/enterprise/components/admin/ui-kit/ModalComponent";
+import t from "@ext/localization/locale/translate";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { ButtonProps } from "@ui-kit/Button";
 import { Form, FormField, FormStack } from "@ui-kit/Form";
 import { TextInput } from "@ui-kit/Input";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { TriggerAddButtonTemplate } from "../../components/TriggerAddButtonTemplate";
 import { isValidEmailDomain } from "../utils/isValidEmailDomain";
 
 interface GuestsToolbarAddBtnProps {
@@ -19,9 +20,12 @@ const createFormSchema = (existingDomains: string[]) =>
 	z.object({
 		domain: z
 			.string()
-			.min(1, "Введите домен")
-			.refine((domain) => isValidEmailDomain(domain), "Некорректный домен")
-			.refine((domain) => !existingDomains.includes(domain.trim()), "Домен уже существует в списке"),
+			.min(1, t("enterprise.admin.guests.errors.domain-required"))
+			.refine((domain) => isValidEmailDomain(domain), t("enterprise.admin.guests.errors.domain-invalid"))
+			.refine(
+				(domain) => !existingDomains.includes(domain.trim()),
+				t("enterprise.admin.guests.errors.domain-exists"),
+			),
 	});
 
 export const GuestsToolbarAddBtn = ({ onAddDomain, disabled, existingDomains = [] }: GuestsToolbarAddBtnProps) => {
@@ -36,18 +40,24 @@ export const GuestsToolbarAddBtn = ({ onAddDomain, disabled, existingDomains = [
 		},
 	});
 
-	const onSubmit = (values: z.infer<typeof formSchema>) => {
-		const trimmedDomain = values.domain.trim();
-		onAddDomain(trimmedDomain);
-		handleCancel();
-	};
-
-	const handleCancel = () => {
+	const handleCancel = useCallback(() => {
 		form.reset();
 		setIsOpen(false);
-	};
+	}, [form.reset]);
 
-	const cancelButtonProps = useMemo(() => ({ variant: "secondary", onClick: handleCancel }) as ButtonProps, []);
+	const onSubmit = useCallback(
+		(values: z.infer<typeof formSchema>) => {
+			const trimmedDomain = values.domain.trim();
+			onAddDomain(trimmedDomain);
+			handleCancel();
+		},
+		[onAddDomain, handleCancel],
+	);
+
+	const cancelButtonProps = useMemo(
+		() => ({ variant: "outline", onClick: handleCancel }) as ButtonProps,
+		[handleCancel],
+	);
 	const confirmButtonProps = useMemo(
 		() =>
 			({
@@ -59,28 +69,28 @@ export const GuestsToolbarAddBtn = ({ onAddDomain, disabled, existingDomains = [
 	return (
 		<ModalComponent
 			cancelButtonProps={cancelButtonProps}
-			cancelButtonText="Отмена"
+			cancelButtonText={t("enterprise.admin.cancel")}
 			confirmButtonProps={confirmButtonProps}
-			confirmButtonText="Добавить"
+			confirmButtonText={t("add")}
 			isOpen={isOpen}
 			modalContent={
 				<Form asChild {...form}>
-					<form className="contents">
+					<form className="contents" onSubmit={form.handleSubmit(onSubmit)}>
 						<FormStack>
 							<FormField
 								control={({ field }) => <TextInput placeholder="example.com" {...field} />}
-								description="Введите домен для добавления в список разрешенных"
+								description={t("enterprise.admin.guests.domains.add-domain-hint")}
 								layout="vertical"
 								name="domain"
-								title="Домен"
+								title={t("enterprise.admin.guests.domains.title")}
 							/>
 						</FormStack>
 					</form>
 				</Form>
 			}
 			onOpenChange={setIsOpen}
-			title="Добавить домен"
-			trigger={<TriggerAddButtonTemplate disabled={disabled} />}
+			title={t("enterprise.admin.guests.domains.add-domain")}
+			trigger={<AddButton disabled={disabled} />}
 		/>
 	);
 };

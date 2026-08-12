@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:,">
+<title>Gramax — downloads</title>
+<style>
+	body {
+		font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+		font-size: 0.875rem;
+		line-height: 1.6;
+		margin: 2rem;
+		color-scheme: light dark;
+	}
+
+	.version {
+		display: inline-block;
+		min-width: 14ch;
+		font-weight: bold;
+	}
+
+	.row a,
+	.row .missing {
+		margin-right: 1.5ch;
+	}
+
+	.missing,
+	.status {
+		opacity: 0.5;
+	}
+</style>
+</head>
+<body>
+<p>Channel: <b id="channel"></b> · <a id="other-channel"></a></p>
+<hr>
+<main id="content"><p class="status">Loading…</p></main>
+<script>
+	const channel = new URLSearchParams(location.search).get("channel") === "dev" ? "dev" : "prod";
+	const otherChannel = channel === "prod" ? "dev" : "prod";
+
+	document.getElementById("channel").textContent = channel;
+	const otherLink = document.getElementById("other-channel");
+	otherLink.textContent = otherChannel;
+	otherLink.href = `?channel=${otherChannel}`;
+
+	const content = document.getElementById("content");
+	load();
+
+	async function load() {
+		setStatus("Loading…");
+
+		let data;
+		try {
+			const res = await fetch(`versions?channel=${channel}`);
+			if (!res.ok) throw new Error(`${res.status} ${await res.text()}`);
+			data = await res.json();
+		} catch (err) {
+			setStatus(`Failed to fetch the version list: ${err.message}`);
+			return;
+		}
+
+		render(data.packages, data.versions);
+	}
+
+	function setStatus(text) {
+		content.replaceChildren();
+		const p = document.createElement("p");
+		p.className = "status";
+		p.textContent = text;
+		content.append(p);
+	}
+
+	function render(packages, versions) {
+		if (!versions.length) {
+			setStatus("No versions.");
+			return;
+		}
+
+		content.replaceChildren();
+
+		for (const entry of versions) {
+			const row = document.createElement("div");
+			row.className = "row";
+
+			const version = document.createElement("span");
+			version.className = "version";
+			version.textContent = entry.version;
+			row.append(version);
+
+			for (const pkg of packages) {
+				const found = entry.packages.find((p) => p.platform === pkg.platform && p.package === pkg.package);
+				row.append(found ? downloadLink(entry.version, pkg, found) : missingPackage(pkg));
+			}
+
+			content.append(row);
+		}
+	}
+
+	function downloadLink(version, pkg, found) {
+		const link = document.createElement("a");
+		const query = new URLSearchParams({ channel, version, package: pkg.package });
+		link.href = `download/${pkg.platform}?${query}`;
+		link.textContent = pkg.label;
+		link.title = found.filename;
+		return link;
+	}
+
+	function missingPackage(pkg) {
+		const span = document.createElement("span");
+		span.className = "missing";
+		span.textContent = pkg.label;
+		span.title = "Unavailable";
+		return span;
+	}
+</script>
+</body>
+</html>

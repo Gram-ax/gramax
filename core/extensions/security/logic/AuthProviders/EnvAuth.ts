@@ -48,7 +48,7 @@ class EnvAuth implements AuthProvider {
 			cookie,
 			new User(true, localUserInfo, new AllPermission(), new AllPermissionMap(), new AllPermissionMap()),
 		);
-		res.send({});
+		res.redirect("/");
 	}
 
 	mailSendOTP(_, res: ApiResponse) {

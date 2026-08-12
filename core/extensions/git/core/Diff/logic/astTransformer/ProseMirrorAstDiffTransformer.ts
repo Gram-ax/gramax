@@ -29,10 +29,6 @@ export default class ProsemirrorAstDiffTransformer extends AstDiffTransformer {
 	private _oldParagraphComments: AstComment = {};
 	private _newParagraphComments: AstComment = {};
 
-	constructor(oldAst: Node, newAst: Node) {
-		super(oldAst, newAst);
-	}
-
 	getStrings(): { oldStrings: string[]; newStrings: string[] } {
 		if (this._oldStrings.length > 0 && this._newStrings.length > 0)
 			return { oldStrings: this._oldStrings, newStrings: this._newStrings };
@@ -83,6 +79,7 @@ export default class ProsemirrorAstDiffTransformer extends AstDiffTransformer {
 
 	private _convertModifiedDiffLine(diffLine: ModifiedDiffLine): ProseMirrorModifiedDiffLine {
 		const oldContent = this._oldAst.slice(diffLine.oldPos.from, diffLine.oldPos.to + 1).content.toJSON(); // +1 to include the last character
+		const newContent = this._newAst.slice(diffLine.pos.from, diffLine.pos.to + 1).content.toJSON() ?? []; // +1 to include the last character
 
 		const oldDecorations: Decoration[] = diffLine.diff.deletedPartPositions.map((pos) => {
 			const paragraphStart = diffLine.oldPos.from;
@@ -97,6 +94,7 @@ export default class ProsemirrorAstDiffTransformer extends AstDiffTransformer {
 		return {
 			...diffLine,
 			oldContent: ProsemirrorAstDiffTransformer.getSingleParagraphDoc(oldContent),
+			newContent: ProsemirrorAstDiffTransformer.getSingleParagraphDoc(newContent),
 			oldDecorations,
 		};
 	}
@@ -126,6 +124,7 @@ export default class ProsemirrorAstDiffTransformer extends AstDiffTransformer {
 				insertAfter: firstDiffLine.insertAfter,
 				oldContent: ProsemirrorAstDiffTransformer.getDoc(content),
 				type: "deleted",
+				newContent: [],
 				oldDecorations: [],
 			};
 		});

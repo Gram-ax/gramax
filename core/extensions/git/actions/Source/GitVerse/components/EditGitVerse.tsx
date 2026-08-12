@@ -39,7 +39,7 @@ const getFormSchema = () =>
 	});
 
 const EditGitVerse = ({ onSubmit, data }: EditGitVerseProps) => {
-	const authServiceUrl = PageDataContext.value.conf.authServiceUrl;
+	const authServiceUrl = PageDataContext.value.settings?.services?.auth?.endpoint;
 	const { setPrimaryButton } = useSetFooterButton();
 	const [isLoading, setIsLoading] = useState(false);
 
@@ -111,7 +111,7 @@ const EditGitVerse = ({ onSubmit, data }: EditGitVerseProps) => {
 	};
 
 	const formSubmit = (e) => {
-		form.handleSubmit((data) => {
+		void form.handleSubmit((data) => {
 			const hasProtocol = data.url.includes("://");
 			const { protocol } = parseStorageUrl(hasProtocol ? data.url : `https://${data.url}`);
 			const isInvalid = !!form.formState.errors.token?.message || !!form.formState.errors.url?.message;

@@ -1,6 +1,6 @@
 import type FileProvider from "@core/FileProvider/model/FileProvider";
 import Path from "@core/FileProvider/Path/Path";
-import { span } from "@ext/loggers/opentelemetry";
+import { addEvent, Level } from "@ext/loggers/opentelemetry";
 import { TENANT_NAME } from "@ext/serach/modulith/consts";
 import type { SearchArticleMetadata } from "@ext/serach/modulith/SearchArticle";
 import type {
@@ -18,7 +18,6 @@ import type {
 	SearchWorkerOutMessage,
 } from "@ext/serach/modulith/search/worker/types";
 import { createSimpleError } from "@ext/serach/modulith/utils/SimpleError";
-import { toWorkerError } from "@ext/serach/modulith/utils/toWorkerError";
 
 type PendingRequest<T> = {
 	resolve: (value: T) => void;
@@ -128,7 +127,7 @@ export abstract class WorkerModulithSearchClientBase implements ModulithSearchCl
 
 	protected async _handleMessage(data: SearchWorkerOutMessage) {
 		if (data == null) {
-			span()?.addEvent("search-worker.client.nullish-message", { received: String(data) });
+			addEvent("search-worker.client.nullish-message", Level.Commands, { received: String(data) });
 			return;
 		}
 		const type = data.type;
@@ -146,7 +145,8 @@ export abstract class WorkerModulithSearchClientBase implements ModulithSearchCl
 
 				this._pending.delete(data.requestId);
 				if (type === "ok") pending.resolve(undefined);
-				else if (type === "error") pending.reject(toWorkerError(data.error));
+				else if (type === "error")
+					pending.reject(new Error("Search worker request failed", { cause: data.error }));
 				else if (type === "searchResult") pending.resolve(data.result);
 				else if (type === "getArticlePayloads") pending.resolve(data.result);
 				return;

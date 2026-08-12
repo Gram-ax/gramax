@@ -1,9 +1,9 @@
-import {
-	type FilterAndSortProps,
-	type FilterState,
-	type SortRecord,
-	type SortState,
-	type TableDataExtended,
+import type {
+	FilterAndSortProps,
+	FilterState,
+	SortRecord,
+	SortState,
+	TableDataExtended,
 	TableHeaderTypes,
 } from "@ext/markdown/elements/table/edit/model/tableTypes";
 import {
@@ -11,10 +11,10 @@ import {
 	getFilterChange,
 	useWatchSort,
 } from "@ext/markdown/elements/table/render/components/FilterAndSort/sortAndFilterReact";
+import getTableData from "@ext/markdown/elements/table/render/logic/getTableData";
 import {
 	canSortTable,
 	getSaved,
-	getTableData,
 	restoreOrder,
 	sortOrder,
 } from "@ext/markdown/elements/table/render/logic/sortFilterUtilsRender";
@@ -46,10 +46,11 @@ export const useFilterAndSortRender: useFilterAndSortRenderFunction = (
 	setSortRows,
 	savedSortingOrder,
 ) => {
-	const [tableData, setTableData] = useState<TableDataExtended>();
+	const [tableData, setTableData] = useState<TableDataExtended | null>();
 	const stringifyTableDataRef = useRef("");
 	const saved = useMemo(() => getSaved(rows.headerRow), [rows.headerRow]);
 	const canSort = useMemo(() => canSortTable(rows), [rows]);
+	const sortFilterTableData = tableData?.sortFilter?.enabled ? tableData : null;
 
 	const [activeFilter, setActiveFilter] = useState<FilterState>(saved.filter ?? {});
 	const [activeSort, setActiveSort] = useState<SortRecord>(saved.sort ?? {});
@@ -59,10 +60,8 @@ export const useFilterAndSortRender: useFilterAndSortRenderFunction = (
 		const el = tableRef.current;
 		if (!el) return;
 
-		if (header !== TableHeaderTypes.ROW && header !== TableHeaderTypes.BOTH) return;
-
 		const calculateTableData = () => {
-			const newTableData = getTableData(el);
+			const newTableData = getTableData(el, header as TableHeaderTypes);
 			const newStringifyTableData = JSON.stringify(newTableData);
 
 			if (newStringifyTableData === stringifyTableDataRef.current) return;
@@ -98,24 +97,25 @@ export const useFilterAndSortRender: useFilterAndSortRenderFunction = (
 	);
 
 	const sortcallback = useCallback(() => {
-		const sortedRows = sortOrder(rows, tableData, activeSort, sortingOrder);
+		const sortedRows = sortOrder(rows, sortFilterTableData, activeSort, sortingOrder);
 		setSortRows(sortedRows);
-	}, [rows, tableData, activeSort, sortingOrder, setSortRows]);
+	}, [rows, sortFilterTableData, activeSort, sortingOrder, setSortRows]);
 
 	const restorecallback = useCallback(() => {
 		const restored = restoreOrder(rows.rowsArray);
 		setSortRows(restored);
 	}, [rows, setSortRows]);
 
-	useWatchSort(tableData, activeSort, sortcallback, restorecallback);
+	useWatchSort(sortFilterTableData, activeSort, sortcallback, restorecallback);
 	const onFilterChange = useCallback((colIndex: number, excluded: string[]) => {
 		setActiveFilter((prev) => getFilterChange(colIndex, excluded, prev));
 	}, []);
 
-	const columnsValues = getColumnsValues(tableData);
+	const columnsValues = getColumnsValues(sortFilterTableData);
 
 	return {
-		tableData,
+		tableData: sortFilterTableData,
+		aggregation: tableData?.aggregation,
 		canSort,
 		saved,
 		active: {

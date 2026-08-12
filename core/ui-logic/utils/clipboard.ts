@@ -1,6 +1,6 @@
 import { showPopover } from "@core-ui/showPopover";
 import t from "@ext/localization/locale/translate";
-import { span, traced } from "@ext/loggers/opentelemetry";
+import { Level, span, traced } from "@ext/loggers/opentelemetry";
 
 export type CopyToClipboardOptions = {
 	showPopover?: boolean;
@@ -14,7 +14,7 @@ export const tryCopyToClipboard = async (
 	text: string,
 	opts: CopyToClipboardOptions = { showPopover: true, showErrorPopover: true },
 ): Promise<boolean> => {
-	return await traced("tryCopyToClipboard", { args: [text] }, async () => {
+	return await traced("tryCopyToClipboard", { level: Level.Commands, args: [text] }, async () => {
 		try {
 			await navigator.clipboard.writeText(text);
 			if (opts?.showPopover || typeof opts?.showPopover !== "boolean")

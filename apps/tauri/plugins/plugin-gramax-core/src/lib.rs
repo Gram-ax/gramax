@@ -3,7 +3,6 @@ use std::path::Path;
 use gramaxfs::commands::FsScope;
 use gramaxfs::compress::CompressOptions;
 use http::Request;
-use tauri::http::response::Builder;
 use tauri::http::Method;
 use tauri::http::Response;
 use tauri_otel_context::OtelContext;
@@ -129,6 +128,9 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
 			read_dir_stats,
 			delete_empty_dirs,
 			scan_workspace,
+			scan_catalog,
+			watch_workspace,
+			unwatch_workspace,
 			init_new,
 			clone,
 			cancel,
@@ -155,6 +157,7 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
 			reset,
 			commit,
 			merge,
+			has_merge_conflicts,
 			restore,
 			get_parent,
 			get_content,

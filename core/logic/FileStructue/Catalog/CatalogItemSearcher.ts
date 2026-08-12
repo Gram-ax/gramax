@@ -1,6 +1,6 @@
 import Path from "@core/FileProvider/Path/Path";
 import type { Article } from "@core/FileStructue/Article/Article";
-import type { ArticleFilter, Catalog } from "@core/FileStructue/Catalog/Catalog";
+import type { ArticleFilter, Catalog, ItemFilter } from "@core/FileStructue/Catalog/Catalog";
 import type { Category } from "@core/FileStructue/Category/Category";
 import type { Item } from "@core/FileStructue/Item/Item";
 import type { ItemRef } from "@core/FileStructue/Item/ItemRef";
@@ -39,12 +39,12 @@ export class CatalogItemSearcher {
 	}
 
 	findItemByPath(path: Path | ItemRef, type?: ItemType): Item {
-		path = path instanceof Path ? path : path?.path;
-		if (!path) return null;
+		const resolvedPath = path instanceof Path ? path : path?.path;
+		if (!resolvedPath) return null;
 
-		const filter = [(i: Item) => (type ? i.type === type : true) && i.ref.path.compare(path)];
+		const filter = [(i: Item) => (type ? i.type === type : true) && i.ref.path.compare(resolvedPath)];
 
-		const cached = this._cachedItemPath.get(path.value)?.deref();
+		const cached = this._cachedItemPath.get(resolvedPath.value)?.deref();
 		if (cached && this._assertFilters(cached as Article, filter)) {
 			this._cacheHit++;
 			return cached;
@@ -53,12 +53,12 @@ export class CatalogItemSearcher {
 		this._cacheMiss++;
 
 		const item = this._findItem(
-			this._catalog.getRootCategory(),
+			this.catalog.getRootCategory(),
 			[],
-			[(i) => (type ? i.type === type : true) && i.ref.path.compare(path)],
+			[(i) => (type ? i.type === type : true) && i.ref.path.compare(resolvedPath)],
 		);
 
-		if (item) this._cachedItemPath.set(path.value, new WeakRef(item));
+		if (item) this._cachedItemPath.set(resolvedPath.value, new WeakRef(item));
 		return item;
 	}
 
@@ -84,10 +84,10 @@ export class CatalogItemSearcher {
 			return item as Article;
 		}
 
-		return this._findItem(item as Category, filters, [(a) => typeof a.content === "string"]) as Article;
+		return this._findItem(item as Category, filters, [(a) => !!a.parent]) as Article;
 	}
 
-	private get _catalog(): Catalog {
+	private get catalog(): Catalog {
 		return this._weak.deref();
 	}
 
@@ -95,7 +95,7 @@ export class CatalogItemSearcher {
 		if (this._assertFilters(root, [...parentFilters, ...itemFilters])) return root;
 
 		for (const item of root.items) {
-			if (item.type != ItemType.category) {
+			if (item.type !== ItemType.category) {
 				if (this._assertFilters(item as Article, [...parentFilters, ...itemFilters])) return item;
 			} else {
 				if (this._assertFilters(item as Category, parentFilters)) {
@@ -119,7 +119,7 @@ export class CatalogItemSearcher {
 		}
 
 		for (const item of category.items) {
-			if (item.type == ItemType.category) {
+			if (item.type === ItemType.category) {
 				const article = this._findItemByLogicPath(item as Category, logicPath, filters) as Article;
 				if (article) return article;
 			} else {
@@ -133,11 +133,13 @@ export class CatalogItemSearcher {
 	}
 
 	private _findErrorArticle(article: Article, filters: ArticleFilter[]) {
-		const filter = filters.find((f) => !f(article, this._catalog) && (f as any).getErrorArticle);
-		if (filter) return (filter as any).getErrorArticle(article.logicPath) as Article;
+		const filter = filters.find(
+			(f): f is ItemFilter => !f(article, this.catalog) && !!(f as ItemFilter).getErrorArticle,
+		);
+		if (filter) return filter.getErrorArticle(article.logicPath);
 	}
 
 	private _assertFilters(article: Article, filters: ArticleFilter[]) {
-		return !filters || filters.every((f) => f(article, this._catalog));
+		return !filters || filters.every((f) => f(article, this.catalog));
 	}
 }

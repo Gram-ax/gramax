@@ -1,0 +1,1103 @@
+{
+	"getTableData": {
+		"input": {
+			"type": "table",
+			"attrs": {
+				"header": "row",
+				"sortingOrder": null
+			},
+			"content": [
+				{
+					"type": "tableRow",
+					"attrs": {
+						"initialOrder": null
+					},
+					"content": [
+						{
+							"type": "tableCell",
+							"attrs": {
+								"aggregation": null,
+								"colspan": 1,
+								"rowspan": 1,
+								"colwidth": null,
+								"align": null,
+								"filter": null,
+								"sort": null
+							},
+							"content": [
+								{
+									"type": "paragraph",
+									"content": [
+										{
+											"type": "text",
+											"text": "aboba1"
+										}
+									]
+								}
+							]
+						},
+						{
+							"type": "tableCell",
+							"attrs": {
+								"aggregation": null,
+								"colspan": 1,
+								"rowspan": 1,
+								"colwidth": null,
+								"align": null,
+								"filter": null,
+								"sort": null
+							},
+							"content": [
+								{
+									"type": "paragraph",
+									"content": [
+										{
+											"type": "text",
+											"text": "aboba2"
+										}
+									]
+								}
+							]
+						},
+						{
+							"type": "tableCell",
+							"attrs": {
+								"aggregation": null,
+								"colspan": 1,
+								"rowspan": 1,
+								"colwidth": null,
+								"align": null,
+								"filter": null,
+								"sort": null
+							},
+							"content": [
+								{
+									"type": "paragraph",
+									"content": [
+										{
+											"type": "text",
+											"text": "aboba3"
+										}
+									]
+								}
+							]
+						}
+					]
+				},
+				{
+					"type": "tableRow",
+					"attrs": {
+						"initialOrder": null
+					},
+					"content": [
+						{
+							"type": "tableCell",
+							"attrs": {
+								"aggregation": null,
+								"colspan": 2,
+								"rowspan": 2,
+								"colwidth": null,
+								"align": null,
+								"filter": null,
+								"sort": null
+							},
+							"content": [
+								{
+									"type": "paragraph",
+									"content": [
+										{
+											"type": "text",
+											"text": "abobus join cells"
+										}
+									]
+								}
+							]
+						},
+						{
+							"type": "tableCell",
+							"attrs": {
+								"aggregation": null,
+								"colspan": 1,
+								"rowspan": 1,
+								"colwidth": null,
+								"align": null,
+								"filter": null,
+								"sort": null
+							},
+							"content": [
+								{
+									"type": "paragraph",
+									"content": [
+										{
+											"type": "text",
+											"text": "abobus31"
+										}
+									]
+								}
+							]
+						}
+					]
+				},
+				{
+					"type": "tableRow",
+					"attrs": {
+						"initialOrder": null
+					},
+					"content": [
+						{
+							"type": "tableCell",
+							"attrs": {
+								"aggregation": null,
+								"colspan": 1,
+								"rowspan": 1,
+								"colwidth": null,
+								"align": null,
+								"filter": null,
+								"sort": null
+							},
+							"content": [
+								{
+									"type": "paragraph",
+									"content": [
+										{
+											"type": "text",
+											"text": "abobus32"
+										}
+									]
+								}
+							]
+						}
+					]
+				},
+				{
+					"type": "tableRow",
+					"attrs": {
+						"initialOrder": null
+					},
+					"content": [
+						{
+							"type": "tableCell",
+							"attrs": {
+								"aggregation": null,
+								"colspan": 1,
+								"rowspan": 1,
+								"colwidth": null,
+								"align": "",
+								"filter": null,
+								"sort": null
+							},
+							"content": [
+								{
+									"type": "paragraph",
+									"content": [
+										{
+											"type": "text",
+											"text": "abobus1"
+										}
+									]
+								}
+							]
+						},
+						{
+							"type": "tableCell",
+							"attrs": {
+								"aggregation": null,
+								"colspan": 1,
+								"rowspan": 1,
+								"colwidth": null,
+								"align": "",
+								"filter": null,
+								"sort": null
+							},
+							"content": [
+								{
+									"type": "paragraph",
+									"content": [
+										{
+											"type": "text",
+											"text": "abobus2"
+										}
+									]
+								}
+							]
+						},
+						{
+							"type": "tableCell",
+							"attrs": {
+								"aggregation": null,
+								"colspan": 1,
+								"rowspan": 1,
+								"colwidth": null,
+								"align": "",
+								"filter": null,
+								"sort": null
+							},
+							"content": [
+								{
+									"type": "paragraph",
+									"content": [
+										{
+											"type": "text",
+											"text": "abobus3"
+										}
+									]
+								}
+							]
+						}
+					]
+				}
+			]
+		},
+		"output": {
+			"rows": [
+				{
+					"cells": [
+						{
+							"text": "aboba1",
+							"rowspan": 1,
+							"colspan": 1,
+							"realRowStart": 0,
+							"visualColStart": 0,
+							"realColStart": 0
+						},
+						{
+							"text": "aboba2",
+							"rowspan": 1,
+							"colspan": 1,
+							"realRowStart": 0,
+							"visualColStart": 1,
+							"realColStart": 1
+						},
+						{
+							"text": "aboba3",
+							"rowspan": 1,
+							"colspan": 1,
+							"realRowStart": 0,
+							"visualColStart": 2,
+							"realColStart": 2
+						}
+					],
+					"initialOrder": null
+				},
+				{
+					"cells": [
+						{
+							"text": "abobus join cells",
+							"rowspan": 2,
+							"colspan": 2,
+							"realRowStart": 1,
+							"visualColStart": 0,
+							"realColStart": 0
+						},
+						{
+							"text": "abobus join cells",
+							"rowspan": 2,
+							"colspan": 2,
+							"realRowStart": 1,
+							"visualColStart": 0,
+							"realColStart": 0
+						},
+						{
+							"text": "abobus31",
+							"rowspan": 1,
+							"colspan": 1,
+							"realRowStart": 1,
+							"visualColStart": 2,
+							"realColStart": 1
+						}
+					],
+					"initialOrder": null
+				},
+				{
+					"cells": [
+						{
+							"text": "abobus join cells",
+							"rowspan": 2,
+							"colspan": 2,
+							"realRowStart": 1,
+							"visualColStart": 0,
+							"realColStart": 0
+						},
+						{
+							"text": "abobus join cells",
+							"rowspan": 2,
+							"colspan": 2,
+							"realRowStart": 1,
+							"visualColStart": 0,
+							"realColStart": 0
+						},
+						{
+							"text": "abobus32",
+							"rowspan": 1,
+							"colspan": 1,
+							"realRowStart": 2,
+							"visualColStart": 2,
+							"realColStart": 0
+						}
+					],
+					"initialOrder": null
+				},
+				{
+					"cells": [
+						{
+							"text": "abobus1",
+							"rowspan": 1,
+							"colspan": 1,
+							"realRowStart": 3,
+							"visualColStart": 0,
+							"realColStart": 0
+						},
+						{
+							"text": "abobus2",
+							"rowspan": 1,
+							"colspan": 1,
+							"realRowStart": 3,
+							"visualColStart": 1,
+							"realColStart": 1
+						},
+						{
+							"text": "abobus3",
+							"rowspan": 1,
+							"colspan": 1,
+							"realRowStart": 3,
+							"visualColStart": 2,
+							"realColStart": 2
+						}
+					],
+					"initialOrder": null
+				}
+			],
+			"numRows": 4,
+			"numCols": 3,
+			"sortFilter": {
+				"enabled": true
+			},
+			"aggregation": {
+				"enabled": false,
+				"cells": []
+			}
+		}
+	},
+	"getTableDataWithAggregation": {
+		"input": {
+			"type": "table",
+			"attrs": {
+				"header": "row",
+				"sortingOrder": null
+			},
+			"content": [
+				{
+					"type": "tableRow",
+					"attrs": {
+						"initialOrder": null
+					},
+					"content": [
+						{
+							"type": "tableCell",
+							"attrs": {
+								"aggregation": "countDistinct",
+								"colspan": 1,
+								"rowspan": 1,
+								"colwidth": null,
+								"align": "left",
+								"filter": null,
+								"sort": null
+							},
+							"content": [
+								{
+									"type": "paragraph",
+									"content": [
+										{
+											"type": "text",
+											"text": "Project"
+										}
+									]
+								}
+							]
+						},
+						{
+							"type": "tableCell",
+							"attrs": {
+								"aggregation": "sum",
+								"colspan": 1,
+								"rowspan": 1,
+								"colwidth": null,
+								"align": "right",
+								"filter": null,
+								"sort": null
+							},
+							"content": [
+								{
+									"type": "paragraph",
+									"content": [
+										{
+											"type": "text",
+											"text": "Estimate"
+										}
+									]
+								}
+							]
+						},
+						{
+							"type": "tableCell",
+							"attrs": {
+								"aggregation": "count",
+								"colspan": 1,
+								"rowspan": 1,
+								"colwidth": null,
+								"align": "center",
+								"filter": null,
+								"sort": null
+							},
+							"content": [
+								{
+									"type": "paragraph",
+									"content": [
+										{
+											"type": "text",
+											"text": "Owner"
+										}
+									]
+								}
+							]
+						}
+					]
+				},
+				{
+					"type": "tableRow",
+					"attrs": {
+						"initialOrder": 1
+					},
+					"content": [
+						{
+							"type": "tableCell",
+							"attrs": {
+								"aggregation": null,
+								"colspan": 1,
+								"rowspan": 1,
+								"colwidth": null,
+								"align": null,
+								"filter": null,
+								"sort": null
+							},
+							"content": [
+								{
+									"type": "paragraph",
+									"content": [
+										{
+											"type": "text",
+											"text": "Alpha"
+										}
+									]
+								}
+							]
+						},
+						{
+							"type": "tableCell",
+							"attrs": {
+								"aggregation": null,
+								"colspan": 1,
+								"rowspan": 1,
+								"colwidth": null,
+								"align": null,
+								"filter": null,
+								"sort": null
+							},
+							"content": [
+								{
+									"type": "paragraph",
+									"content": [
+										{
+											"type": "text",
+											"text": "10"
+										}
+									]
+								}
+							]
+						},
+						{
+							"type": "tableCell",
+							"attrs": {
+								"aggregation": null,
+								"colspan": 1,
+								"rowspan": 1,
+								"colwidth": null,
+								"align": null,
+								"filter": null,
+								"sort": null
+							},
+							"content": [
+								{
+									"type": "paragraph",
+									"content": [
+										{
+											"type": "text",
+											"text": "Ivan"
+										}
+									]
+								}
+							]
+						}
+					]
+				},
+				{
+					"type": "tableRow",
+					"attrs": {
+						"initialOrder": 2
+					},
+					"content": [
+						{
+							"type": "tableCell",
+							"attrs": {
+								"aggregation": null,
+								"colspan": 1,
+								"rowspan": 1,
+								"colwidth": null,
+								"align": null,
+								"filter": null,
+								"sort": null
+							},
+							"content": [
+								{
+									"type": "paragraph",
+									"content": [
+										{
+											"type": "text",
+											"text": "Beta"
+										}
+									]
+								}
+							]
+						},
+						{
+							"type": "tableCell",
+							"attrs": {
+								"aggregation": null,
+								"colspan": 1,
+								"rowspan": 1,
+								"colwidth": null,
+								"align": null,
+								"filter": null,
+								"sort": null
+							},
+							"content": [
+								{
+									"type": "paragraph",
+									"content": [
+										{
+											"type": "text",
+											"text": "15.5"
+										}
+									]
+								}
+							]
+						},
+						{
+							"type": "tableCell",
+							"attrs": {
+								"aggregation": null,
+								"colspan": 1,
+								"rowspan": 1,
+								"colwidth": null,
+								"align": null,
+								"filter": null,
+								"sort": null
+							},
+							"content": [
+								{
+									"type": "paragraph",
+									"content": [
+										{
+											"type": "text",
+											"text": "Ivan"
+										}
+									]
+								}
+							]
+						}
+					]
+				},
+				{
+					"type": "tableRow",
+					"attrs": {
+						"initialOrder": 3
+					},
+					"content": [
+						{
+							"type": "tableCell",
+							"attrs": {
+								"aggregation": null,
+								"colspan": 1,
+								"rowspan": 1,
+								"colwidth": null,
+								"align": null,
+								"filter": null,
+								"sort": null
+							},
+							"content": [
+								{
+									"type": "paragraph",
+									"content": [
+										{
+											"type": "text",
+											"text": "Alpha"
+										}
+									]
+								}
+							]
+						},
+						{
+							"type": "tableCell",
+							"attrs": {
+								"aggregation": null,
+								"colspan": 1,
+								"rowspan": 1,
+								"colwidth": null,
+								"align": null,
+								"filter": null,
+								"sort": null
+							},
+							"content": [
+								{
+									"type": "paragraph"
+								}
+							]
+						},
+						{
+							"type": "tableCell",
+							"attrs": {
+								"aggregation": null,
+								"colspan": 1,
+								"rowspan": 1,
+								"colwidth": null,
+								"align": null,
+								"filter": null,
+								"sort": null
+							},
+							"content": [
+								{
+									"type": "paragraph",
+									"content": [
+										{
+											"type": "text",
+											"text": "Petr"
+										}
+									]
+								}
+							]
+						}
+					]
+				}
+			]
+		},
+		"output": {
+			"tableData": {
+				"rows": [
+					{
+						"cells": [
+							{
+								"text": "Project",
+								"rowspan": 1,
+								"colspan": 1,
+								"realRowStart": 0,
+								"visualColStart": 0,
+								"realColStart": 0
+							},
+							{
+								"text": "Estimate",
+								"rowspan": 1,
+								"colspan": 1,
+								"realRowStart": 0,
+								"visualColStart": 1,
+								"realColStart": 1
+							},
+							{
+								"text": "Owner",
+								"rowspan": 1,
+								"colspan": 1,
+								"realRowStart": 0,
+								"visualColStart": 2,
+								"realColStart": 2
+							}
+						],
+						"initialOrder": null
+					},
+					{
+						"cells": [
+							{
+								"text": "Alpha",
+								"rowspan": 1,
+								"colspan": 1,
+								"realRowStart": 1,
+								"visualColStart": 0,
+								"realColStart": 0
+							},
+							{
+								"text": "10",
+								"rowspan": 1,
+								"colspan": 1,
+								"realRowStart": 1,
+								"visualColStart": 1,
+								"realColStart": 1
+							},
+							{
+								"text": "Ivan",
+								"rowspan": 1,
+								"colspan": 1,
+								"realRowStart": 1,
+								"visualColStart": 2,
+								"realColStart": 2
+							}
+						],
+						"initialOrder": 1
+					},
+					{
+						"cells": [
+							{
+								"text": "Beta",
+								"rowspan": 1,
+								"colspan": 1,
+								"realRowStart": 2,
+								"visualColStart": 0,
+								"realColStart": 0
+							},
+							{
+								"text": "15.5",
+								"rowspan": 1,
+								"colspan": 1,
+								"realRowStart": 2,
+								"visualColStart": 1,
+								"realColStart": 1
+							},
+							{
+								"text": "Ivan",
+								"rowspan": 1,
+								"colspan": 1,
+								"realRowStart": 2,
+								"visualColStart": 2,
+								"realColStart": 2
+							}
+						],
+						"initialOrder": 2
+					},
+					{
+						"cells": [
+							{
+								"text": "Alpha",
+								"rowspan": 1,
+								"colspan": 1,
+								"realRowStart": 3,
+								"visualColStart": 0,
+								"realColStart": 0
+							},
+							{
+								"text": "",
+								"rowspan": 1,
+								"colspan": 1,
+								"realRowStart": 3,
+								"visualColStart": 1,
+								"realColStart": 1
+							},
+							{
+								"text": "Petr",
+								"rowspan": 1,
+								"colspan": 1,
+								"realRowStart": 3,
+								"visualColStart": 2,
+								"realColStart": 2
+							}
+						],
+						"initialOrder": 3
+					}
+				],
+				"numRows": 4,
+				"numCols": 3,
+				"sortFilter": {
+					"enabled": true
+				},
+				"aggregation": {
+					"enabled": true,
+					"cells": [
+						{
+							"method": "countDistinct",
+							"data": ["Alpha", "Beta", "Alpha"],
+							"align": "left",
+							"colspan": 1,
+							"visualColStart": 0,
+							"realColStart": 0
+						},
+						{
+							"method": "sum",
+							"data": ["10", "15.5", ""],
+							"align": "right",
+							"colspan": 1,
+							"visualColStart": 1,
+							"realColStart": 1
+						},
+						{
+							"method": "count",
+							"data": ["Ivan", "Ivan", "Petr"],
+							"align": "center",
+							"colspan": 1,
+							"visualColStart": 2,
+							"realColStart": 2
+						}
+					]
+				}
+			},
+			"aggregatedValues": [2, 25.5, 3]
+		}
+	},
+	"getSaved": {
+		"input": {
+			"type": "table",
+			"attrs": {
+				"header": "row",
+				"sortingOrder": [1, 2]
+			},
+			"content": [
+				{
+					"type": "tableRow",
+					"attrs": {
+						"initialOrder": 0
+					},
+					"content": [
+						{
+							"type": "tableCell",
+							"attrs": {
+								"aggregation": null,
+								"colspan": 1,
+								"rowspan": 1,
+								"colwidth": null,
+								"align": null,
+								"filter": ["abobus1"],
+								"sort": null
+							},
+							"content": [
+								{
+									"type": "paragraph",
+									"content": [
+										{
+											"type": "text",
+											"text": "aboba1"
+										}
+									]
+								}
+							]
+						},
+						{
+							"type": "tableCell",
+							"attrs": {
+								"aggregation": null,
+								"colspan": 1,
+								"rowspan": 1,
+								"colwidth": null,
+								"align": null,
+								"filter": null,
+								"sort": "desc"
+							},
+							"content": [
+								{
+									"type": "paragraph",
+									"content": [
+										{
+											"type": "text",
+											"text": "aboba2"
+										}
+									]
+								}
+							]
+						},
+						{
+							"type": "tableCell",
+							"attrs": {
+								"aggregation": null,
+								"colspan": 1,
+								"rowspan": 1,
+								"colwidth": null,
+								"align": null,
+								"filter": null,
+								"sort": "asc"
+							},
+							"content": [
+								{
+									"type": "paragraph",
+									"content": [
+										{
+											"type": "text",
+											"text": "aboba3"
+										}
+									]
+								}
+							]
+						}
+					]
+				},
+				{
+					"type": "tableRow",
+					"attrs": {
+						"initialOrder": 2
+					},
+					"content": [
+						{
+							"type": "tableCell",
+							"attrs": {
+								"aggregation": null,
+								"colspan": 1,
+								"rowspan": 1,
+								"colwidth": null,
+								"align": null,
+								"filter": null,
+								"sort": null
+							},
+							"content": [
+								{
+									"type": "paragraph",
+									"content": [
+										{
+											"type": "text",
+											"text": "abobus12"
+										}
+									]
+								}
+							]
+						},
+						{
+							"type": "tableCell",
+							"attrs": {
+								"aggregation": null,
+								"colspan": 1,
+								"rowspan": 1,
+								"colwidth": null,
+								"align": null,
+								"filter": null,
+								"sort": null
+							},
+							"content": [
+								{
+									"type": "paragraph",
+									"content": [
+										{
+											"type": "text",
+											"text": "abobus22"
+										}
+									]
+								}
+							]
+						},
+						{
+							"type": "tableCell",
+							"attrs": {
+								"aggregation": null,
+								"colspan": 1,
+								"rowspan": 1,
+								"colwidth": null,
+								"align": null,
+								"filter": null,
+								"sort": null
+							},
+							"content": [
+								{
+									"type": "paragraph",
+									"content": [
+										{
+											"type": "text",
+											"text": "abobus23"
+										}
+									]
+								}
+							]
+						}
+					]
+				},
+				{
+					"type": "tableRow",
+					"attrs": {
+						"initialOrder": 1
+					},
+					"content": [
+						{
+							"type": "tableCell",
+							"attrs": {
+								"aggregation": null,
+								"colspan": 1,
+								"rowspan": 1,
+								"colwidth": null,
+								"align": null,
+								"filter": null,
+								"sort": null
+							},
+							"content": [
+								{
+									"type": "paragraph",
+									"content": [
+										{
+											"type": "text",
+											"text": "abobus1"
+										}
+									]
+								}
+							]
+						},
+						{
+							"type": "tableCell",
+							"attrs": {
+								"aggregation": null,
+								"colspan": 1,
+								"rowspan": 1,
+								"colwidth": null,
+								"align": null,
+								"filter": null,
+								"sort": null
+							},
+							"content": [
+								{
+									"type": "paragraph",
+									"content": [
+										{
+											"type": "text",
+											"text": "abobus2"
+										}
+									]
+								}
+							]
+						},
+						{
+							"type": "tableCell",
+							"attrs": {
+								"aggregation": null,
+								"colspan": 1,
+								"rowspan": 1,
+								"colwidth": null,
+								"align": null,
+								"filter": null,
+								"sort": null
+							},
+							"content": [
+								{
+									"type": "paragraph",
+									"content": [
+										{
+											"type": "text",
+											"text": "abobus3"
+										}
+									]
+								}
+							]
+						}
+					]
+				}
+			]
+		},
+		"output": {
+			"filter": {
+				"0": ["abobus1"]
+			},
+			"sort": {
+				"1": "desc",
+				"2": "asc"
+			},
+			"sortingOrder": [1, 2]
+		}
+	}
+}

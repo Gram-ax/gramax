@@ -1,18 +1,6 @@
-import type { AgentEvent } from "@ext/agent/core/events";
-import type { AgentUsage } from "@ext/agent/core/sessionStore";
+import type { SessionStatePayload } from "@ext/agent/components/types/chat";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-
-export type SessionStatePayload = {
-	sessionId?: string;
-	error?: string;
-	processing?: boolean;
-	events?: AgentEvent[];
-	openItemPath?: string | null;
-	cancelled?: boolean;
-	lastError?: string | null;
-	usage?: AgentUsage;
-};
 
 interface AgentStoreState {
 	activeSessionId: string | null;
@@ -22,7 +10,7 @@ interface AgentStoreState {
 	clearActiveSessionId: () => void;
 	setSessions: (sessions: SessionStatePayload[]) => void;
 	upsertSession: (session: SessionStatePayload) => void;
-	removeSession: (sessionId: string) => void;
+	removeSession: (id: string) => void;
 	setApiKey: (key: string) => void;
 	clearApiKey: () => void;
 }
@@ -38,21 +26,26 @@ const useAgentStore = create<AgentStoreState>()(
 			setSessions: (sessions) => set({ sessions }),
 			upsertSession: (session) =>
 				set((state) => ({
-					sessions: [...state.sessions.filter((s) => s.sessionId !== session.sessionId), session],
+					sessions: [...state.sessions.filter((s) => s.id !== session.id), session],
 				})),
-			removeSession: (sessionId) =>
-				set((state) => ({ sessions: state.sessions.filter((s) => s.sessionId !== sessionId) })),
+			removeSession: (id) => set((state) => ({ sessions: state.sessions.filter((s) => s.id !== id) })),
 			setApiKey: (key) => set({ apiKey: key }),
 			clearApiKey: () => set({ apiKey: null }),
 		}),
 		{
 			name: "agent-state",
-			partialize: (s) => ({ activeSessionId: s.activeSessionId, sessions: s.sessions, apiKey: s.apiKey }),
+			partialize: (s) => ({ activeSessionId: s.activeSessionId, apiKey: s.apiKey }),
 		},
 	),
 );
 
 export const useApiKey = () => useAgentStore((s) => s.apiKey);
+export const useStoredSessions = () => useAgentStore((s) => s.sessions);
+export const useActiveSessionId = () => useAgentStore((s) => s.activeSessionId);
+export const useActiveSessionUsage = () =>
+	useAgentStore((s) => s.sessions.find((sess) => sess.id === s.activeSessionId)?.usage);
+export const useActiveSessionBrowser = () =>
+	useAgentStore((s) => s.sessions.find((sess) => sess.id === s.activeSessionId)?.browser);
 
 export const getActiveSessionId = () => useAgentStore.getState().activeSessionId;
 export const getSessions = () => useAgentStore.getState().sessions;
@@ -62,6 +55,6 @@ export const setActiveSessionId = (id: string) => useAgentStore.getState().setAc
 export const clearActiveSessionId = () => useAgentStore.getState().clearActiveSessionId();
 export const setSessions = (sessions: SessionStatePayload[]) => useAgentStore.getState().setSessions(sessions);
 export const upsertSession = (session: SessionStatePayload) => useAgentStore.getState().upsertSession(session);
-export const removeSession = (sessionId: string) => useAgentStore.getState().removeSession(sessionId);
+export const removeSession = (id: string) => useAgentStore.getState().removeSession(id);
 export const setApiKey = (key: string) => useAgentStore.getState().setApiKey(key);
 export const clearApiKey = () => useAgentStore.getState().clearApiKey();

@@ -100,10 +100,20 @@
 				"xml": "<cmd text=\"text\" icon=\"icon\"/>"
 			},
 			"renderTree": {
-				"$$mdtype": "Tag",
-				"name": "Cmd",
-				"attributes": { "text": "text", "icon": "icon" },
-				"children": []
+				"attrs": {
+					"comment": {},
+					"tag": [
+						{
+							"$$mdtype": "Tag",
+							"name": "Cmd",
+							"attributes": { "text": "text", "icon": "icon" },
+							"children": []
+						}
+					],
+					"text": "[cmd:text:icon]"
+				},
+				"content": [],
+				"type": "inlineMd_component"
 			},
 			"html": "<button data-component=\"cmd\"><i><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-circle-question-mark\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"10\"></circle><path d=\"M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3\"></path><path d=\"M12 17h.01\"></path></svg></i><span>text</span></button>"
 		}
@@ -114,7 +124,22 @@
 				"legacy": "[kbd:text]",
 				"xml": "<kbd text=\"text\"/>"
 			},
-			"renderTree": { "$$mdtype": "Tag", "name": "Kbd", "attributes": { "text": "text" }, "children": [] },
+			"renderTree": {
+				"attrs": {
+					"comment": {},
+					"tag": [
+						{
+							"$$mdtype": "Tag",
+							"name": "Kbd",
+							"attributes": { "text": "text" },
+							"children": []
+						}
+					],
+					"text": "[kbd:text]"
+				},
+				"content": [],
+				"type": "inlineMd_component"
+			},
 			"html": "<kbd data-component=\"kbd\">text</kbd>"
 		}
 	],
@@ -138,7 +163,22 @@
 				"legacy": "[issue:DR-1]",
 				"xml": "<issue id=\"DR-1\"/>"
 			},
-			"renderTree": { "$$mdtype": "Tag", "name": "Issue", "attributes": { "id": "DR-1" }, "children": [] },
+			"renderTree": {
+				"attrs": {
+					"comment": {},
+					"tag": [
+						{
+							"$$mdtype": "Tag",
+							"name": "Issue",
+							"attributes": { "id": "DR-1" },
+							"children": []
+						}
+					],
+					"text": "[issue:DR-1]"
+				},
+				"content": [],
+				"type": "inlineMd_component"
+			},
 			"html": "<a data-component=\"issue\" href=\"https://support.ics-it.ru/issue/DR-1\">DR-1</a>"
 		}
 	],
@@ -148,7 +188,22 @@
 				"legacy": "[module:id]",
 				"xml": "<module id=\"id\"/>"
 			},
-			"renderTree": { "$$mdtype": "Tag", "name": "Module", "attributes": { "id": "id" }, "children": [] },
+			"renderTree": {
+				"attrs": {
+					"comment": {},
+					"tag": [
+						{
+							"$$mdtype": "Tag",
+							"name": "Module",
+							"attributes": { "id": "id" },
+							"children": []
+						}
+					],
+					"text": "[module:id]"
+				},
+				"content": [],
+				"type": "inlineMd_component"
+			},
 			"html": "<span data-component=\"module\"><i><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-box\" aria-hidden=\"true\"><path d=\"M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z\"></path><path d=\"m3.3 7 8.7 5 8.7-5\"></path><path d=\"M12 22V12\"></path></svg></i>id</span>"
 		}
 	],
@@ -158,7 +213,22 @@
 				"legacy": "[who:text]",
 				"xml": "<who text=\"text\"/>"
 			},
-			"renderTree": { "$$mdtype": "Tag", "name": "Who", "attributes": { "text": "text" }, "children": [] },
+			"renderTree": {
+				"attrs": {
+					"comment": {},
+					"tag": [
+						{
+							"$$mdtype": "Tag",
+							"name": "Who",
+							"attributes": { "text": "text" },
+							"children": []
+						}
+					],
+					"text": "[who:text]"
+				},
+				"content": [],
+				"type": "inlineMd_component"
+			},
 			"html": "<span data-component=\"who\"><span class=\"delimiter\">/</span><i><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-circle-user\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"10\"></circle><circle cx=\"12\" cy=\"10\" r=\"3\"></circle><path d=\"M7 20.662V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.662\"></path></svg></i><span>text</span></span>"
 		}
 	],
@@ -168,7 +238,22 @@
 				"legacy": "[when:text]",
 				"xml": "<when text=\"text\"/>"
 			},
-			"renderTree": { "$$mdtype": "Tag", "name": "When", "attributes": { "text": "text" }, "children": [] },
+			"renderTree": {
+				"attrs": {
+					"comment": {},
+					"tag": [
+						{
+							"$$mdtype": "Tag",
+							"name": "When",
+							"attributes": { "text": "text" },
+							"children": []
+						}
+					],
+					"text": "[when:text]"
+				},
+				"content": [],
+				"type": "inlineMd_component"
+			},
 			"html": "<span data-component=\"when\"><span class=\"delimiter\">/</span>x<i><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-clock\" aria-hidden=\"true\"><path d=\"M12 6v6l4 2\"></path><circle cx=\"12\" cy=\"12\" r=\"10\"></circle></svg></i><span>text</span></span>"
 		}
 	],
@@ -270,6 +355,7 @@
 					},
 					"isLink": false,
 					"path": "sample-mp4-file.mp4",
+					"scale": null,
 					"title": "Очень интересное видео"
 				},
 				"children": [],
@@ -285,17 +371,27 @@
 				"xml": "<term code=\"first\" title=\"second\"/>"
 			},
 			"renderTree": {
-				"$$mdtype": "Tag",
-				"attributes": {
-					"children": null,
-					"summary": "",
-					"title": "second",
-					"url": null
+				"attrs": {
+					"comment": {},
+					"tag": [
+						{
+							"$$mdtype": "Tag",
+							"attributes": {
+								"children": null,
+								"summary": "",
+								"title": "second",
+								"url": null
+							},
+							"children": [],
+							"name": "Term"
+						}
+					],
+					"text": "[term:first:second]"
 				},
-				"children": [],
-				"name": "Term"
+				"content": [],
+				"type": "inlineMd_component"
 			},
-			"html": "<span data-component=\"term\" data-summary=\"\" data-title=\"second\" data-children=\"{&quot;key&quot;:null,&quot;ref&quot;:null,&quot;props&quot;:{},&quot;_owner&quot;:null,&quot;_store&quot;:{}}\">second</span>"
+			"html": "<span data-component=\"term\" data-summary=\"\" data-title=\"second\">second</span>"
 		}
 	],
 	"Strong": [
@@ -431,13 +527,22 @@
 				"xml": "$$ a=b+c $$"
 			},
 			"renderTree": {
-				"$$mdtype": "Tag",
-				"attributes": {
-					"content": "<p class=\"katex-block math-block\"><span class=\"katex-display\"><span class=\"katex\"><span class=\"katex-mathml\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"block\"><semantics><mrow><mi>a</mi><mo>=</mo><mi>b</mi><mo>+</mo><mi>c</mi></mrow><annotation encoding=\"application/x-tex\">a=b+c \n</annotation></semantics></math></span><span class=\"katex-html\" aria-hidden=\"true\"><span class=\"base\"><span class=\"strut\" style=\"height:0.4306em;\"></span><span class=\"mord mathnormal\">a</span><span class=\"mspace\" style=\"margin-right:0.2778em;\"></span><span class=\"mrel\">=</span><span class=\"mspace\" style=\"margin-right:0.2778em;\"></span></span><span class=\"base\"><span class=\"strut\" style=\"height:0.7778em;vertical-align:-0.0833em;\"></span><span class=\"mord mathnormal\">b</span><span class=\"mspace\" style=\"margin-right:0.2222em;\"></span><span class=\"mbin\">+</span><span class=\"mspace\" style=\"margin-right:0.2222em;\"></span></span><span class=\"base\"><span class=\"strut\" style=\"height:0.4306em;\"></span><span class=\"mord mathnormal\">c</span></span></span></span></span></p>\n",
-					"latex": "$$ a=b+c $$"
+				"attrs": {
+					"tag": [
+						{
+							"$$mdtype": "Tag",
+							"attributes": {
+								"content": "<p class=\"katex-block math-block\"><span class=\"katex-display\"><span class=\"katex\"><span class=\"katex-mathml\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"block\"><semantics><mrow><mi>a</mi><mo>=</mo><mi>b</mi><mo>+</mo><mi>c</mi></mrow><annotation encoding=\"application/x-tex\">a=b+c \n</annotation></semantics></math></span><span class=\"katex-html\" aria-hidden=\"true\"><span class=\"base\"><span class=\"strut\" style=\"height:0.4306em;\"></span><span class=\"mord mathnormal\">a</span><span class=\"mspace\" style=\"margin-right:0.2778em;\"></span><span class=\"mrel\">=</span><span class=\"mspace\" style=\"margin-right:0.2778em;\"></span></span><span class=\"base\"><span class=\"strut\" style=\"height:0.7778em;vertical-align:-0.0833em;\"></span><span class=\"mord mathnormal\">b</span><span class=\"mspace\" style=\"margin-right:0.2222em;\"></span><span class=\"mbin\">+</span><span class=\"mspace\" style=\"margin-right:0.2222em;\"></span></span><span class=\"base\"><span class=\"strut\" style=\"height:0.4306em;\"></span><span class=\"mord mathnormal\">c</span></span></span></span></span></p>\n",
+								"latex": "$$ a=b+c $$"
+							},
+							"children": [],
+							"name": "Formula"
+						}
+					],
+					"text": "$$ a=b+c $$"
 				},
-				"children": [],
-				"name": "Formula"
+				"content": [],
+				"type": "blockMd"
 			},
 			"html": "<span data-component=\"formula\"><p class=\"katex-block math-block\"><span class=\"katex-display\"><span class=\"katex\"><span class=\"katex-mathml\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"block\"><semantics><mrow><mi>a</mi><mo>=</mo><mi>b</mi><mo>+</mo><mi>c</mi></mrow><annotation encoding=\"application/x-tex\">a=b+c \n</annotation></semantics></math></span><span class=\"katex-html\" aria-hidden=\"true\"><span class=\"base\"><span class=\"strut\" style=\"height:0.4306em;\"></span><span class=\"mord mathnormal\">a</span><span class=\"mspace\" style=\"margin-right:0.2778em;\"></span><span class=\"mrel\">=</span><span class=\"mspace\" style=\"margin-right:0.2778em;\"></span></span><span class=\"base\"><span class=\"strut\" style=\"height:0.7778em;vertical-align:-0.0833em;\"></span><span class=\"mord mathnormal\">b</span><span class=\"mspace\" style=\"margin-right:0.2222em;\"></span><span class=\"mbin\">+</span><span class=\"mspace\" style=\"margin-right:0.2222em;\"></span></span><span class=\"base\"><span class=\"strut\" style=\"height:0.4306em;\"></span><span class=\"mord mathnormal\">c</span></span></span></span></span></p>\n</span>"
 		},
@@ -447,13 +552,23 @@
 				"xml": "$ a=b+c $"
 			},
 			"renderTree": {
-				"$$mdtype": "Tag",
-				"attributes": {
-					"content": "<p>$ a=b+c $</p>\n",
-					"latex": "$ a=b+c $"
+				"attrs": {
+					"comment": {},
+					"tag": [
+						{
+							"$$mdtype": "Tag",
+							"attributes": {
+								"content": "<p>$ a=b+c $</p>\n",
+								"latex": "$ a=b+c $"
+							},
+							"children": [],
+							"name": "Formula"
+						}
+					],
+					"text": "$ a=b+c $"
 				},
-				"children": [],
-				"name": "Formula"
+				"content": [],
+				"type": "inlineMd_component"
 			},
 			"html": "<span data-component=\"formula\"><p>$ a=b+c $</p>\n</span>"
 		}

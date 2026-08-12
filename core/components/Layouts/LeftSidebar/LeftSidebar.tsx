@@ -1,8 +1,6 @@
-import styled from "@emotion/styled";
-import { useDragDrop } from "@ext/navigation/catalog/drag/logic/ModifiedBackend";
+import { cn } from "@core-ui/utils/cn";
+import { ScrollShadowContainer } from "@ui-kit/ScrollShadowContainer";
 import { type CSSProperties, forwardRef, type ReactNode, type RefObject } from "react";
-import { DndProvider } from "react-dnd";
-import Scrollable from "../ScrollableElement";
 
 interface LeftSidebarProps {
 	children: ReactNode;
@@ -17,33 +15,24 @@ interface LeftSidebarProps {
 }
 
 const LeftSidebar = forwardRef((props: LeftSidebarProps, ref: RefObject<HTMLDivElement>) => {
-	const { children, shadow = true, boxShadowStyles, sidebarTop, sidebarBottom, style, className } = props;
+	const { children, boxShadowStyles, sidebarTop, sidebarBottom, style, className } = props;
 	const { onContentMouseEnter, onContentMouseLeave } = props;
-	const { backend, options } = useDragDrop();
 
 	return (
-		<div className={className} style={style}>
+		<div className={cn("flex w-[inherit] h-[inherit] flex-col", className)} style={style}>
 			{sidebarTop}
-			<DndProvider backend={backend} options={options}>
-				<Scrollable
-					boxShadowStyles={boxShadowStyles}
-					onMouseEnter={onContentMouseEnter}
-					onMouseLeave={onContentMouseLeave}
-					ref={ref}
-					showTopBottomShadow={shadow}
-					style={style}
-				>
-					{children}
-				</Scrollable>
-			</DndProvider>
+			<ScrollShadowContainer
+				className="h-full w-full left-navigation-content"
+				onMouseEnter={onContentMouseEnter}
+				onMouseLeave={onContentMouseLeave}
+				ref={ref}
+				style={boxShadowStyles}
+			>
+				{children}
+			</ScrollShadowContainer>
 			{sidebarBottom}
 		</div>
 	);
 });
 
-export default styled(LeftSidebar)`
-	display: flex;
-	width: inherit;
-	height: inherit;
-	flex-direction: column;
-`;
+export default LeftSidebar;

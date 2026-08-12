@@ -1,23 +1,20 @@
 import Tooltip from "@components/Atoms/Tooltip";
 import HoverableActions from "@components/controls/HoverController/HoverableActions";
-import StickyTableWrapper from "@components/StickyWrapper/StickyTableWrapper";
-import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import { HELPERS_LEFT, HELPERS_TOP } from "@ext/markdown/elements/table/edit/components/Helpers/consts";
 import TablePlusActions from "@ext/markdown/elements/table/edit/components/Helpers/TablePlusActions";
 import useTableSizes from "@ext/markdown/elements/table/edit/components/Helpers/useTableSizes";
-import { hideOldControls, showNewControls } from "@ext/markdown/elements/table/edit/logic/controlActions";
-import TableNodeSheet from "@ext/markdown/elements/table/edit/logic/TableNodeSheet";
+import type TableNodeSheet from "@ext/markdown/elements/table/edit/logic/TableNodeSheet";
 import { getHoveredData } from "@ext/markdown/elements/table/edit/logic/utils";
-import type { HoveredData } from "@ext/markdown/elements/table/edit/model/tableTypes";
 import type { Editor } from "@tiptap/core";
 import type { Node } from "@tiptap/pm/model";
 import {
+	type CSSProperties,
 	type MouseEvent as ReactMouseEvent,
 	type ReactNode,
 	type RefObject,
 	useCallback,
-	useMemo,
+	useEffect,
 	useRef,
 	useState,
 } from "react";
@@ -29,8 +26,9 @@ interface TableHelperProps {
 	node: Node;
 	pos: number;
 	editor: Editor;
-	disabledWrapper?: boolean;
+	StickyTableWrapperComponent?: ({ children }: { children: JSX.Element }) => JSX.Element;
 	sorted: boolean;
+	tableSheet?: TableNodeSheet;
 }
 
 export type TableDataString = {
@@ -38,102 +36,122 @@ export type TableDataString = {
 	rows: string[];
 };
 
-const TriangleButtonContainer = styled.div`
-	position: absolute;
-	z-index: 1;
-	top: ${HELPERS_TOP};
-	left: ${HELPERS_LEFT};
-`;
+const HOVERED_CONTROL_CLASS_TO_REMOVE = "!hidden";
 
-const TriangleButton = styled.div`
-	position: relative;
-	cursor: pointer;
-	border-top: 4px solid transparent;
-	border-left: 4px solid transparent;
-	border-bottom: 4px solid var(--color-line);
-	border-right: 4px solid var(--color-line);
-	z-index: var(--z-index-base);
+const getVisibleControlSelectors = (cellIndex: number, rowIndex: number) => [
+	`[data-col-number="${cellIndex}"] [data-table-plus-menu="column"]`,
+	`[data-col-number="${cellIndex}"] [data-table-plus-action="column"]`,
+	`[data-col-number="${cellIndex - 1}"] [data-table-plus-action="column"]`,
+	`[data-row-number="${rowIndex}"] [data-table-plus-menu="row"]`,
+	`[data-row-number="${rowIndex}"] [data-table-plus-action="row"]`,
+	`[data-row-number="${rowIndex + 1}"] [data-table-plus-action="row"]`,
+];
 
-	&::after {
-		content: "";
-		position: absolute;
-		top: 0;
-		right: 0;
-		width: 0;
-		height: 0;
-		border-left: 4px solid transparent;
-	}
+const getVisibleControls = (container: HTMLElement, cellIndex: number, rowIndex: number) => {
+	const controls = getVisibleControlSelectors(cellIndex, rowIndex).flatMap((selector) =>
+		Array.from(container.querySelectorAll<HTMLElement>(selector)),
+	);
 
-	&:hover {
-		border-bottom: 4px solid var(--color-article-text);
-		border-right: 4px solid var(--color-article-text);
-	}
-`;
+	return Array.from(new Set(controls));
+};
 
 const TableHelper = (props: TableHelperProps) => {
-	const { tableRef, hoverElementRef, children, node, pos, editor, disabledWrapper, sorted } = props;
+	const { tableRef, hoverElementRef, children, node, pos, editor, sorted, StickyTableWrapperComponent, tableSheet } =
+		props;
 
 	const [isHovered, setIsHovered] = useState(false);
 
-	const hoveredData = useRef<HoveredData>(null);
+	const rafId = useRef<number>(null);
+	const lastEvent = useRef<ReactMouseEvent | null>(null);
+	const hoverControlsRef = useRef<HTMLDivElement>(null);
+	const visibleControlsRef = useRef<HTMLElement[]>([]);
+	const hoveredData = useRef({ cellIndex: -1, rowIndex: -1 });
 
-	const tableSheet = useMemo(() => TableNodeSheet.createFromProseMirrorNode(node, pos), [node, pos]);
+	const setHoveredData = useCallback((cellIndex: number, rowIndex: number) => {
+		if (hoveredData.current.cellIndex === cellIndex && hoveredData.current.rowIndex === rowIndex) return;
 
-	const commonParent = tableRef.current?.parentElement?.parentElement;
+		hoveredData.current = { cellIndex, rowIndex };
+
+		const hoverControls = hoverControlsRef.current;
+		if (!hoverControls) return;
+
+		visibleControlsRef.current.forEach((control) => control.classList.add(HOVERED_CONTROL_CLASS_TO_REMOVE));
+		visibleControlsRef.current = [];
+
+		if (cellIndex === -1 || rowIndex === -1) {
+			return;
+		}
+
+		const nextVisibleControls = getVisibleControls(hoverControls, cellIndex, rowIndex);
+		nextVisibleControls.forEach((control) => control.classList.remove(HOVERED_CONTROL_CLASS_TO_REMOVE));
+		visibleControlsRef.current = nextVisibleControls;
+	}, []);
 
 	const hideControls = useCallback(() => {
-		const containerHorizontal = commonParent?.querySelector(".controls-container-horizontal");
-		const containerVertical = commonParent?.querySelector(".controls-container-vertical");
-
-		if (hoveredData.current) hideOldControls(containerVertical, containerHorizontal, { ...hoveredData.current });
-		hoveredData.current = null;
-	}, [commonParent]);
-
+		setHoveredData(-1, -1);
+	}, [setHoveredData]);
 	const { tableSizes } = useTableSizes(tableRef, hideControls);
 
 	const onMouseMove = useCallback(
 		(event: ReactMouseEvent) => {
-			const { cellIndex, rowIndex } = getHoveredData(event, commonParent);
-			if (cellIndex === -1 || rowIndex === -1) return;
+			lastEvent.current = event;
+			if (rafId.current !== null) return;
 
-			if (hoveredData.current?.cellIndex === cellIndex && hoveredData.current?.rowIndex === rowIndex) return;
+			rafId.current = requestAnimationFrame(() => {
+				rafId.current = null;
+				const e = lastEvent.current;
+				if (!e) return;
 
-			const containerHorizontal = commonParent?.querySelector(
-				":scope > .table-actions .controls-container-horizontal",
-			);
-			const containerVertical = commonParent?.querySelector(
-				":scope > .table-actions .controls-container-vertical",
-			);
+				const { cellIndex, rowIndex } = getHoveredData(e, tableRef.current);
+				if (cellIndex === -1 || rowIndex === -1) return;
 
-			hideControls();
-			showNewControls(containerVertical, containerHorizontal, Math.min(rowIndex, node.childCount - 1), cellIndex);
-
-			hoveredData.current = { rowIndex, cellIndex };
+				setHoveredData(cellIndex, rowIndex);
+			});
 		},
-		[commonParent, node.childCount, hideControls],
+		[tableRef.current, setHoveredData],
+	);
+
+	useEffect(
+		() => () => {
+			if (rafId.current !== null) cancelAnimationFrame(rafId.current);
+			rafId.current = null;
+			lastEvent.current = null;
+			hideControls();
+		},
+		[hideControls],
 	);
 
 	const selectNode = useCallback(() => {
 		editor.commands.setNodeSelection(pos);
 	}, [pos, editor]);
+	const selectAllStyle = {
+		"--table-helpers-top": HELPERS_TOP,
+		"--table-helpers-left": HELPERS_LEFT,
+	} as CSSProperties;
 
 	const WrapperChildren = (
 		<>
 			{children}
 			{isHovered && (
-				<Tooltip content={t("select-table")} delay={[1000, 0]}>
-					<TriangleButtonContainer data-table-select-all-container>
-						<TriangleButton
+				<div
+					className="pointer-events-none absolute left-[var(--table-helpers-left)] top-[var(--table-helpers-top)] z-[1]"
+					data-table-select-all-container
+					style={selectAllStyle}
+				>
+					<Tooltip content={t("select-table")} delay={[1000, 0]}>
+						<div
+							className="relative z-[var(--z-index-base)] cursor-pointer border-b-4 border-l-4 border-r-4 border-t-4 border-b-[var(--color-line)] border-l-transparent border-r-[var(--color-line)] border-t-transparent pointer-events-auto after:absolute after:right-0 after:top-0 after:h-0 after:w-0 after:border-l-4 after:border-l-transparent after:content-[''] hover:border-b-[var(--color-article-text)] hover:border-r-[var(--color-article-text)]"
 							contentEditable={false}
 							data-qa="table-select-all"
 							data-testid="table-select-all"
 							onClick={selectNode}
 						/>
-					</TriangleButtonContainer>
-				</Tooltip>
+					</Tooltip>
+				</div>
 			)}
 			<TablePlusActions
 				editor={editor}
+				hideControls={hideControls}
 				isHovered={isHovered}
 				node={node}
 				pos={pos}
@@ -155,10 +173,8 @@ const TableHelper = (props: TableHelperProps) => {
 			isHovered={isHovered}
 			setIsHovered={setIsHovered}
 		>
-			<div onMouseMove={onMouseMove}>
-				<StickyTableWrapper disableWrapper={disabledWrapper} tableRef={tableRef}>
-					{WrapperChildren}
-				</StickyTableWrapper>
+			<div onMouseMove={onMouseMove} ref={hoverControlsRef}>
+				<StickyTableWrapperComponent>{WrapperChildren}</StickyTableWrapperComponent>
 			</div>
 		</HoverableActions>
 	);

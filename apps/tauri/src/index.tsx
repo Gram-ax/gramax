@@ -5,8 +5,8 @@ import "../../../core/styles/main.css";
 // biome-ignore lint/style/noRestrictedImports: idc
 import styled from "@emotion/styled";
 import { createRoot } from "react-dom/client";
-import App from "../../browser/src/App";
-import * as debug from "../../browser/src/debug";
+import App from "../../web/src/App";
+import * as debug from "../../web/src/debug";
 import subscribeEvents from "./events";
 import ForwardBackward from "./ForwardBackward";
 import UpdateChecker from "./update/UpdateChecker";

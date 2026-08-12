@@ -1,11 +1,11 @@
 import { env } from "@app/resolveModule/env";
 import useWatch from "@core-ui/hooks/useWatch";
+import { getCachedSetting } from "@ext/settings/logic/cachedSettingsStore";
+import { markUpdateCheck, shouldAutoCheckUpdates } from "@ext/settings/logic/updateCheckPolicy";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { updateCheck, updateInstall } from "../window/commands";
-
-const LAST_UPDATE_CHECK_KEY = "last-update-check";
-const SHORT_UPDATE_CHECK_INTERVAL = 1000 * 60 * 15; // 15 minutes, useful when user opens a new window
+import { createUpdateEventsChannel, UpdateAcceptance } from "./updateEvents";
 
 export type UpdateIncoming = {
 	version: string;
@@ -34,6 +34,7 @@ export type UpdaterErrorCode =
 	| "url"
 	| "reqwest"
 	| "tauri"
+	| "run-from-dmg"
 	| "updater";
 
 export type UpdateErrorInner = {
@@ -65,13 +66,7 @@ export type UpdateState =
 	| { state: UpdateStatus.Ready; info: Record<string, never> }
 	| { state: UpdateStatus.Error; info: UpdateError };
 
-export enum UpdateAcceptance {
-	None,
-	Accepted,
-	Declined,
-}
-
-const broadcast = new BroadcastChannel("update-events");
+const broadcast = createUpdateEventsChannel();
 
 const INSTALLED_TOAST_DURATION = 2500;
 
@@ -154,10 +149,12 @@ const useUpdateChecker = () => {
 			}
 		});
 
-		const lastCheck = Date.now() - Number(window.sessionStorage.getItem(LAST_UPDATE_CHECK_KEY) ?? 0);
-		if (lastCheck > SHORT_UPDATE_CHECK_INTERVAL && window.navigator.onLine) {
+		// Synchronous read: the zustand persist cache hydrates from localStorage at
+		// store creation, so by mount time this is either the cached value or the
+		// schema default (every-launch).
+		if (shouldAutoCheckUpdates(getCachedSetting("updates.check-frequency")) && window.navigator.onLine) {
 			void updateCheck(false);
-			window.sessionStorage.setItem(LAST_UPDATE_CHECK_KEY, Date.now().toString());
+			markUpdateCheck();
 		}
 
 		const maybeInstalled = env("UPDATE_INSTALLED");
@@ -181,10 +178,6 @@ const useUpdateChecker = () => {
 	const dismissInstalled = useCallback(() => setInstalled(false), []);
 
 	return { state, resetUpdate, acceptance, install, accept, decline, installed, dismissInstalled };
-};
-
-export const resetLastUpdateCheck = () => {
-	window.sessionStorage.removeItem(LAST_UPDATE_CHECK_KEY);
 };
 
 export default useUpdateChecker;

@@ -1,6 +1,7 @@
 import parseStorageUrl from "@core/utils/parseStorageUrl";
 import { isExternalLink } from "@core-ui/hooks/useExternalLink";
 import { getHref } from "@ext/markdown/elements/link/edit/logic/getHref";
+import { getLinkMarks } from "@ext/markdown/elements/link/edit/logic/getLinkMarks";
 import { getLinkToHeading } from "@ext/markdown/elements/link/edit/logic/getLinkToHeading";
 import { getMarkEndPos } from "@ext/markdown/elementsUtils/getMarkEndPos";
 import { getMarkStartPos } from "@ext/markdown/elementsUtils/getMarkStartPos";
@@ -29,20 +30,7 @@ export const useLinkMenuState = (editor: Editor) => {
 	const markRef = useRef<Mark>(null);
 	const posRef = useRef<{ from: number; to: number }>(null);
 
-	const getMark = useCallback(
-		(pos: number) => {
-			const currentPos = editor.state.doc.resolve(pos);
-			const prevPos = editor.state.doc.resolve(pos - 1);
-			const nextPos = editor.state.doc.resolve(pos + 1);
-
-			const nextMarkIsLink = nextPos.marks().find((mark) => mark.type.name === "link");
-			const beforeMarkIsLink = prevPos.marks().find((mark) => mark.type.name === "link");
-			const currentMarkIsLink = currentPos.marks().find((mark) => mark.type.name === "link");
-
-			return { after: nextMarkIsLink, before: beforeMarkIsLink, current: currentMarkIsLink };
-		},
-		[editor],
-	);
+	const getMark = useCallback((pos: number) => getLinkMarks(editor.state.doc, pos), [editor]);
 
 	const updateMarkState = useCallback(() => {
 		const { from, empty } = editor.state.selection;
@@ -115,13 +103,17 @@ export const useLinkMenuState = (editor: Editor) => {
 	const onUpdate = useCallback(
 		// biome-ignore lint/suspicious/noExplicitAny: access readonly attributes
 		(relativePath: string, newHref: string, mark: any) => {
-			const from = posRef.current?.from;
-			const to = posRef.current?.to;
+			const innerFrom = posRef.current?.from;
+			const innerTo = posRef.current?.to;
+			if (innerFrom == null || innerTo == null) return;
+
+			const from = innerFrom - 1;
+			const to = innerTo + 1;
 
 			const transaction = editor.state.tr;
 			const text = editor.state.doc.textBetween(from, to, undefined, " ");
 
-			transaction.removeMark(from, to, mark);
+			transaction.removeMark(from, to, mark.type);
 
 			const parsedUrl = parseStorageUrl(newHref);
 			const isArticle = parsedUrl.domain && parsedUrl.domain !== "...";
@@ -131,18 +123,18 @@ export const useLinkMenuState = (editor: Editor) => {
 
 			if (isExternal && textIsLink) transaction.deleteRange(from, to);
 
-			mark.attrs = {
+			const updatedMark = mark.type.create({
 				...mark.attrs,
 				resourcePath: isArticle ? resourcePath : isExternal ? newHref : href,
 				hash,
 				href,
-			};
+			});
 
 			if (isExternal && textIsLink) transaction.insertText(newHref, from);
-			transaction.addMark(from, isExternal && textIsLink ? from + newHref.length : to, mark);
+			transaction.addMark(from, isExternal && textIsLink ? from + newHref.length : to, updatedMark);
 			editor.view.dispatch(transaction);
 
-			setMark(mark);
+			setMark(updatedMark);
 		},
 		[editor],
 	);

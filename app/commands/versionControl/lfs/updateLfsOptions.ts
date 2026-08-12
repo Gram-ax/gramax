@@ -1,5 +1,6 @@
 import { Command } from "@app/types/Command";
 import { ResponseKind } from "@app/types/ResponseKind";
+import Path from "@core/FileProvider/Path/Path";
 import type { LfsOptions } from "@core/GitLfs/options";
 import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import WorkdirRepository from "@ext/git/core/Repository/WorkdirRepository";
@@ -21,8 +22,9 @@ const updateLfsOptions: Command<{ catalogName: string; opts: LfsOptions }, void>
 		);
 
 		if (opts.patterns) {
-			const attributes = await catalog.repo.attributes();
+			const attributes = await catalog.repo.attributes(catalog.getRootCategoryPath());
 			await attributes.setAttrMany(opts.patterns, "filter=lfs").save();
+			await catalog.repo.gvc.add([catalog.getRelativeRootCategoryPath().join(new Path(".gitattributes"))]);
 		}
 
 		if (typeof opts.lazy === "boolean") {

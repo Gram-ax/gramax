@@ -1,6 +1,7 @@
 /** biome-ignore-all lint/correctness/useHookAtTopLevel: hooks are used correctly */
 import Workspace from "@core-ui/ContextServices/Workspace";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
+// biome-ignore lint/style/noRestrictedImports: i am lazy
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import { useQuestionsStore } from "@ext/markdown/elements/question/render/logic/QuestionsProvider";

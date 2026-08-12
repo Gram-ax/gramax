@@ -24,9 +24,12 @@ When("отменяем все изменения", { timeout: config.timeouts.lo
 		await search.clickable("выбрать все").hover();
 		await search.icon("отмена всех изменений").click();
 
+		// The confirm button appends the count only for more than one change ("Откатить" vs
+		// "Откатить (3)"), so the count part is optional. Anchored on both ends to keep the
+		// "Откатить изменения" tooltips out of the match.
 		await this.page()
 			.inner()
-			.getByRole("button", { name: /Откатить .*/ })
+			.getByRole("button", { name: /^Откатить( \(\d+\))?$/ })
 			.click();
 
 		await sleep(1000);

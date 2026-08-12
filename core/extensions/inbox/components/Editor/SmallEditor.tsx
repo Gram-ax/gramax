@@ -82,6 +82,7 @@ interface SmallEditorProps<T> {
 	extensions?: Extensions;
 	options?: SmallEditorOptions;
 	className?: string;
+	disableToolbar?: boolean;
 	inlineToolbarButtons?: InlineToolbarButtons;
 	updateCallback?: (id: string, content: JSONContent, title: string) => void;
 }
@@ -107,14 +108,17 @@ const SmallEditor = <T extends MiniProps<unknown>>(proprs: SmallEditorProps<T>) 
 		options,
 		className,
 		inlineToolbarButtons = editorButtons,
+		disableToolbar = false,
 	} = proprs;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const resourceService = ResourceService.value;
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	const newApiUrlCreator = useMemo(() => {
 		return ApiUrlCreator.createFrom(apiUrlCreator, id, articleType);
 	}, [apiUrlCreator, id, articleType]);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	const updateContent = useCallback(
 		async (content: JSONContent, title: string) => {
 			const url = apiUrlCreator.updateFileInGramaxDir(id, articleType);
@@ -158,6 +162,7 @@ const SmallEditor = <T extends MiniProps<unknown>>(proprs: SmallEditorProps<T>) 
 
 	const { onDeleteNodes } = useContentEditorHooks();
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	const onDeleteMarks = useCallback(
 		(marks: Mark[]): void => {
 			if (!resourceService?.id) return;
@@ -166,6 +171,7 @@ const SmallEditor = <T extends MiniProps<unknown>>(proprs: SmallEditorProps<T>) 
 		[resourceService],
 	);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	const handlePaste = useCallback(
 		(view: EditorView, event: ClipboardEvent) => {
 			if (!resourceService?.id) return false;
@@ -221,7 +227,7 @@ const SmallEditor = <T extends MiniProps<unknown>>(proprs: SmallEditorProps<T>) 
 						<ArticleMat editor={editor} />
 					</div>
 				</div>
-				{editor && <SmallEditorToolbar editor={editor} {...options?.menuProps} />}
+				{editor && !disableToolbar && <SmallEditorToolbar editor={editor} {...options?.menuProps} />}
 			</SmallEditorWrapper>
 		</ApiUrlCreatorService.Provider>
 	);

@@ -158,7 +158,7 @@ export default Link.extend({
 		const plugins = [];
 
 		plugins.push(linkPastePlugin(this.editor));
-		plugins.push(hoverTooltip(this.editor, this.options.apiUrlCreator, this.options.pageDataContext));
+		plugins.push(hoverTooltip(this.editor));
 		plugins.push(syncLinkText({ type: this.type }));
 
 		return plugins;

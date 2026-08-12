@@ -1,4 +1,5 @@
 import type Path from "@core/FileProvider/Path/Path";
+import type { CatalogAliases } from "@core/FileStructue/Alias/CatalogAliases";
 import type { Article } from "@core/FileStructue/Article/Article";
 import type BaseCatalog from "@core/FileStructue/Catalog/BaseCatalog";
 import type { ArticleFilter, Catalog } from "@core/FileStructue/Catalog/Catalog";
@@ -7,6 +8,7 @@ import type { Category } from "@core/FileStructue/Category/Category";
 import type { Item, ItemProps } from "@core/FileStructue/Item/Item";
 import type { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import type PathnameData from "@core/RouterPath/model/PathnameData";
+import type AgentResourcesProvider from "@ext/agent/prompts/agentResourcesProvider";
 import type PromptProvider from "@ext/ai/logic/PromptProvider";
 import type CatalogViewProvider from "@ext/catalog/views/logic/CatalogViewProvider";
 import type Repository from "@ext/git/core/Repository/Repository";
@@ -26,6 +28,7 @@ export interface ReadonlyCatalog<P extends CatalogProps = CatalogProps> extends 
 		inboxProvider: InboxProvider;
 		templateProvider: TemplateProvider;
 		promptProvider: PromptProvider;
+		agentResourcesProvider: AgentResourcesProvider;
 		fragmentProvider: FragmentProvider;
 		iconProvider: IconProvider;
 		linksProvider: CatalogLinksProvider;
@@ -49,6 +52,8 @@ export interface ReadonlyCatalog<P extends CatalogProps = CatalogProps> extends 
 	findArticleByItemRef(itemRef: ItemRef): Article;
 	findCategoryByItemRef(itemRef: ItemRef): Category;
 	findArticle(logicPath: string, filters: ArticleFilter[], root?: Category<P>): Article;
+
+	get aliases(): CatalogAliases;
 
 	getNeededPermission(): IPermission;
 

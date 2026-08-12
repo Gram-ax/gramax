@@ -1,9 +1,7 @@
-// biome-ignore lint/style/noRestrictedImports: TODO:
-import styled from "@emotion/styled";
 import { useSettings } from "@ext/enterprise/components/admin/contexts/SettingsContext";
 import { useTabGuard } from "@ext/enterprise/components/admin/hooks/useTabGuard";
 import { StyleGuideRules } from "@ext/enterprise/components/admin/settings/styleGuide/components/table/StyleGuideRules";
-import { TitleComponent } from "@ext/enterprise/components/admin/settings/styleGuide/components/title/TitleComponent";
+import { useStyleGuideHeader } from "@ext/enterprise/components/admin/settings/styleGuide/components/title/useStyleGuideHeader";
 import {
 	StyleGuideContextProviders,
 	type StyleGuideDataContextValue,
@@ -12,6 +10,9 @@ import {
 } from "@ext/enterprise/components/admin/settings/styleGuide/helpers/StyleGuideContext";
 import { useTestManager } from "@ext/enterprise/components/admin/settings/styleGuide/helpers/useTestManager";
 import { TabErrorBlock } from "@ext/enterprise/components/admin/ui-kit/TabErrorBlock";
+import { TabInitialLoader } from "@ext/enterprise/components/admin/ui-kit/TabInitialLoader";
+import { toGesErrorCode } from "@ext/enterprise/errors/GesError";
+import { getSaveErrorText } from "@ext/enterprise/errors/getGesErrorText";
 import { Page } from "@ext/enterprise/types/Page";
 import t from "@ext/localization/locale/translate";
 import { Loader } from "@ui-kit/Loader";
@@ -29,9 +30,10 @@ export type StyleGuideSettings = {
 const StyleGuideComponent = ({ className }: { className?: string }) => {
 	const {
 		settings,
-		updateStyleGuide,
+		gesUrl,
+		update,
 		checkStyleGuide,
-		ensureStyleGuideLoaded,
+		ensureLoaded,
 		isInitialLoading,
 		isRefreshing,
 		getTabError,
@@ -66,15 +68,15 @@ const StyleGuideComponent = ({ className }: { className?: string }) => {
 			try {
 				const result = await healthcheckStyleGuide();
 				setIsHealthy(result);
-				if (!result) {
-					setError(t("enterprise.admin.check.service-connection-error"));
-				}
+				// if (!result) {
+				// 	setError(t("enterprise.admin.check.service-connection-error"));
+				// }
 			} catch {
 				setIsHealthy(false);
 				setError(t("enterprise.admin.check.service-connection-error"));
 			}
 		};
-		runHealthcheck();
+		void runHealthcheck();
 	}, [healthcheckStyleGuide]);
 
 	const handleRetry = useCallback(async () => {
@@ -85,9 +87,9 @@ const StyleGuideComponent = ({ className }: { className?: string }) => {
 			const result = await healthcheckStyleGuide();
 			setIsHealthy(result);
 
-			if (!result) {
-				setError(t("enterprise.admin.check.service-connection-error"));
-			}
+			// if (!result) {
+			// 	setError(t("enterprise.admin.check.service-connection-error"));
+			// }
 		} catch (_e) {
 			setIsHealthy(false);
 			setError(t("enterprise.admin.check.service-connection-error"));
@@ -119,15 +121,15 @@ const StyleGuideComponent = ({ className }: { className?: string }) => {
 		async (settingsToSave: StyleGuideSettings) => {
 			setIsSaving(true);
 			try {
-				await updateStyleGuide(settingsToSave);
+				await update("styleGuide", settingsToSave);
 				setHasUnsavedChanges(false);
 			} catch (e) {
-				setError(e?.message || t("enterprise.admin.check.save-error"));
+				setError(getSaveErrorText(toGesErrorCode(e), gesUrl));
 			} finally {
 				setIsSaving(false);
 			}
 		},
-		[updateStyleGuide],
+		[update, gesUrl],
 	);
 
 	useTabGuard({
@@ -195,17 +197,26 @@ const StyleGuideComponent = ({ className }: { className?: string }) => {
 		[runningTests, isRunningAllTests, isAnyTestRunning, hasValidTests, testManager],
 	);
 
-	if (isInitialLoading("styleGuide") || isHealthy === null) {
-		return (
-			<div className="flex items-center justify-center h-full">
-				<Loader style={{ transform: "scale(3)" }} />
-			</div>
-		);
-	}
+	useStyleGuideHeader({
+		handleSave,
+		hasRules,
+		isHealthy,
+		isContentUnavailable: isInitialLoading("styleGuide") || isHealthy === null || Boolean(tabError),
+		isModuleEnabled: localSettings.enabled,
+		isUiLocked,
+		localSettings,
+		setLocalSettings,
+		testManager: {
+			isAnyTestRunning,
+			hasValidTests: hasValidTests(),
+			abortAllTests: testManager.abortAllTests,
+			runAllTestsGlobal: testManager.runAllTestsGlobal,
+		},
+	});
 
-	if (tabError) {
-		return <TabErrorBlock message={tabError.message} onRetry={() => ensureStyleGuideLoaded(true)} />;
-	}
+	if (isInitialLoading("styleGuide") || isHealthy === null) return <TabInitialLoader />;
+
+	if (tabError) return <TabErrorBlock code={tabError} onRetry={() => ensureLoaded("styleGuide", true)} />;
 
 	return (
 		<div className={className}>
@@ -214,12 +225,6 @@ const StyleGuideComponent = ({ className }: { className?: string }) => {
 				testValue={testContextValue}
 				uiValue={uiContextValue}
 			>
-				<TitleComponent
-					hasRules={hasRules}
-					isHealthy={isHealthy}
-					isModuleEnabled={localSettings.enabled}
-					isUiLocked={isUiLocked}
-				/>
 				{isInitialLoading("styleGuide") || isRefreshing("styleGuide") ? (
 					<div className="flex items-center justify-center h-[60vh]">
 						<Loader size="xl" />
@@ -234,16 +239,4 @@ const StyleGuideComponent = ({ className }: { className?: string }) => {
 	);
 };
 
-export default styled(StyleGuideComponent)`
-	.abort-test-button .abort-stop {
-		display: none;
-	}
-
-	.abort-test-button:hover .abort-loader {
-		display: none;
-	}
-
-	.abort-test-button:hover .abort-stop {
-		display: inline;
-	}
-`;
+export default StyleGuideComponent;

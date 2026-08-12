@@ -107,7 +107,7 @@ class RouterPathProvider {
 		newPathnameData: PathnameData,
 	): Path {
 		const pathnameData =
-			basePathname instanceof Array || basePathname instanceof Path || typeof basePathname === "string"
+			Array.isArray(basePathname) || basePathname instanceof Path || typeof basePathname === "string"
 				? RouterPathProvider.parsePath(basePathname)
 				: basePathname;
 		return RouterPathProvider.getPathname({ ...pathnameData, ...newPathnameData });
@@ -122,17 +122,23 @@ class RouterPathProvider {
 	}
 
 	private static _getArrayOfStrings(path: string[] | string | Path): string[] {
-		const exclude = ["http:", "https:"];
+		const exclude = ["http:", "https:", "tauri:"];
 
-		const arr =
-			path instanceof Array
-				? path
-				: path
-						.toString()
-						.split("/")
-						.filter((f) => f !== "");
+		const arr = Array.isArray(path)
+			? path
+			: path
+					.toString()
+					.split("/")
+					.filter((f) => f !== "");
 
-		if (exclude.includes(arr[0])) arr[0] = null;
+		if (exclude.includes(arr[0])) {
+			// Desktop (Tauri) hrefs carry the app origin `tauri://localhost/...`; strip the
+			// `localhost` authority together with the scheme so the remaining segments are the
+			// editor pathname (matching the web/relative form). Web `localhost:<port>` sources
+			// keep their port and are not affected.
+			if (arr[0] === "tauri:" && arr[1] === "localhost") arr[1] = null;
+			arr[0] = null;
+		}
 		if (exclude.includes(arr[1])) arr[1] = null;
 
 		return arr.filter(Boolean);

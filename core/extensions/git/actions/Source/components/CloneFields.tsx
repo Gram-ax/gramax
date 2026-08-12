@@ -9,13 +9,13 @@ import t from "@ext/localization/locale/translate";
 import type { SelectFormSchemaType } from "@ext/storage/logic/SourceDataProvider/model/SelectSourceFormSchema";
 import { LazySearchSelect, type RenderOptionProps } from "@ui-kit/LazySearchSelect";
 import { TextOverflowTooltip } from "@ui-kit/Tooltip";
-import { useEffect, useRef, useState } from "react";
+import { type DependencyList, useEffect, useRef, useState } from "react";
 import type { ControllerRenderProps, FieldValues, UseFormReturn } from "react-hook-form";
 import type GitSourceData from "../../../core/model/GitSourceData.schema";
 
 interface CloneFieldsProps extends ControllerRenderProps<FieldValues, string> {
 	source: GitSourceData;
-	deps?: any[];
+	deps?: DependencyList;
 	form: UseFormReturn<SelectFormSchemaType>;
 	repositoryFilter?: (repository: CloneListItem) => boolean;
 	gitPaginatedProjectList: GitPaginatedProjectList;
@@ -37,6 +37,7 @@ const CloneFields = (props: CloneFieldsProps) => {
 	const isMobile = useMediaQuery(cssMedia.JSmediumest);
 
 	const [options, setOptions] = useState<Option[]>([]);
+	const [hasError, setHasError] = useState(false);
 	const stateRef = useRef<GitRepsModelState>("notLoaded");
 	const modelRef = useRef<CloneListItem[]>([]);
 
@@ -46,6 +47,7 @@ const CloneFields = (props: CloneFieldsProps) => {
 
 	useEffect(() => {
 		if (!gitPaginatedProjectList) return;
+		setHasError(false);
 		gitPaginatedProjectList.onPagesFetched((model, state) => {
 			stateRef.current = state;
 			modelRef.current = model;
@@ -61,12 +63,13 @@ const CloneFields = (props: CloneFieldsProps) => {
 					})),
 			);
 		});
-		gitPaginatedProjectList.startLoading();
-	}, [gitPaginatedProjectList]);
+		gitPaginatedProjectList.startLoading().catch(() => setHasError(true));
+	}, [gitPaginatedProjectList, repositoryFilter]);
 
 	return (
 		<LazySearchSelect
 			{...rest}
+			disabled={hasError}
 			emptyMessage={
 				stateRef.current === "loading" ? (
 					<div className="flex items-center justify-center gap-2">

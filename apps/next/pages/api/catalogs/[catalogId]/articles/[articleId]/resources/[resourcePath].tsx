@@ -8,7 +8,7 @@ import { TokenValidationMiddleware } from "@core/Api/middleware/TokenValidationM
 import Path from "@core/FileProvider/Path/Path";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ExceptionsResponse from "@ext/publicApi/ExceptionsResponse";
-import { ApplyApiMiddleware } from "apps/next/logic/Api/ApplyMiddleware";
+import { ApplyApiMiddleware } from "../../../../../../../logic/Api/ApplyMiddleware";
 
 export default ApplyApiMiddleware(
 	async function (req: ApiRequest, res: ApiResponse) {

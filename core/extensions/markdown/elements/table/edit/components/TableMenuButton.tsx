@@ -14,7 +14,8 @@ const TableMenuButton = ({ editor }: { editor: Editor }) => {
 			data-testid="tb-table"
 			disabled={isActive ? true : disabled}
 			onClick={() => {
-				if (!readyToPlace(editor.state, "table", [...BlockPlusAndSubNodes, ...ListGroupAndItem])) return false;
+				if (!readyToPlace(editor.state, "table", [...BlockPlusAndSubNodes, ...ListGroupAndItem, "heading"]))
+					return false;
 
 				editor
 					.chain()

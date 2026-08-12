@@ -16,7 +16,7 @@ const useShouldRenderDeleteCatalog = () => {
 		switch (environment) {
 			case "next":
 				return canConfigureWorkspace;
-			case "browser":
+			case "web":
 				return true;
 			case "tauri":
 				return true;

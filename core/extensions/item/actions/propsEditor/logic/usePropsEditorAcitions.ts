@@ -27,9 +27,11 @@ export interface UsePropsEditorActionsParams {
 
 export interface PropsEditorData {
 	title: string;
+	description: string;
 	fileName: string;
 	quiz?: QuizSettings;
 	searchPhrases?: string[];
+	aliases?: string[];
 }
 
 export const usePropsEditorActions = (params: UsePropsEditorActionsParams) => {
@@ -69,12 +71,17 @@ export const usePropsEditorActions = (params: UsePropsEditorActionsParams) => {
 
 	const submit = useCallback(
 		async (data: PropsEditorData) => {
+			const existingAliases = new Map<string, string | { path: string; moved?: string }>(
+				(item.aliases ?? []).map((a) => [typeof a === "string" ? a : a.path, a]),
+			);
 			const newProps: ClientArticleProps = {
 				...item,
 				title: data.title,
 				fileName: data.fileName,
 				quiz: data.quiz,
 				searchPhrases: data.searchPhrases,
+				description: data.description,
+				aliases: (data.aliases ?? []).map((path) => existingAliases.get(path) ?? path),
 			} as ClientArticleProps;
 
 			const response = await FetchService.fetch(

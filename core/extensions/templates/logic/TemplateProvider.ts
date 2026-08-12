@@ -68,7 +68,7 @@ export default class TemplateProvider extends ArticleProvider {
 
 		const markdown = await formatter.render(editTree, context);
 		await article.updateContent(markdown);
-		await article.parsedContent.write(() => parser.parse(article.content, context));
+		await article.parsedContent.write(() => parser.parse(markdown, context));
 	}
 
 	public getProperties(id: ItemID): Property[] {

@@ -1,13 +1,16 @@
+import { stripMarkup } from "@components/Atoms/RichText/parseRichText";
 import type {
 	QuizAnswerCreate,
 	QuizTestCreate,
 } from "@ext/enterprise/components/admin/settings/quiz/types/QuizComponentTypes";
+import { EnterpriseErrorCode } from "@ext/enterprise/errors/getEnterpriseErrors";
 import type UserSettings from "@ext/enterprise/types/UserSettings";
 import type { EnterpriseWorkspaceConfig } from "@ext/enterprise/types/UserSettings";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import t from "@ext/localization/locale/translate";
 import type UserInfo from "@ext/security/logic/User/UserInfo";
 import type { CheckChunk, CheckSuggestion } from "@ics/gx-vector-search";
+import type { AccessTokenItem } from "../enterpriseCommon/components/accessTokens/types/AccessTokensComponentTypes";
 import { EnterpriseAuthResult } from "./types/EnterpriseAuthResult";
 
 export type ResponseError = {
@@ -22,7 +25,7 @@ class EnterpriseApi {
 		try {
 			if (!this._gesUrl.includes("http")) return false;
 
-			const signal = AbortSignal.timeout(5000);
+			const signal = AbortSignal.timeout(10000);
 
 			try {
 				const res = await fetch(`${this._gesUrl}/enterprise/health-hwREfnmK`, { signal });
@@ -57,13 +60,15 @@ class EnterpriseApi {
 				catalogsPermissions?: {
 					resourceId: string;
 					permissions: string[];
-					props: { branches?: string[]; mainBranch: string };
+					props: { branches?: string[]; mainBranch: string; mainBranchProtected: boolean };
 				}[];
 			};
 
 			const catalogsPermissions = data.catalogsPermissions;
 			const newCatalogsPermissions: { [catalogName: string]: string[] } = {};
-			const newCatalogsProps: { [catalogName: string]: { branches?: string[]; mainBranch: string } } = {};
+			const newCatalogsProps: {
+				[catalogName: string]: { branches?: string[]; mainBranch: string; mainBranchProtected: boolean };
+			} = {};
 			catalogsPermissions.forEach(({ resourceId, permissions, props }) => {
 				const split = resourceId.split("/");
 				const catalogName = split.pop();
@@ -91,7 +96,7 @@ class EnterpriseApi {
 	}
 
 	async getUsers(search: string, token: string): Promise<{ name: string; email: string }[]> {
-		if (!search || !search.trim()) return [];
+		if (!search?.trim()) return [];
 		const res = await fetch(`${this._gesUrl}/sso/connectors/getUsers`, {
 			method: "POST",
 			headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
@@ -139,13 +144,7 @@ class EnterpriseApi {
 				credentials: "include",
 			});
 		} catch {
-			throw new DefaultError(
-				t("enterprise.logout.error-message"),
-				null,
-				{ showCause: false },
-				false,
-				t("enterprise.logout.error"),
-			);
+			throw this._logoutError();
 		}
 
 		if (res.ok) return;
@@ -155,10 +154,14 @@ class EnterpriseApi {
 			return;
 		}
 
-		throw new DefaultError(
-			t("enterprise.logout.error-message"),
+		throw this._logoutError();
+	}
+
+	private _logoutError() {
+		return new DefaultError(
+			stripMarkup(t("enterprise.logout.error-message").replace("{url}", this._gesUrl)),
 			null,
-			{ showCause: false },
+			{ errorCode: EnterpriseErrorCode.LogoutFailed, showCause: false, url: this._gesUrl },
 			false,
 			t("enterprise.logout.error"),
 		);
@@ -342,6 +345,54 @@ class EnterpriseApi {
 		if (!res.ok) return false;
 
 		return await res.json();
+	}
+
+	async healthcheckAccessTokens(): Promise<boolean> {
+		try {
+			const res = await fetch(`${this._gesUrl}/enterprise/config/access-tokens/health`, {
+				credentials: "include",
+			});
+			return res.status === 204;
+		} catch {
+			return false;
+		}
+	}
+
+	async getAccessTokens(token: string): Promise<AccessTokenItem[]> {
+		const res = await fetch(`${this._gesUrl}/enterprise/config/access-tokens/get`, {
+			headers: { Authorization: `Bearer ${token}` },
+			credentials: "include",
+		});
+
+		if (!res.ok) throw new Error(`Failed to get access tokens: ${res.status}`);
+
+		const data: { tokens: AccessTokenItem[] } = await res.json();
+		return data.tokens;
+	}
+
+	async createAccessToken(token: string, payload: { name: string; expiresAt: string }): Promise<string> {
+		const res = await fetch(`${this._gesUrl}/enterprise/config/access-tokens/create`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+			body: JSON.stringify(payload),
+			credentials: "include",
+		});
+
+		if (!res.ok) throw new Error(`Failed to create access token: ${res.status}`);
+
+		const data: { token: string } = await res.json();
+		return data.token;
+	}
+
+	async revokeAccessToken(token: string, id: string): Promise<void> {
+		const res = await fetch(`${this._gesUrl}/enterprise/config/access-tokens/revoke`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+			body: JSON.stringify({ id: String(id) }),
+			credentials: "include",
+		});
+
+		if (!res.ok) throw new Error(`Failed to revoke access token: ${res.status}`);
 	}
 
 	async getQuizTestByUser(token: string, testId: number, userMail: string): Promise<QuizAnswerCreate["answers"]> {

@@ -16,7 +16,9 @@ editorTest.describe("Fragments (serial)", () => {
 			await expect(sharedPage.getByRole("menuitem", { name: "Fragments" })).toBeVisible();
 			await sharedPage.getByRole("menuitem", { name: "Fragments" }).click();
 			await sharedPage.getByRole("button", { name: "New fragment" }).click();
-			await sharedPage.getByText("Untitled").first().click();
+			const fragmentsTab = sharedPage.locator("[data-qa='fragments-tab']");
+			await expect(fragmentsTab).toBeVisible();
+			await fragmentsTab.getByText("Untitled").first().click();
 		});
 
 		await editorTest.step("fill fragment", async () => {
@@ -31,6 +33,7 @@ editorTest.describe("Fragments (serial)", () => {
 
 		await editor.forceSave();
 		await sleep(1000);
+		await expect(sharedPage.getByText("Test Fragment")).toHaveCount(2);
 	});
 
 	editorTest("insert fragment into article", async ({ editor, sharedPage }) => {

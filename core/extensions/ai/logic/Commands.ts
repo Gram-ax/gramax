@@ -38,6 +38,7 @@ export const prettify =
 			.then((html) => {
 				editor
 					.chain()
+					.focus()
 					.setMeta("removeDecoration", true)
 					.deleteRange({ from, to })
 					.insertContentAt(from, html, getInsertContentOptions())
@@ -77,6 +78,7 @@ export const generate =
 			.then((html) => {
 				editor
 					.chain()
+					.focus()
 					.setMeta("removeDecoration", true)
 					.deleteRange({ from, to })
 					.insertContentAt(from, html, getInsertContentOptions())
@@ -128,6 +130,7 @@ export const transcribe =
 			.then((text) => {
 				editor
 					.chain()
+					.focus()
 					.setMeta("removeDecoration", true)
 					.deleteRange({ from, to })
 					.insertContentAt(from, text, getInsertContentOptions())

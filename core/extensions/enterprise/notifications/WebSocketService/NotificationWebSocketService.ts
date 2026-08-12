@@ -1,4 +1,4 @@
-import { span } from "@ext/loggers/opentelemetry";
+import { addEvent, Level } from "@ext/loggers/opentelemetry";
 import { WebSocketClient, WebSocketMessageType } from "./WebSocketService";
 
 enum NotificationMessageType {
@@ -32,15 +32,15 @@ export class NotificationWebSocketService extends WebSocketClient<WebSocketMessa
 
 	private readonly _messageHandlers: Record<AnyMessageType, MessageHandler> = {
 		[WebSocketMessageType.ConnectionEstablished]: () => {
-			span()?.addEvent("connectionEstablished");
-			this.emit("connect", {});
+			addEvent("connectionEstablished", Level.Important);
+			this._emit("connect", {});
 		},
 		[NotificationMessageType.ArticleNotification]: (data) => {
-			span()?.addEvent("notificationReceived", {
+			addEvent("notificationReceived", Level.Internal, {
 				notificationId: String(data.notificationId ?? ""),
 				articleTitle: String(data.articleTitle ?? ""),
 			});
-			this.emit("notification", data);
+			this._emit("notification", data);
 		},
 	};
 
@@ -50,14 +50,14 @@ export class NotificationWebSocketService extends WebSocketClient<WebSocketMessa
 		const wsUrl = gesUrl.replace(/^http/, "ws");
 		const url = `${wsUrl}/enterprise/ws/notifications`;
 
-		this.connectToUrl(url);
+		this._connectToUrl(url);
 	}
 
-	protected onConnected(): void {
-		this.sendRaw({ type: "auth", token: this._token });
+	protected _onConnected(): void {
+		this._sendRaw({ type: "auth", token: this._token });
 	}
 
-	protected handleMessage(data: WebSocketMessage): void {
+	protected _handleMessage(data: WebSocketMessage): void {
 		this._messageHandlers[data.type]?.(data);
 	}
 }

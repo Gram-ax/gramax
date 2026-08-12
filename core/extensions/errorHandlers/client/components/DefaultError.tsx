@@ -7,7 +7,7 @@ import { DialogBody, DialogFooterTemplate } from "@ui-kit/Dialog";
 import type { ComponentProps } from "react";
 import type GetErrorComponent from "../../logic/GetErrorComponent";
 
-export const getIcon = (error: DefaultError) => {
+export const getIcon = (error: Pick<DefaultError, "icon" | "isWarning">) => {
 	return error.isWarning
 		? { code: error.icon || "alert-circle", color: "var(--color-admonition-note-br-h)" }
 		: { code: error.icon || "circle-x", color: "var(--color-danger)" };

@@ -1,5 +1,4 @@
-/** biome-ignore-all lint/complexity/noStaticOnlyClass: expected */
-import LanguageService from "@core-ui/ContextServices/Language";
+import { getCachedSetting } from "@ext/settings/logic/cachedSettingsStore";
 import type { DateRange } from "react-day-picker";
 
 export type DateType = string | number | Date;
@@ -11,12 +10,12 @@ export enum DatePreset {
 	AllTime = "all-time",
 }
 
-export default abstract class DateUtils {
-	static getDatePresets() {
+const DateUtils = {
+	getDatePresets() {
 		return Object.values(DatePreset);
-	}
+	},
 
-	static getDatePresetRange(preset: DatePreset) {
+	getDatePresetRange(preset: DatePreset) {
 		const now = new Date();
 		now.setHours(0, 0, 0, 0);
 		if (preset === DatePreset.Today) {
@@ -39,9 +38,9 @@ export default abstract class DateUtils {
 			return { from, to };
 		}
 		return { from: null, to: null };
-	}
+	},
 
-	static detectPreset(range: DateRange) {
+	detectPreset(range: DateRange) {
 		if (!range?.from && !range?.to) return DatePreset.AllTime;
 		if (!range?.from || !range?.to) return;
 		const from = new Date(range.from);
@@ -55,10 +54,10 @@ export default abstract class DateUtils {
 		if (toIsToday && from.getTime() === now.getTime()) return DatePreset.Today;
 		if (toIsToday && diffDays === 6) return DatePreset.Week;
 		if (toIsToday && diffDays === 29) return DatePreset.Month;
-	}
+	},
 
-	static getDateViewModel(date: DateType): string {
-		const lang = LanguageService.currentUi();
+	getDateViewModel(date: DateType): string {
+		const lang = getCachedSetting("general.language");
 		const dateObj = !(date instanceof Date) ? new Date(date) : date;
 		return dateObj.toLocaleDateString(lang, {
 			year: "numeric",
@@ -67,10 +66,10 @@ export default abstract class DateUtils {
 			hour: "numeric",
 			minute: "numeric",
 		});
-	}
+	},
 
-	static getRelativeDateTime(date: DateType) {
-		const lang = LanguageService.currentUi();
+	getRelativeDateTime(date: DateType) {
+		const lang = getCachedSetting("general.language");
 		const rtf = new Intl.RelativeTimeFormat(lang, { numeric: "auto" });
 
 		const dateObj = !(date instanceof Date) ? new Date(date) : date;
@@ -110,9 +109,9 @@ export default abstract class DateUtils {
 		}
 
 		return new Intl.DateTimeFormat(lang).format(dateObj);
-	}
+	},
 
-	static sort(dateA: DateType, dateB: DateType) {
+	sort(dateA: DateType, dateB: DateType) {
 		if (dateA && dateB) {
 			return new Date(dateB).getTime() - new Date(dateA).getTime();
 		}
@@ -121,5 +120,7 @@ export default abstract class DateUtils {
 		if (dateA && !dateB) return -1;
 
 		return 0;
-	}
-}
+	},
+};
+
+export default DateUtils;

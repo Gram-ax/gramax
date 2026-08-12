@@ -1,12 +1,19 @@
-import { useStyleGuideData } from "@ext/enterprise/components/admin/settings/styleGuide/helpers/StyleGuideContext";
+import type { StyleGuideSettings } from "@ext/enterprise/components/admin/settings/styleGuide/StyleGuideComponent";
 import { generateGuid } from "@ext/enterprise/components/admin/settings/styleGuide/utils/generateGuid";
 import t from "@ext/localization/locale/translate";
 import { IconButton } from "@ui-kit/Button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
-import { useRef } from "react";
+import { type Dispatch, type SetStateAction, useRef } from "react";
 
-export const StyleGuideComponentImportButton = () => {
-	const { setLocalSettings, handleSave } = useStyleGuideData();
+interface StyleGuideComponentImportButtonProps {
+	setLocalSettings: Dispatch<SetStateAction<StyleGuideSettings>>;
+	handleSave: (updatedSettings: StyleGuideSettings) => Promise<void>;
+}
+
+export const StyleGuideComponentImportButton = ({
+	setLocalSettings,
+	handleSave,
+}: StyleGuideComponentImportButtonProps) => {
 	const inputRef = useRef<HTMLInputElement>(null);
 
 	const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -39,7 +46,7 @@ export const StyleGuideComponentImportButton = () => {
 						lgt: { rules: lgtRules },
 						llm: { rules: llmRules },
 					};
-					handleSave(updated);
+					void handleSave(updated);
 					return updated;
 				});
 			}
@@ -55,7 +62,9 @@ export const StyleGuideComponentImportButton = () => {
 				<TooltipTrigger asChild>
 					<IconButton icon="upload" variant="outline" />
 				</TooltipTrigger>
-				<TooltipContent>{t("enterprise.admin.check.import-rules")}</TooltipContent>
+				<TooltipContent className="font-sans font-normal">
+					{t("enterprise.admin.check.import-rules")}
+				</TooltipContent>
 			</Tooltip>
 		</div>
 	);

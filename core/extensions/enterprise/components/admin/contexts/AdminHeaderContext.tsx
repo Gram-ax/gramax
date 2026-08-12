@@ -1,13 +1,58 @@
-import { createContext, type RefObject, useContext } from "react";
+import type { AlertMessageState } from "@ext/enterprise/components/admin/hooks/useAlertMessage";
+import { createContext, type ReactNode, useContext, useMemo } from "react";
 
-interface AdminHeaderContextValue {
-	headerRef: RefObject<HTMLElement>;
+export interface StickyHeaderContent {
+	title: ReactNode;
+	actions?: ReactNode;
+	className?: string;
+	titleClassName?: string;
+	alert?: AlertMessageState;
 }
 
-const AdminHeaderContext = createContext<AdminHeaderContextValue | null>(null);
+type Listener = () => void;
 
-export const AdminHeaderProvider = AdminHeaderContext.Provider;
+interface AdminHeaderStore {
+	subscribe: (listener: Listener) => () => void;
+	getContent: () => StickyHeaderContent | null;
+	publish: (owner: object, content: StickyHeaderContent) => void;
+	clear: (owner: object) => void;
+}
 
-export const useAdminHeader = () => {
-	return useContext(AdminHeaderContext);
+const createAdminHeaderStore = (): AdminHeaderStore => {
+	const listeners = new Set<Listener>();
+	let entry: { owner: object; content: StickyHeaderContent } | null = null;
+
+	const notify = () => listeners.forEach((listener) => listener());
+
+	return {
+		subscribe: (listener) => {
+			listeners.add(listener);
+			return () => {
+				listeners.delete(listener);
+			};
+		},
+		getContent: () => entry?.content ?? null,
+		publish: (owner, content) => {
+			entry = { owner, content };
+			notify();
+		},
+		clear: (owner) => {
+			if (entry?.owner !== owner) return;
+			entry = null;
+			notify();
+		},
+	};
 };
+
+const AdminHeaderContext = createContext<AdminHeaderStore>(null);
+
+interface AdminHeaderProviderProps {
+	children: ReactNode;
+}
+
+export const AdminHeaderProvider = (props: AdminHeaderProviderProps) => {
+	const store = useMemo(createAdminHeaderStore, []);
+	return <AdminHeaderContext.Provider value={store}>{props.children}</AdminHeaderContext.Provider>;
+};
+
+export const useAdminHeaderStore = () => useContext(AdminHeaderContext);

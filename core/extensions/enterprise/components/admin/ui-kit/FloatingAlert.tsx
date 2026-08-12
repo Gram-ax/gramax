@@ -1,3 +1,5 @@
+import RichText from "@components/Atoms/RichText/RichText";
+import t from "@ext/localization/locale/translate";
 import { Alert, AlertDescription, AlertIcon, AlertTitle } from "@ui-kit/Alert";
 
 type Corner = "top-right" | "top-left" | "bottom-right" | "bottom-left";
@@ -19,7 +21,6 @@ const cornerToBase = (corner: Corner) => {
 			return "fixed right-6 bottom-6";
 		case "bottom-left":
 			return "fixed left-6 bottom-6";
-		case "top-right":
 		default:
 			return "fixed right-6 top-24";
 	}
@@ -28,7 +29,7 @@ const cornerToBase = (corner: Corner) => {
 export function FloatingAlert({
 	show,
 	title = "",
-	message = "Ошибка операции",
+	message = t("enterprise.admin.errors.operation-error"),
 	corner = "top-right",
 	offsetClassName,
 	className,
@@ -45,10 +46,12 @@ export function FloatingAlert({
 				className ?? "",
 			].join(" ")}
 		>
-			<Alert focus="medium" status="error">
+			<Alert focus="high" status="error">
 				<AlertIcon icon="alert-circle" />
 				{title && <AlertTitle>{title}</AlertTitle>}
-				<AlertDescription>{message}</AlertDescription>
+				<AlertDescription>
+					<RichText text={message} />
+				</AlertDescription>
 			</Alert>
 		</div>
 	);

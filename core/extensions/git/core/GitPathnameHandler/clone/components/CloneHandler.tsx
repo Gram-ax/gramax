@@ -23,7 +23,7 @@ const CloneHandler = ({ shareData }: { shareData: ShareData }) => {
 	const [clone, setClone] = useState(false);
 	const [isOpen, setIsOpen] = useState(true);
 	const [clonePath, setClonePath] = useState("");
-	const { isBrowser } = usePlatform();
+	const { isWeb } = usePlatform();
 
 	const close = () => {
 		setIsOpen(false);
@@ -56,10 +56,10 @@ const CloneHandler = ({ shareData }: { shareData: ShareData }) => {
 							<AlertDialogIcon icon="alert-circle" />
 							<AlertDialogTitle>{t("git.clone.not-cloned.title")}</AlertDialogTitle>
 							<AlertDialogDescription asChild>
-								<div className="article bg-transparent">
+								<div className="article !bg-transparent">
 									<div className="article-body">
 										<p>{t("git.clone.not-cloned.body")}</p>
-										{isBrowser && (
+										{isWeb && (
 											<p>
 												<a
 													data-testid="open-in-app-link"

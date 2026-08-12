@@ -1,3 +1,4 @@
+import t from "@ext/localization/locale/translate";
 import { createPage, PAGE_CLASS } from "@ext/print/utils/pagination/pageElements";
 import {
 	TOC_PAGE_CLASS,
@@ -62,13 +63,24 @@ function buildItemFirstPageByH1(pages: HTMLElement, items: PrintablePage[]): (nu
 	return firstPage;
 }
 
-function createTocPage(pages, afterend?: HTMLElement): { page: HTMLElement; ul: HTMLUListElement } {
+function normalizeCssString(value: string): string {
+	const trimmed = value.trim();
+	if (!trimmed) return "";
+	return trimmed.replace(/^['"]|['"]$/g, "");
+}
+
+function getTocPageTitle(pages: HTMLElement, fallback: string): string {
+	const cssTitle = normalizeCssString(getComputedStyle(pages).getPropertyValue("--toc-page-title"));
+	return cssTitle || fallback;
+}
+
+function createTocPage(pages, title: string, afterend?: HTMLElement): { page: HTMLElement; ul: HTMLUListElement } {
 	const page = createPage(pages, { prepend: true, afterend, classNames: [PAGE_CLASS, TOC_PAGE_CLASS] });
 
 	if (!afterend) {
 		const h = document.createElement("h1");
 		h.className = TOC_PAGE_HEADER_CLASS;
-		h.textContent = "Оглавление";
+		h.textContent = title;
 		page.appendChild(h);
 	}
 
@@ -85,11 +97,17 @@ function isOverflow(page: HTMLElement, ul: HTMLElement): boolean {
 	return ulBottom > pageBottom - 0.5;
 }
 
-export const initTocPageContent = (pages: HTMLElement, items: PrintablePage[], hasTitlePage: boolean) => {
+export const initTocPageContent = (
+	pages: HTMLElement,
+	items: PrintablePage[],
+	hasTitlePage: boolean,
+	tocPageTitle = t("export.pdf.tocPageTitle"),
+) => {
 	ensurePageIds(pages);
 	const firstPageNumbers = buildItemFirstPageByH1(pages, items);
+	const title = getTocPageTitle(pages, tocPageTitle);
 
-	let { page: curPage, ul: curUl } = createTocPage(pages);
+	let { page: curPage, ul: curUl } = createTocPage(pages, title);
 
 	const tocPages: HTMLElement[] = [curPage];
 	const numberSpans: HTMLSpanElement[] = [];
@@ -136,7 +154,7 @@ export const initTocPageContent = (pages: HTMLElement, items: PrintablePage[], h
 		if (isOverflow(curPage, curUl)) {
 			curUl.removeChild(li);
 
-			const created = createTocPage(pages, curPage.parentElement);
+			const created = createTocPage(pages, title, curPage.parentElement);
 			tocPages.push(created.page);
 
 			curPage = created.page;

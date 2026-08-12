@@ -27,7 +27,6 @@ const CreateCatalog = ({ trigger, className }: { trigger: JSX.Element; className
 
 		const props: CatalogEditProps = {
 			url: uniqueName(NEW_CATALOG_NAME, catalogNames),
-			title: t("catalog.new-name"),
 			syntax: Syntax.xml,
 		};
 
@@ -41,7 +40,7 @@ const CreateCatalog = ({ trigger, className }: { trigger: JSX.Element; className
 		ModalToOpenService.resetValue();
 		if (!response.ok) return;
 		const newCatalogProps = await response.json();
-		router.pushPath("/" + newCatalogProps.link.pathname);
+		router.pushPath(`/${newCatalogProps.link.pathname}`);
 	};
 
 	return (

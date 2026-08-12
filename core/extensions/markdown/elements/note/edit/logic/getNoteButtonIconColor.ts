@@ -3,19 +3,19 @@ import { NoteType } from "@ext/markdown/elements/note/render/component/Note";
 const getIconColor = (noteType: NoteType) => {
 	switch (noteType) {
 		case NoteType.quote:
-			return "var(--color-admonition-dropdown-quote)";
+			return "currentColor";
 		case NoteType.lab:
-			return "var(--color-admonition-dropdown-lab)";
+			return "var(--color-purple-700)";
 		case NoteType.tip:
-			return "var(--color-admonition-dropdown-tip)";
+			return "hsl(var(--status-success))";
 		case NoteType.note:
-			return "var(--color-admonition-dropdown-note)";
+			return "hsl(var(--status-warning))";
 		case NoteType.info:
-			return "var(--color-admonition-dropdown-info)";
+			return "hsl(var(--status-info))";
 		case NoteType.danger:
-			return "var(--color-admonition-dropdown-danger)";
+			return "hsl(var(--status-error))";
 		default:
-			return "var(--color-admonition-hotfixes-br-h)";
+			return "currentColor";
 	}
 };
 

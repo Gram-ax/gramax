@@ -40,7 +40,7 @@ export const parse = (
 };
 
 const isObjects = (objects: string): boolean => {
-	return objects?.length > 3;
+	return typeof objects === "string" && objects?.length > 3 && !objects.endsWith("px");
 };
 
 const transfromToCrop = (crop: string): Crop => {

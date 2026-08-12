@@ -3,6 +3,7 @@ import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import Workspace from "@core-ui/ContextServices/Workspace";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
+import { useIsEnterprise } from "@ext/enterprise/utils/useIsEnterprise";
 import ErrorConfirmService from "@ext/errorHandlers/client/ErrorConfirmService";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import t from "@ext/localization/locale/translate";
@@ -106,14 +107,14 @@ const EditInWebFromDocPortal = ({ pathname, articlePath }: { pathname: string; a
 const editInGramaxComponents = {
 	next: EditInWebFromDocPortal,
 	tauri: EditInWeb,
-	browser: EditInDesktop,
+	web: EditInDesktop,
 };
 
 const EditInGramax = ({ pathname, articlePath }: { pathname: string; articlePath: string }) => {
 	const { environment } = usePlatform();
 	const workspacePath = Workspace.current().path;
 	const { isNext, isStatic, isStaticCli } = usePlatform();
-	const isEnterprise = PageDataContextService.value.conf.enterprise.gesUrl;
+	const isEnterprise = useIsEnterprise();
 
 	const { sourceName, catalogName } = useCatalogPropsStore((state) => ({
 		sourceName: state.data?.sourceName,

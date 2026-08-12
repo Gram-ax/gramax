@@ -1,17 +1,31 @@
 import SourceDataService from "@core-ui/ContextServices/SourceDataService";
+import { useIsEnterprise } from "@ext/enterprise/utils/useIsEnterprise";
 import { DialogErrorHeader } from "@ext/errorHandlers/client/components/DialogErrorHeader";
 import type GetErrorComponent from "@ext/errorHandlers/logic/GetErrorComponent";
 import t from "@ext/localization/locale/translate";
 import useSourceData from "@ext/storage/components/useSourceData";
 import { useOpenRestoreSourceTokenModal } from "@ext/storage/logic/SourceDataProvider/components/useOpenRestoreSourceTokenModal";
 import getStorageNameByData from "@ext/storage/logic/utils/getStorageNameByData";
+import { AlertConfirm } from "@ui-kit/AlertDialog";
 import { DialogBody, DialogFooterTemplate } from "@ui-kit/Dialog";
 import { type ComponentProps, useEffect } from "react";
 
 const InvalidSourceDataError = ({ error, onCancelClick }: ComponentProps<typeof GetErrorComponent>) => {
+	const isEnterprise = useIsEnterprise();
+	if (isEnterprise)
+		return (
+			<AlertConfirm
+				cancelText={t("close")}
+				description={t("forms.clone-repo.errors.connect")}
+				icon="alert-circle"
+				onCancel={onCancelClick}
+				status="error"
+				title={t("forms.add-storage.name2")}
+			/>
+		);
+
 	const sourceDatas = SourceDataService.value;
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useEffect(() => {
 		const sourceIndex = sourceDatas.findIndex((s) => getStorageNameByData(s) === error.props?.sourceName);
 		if (sourceIndex === -1) return;
@@ -31,7 +45,7 @@ const InvalidSourceDataError = ({ error, onCancelClick }: ComponentProps<typeof 
 		<>
 			<DialogErrorHeader error={error} icon="key-round" title={t("storage-not-connected")} />
 			<DialogBody>
-				<div className="article bg-transparent">
+				<div className="article !bg-transparent">
 					<p>{t("git.source.error.invalid-credentials.desc")}</p>
 				</div>
 			</DialogBody>

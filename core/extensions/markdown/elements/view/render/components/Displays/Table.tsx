@@ -1,5 +1,6 @@
 import WidthWrapper from "@components/WidthWrapper/WidthWrapper";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
+// biome-ignore lint/style/noRestrictedImports: maybe fix later
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import BlockCommentView from "@ext/markdown/elements/comment/edit/components/View/BlockCommentView";
@@ -32,7 +33,7 @@ const Table = ({ content, className, groupby, select, commentId }: TableProps) =
 
 	return (
 		<div className={className}>
-			<WidthWrapper>
+			<WidthWrapper tableRef={ref}>
 				<BlockCommentView commentId={commentId}>
 					<table data-focusable="true" ref={ref}>
 						<ColGroup init={{ colCount }} tableRef={ref} />
@@ -40,7 +41,7 @@ const Table = ({ content, className, groupby, select, commentId }: TableProps) =
 							<tr>
 								{groupby?.map((name) => (
 									<th data-colwidth="10em" key={`groupby-${name}`} scope="col">
-										{name}
+										{properties.get(name)?.name || name}
 									</th>
 								))}
 								<th data-colwidth="10em" scope="col">
@@ -52,7 +53,7 @@ const Table = ({ content, className, groupby, select, commentId }: TableProps) =
 										key={name}
 										scope="col"
 									>
-										{name}
+										{properties.get(name)?.name || name}
 									</th>
 								))}
 							</tr>

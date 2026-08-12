@@ -12,6 +12,7 @@ export const video: Schema = {
 	attributes: {
 		path: { type: String },
 		title: { type: String },
+		scale: { type: String },
 	},
 	type: SchemaType.block,
 	transform: (node: Node): RenderableTreeNodes => {

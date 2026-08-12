@@ -4,11 +4,12 @@ import ErrorType from "@ext/errorHandlers/model/ErrorTypes";
 import t from "@ext/localization/locale/translate";
 
 class ParseError extends DefaultError {
-	constructor(cause: Error) {
-		const isBrowser = getExecutingEnvironment() === "browser" || getExecutingEnvironment() === "tauri";
-		const key = isBrowser ? "article.error.parse.browser" : "article.error.parse.default";
-		super(t(key), cause, isBrowser ? { html: true } : undefined);
+	constructor(cause: Error, content: string) {
+		const isWeb = getExecutingEnvironment() === "web" || getExecutingEnvironment() === "tauri";
+		const key = isWeb ? "article.error.parse.web" : "article.error.parse.default";
+		super(t(key), cause, isWeb ? { html: true } : undefined);
 		this.name = "ParseError";
+		this.setProps({ content });
 	}
 
 	get type() {

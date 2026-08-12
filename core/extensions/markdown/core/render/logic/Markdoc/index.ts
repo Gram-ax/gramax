@@ -39,11 +39,14 @@ export function use(plugin: MarkdownIt.PluginWithParams, name: string, ...params
 }
 
 export function parse(content: string | Token[], file?: string): Node {
-	if (typeof content === "string") content = tokenizer.tokenize(content);
-	return parser(content, file);
+	const tokens = typeof content === "string" ? tokenizer.tokenize(content) : content;
+	return parser(tokens, file);
 }
 export function renderMarkdownItHtml(content: string): string {
 	return tokenizer.renderToHtml(content);
+}
+export function renderMarkdownItInlineHtml(content: string): string {
+	return tokenizer.renderToHtmlInline(content);
 }
 
 export function resolve<C extends Config = Config>(content: Node, config: C): Node;

@@ -50,6 +50,8 @@ type CatalogEvents = Event<"update", { catalog: Catalog }> &
 	> &
 	Event<"repository-set", { catalog: Catalog }> &
 	Event<"merge", { catalog: Catalog } & EventArgs<RepositoryEvents, "merge">> &
-	Event<"sync", { catalog: Catalog } & EventArgs<RepositoryEvents, "sync">>;
+	Event<"sync", { catalog: Catalog } & EventArgs<RepositoryEvents, "sync">> &
+	Event<"checkout", { catalog: Catalog } & EventArgs<RepositoryEvents, "checkout">> &
+	Event<"reset", { catalog: Catalog }>;
 
 export default CatalogEvents;

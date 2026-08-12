@@ -43,7 +43,16 @@ class Healthcheck {
 
 	async checkCatalog(): Promise<CatalogErrors> {
 		if (!this._catalog) return {};
-		this._errors = { icons: [], links: [], images: [], diagrams: [], unsupported: [], content: [], comments: [] };
+		this._errors = {
+			icons: [],
+			links: [],
+			images: [],
+			diagrams: [],
+			unsupported: [],
+			content: [],
+			comments: [],
+			aliases: [],
+		};
 		const rp = new RuleProvider(this._catalog.ctx);
 		const ctx = this._catalog.ctx;
 		const filters = rp.getItemFilters();
@@ -104,7 +113,13 @@ class Healthcheck {
 					const fileNamePath = new Path(`${refPath.name}.md`);
 					const directoryPath = refPath.parentDirectoryPath;
 					const filePath = category.ref.path.parentDirectoryPath.join(directoryPath, fileNamePath);
-					if (!(await this._fp.exists(filePath))) {
+					let refExists: boolean;
+					try {
+						refExists = await this._fp.exists(filePath);
+					} catch {
+						refExists = false;
+					}
+					if (!refExists) {
 						this._errors.links.push(
 							this._getRefCatalogError({
 								value: refs[key],
@@ -117,8 +132,31 @@ class Healthcheck {
 				}
 			}
 		}
+		await this._checkAliases();
 		this._catalogContentItems = [];
 		return this._errors;
+	}
+
+	private async _checkAliases(): Promise<void> {
+		const messages = {
+			"self-alias": t("alias-self"),
+			"shadowed-by-real": t("alias-shadowed"),
+			duplicate: t("alias-duplicate"),
+			"broken-moved": t("alias-broken-moved"),
+		} as const;
+		for (const diagnostic of this._catalog.deref?.aliases?.diagnostics() ?? []) {
+			const ownerLogicPath = diagnostic.kind === "duplicate" ? diagnostic.loser : diagnostic.owner;
+			const owner = this._catalog.findArticle(ownerLogicPath, []);
+			this._errors.aliases.push(
+				this._getRefCatalogError({
+					value: `${messages[diagnostic.kind]}: ${this._catalog.deref.relativeLogicPath(diagnostic.path)}`,
+					logicPath: ownerLogicPath,
+					title: owner?.getTitle() ?? new Path(ownerLogicPath).name,
+					editorLink: owner ? await this._getErrorLink(this._catalog, owner) : "",
+					isText: true,
+				}),
+			);
+		}
 	}
 
 	private _getRefCatalogError = (args?: CatalogErrorArgs) => ({
@@ -139,7 +177,13 @@ class Healthcheck {
 
 	private _pathExists = async (item: Article, resource: Path) => {
 		const path = !resource.extension ? resource.join(new Path(CATEGORY_ROOT_FILENAME)) : resource;
-		return await item.parsedContent.read((p) => p.parsedContext.getResourceManager().exists(path));
+		try {
+			return await item.parsedContent.read((p) => p.parsedContext.getResourceManager().exists(path));
+		} catch {
+			// A path that climbs above the catalog root fails the probe with
+			// WouldEscape — report the link as broken instead of aborting (#813).
+			return false;
+		}
 	};
 
 	private _getArticleByResourcePath = async (item: Article, resource: Path): Promise<Article | undefined> => {

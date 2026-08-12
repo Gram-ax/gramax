@@ -1,5 +1,6 @@
 use std::borrow::Cow;
 use std::collections::HashMap;
+use std::collections::HashSet;
 
 use git2::*;
 use serde::Serialize;
@@ -84,6 +85,8 @@ impl<C: Creds> Refs for Repo<'_, C> {
 
 	fn find_refs_by_globs<S: AsRef<str>>(&self, patterns: &[S]) -> Result<Vec<RefInfo>> {
 		let mut refs = HashMap::new();
+		// name -> (came from origin, info)
+		let mut remote_refs: HashMap<String, (bool, RefInfo)> = HashMap::new();
 
 		for pattern in patterns {
 			let pattern = if pattern.as_ref().starts_with("refs/") {
@@ -94,18 +97,55 @@ impl<C: Creds> Refs for Repo<'_, C> {
 
 			for reference in self.0.references_glob(pattern.as_ref())? {
 				let reference = reference?;
-				let refname = reference.name().or_utf8_err()?;
-				if refs.contains_key(refname) {
+				let refname = reference.name().or_utf8_err()?.to_string();
+
+				// A branch that has never been checked out here exists only as refs/remotes/<remote>/<name>
+				// — the shape a fresh clone (and every docportal bare clone) has. It is still a branch of
+				// this repository, so it belongs in the list under its plain name; a local branch of the
+				// same name wins over it below.
+				if reference.is_remote() {
+					let Some(name) = remote_branch_name(&refname).map(|name| name.to_string()) else {
+						continue;
+					};
+					// The same branch name can live in several remotes. read_tree_reference resolves such a
+					// name with origin first, so the winner here has to be origin too — otherwise the list
+					// shows one remote's commit and date while the content is read from another.
+					let is_origin = refname.starts_with("refs/remotes/origin/");
+					if let Some((origin_wins, _)) = remote_refs.get(&name) {
+						if *origin_wins || !is_origin {
+							continue;
+						}
+					}
+					if let Some(ref_info) = remote_branch_info(&reference, &refname, &name) {
+						remote_refs.insert(name, (is_origin, ref_info));
+					}
+					continue;
+				}
+
+				if refs.contains_key(&refname) {
 					continue;
 				}
 
 				if let Some(ref_info) = self.find_reference_pointee_info(&reference)? {
-					refs.insert(refname.to_string(), ref_info);
+					refs.insert(refname, ref_info);
 				}
 			}
 		}
 
+		let local_names = refs
+			.values()
+			.map(|info| match info {
+				RefInfo::Tag { name, .. } | RefInfo::Branch { name, .. } => name.clone(),
+			})
+			.collect::<HashSet<_>>();
+
 		let mut refs = refs.into_values().collect::<Vec<_>>();
+		refs.extend(
+			remote_refs
+				.into_iter()
+				.filter(|(name, _)| !local_names.contains(name))
+				.map(|(_, (_, info))| info),
+		);
 
 		refs.sort_by(|a, b| match (a, b) {
 			(
@@ -177,4 +217,28 @@ impl<C: Creds> Refs for Repo<'_, C> {
 
 		Ok(None)
 	}
+}
+
+/// `refs/remotes/<remote>/<name>` → `<name>`. The remote's own HEAD pointer is not a branch, so it is
+/// filtered out here rather than showing up as a version called `HEAD`.
+fn remote_branch_name(refname: &str) -> Option<&str> {
+	let rest = refname.strip_prefix("refs/remotes/")?;
+	let (_remote, name) = rest.split_once('/')?;
+	if name.is_empty() || name == "HEAD" {
+		return None;
+	}
+	Some(name)
+}
+
+fn remote_branch_info(reference: &Reference, refname: &str, name: &str) -> Option<RefInfo> {
+	let Ok(commit) = reference.peel_to_commit() else {
+		warn!(target: TAG, "tried to peel remote branch {refname} to a commit but failed; skipping");
+		return None;
+	};
+
+	Some(RefInfo::Branch {
+		refname: refname.to_string(),
+		name: name.to_string(),
+		date: Some(commit.time().seconds() * 1000),
+	})
 }

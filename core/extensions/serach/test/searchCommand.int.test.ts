@@ -1,8 +1,8 @@
-import getApp from "@app/browser/app";
 import { createCommands } from "@app/commands";
 import searchCommand from "@app/commands/search/searchCommand";
 import TestContext from "@app/test/TestContext";
 import type Application from "@app/types/Application";
+import getApp from "@app/web/app";
 import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvider";
 import Path from "@core/FileProvider/Path/Path";
 import { ContentLanguage } from "@ext/localization/core/model/Language";

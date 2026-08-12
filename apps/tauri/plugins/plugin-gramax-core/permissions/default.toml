@@ -69,4 +69,8 @@ permissions = [
   "allow-lfs-prune",
   "allow-healthcheck",
   "allow-scan-workspace",
+  "allow-scan-catalog",
+  "allow-watch-workspace",
+  "allow-unwatch-workspace",
+  "allow-has-merge-conflicts",
 ]

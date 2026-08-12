@@ -1,3 +1,4 @@
+import { apiUtils } from "@core/Api/apiUtils";
 import { MainMiddleware } from "@core/Api/middleware/MainMiddleware";
 import type Query from "@core/Api/Query";
 import SEOGenerator from "@ext/seoGenerator/SEOGenerator";
@@ -17,7 +18,7 @@ export default ApplyApiMiddleware(
 			: sg.generateRobots(`${ctx.domain}${basePath}/sitemap.xml`, this.app.conf.disableSeo);
 		res.setHeader("Content-Type", "text/plain");
 		res.setHeader("Access-Control-Allow-Origin", "*");
-		res.send(robots);
+		apiUtils.send(res, robots);
 	},
 	[new MainMiddleware()],
 );

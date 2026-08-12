@@ -8,7 +8,7 @@ import setLanguage from "@app/commands/language/set";
 import pdf from "@app/commands/pdf";
 import templates from "@app/commands/templates";
 import workspace from "@app/commands/workspace";
-import type * as Debug from "../../apps/browser/src/debug";
+import type * as Debug from "../../apps/web/src/debug";
 import type Application from "../types/Application";
 import type { Command } from "../types/Command";
 import article from "./article";
@@ -16,6 +16,7 @@ import catalog from "./catalog";
 import debug from "./debug";
 import download from "./download";
 import elements from "./elements";
+import fs from "./fs";
 import healthcheck from "./healthcheck";
 import item from "./item";
 import mergeRequests from "./mergeRequests";
@@ -23,8 +24,9 @@ import page from "./pageData";
 import quiz from "./quiz";
 import review from "./review";
 import search from "./search";
+import resetSetting from "./settings/resetSetting";
+import updateSetting from "./settings/updateSetting";
 import storage from "./storage";
-import setTheme from "./theme/setTheme";
 import versionControl from "./versionControl";
 import word from "./word";
 
@@ -46,12 +48,12 @@ const commands = {
 	ai,
 	enterprise,
 	enterpriseCloud,
-	setTheme,
 	setLanguage,
 	article,
 	catalog,
 	review,
 	elements,
+	fs,
 	healthcheck,
 	download,
 	item,
@@ -63,6 +65,8 @@ const commands = {
 	pdf,
 	debug,
 	search,
+	updateSetting,
+	resetSetting,
 	workspace,
 	inbox,
 	templates,

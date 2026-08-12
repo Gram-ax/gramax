@@ -9,7 +9,7 @@ Gramax provides a powerful, Markdown-based approach that combines an intuitive v
 
 -  **Visual Editor**: Makes editing Markdown-files easy for technical and non-technical users.
 
--  **Cross-Platform**: Available as a desktop app (Windows, Mac, Linux) and a browser-based version.
+-  **Cross-Platform**: Available as a desktop app (Windows, Mac, Linux) and a web-based version.
 
 -  **Local Storage**: Files are stored locally in Markdown, editable in any text editor.
 
@@ -57,9 +57,9 @@ Publish your documentation as a website, hosted on your server or as a static si
 
 -  **Static Site**:
 
-   1.   `npm install -g gramax-cli`.
+   1.   `npm install -g cli`.
 
-   2.  `gramax-cli build --source ./content --destination ./output`.
+   2.  `cli build --source ./content --destination ./output`.
 
 See [Setting Up the Documentation Portal](https://gram.ax/resources/docs/en/doc-portal) for instructions.
 

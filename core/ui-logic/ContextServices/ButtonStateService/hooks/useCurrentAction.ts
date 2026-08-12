@@ -9,12 +9,12 @@ import type { Attrs, ButtonState, Mark, NodeType, NodeValues } from "./types";
 export const ListGroup = ["orderedList", "bulletList", "taskList"];
 export const BlockPlus = ["table", "cut", "tab", "tabs", "blockquote"];
 
-const BlockOutContent = ["drawio", "diagrams", "note", "image", "video", "code_block", "fragment", OPEN_API_NAME];
+const BlockOutContent = ["drawio", "diagrams", "image", "video", "code_block", "fragment", OPEN_API_NAME];
 export const WrappableBlocks = ["note"];
 
 const disabledMarkRule: Record<Mark, Mark[]> = {
 	code: ["link", "file", "comment", "fragment-link"],
-	comment: ["comment", "code", "fragment-link"],
+	comment: ["link", "file", "comment", "code", "fragment-link"],
 	file: ["link", "file", "comment", "code", "fragment-link"],
 	link: ["file", "comment", "code", "fragment-link"],
 	strong: ["code"],
@@ -26,9 +26,11 @@ const disabledMarkRule: Record<Mark, Mark[]> = {
 
 const disableBlockBySelection = {
 	table: (selection, buttonNode) => selection instanceof CellSelection && ListGroup.includes(buttonNode),
+	noteTitle: () => true,
 };
 
 const disabledMarkByAction = {
+	noteTitle: () => true,
 	code_block: () => true,
 };
 
@@ -43,8 +45,12 @@ function changeResultByAction(activeNode: NodeType, buttonNode: NodeType, result
 		if (activeNode === "code_block" && activeNode === buttonNode) {
 			result.disabled = false;
 		}
+	} else if (activeNode === "heading") {
+		result.disabled = WrappableBlocks.includes(buttonNode);
 	} else if (BlockPlus.includes(activeNode)) {
 		result.disabled = activeNode === buttonNode || buttonNode === "heading";
+	} else if (WrappableBlocks.includes(activeNode)) {
+		result.disabled = buttonNode === "heading";
 	}
 }
 
@@ -54,7 +60,7 @@ function changeResultByAttrs(contextAttrs: Partial<Attrs>, buttonAttrs: Partial<
 
 	keys.forEach((key) => {
 		const value = buttonAttrs[key];
-		if (Boolean(contextAttrs?.[key]) && Boolean(value) && contextAttrs?.[key] !== value) {
+		if (contextAttrs?.[key] && value && contextAttrs?.[key] !== value) {
 			result.isActive = false;
 		}
 	});
@@ -86,7 +92,7 @@ function changeResultByWrappableBlocks(activeNode: NodeType, buttonNode: NodeTyp
 }
 
 function getButtonStateByMarks(contextMarks: Mark[], buttonMark: Mark, result: ButtonState) {
-	if (!contextMarks || !contextMarks.length) return;
+	if (!contextMarks?.length) return;
 
 	if (buttonMark) {
 		if (!result.isActive) {

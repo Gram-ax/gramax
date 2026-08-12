@@ -37,7 +37,7 @@ export default class InboxProvider extends ArticleProvider {
 		assert(draggedArticle, "Dragged article not found");
 		assert(droppedArticle, "Dropped article not found");
 
-		const newContent = droppedArticle.content + "\n\n" + draggedArticle.content;
+		const newContent = `${await droppedArticle.getContent()}\n\n${await draggedArticle.getContent()}`;
 
 		const context = await parserContextFactory.fromArticle(
 			droppedArticle,
@@ -46,7 +46,7 @@ export default class InboxProvider extends ArticleProvider {
 		);
 
 		await droppedArticle.updateContent(newContent);
-		await droppedArticle.parsedContent.write(() => parser.parse(droppedArticle.content, context));
+		await droppedArticle.parsedContent.write(() => parser.parse(newContent, context));
 		await this.remove(draggedArticle.ref.path.name, parser, parserContextFactory, ctx);
 
 		return droppedArticle;

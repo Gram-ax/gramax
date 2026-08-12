@@ -1,6 +1,5 @@
-import type PageDataContext from "@core/Context/PageDataContext";
-import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import { LinkHoverTooltipManager } from "@ext/markdown/elements/link/edit/logic/LinkHoverTooltipManager";
+import { getEditorContext } from "@ext/markdown/elementsUtils/editorContext/EditorContext";
 import type { Editor } from "@tiptap/core";
 import type { Mark } from "@tiptap/pm/model";
 import type { Node } from "prosemirror-model";
@@ -40,20 +39,28 @@ const getLinkMarkByView = (view: EditorView, x: number, y: number) => {
 	return { ...findMarkAtPosition(marksWithPositions, "link", cursorPos), parentNodePos };
 };
 
-export function hoverTooltip(editor: Editor, apiUrlCreator: ApiUrlCreator, pageDataContext: PageDataContext): Plugin {
-	const tooltipManager = new LinkHoverTooltipManager(document.body, pageDataContext);
+export function hoverTooltip(editor: Editor): Plugin {
+	let tooltipManager: LinkHoverTooltipManager | null = null;
+
+	const getTooltipManager = () => {
+		if (!tooltipManager) {
+			const { pageDataContext } = getEditorContext(editor);
+			tooltipManager = new LinkHoverTooltipManager(document.body, pageDataContext);
+		}
+		return tooltipManager;
+	};
 
 	editor.on("selectionUpdate", (editor) => {
 		const cursorPos = editor.editor.view.state.selection.anchor;
-		tooltipManager.updateAnchorPos(cursorPos);
+		tooltipManager?.updateAnchorPos(cursorPos);
 	});
 
 	editor.on("blur", () => {
-		tooltipManager.updateAnchorPos(null);
+		tooltipManager?.updateAnchorPos(null);
 	});
 
 	editor.on("destroy", () => {
-		tooltipManager.destroyAll();
+		tooltipManager?.destroyAll();
 	});
 
 	return new Plugin({
@@ -63,13 +70,16 @@ export function hoverTooltip(editor: Editor, apiUrlCreator: ApiUrlCreator, pageD
 					const target = event.target as HTMLElement;
 					const linkElement = target.closest("a");
 
-					if (linkElement && linkElement.closest(".ProseMirror")) {
+					if (linkElement?.closest(".ProseMirror")) {
 						const { clientX, clientY } = event;
 
 						const markWithPosition = getLinkMarkByView(view, clientX, clientY);
 						if (!markWithPosition.mark) return;
 
-						tooltipManager.createTooltip({
+						const { apiUrlCreator } = getEditorContext(editor);
+						if (!apiUrlCreator) return;
+
+						getTooltipManager().createTooltip({
 							linkElement,
 							markData: markWithPosition,
 							anchorPos: view.state.selection.anchor,

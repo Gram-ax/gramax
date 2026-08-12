@@ -3,7 +3,7 @@ import type { GitErrorLocalization } from "./model/GitErrorLocalization";
 
 const gitErrorLocalization: GitErrorLocalization = {
 	CheckoutConflictError: (props) =>
-		props?.caller == "pull"
+		props?.caller === "pull"
 			? { message: t("git.sync.error.local-changes-present") }
 			: { message: t("git.sync.error.local-changes-present") },
 	DeleteCurrentBranch: () => ({ message: t("git.branch.error.deleting-head-branch") }),
@@ -70,8 +70,7 @@ const gitErrorLocalization: GitErrorLocalization = {
 				message: t("git.clone.error.already-exist").replace("{{path}}", props.error?.props?.repositoryPath),
 			};
 	},
-	HttpError: (props) => {
-		const text = props.error.message ?? ("" as string);
+	HttpError: () => {
 		return { message: t("git.error.http.message"), showMessage: true, title: t("git.error.http.title") };
 	},
 	NotFoundError: (props) => {
@@ -104,13 +103,17 @@ const gitErrorLocalization: GitErrorLocalization = {
 		}
 	},
 	CloneError: () => ({ message: t("git.clone.error.generic") }),
+	NotEnoughDiskSpace: () => ({
+		message: t("git.error.disk-full.message"),
+		title: t("git.error.disk-full.title"),
+	}),
 	NetworkConntectionError: () => ({ message: t("git.error.network.message"), title: t("git.error.network.title") }),
 	FileNotFoundError: () => ({ message: t("not-found") }),
 	CancelledOperation: (props) => ({ message: props.error.message }),
-	HealthcheckFailed: (props) => ({
+	HealthcheckFailed: () => ({
 		title: t("git.error.broken.healthcheck.title"),
 		html: true,
-		message: t("git.error.broken.healthcheck.body") + ".<br>" + t("git.error.broken.healthcheck.body2"),
+		message: `${t("git.error.broken.healthcheck.body")}.<br>${t("git.error.broken.healthcheck.body2")}`,
 		showMessage: true,
 	}),
 };

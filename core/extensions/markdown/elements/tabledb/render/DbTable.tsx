@@ -4,7 +4,7 @@
 import Icon from "@components/Atoms/Icon";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import { getLocalizedString } from "@components/libs/utils";
-import LanguageService from "@core-ui/ContextServices/Language";
+import { useUiLanguage } from "@core-ui/ContextServices/Language";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import DiagramError from "@ext/markdown/elements/diagrams/component/DiagramError";
@@ -19,7 +19,7 @@ interface TableDBProps {
 }
 
 export const TableDB = ({ object, error, className }: TableDBProps) => {
-	const lang = LanguageService.currentUi();
+	const lang = useUiLanguage();
 
 	if (error)
 		return <DiagramError diagramName="Db-Table" error={error} title={t("diagram.error.tabledb-render-failed")} />;

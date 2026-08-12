@@ -21,7 +21,8 @@ const DiagramActions = ({ editor, node, setHasSignature, signatureRef, openEdito
 	};
 	const diagramName = node.attrs.diagramName;
 	const disabledEdit =
-		!PageDataContextService.value.conf.diagramsServiceUrl && diagramName === DiagramType["plant-uml"];
+		!PageDataContextService.value.settings?.services?.["diagram-renderer"]?.endpoint &&
+		diagramName === DiagramType["plant-uml"];
 
 	const addSignature = () => {
 		setHasSignature((prev) => toggleSignature(prev, signatureRef.current, updateAttributes));

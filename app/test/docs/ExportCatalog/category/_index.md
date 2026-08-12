@@ -9,7 +9,7 @@ order: 1
 
 #### Заголовок 4
 
-*Какой*\-то **текст**, можно и по длиннее.
+*Какой*\-то **текст**, можно и по длиннее. 
 
 Как, например, здесь. Тут мы должны ввести текст такой, чтобы было видно, что между абзацами больший интервал, чем между строками.
 
@@ -37,20 +37,18 @@ order: 1
 
 #### Заголовок 4
 
-**Жирный** *Италик* [https://tran***slate.goo**gl***e.com/**](https://translate.google.com/)
+**Жирный** *Италик* [https://tran***slate.goo**gl***e.com/**](https://translate.google.com/)
 
 ```
 Блок кода
 в несколько строк
 ```
 
-{% table %}
+{% table header="row" %}
 
 ---
 
-*  {% isHeader=true %}
-
-   [*Стол*бец 1]()
+*  [*Стол*бец 1]()
 
 *  Столбец 2
 
@@ -64,25 +62,7 @@ order: 1
 
 ---
 
-*  {% isHeader=true %}
-
-   Ячейка
-
 *  Ячейка
-
-*  Ячейка
-
-*  Ячейка
-
-*  {% colwidth=[87] %}
-
-   Ячейка
-
----
-
-*  {% isHeader=true %}
-
-   Ячейка
 
 *  Ячейка
 
@@ -96,9 +76,21 @@ order: 1
 
 ---
 
-*  {% isHeader=true %}
+*  Ячейка
+
+*  Ячейка
+
+*  Ячейка
+
+*  Ячейка
+
+*  {% colwidth=[87] %}
 
    Ячейка
+
+---
+
+*  Ячейка
 
 *  Ячейка
 
@@ -166,7 +158,7 @@ order: 1
 
 ---
 
-[drawio:./export.svg:]
+[drawio:./export.svg]
 
 [mermaid:./export.mermaid]
 
@@ -174,7 +166,7 @@ order: 1
 
 ![](./export.png "Подпись")
 
--->
+->
 
 --
 
@@ -194,19 +186,19 @@ order: 1
 
 [openapi:./export.yaml:true]
 
-[alfa] [beta] [issue:иссуе] [module:модуль]
+[alfa] [beta] [issue:иссуе] [module:модуль]
 
 [who:who] [when:when]
 
 [tabs]
 
-[tab:name::]
+[tab:name]
 
 Контент таба
 
 [/tab]
 
-[tab:name::]
+[tab:name]
 
 Контент второй вкладки
 
@@ -221,12 +213,6 @@ order: 1
 [color:#00DD11]text[/color]
 
 [html]
-
-
-
-
-
-
 
 <style>
     .footerExample {
@@ -293,14 +279,5 @@ order: 1
         </div>
     </div>
 </div>
-
-
-
-
-
-
-
-
-
 
 [/html]

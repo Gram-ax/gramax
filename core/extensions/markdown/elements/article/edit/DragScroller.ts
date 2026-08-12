@@ -1,7 +1,7 @@
-import { Extension } from "@tiptap/core";
+import { getEditorContext } from "@ext/markdown/elementsUtils/editorContext/EditorContext";
+import { type Editor, Extension } from "@tiptap/core";
 import type { EditorView } from "@tiptap/pm/view";
 import { Plugin } from "prosemirror-state";
-import type { MutableRefObject } from "react";
 
 export const DRAG_SCROLL_THRESHOLD = 0.15;
 
@@ -13,18 +13,22 @@ class DragScroller {
 
 	constructor(
 		readonly editorView: EditorView,
-		articleRef: MutableRefObject<HTMLDivElement>,
+		private _editor: Editor,
 	) {
-		if (!articleRef?.current) return;
-		this._articleElement = articleRef.current;
 		this._handlers = ["dragover", "dragend", "dragleave", "drop"].map((name) => {
 			const handler = (e: Event) => {
-				(this as any)[name](e);
+				this[name](e);
 			};
 
 			editorView.dom.addEventListener(name, handler);
 			return { name, handler };
 		});
+	}
+
+	private _resolveArticleElement(): HTMLElement | null {
+		if (this._articleElement) return this._articleElement;
+		this._articleElement = getEditorContext(this._editor).articleRef?.current ?? null;
+		return this._articleElement;
 	}
 
 	destroy() {
@@ -55,7 +59,7 @@ class DragScroller {
 
 			const speed = scrollingDown !== null ? this._getSpeed(mouseY, windowHeight, scrollingDown) : 0;
 			const scrollAmount = scrollingDown ? speed : -speed;
-			this._articleElement.scrollBy(0, scrollAmount);
+			this._articleElement?.scrollBy(0, scrollAmount);
 
 			if (scrollingDown !== null) this._scrollIntervalId = requestAnimationFrame(scroll);
 		};
@@ -71,6 +75,7 @@ class DragScroller {
 	}
 
 	dragover(e: DragEvent) {
+		if (!this._resolveArticleElement()) return;
 		this._mouseY = e.clientY;
 		if (!this._scrollIntervalId) this._startScrolling();
 	}
@@ -99,7 +104,7 @@ const DragScrollerExt = Extension.create({
 		return [
 			new Plugin({
 				view: (view) => {
-					return new DragScroller(view, this.options.articleRef);
+					return new DragScroller(view, this.editor);
 				},
 			}),
 		];

@@ -2,6 +2,7 @@
 import type { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import SilentError from "@ext/errorHandlers/silent/SilentError";
 import t from "@ext/localization/locale/translate";
+import { Level, trace } from "@ext/loggers/opentelemetry";
 import type MarkdownParser from "@ext/markdown/core/Parser/Parser";
 import type WorkspaceManager from "@ext/workspace/WorkspaceManager";
 import yaml from "js-yaml";
@@ -57,6 +58,7 @@ export class TableDB {
 		this._parseToHtml = parser.parseToHtml.bind(parser);
 	}
 
+	@trace({ level: Level.Important })
 	mountWorkspaceManager(wm: WorkspaceManager): void {
 		this._wm = wm;
 		this._wm.onCatalogChange(this._onChange.bind(this));

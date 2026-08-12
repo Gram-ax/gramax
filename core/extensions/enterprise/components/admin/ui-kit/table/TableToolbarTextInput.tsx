@@ -1,18 +1,15 @@
-import styled from "@emotion/styled";
+import { cn } from "@core-ui/utils/cn";
+import t from "@ext/localization/locale/translate";
 import { Icon } from "@ui-kit/Icon";
 import { TextInput, type TextInputProps } from "@ui-kit/Input";
 
-const StyledTextInput = styled(TextInput)`
-	flex: 1;
-	min-width: 220px;
-`;
-
 export const TableToolbarTextInput = ({ className, startIcon, placeholder, ...props }: TextInputProps) => {
 	return (
-		<StyledTextInput
-			className={className}
-			placeholder={placeholder || "Поиск..."}
-			startIcon={startIcon || <Icon icon="search" />}
+		<TextInput
+			className={cn("flex-1 max-w-[300px]", className)}
+			placeholder={placeholder || t("enterprise.admin.search")}
+			showClearIcon
+			startIcon={startIcon || <Icon icon="list-filter" />}
 			{...props}
 		/>
 	);

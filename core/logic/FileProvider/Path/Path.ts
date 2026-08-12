@@ -125,6 +125,10 @@ class Path implements ToSpan {
 		const thisPath = this.removeExtraSymbols.value;
 		const otherPath = path.removeExtraSymbols.value;
 		if (otherPath.slice(0, thisPath.length) != thisPath) return null;
+		// Require a path-segment boundary: "root" must not swallow the sibling
+		// "rootFolder". Only an exact match or a "/"-delimited descendant counts.
+		const boundary = otherPath[thisPath.length];
+		if (thisPath.length > 0 && boundary !== undefined && boundary !== "/") return null;
 		return new Path(otherPath.slice(thisPath.length)).removeExtraSymbols;
 	}
 

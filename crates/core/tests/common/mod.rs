@@ -44,8 +44,9 @@ impl Fixture {
 		fs::write(abs, body).unwrap();
 	}
 
+	#[allow(dead_code)]
 	pub fn scan(&self, opts: &ScanOpts) -> Vec<WorkspaceEntryDto> {
-		WorkspaceScanner::new(&self.fs, Path::new(""), opts).scan_workspace().unwrap()
+		WorkspaceScanner::new(&self.fs, Path::new(""), opts).scan().unwrap()
 	}
 }
 

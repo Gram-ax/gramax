@@ -22,7 +22,7 @@ export const CatalogView = memo(() => {
 	const [items, setItems] = useState<CatalogViewType[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
 
-	const { isTauri, isBrowser } = usePlatform();
+	const { isTauri, isWeb } = usePlatform();
 	const workspace = Workspace.current();
 	const { catalogName, isReadOnly, hasViews, updateProps } = useCatalogPropsStore((state) => {
 		return {
@@ -145,7 +145,7 @@ export const CatalogView = memo(() => {
 	);
 
 	const canEditCatalog = PermissionService.useCheckPermission(editCatalogPermission, workspace.path, catalogName);
-	const isEditInstant = isTauri || isBrowser;
+	const isEditInstant = isTauri || isWeb;
 	const canEditCatalogViews = canEditCatalog && isEditInstant && !isReadOnly;
 	if (!isCatalogExist || (!isEditInstant && !hasViews)) return;
 

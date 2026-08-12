@@ -1,5 +1,5 @@
 import useWatch from "@core-ui/hooks/useWatch";
-import styled from "@emotion/styled";
+import { cn } from "@core-ui/utils/cn";
 import BlockCommentView from "@ext/markdown/elements/comment/edit/components/View/BlockCommentView";
 import renderGroup from "@ext/markdown/elements/view/render/components/Displays/Helpers/List/Group";
 import updateListData from "@ext/markdown/elements/view/render/logic/updateListData";
@@ -41,15 +41,15 @@ const List = ({ content, groupby, className, disabled, updateArticle, commentId,
 			setData(newData);
 			updateArticle?.(articlePath, propertyName, value, isDelete);
 		},
-		[data, disabled],
+		[data, catalogProperties, groupby, updateArticle],
 	);
 
 	return (
 		<BlockCommentView commentId={commentId}>
 			<div className="flex w-full h-full" data-focusable="true">
-				<ul className={className}>
-					{data.map((group: ViewRenderGroup, idx: number) => (
-						<Fragment key={`${group.group?.[0]}-${idx}`}>
+				<ul className={cn("rounded-md", className)}>
+					{data.map((group: ViewRenderGroup) => (
+						<Fragment key={`${group.group?.[0]}-list-item`}>
 							{renderGroup(group, disabled, onSubmit, isPrint)}
 						</Fragment>
 					))}
@@ -59,32 +59,4 @@ const List = ({ content, groupby, className, disabled, updateArticle, commentId,
 	);
 };
 
-export default styled(List)`
-	border-radius: var(--radius-small);
-
-	a {
-		cursor: pointer !important;
-	}
-
-	li > div {
-		gap: 0.5em;
-		display: flex;
-		align-items: center;
-		flex-wrap: wrap;
-		word-wrap: break-word;
-		flex-direction: row;
-
-		.chips {
-			display: flex;
-			align-items: center;
-			flex-wrap: wrap;
-			word-wrap: break-word;
-			gap: 0.5em;
-			font-size: 0.65em;
-
-			* {
-				line-height: normal !important;
-			}
-		}
-	}
-`;
+export default List;

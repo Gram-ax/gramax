@@ -17,7 +17,7 @@ export interface GetImageByPathOptions {
 	maxHeight?: number;
 	crop?: Crop;
 	objects?: ImageObject[];
-	scale?: number;
+	scale?: number | string;
 }
 
 export interface GetImageByPathResult {
@@ -62,8 +62,9 @@ export class NextImageProccessor extends BaseImageProcessor {
 
 	private static async _cropImage(imageBuffer: Buffer, image: Buffer, size: ImageDimensions, crop?: Crop) {
 		if (this._isCropRequired(crop)) {
-			imageBuffer = Buffer.from(await this._cropImageToBuffer(image, crop, size));
-			size = await ImageDimensionsFinder.getImageSizeFromImageData(imageBuffer);
+			const croppedImageBuffer = Buffer.from(await this._cropImageToBuffer(image, crop, size));
+			const croppedSize = await ImageDimensionsFinder.getImageSizeFromImageData(croppedImageBuffer);
+			return { imageBuffer: croppedImageBuffer, size: croppedSize };
 		}
 		return { imageBuffer, size };
 	}

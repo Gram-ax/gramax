@@ -1,120 +1,109 @@
 import buildNavigationFromSpec from "../buildNavigationFromSpec";
 
+const response = { 200: { description: "OK" } };
+
 describe("buildNavigationFromSpec", () => {
-	test("creates navigation from tags defined in spec", () => {
+	test("uses the tag order declared by the specification", () => {
 		const spec = {
 			tags: [{ name: "users" }, { name: "auth" }],
-			paths: {},
+			paths: {
+				"/auth": { post: { tags: ["auth"], operationId: "signIn", responses: response } },
+				"/users": { get: { tags: ["users"], operationId: "getUsers", responses: response } },
+			},
 		};
 
-		const result = buildNavigationFromSpec(spec);
-
-		expect(result.map((t) => t.name)).toEqual(["users", "auth"]);
-		expect(result[0]).toEqual(
-			expect.objectContaining({
-				name: "users",
-				child: [],
-			}),
-		);
+		expect(buildNavigationFromSpec(spec).map((tag) => tag.title)).toEqual(["users", "auth"]);
 	});
 
-	test("adds operations under correct tag", () => {
+	test("uses x-tagGroups before the root tag order", () => {
 		const spec = {
-			tags: [{ name: "users" }],
+			tags: [{ name: "other" }, { name: "auth" }, { name: "users" }],
+			"x-tagGroups": [{ name: "Public", tags: ["users", "auth"] }],
+			paths: {
+				"/other": { get: { tags: ["other"], operationId: "other", responses: response } },
+				"/auth": { post: { tags: ["auth"], operationId: "signIn", responses: response } },
+				"/users": { get: { tags: ["users"], operationId: "getUsers", responses: response } },
+			},
+		};
+
+		expect(buildNavigationFromSpec(spec).map((tag) => tag.title)).toEqual(["users", "auth", "other"]);
+	});
+
+	test("keeps operation document order", () => {
+		const spec = {
 			paths: {
 				"/users": {
-					get: {
-						summary: "Get users",
-						tags: ["users"],
-						operationId: "getUsers",
-					},
+					post: { summary: "Create user", tags: ["users"], operationId: "createUser", responses: response },
+					get: { summary: "Get users", tags: ["users"], operationId: "getUsers", responses: response },
 				},
 			},
 		};
 
-		const result = buildNavigationFromSpec(spec);
-
-		const users = result.find((t) => t.name === "users");
-
-		expect(users?.child.length).toBe(1);
-		expect(users?.child[0].title).toBe("Get users");
-		expect(users?.child[0].id).toEqual(expect.any(String));
+		expect(buildNavigationFromSpec(spec)[0].items.map((operation) => operation.title)).toEqual([
+			"Create user",
+			"Get users",
+		]);
 	});
 
-	test("uses path as title when summary is missing", () => {
-		const spec = {
-			tags: [{ name: "users" }],
+	test("uses anchors rendered by the OpenAPI elements", () => {
+		const navigation = buildNavigationFromSpec({
 			paths: {
 				"/users": {
-					get: {
-						tags: ["users"],
-						operationId: "getUsers",
-					},
+					get: { summary: "Get users", tags: ["Пользователи"], operationId: "getUsers", responses: response },
 				},
 			},
-		};
+		});
 
-		const result = buildNavigationFromSpec(spec);
-
-		const users = result.find((t) => t.name === "users");
-		expect(users?.child[0].title).toBe("/users");
+		expect(navigation[0].url).toBe("#tag-пользователи");
+		expect(navigation[0].items[0].url).toBe("#operation-getusers");
 	});
 
-	test("falls back to default tag when operation has no tags", () => {
-		const spec = {
+	test("uses operationId and then path when summary is missing", () => {
+		const navigation = buildNavigationFromSpec({
 			paths: {
-				"/health": {
-					get: {
-						summary: "Health check",
-						operationId: "healthCheck",
-					},
-				},
+				"/with-id": { get: { tags: ["users"], operationId: "getUsers", responses: response } },
+				"/without-id": { get: { tags: ["users"], responses: response } },
 			},
-		};
+		});
 
-		const result = buildNavigationFromSpec(spec);
-
-		const defaultTag = result.find((t) => t.name === "default");
-
-		expect(defaultTag).toBeDefined();
-		expect(defaultTag?.child[0].title).toBe("Health check");
+		expect(navigation[0].items.map((operation) => operation.title)).toEqual(["getUsers", "/without-id"]);
+		expect(navigation[0].items[1].url).toBe("#operation-get-without-id");
 	});
 
-	test("skips invalid HTTP methods", () => {
+	test("uses the localized untagged group", () => {
+		const navigation = buildNavigationFromSpec({
+			paths: {
+				"/health": { get: { summary: "Health check", operationId: "healthCheck", responses: response } },
+			},
+		});
+
+		expect(navigation[0].title).toBeTruthy();
+		expect(navigation[0].items[0].title).toBe("Health check");
+	});
+
+	test("skips operations the renderer does not show", () => {
 		const spec = {
 			paths: {
 				"/test": {
-					connect: {
-						summary: "Should be ignored",
-						operationId: "connectTest",
-					},
+					connect: { summary: "Unsupported method", operationId: "connectTest", responses: response },
+					get: { summary: "Missing responses", operationId: "getTest" },
 				},
 			},
 		};
 
-		const result = buildNavigationFromSpec(spec);
-
-		expect(result.length).toBe(0);
+		expect(buildNavigationFromSpec(spec)).toEqual([]);
 	});
 
-	test("creates new tag if tag is not defined in spec.tags", () => {
+	test("appends undeclared tags in first appearance order", () => {
 		const spec = {
 			tags: [{ name: "existing" }],
 			paths: {
-				"/new": {
-					get: {
-						summary: "New endpoint",
-						tags: ["dynamic"],
-						operationId: "newOp",
-					},
-				},
+				"/second": { get: { tags: ["second"], operationId: "second", responses: response } },
+				"/first": { get: { tags: ["first"], operationId: "first", responses: response } },
+				"/existing": { get: { tags: ["existing"], operationId: "existing", responses: response } },
 			},
 		};
 
-		const result = buildNavigationFromSpec(spec);
-
-		const dynamic = result.find((t) => t.name === "dynamic");
-		expect(dynamic).toBeDefined();
-		expect(dynamic?.child[0].title).toBe("New endpoint");
+		expect(buildNavigationFromSpec(spec).map((tag) => tag.title)).toEqual(["existing", "second", "first"]);
 	});
 });

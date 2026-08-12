@@ -1,9 +1,19 @@
 import type { EnvironmentVariable } from "@app/config/env";
 import Path from "@core/FileProvider/Path/Path";
+import type { AppConfigWithGesCloud } from "@ext/enterprise-cloud/config/AppConfigWithGesCloud";
+import type { AppSettings } from "@ext/settings/levels/app-settings";
+import type { StoredSettings } from "@ext/settings/logic/types";
 import type { WorkspaceManagerConfig } from "@ext/workspace/WorkspaceManager";
 import { env, getExecutingEnvironment } from "../resolveModule/env";
 
-export type AppGlobalConfig = WorkspaceManagerConfig & EnterpriseConfig & EnterpriseCloudConfig;
+export type AppSettingsSchema = StoredSettings<typeof AppSettings>;
+
+export type AppGlobalConfig = WorkspaceManagerConfig &
+	EnterpriseConfig &
+	AppConfigWithGesCloud & {
+		version?: number;
+		settings?: AppSettingsSchema;
+	};
 
 interface AppConfigPaths {
 	base: Path;
@@ -48,6 +58,7 @@ export type AppConfig = {
 	isReadOnly: boolean;
 	isProduction: boolean;
 	disableSeo: boolean;
+	hideErrorCause: boolean;
 
 	bugsnagApiKey: string;
 	paths: AppConfigPaths;
@@ -62,6 +73,8 @@ export type AppConfig = {
 	metrics: MetricsConfig;
 
 	logo: { imageUrl: string; linkUrl: string; linkTitle: string };
+	search: { resourceSearchEnabled: boolean };
+
 	allowedGramaxUrls: string[];
 
 	portalAi: {
@@ -97,7 +110,7 @@ const getServices = (): ServicesConfig => {
 };
 
 const getPaths = (): AppConfigPaths => {
-	if (getExecutingEnvironment() === "browser") {
+	if (getExecutingEnvironment() === "web") {
 		return {
 			base: Path.empty,
 			root: new Path("/mnt/docs"),
@@ -157,6 +170,7 @@ export const getConfig = (): AppConfig => {
 		isProduction: env("PRODUCTION") === "true",
 		isRelease: (env("BRANCH") || "develop") === "master",
 		disableSeo: env("DISABLE_SEO") === "true",
+		hideErrorCause: env("HIDE_ERROR_CAUSE") === "true",
 
 		bugsnagApiKey: env("BUGSNAG_API_KEY") || null,
 
@@ -198,6 +212,10 @@ export const getConfig = (): AppConfig => {
 			imageUrl: env("LOGO_IMAGE_URL"),
 			linkUrl: env("LOGO_LINK_URL") || "/",
 			linkTitle: env("LOGO_LINK_TITLE"),
+		},
+
+		search: {
+			resourceSearchEnabled: env("RESOURCE_SEARCH_ENABLED") !== "false",
 		},
 
 		forceUiLangSync: env("FORCE_UI_LANG_SYNC") === "true",

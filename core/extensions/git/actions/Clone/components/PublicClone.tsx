@@ -2,12 +2,12 @@ import Input from "@components/Atoms/Input";
 import Path from "@core/FileProvider/Path/Path";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
 import OnNetworkApiErrorService from "@ext/errorHandlers/client/OnNetworkApiErrorService";
 import isUrlPointsToRepo from "@ext/git/actions/Clone/logic/isUrlPointsToRepo";
 import type { PublicGitStorageData } from "@ext/git/core/model/GitStorageData";
 import t from "@ext/localization/locale/translate";
+import { getCachedSetting } from "@ext/settings/logic/cachedSettingsStore";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import { useEffect, useRef, useState } from "react";
 
@@ -25,7 +25,7 @@ const PublicClone = ({ setStorageData }: PublicCloneProps) => {
 	const [focusedField, setFocusedField] = useState<string>(null);
 	const [isValid, setIsValid] = useState<boolean>(false);
 
-	const gitProxyUrl = WorkspaceService.current()?.services.gitProxy.url;
+	const gitProxyUrl = getCachedSetting("services.git-proxy.endpoint");
 	const existingDirs = useRef<string[]>([]);
 	const lastSetNull = useRef(false);
 
@@ -60,7 +60,7 @@ const PublicClone = ({ setStorageData }: PublicCloneProps) => {
 			setStorageData?.(null);
 			lastSetNull.current = true;
 		}
-	}, [url, name, nameError, urlError, isValid]);
+	}, [url, name, nameError, urlError, isValid, setStorageData]);
 
 	useEffect(() => {
 		const get = async () => {
@@ -69,7 +69,7 @@ const PublicClone = ({ setStorageData }: PublicCloneProps) => {
 		};
 
 		void get();
-	}, [apiUrlCreator]);
+	}, []);
 
 	const validateName = (name: string) => {
 		if (!name) {
@@ -89,7 +89,7 @@ const PublicClone = ({ setStorageData }: PublicCloneProps) => {
 	const onLinkChange = (newLink: string) => {
 		setUrl(newLink);
 
-		if (!name || new Path(url).name == name || !newLink) {
+		if (!name || new Path(url).name === name || !newLink) {
 			const newName = new Path(newLink).name;
 			setName(newName || "");
 			if (newName) validateName(newName);
@@ -103,11 +103,11 @@ const PublicClone = ({ setStorageData }: PublicCloneProps) => {
 		<OnNetworkApiErrorService.Provider>
 			<div className="form-group" style={{ marginTop: "1rem" }}>
 				<div className="form-group field field-string row">
-					<label className="control-label">
+					<div className="control-label">
 						<div style={{ display: "flex" }}>
 							<span>{t("git.clone.public.link-title")}</span>
 						</div>
-					</label>
+					</div>
 					<div className="input-lable">
 						<Input
 							dataQa={t("git.clone.public.link-placeholder")}
@@ -125,6 +125,7 @@ const PublicClone = ({ setStorageData }: PublicCloneProps) => {
 					<div />
 					<div
 						className="article"
+						// biome-ignore lint/style/useNamingConvention: required
 						dangerouslySetInnerHTML={{ __html: t("git.clone.public.link-description") }}
 					/>
 				</div>

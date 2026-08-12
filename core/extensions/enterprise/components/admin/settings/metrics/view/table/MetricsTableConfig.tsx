@@ -144,7 +144,7 @@ export const createMetricsTableColumns = (sortConfig: SortConfig): ColumnDef<Met
 						<TooltipProvider>
 							<Tooltip>
 								<TooltipTrigger asChild>{linkElement}</TooltipTrigger>
-								<TooltipContent>
+								<TooltipContent className="font-sans font-normal">
 									<p className="max-w-md break-words">{data.articleName}</p>
 								</TooltipContent>
 							</Tooltip>

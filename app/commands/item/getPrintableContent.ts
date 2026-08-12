@@ -2,6 +2,7 @@ import { Command } from "@app/types/Command";
 import { ResponseKind } from "@app/types/ResponseKind";
 import type Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
+import CatalogViewRules from "@ext/catalog/views/logic/rules/CatalogViewRules";
 import { resolveRootCategory } from "@ext/localization/core/catalogExt";
 import type { PrintableContent, PrintablePage } from "@ext/print/types";
 import collectPrintablePages from "@ext/print/utils/collectPrintablePages";
@@ -23,7 +24,7 @@ const getPrintableContent: Command<
 			? resolveRootCategory(catalog, catalog.props, ctx.contentLanguage)
 			: catalog.findItemByItemPath(itemPath);
 
-		const filters = new RuleProvider(ctx).getItemFilters();
+		const filters = [...new RuleProvider(ctx).getItemFilters(), new CatalogViewRules(catalog).getItemFilter()];
 		const pages: PrintablePage[] = [];
 		const title = isCatalog ? catalog.props.title : item.getTitle() || item.getFileName();
 		await collectPrintablePages(

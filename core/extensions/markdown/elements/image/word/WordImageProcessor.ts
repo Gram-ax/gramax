@@ -8,8 +8,9 @@ import { BaseImageProcessor } from "@ext/markdown/elements/image/export/BaseImag
 import type { GetImageByPathOptions } from "@ext/markdown/elements/image/export/NextImageProcessor";
 import { ImageDimensionsFinder } from "@ext/markdown/elements/image/word/ImageDimensionsFinder";
 import type { ImageDimensions } from "@ext/wordExport/options/WordTypes";
-import { MAX_WIDTH } from "@ext/wordExport/options/wordExportSettings";
+import { MAX_HEIGHT, MAX_WIDTH } from "@ext/wordExport/options/wordExportSettings";
 
+// biome-ignore lint/complexity/noStaticOnlyClass: preserves the existing namespace-style image export API
 export class WordImageExporter {
 	static async getImageByPath(
 		path: Path,
@@ -18,7 +19,7 @@ export class WordImageExporter {
 		maxHeight?: number,
 		crop?: Crop,
 		objects?: ImageObject[],
-		scale?: number,
+		scale?: number | string,
 	) {
 		const options: GetImageByPathOptions = {
 			path,
@@ -64,12 +65,42 @@ export class WordImageExporter {
 
 	private static async _getImageRun(imageBuffer: string | Buffer | Uint8Array | ArrayBuffer, size: ImageDimensions) {
 		const { ImageRun } = await docx();
+		const safeSize = await WordImageExporter._getSafeImageSize(imageBuffer, size);
 		return new ImageRun({
 			data: imageBuffer,
 			transformation: {
-				width: size.width,
-				height: size.height,
+				width: safeSize.width,
+				height: safeSize.height,
 			},
 		});
+	}
+
+	private static async _getSafeImageSize(
+		imageBuffer: string | Buffer | Uint8Array | ArrayBuffer,
+		size: ImageDimensions,
+	): Promise<ImageDimensions> {
+		if (WordImageExporter._isValidImageSize(size)) return size;
+
+		const buffer = WordImageExporter._toBuffer(imageBuffer);
+		const fallbackSize = await ImageDimensionsFinder.getImageSizeFromImageData(buffer, MAX_WIDTH, MAX_HEIGHT);
+		if (!WordImageExporter._isValidImageSize(fallbackSize)) {
+			throw new Error("Unable to calculate valid image dimensions for Word export");
+		}
+
+		return fallbackSize;
+	}
+
+	private static _isValidImageSize(size: ImageDimensions): boolean {
+		return Number.isFinite(size.width) && size.width > 0 && Number.isFinite(size.height) && size.height > 0;
+	}
+
+	private static _toBuffer(imageBuffer: string | Buffer | Uint8Array | ArrayBuffer): Buffer {
+		if (typeof imageBuffer === "string") {
+			const dataUri = imageBuffer.match(/^data:[^;]+;base64,(.+)$/s);
+			return Buffer.from(dataUri?.[1] ?? imageBuffer, dataUri ? "base64" : undefined);
+		}
+		if (imageBuffer instanceof ArrayBuffer) return Buffer.from(new Uint8Array(imageBuffer));
+
+		return Buffer.from(imageBuffer);
 	}
 }

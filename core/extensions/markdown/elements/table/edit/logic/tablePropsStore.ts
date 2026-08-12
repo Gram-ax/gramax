@@ -4,17 +4,32 @@ import { useSyncExternalStore } from "react";
 const store = new Map<number, FilterAndSortProps>();
 const listeners = new Set<() => void>();
 
-export const updateTableProps = (tablePos: number, props: FilterAndSortProps) => {
-	store.set(tablePos, { ...(store.get(tablePos) || {}), ...props });
+const subscribe = (callback: () => void) => {
+	listeners.add(callback);
+	return () => listeners.delete(callback);
+};
+
+const emit = () => {
 	listeners.forEach((l) => l());
 };
 
-export const useTableProps = (tablePos: number) => {
-	return useSyncExternalStore(
-		(callback) => {
-			listeners.add(callback);
-			return () => listeners.delete(callback);
-		},
-		() => store.get(tablePos),
-	);
+const updateTableProps = (tablePos: number, props: FilterAndSortProps) => {
+	store.set(tablePos, { ...(store.get(tablePos) || {}), ...props });
+	emit();
 };
+
+const useTableProps = (tablePos: number) => {
+	return useSyncExternalStore(subscribe, () => store.get(tablePos));
+};
+
+const useFilterAndSortProps = (tablePos: number) => {
+	return useSyncExternalStore(subscribe, () => store.get(tablePos));
+};
+
+const tablePropsStore = {
+	updateTableProps,
+	useFilterAndSortProps,
+	useTableProps,
+};
+
+export default tablePropsStore;

@@ -2,10 +2,10 @@ import ArticlePageActions from "@components/Article/ArticlePageActions";
 import Button, { TextSize } from "@components/Atoms/Button/Button";
 import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
 import IconLink from "@components/Molecules/IconLink";
-import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { getCatalogLinks, useGetArticleLinks } from "@core-ui/getRigthSidebarLinks";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
+import { useArticlePropsStore } from "@core-ui/stores/ArticlePropsStore/ArticlePropsStore.provider";
 import { cn } from "@core-ui/utils/cn";
 import { CatalogView } from "@ext/catalog/views/components/CatalogView";
 import SwitchContentLanguage from "@ext/localization/actions/SwitchContentLanguage";
@@ -21,7 +21,7 @@ import { tv } from "tailwind-variants";
 import Links from "../../layoutComponents";
 
 const asideStyles = tv({
-	base: "w-full text-[var(--color-primary-general)] bg-[var(--color-right-nav-bg)]",
+	base: "w-full text-[var(--color-primary-general)] flex flex-col min-h-0 overflow-hidden",
 });
 
 const gramaxLinkStyles = tv({
@@ -34,8 +34,8 @@ const gramaxLinkTextStyles = tv({
 
 const RightNavigation = (): JSX.Element => {
 	const ref = useRef<HTMLDivElement>(null);
-	const articleProps = ArticlePropsService.value;
-	const showArticleActions = !(articleProps?.errorCode && articleProps.errorCode !== 500);
+	const errorCode = useArticlePropsStore((s) => s.data?.errorCode);
+	const showArticleActions = errorCode !== 500;
 	const articleLinks = useGetArticleLinks();
 	const { isNext } = usePlatform();
 	const cloudServiceUrl = PageDataContextService.value.conf.cloudServiceUrl;
@@ -45,18 +45,16 @@ const RightNavigation = (): JSX.Element => {
 		<div
 			className="article-right-sidebar"
 			ref={ref}
-			style={{ display: "flex", flexDirection: "column", flexGrow: "1", maxHeight: "100%" }}
+			style={{ display: "flex", flexDirection: "column", flexGrow: "1", minHeight: "0" }}
 		>
-			<aside className={asideStyles()}>
+			<aside className={asideStyles({ className: showReview ? "max-h-[40dvh] overflow-y-auto" : "" })}>
 				<div className="space-y-4">
 					<ArticlePageActions />
 					<SwitchVersion />
 					<SwitchContentLanguage />
 					<CatalogView />
 				</div>
-				{showArticleActions && (
-					<TableOfContents className={cn(showReview ? "max-h-[20dvh] overflow-y-auto" : "")} />
-				)}
+				{showArticleActions && <TableOfContents className={cn("min-h-0 flex-1 overflow-y-auto")} />}
 				<Links articleLinks={articleLinks} catalogLinks={getCatalogLinks()} />
 				{cloudServiceUrl && <PublishStatusPanel />}
 				<QuizNavigationInfo />

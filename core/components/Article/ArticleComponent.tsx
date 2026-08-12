@@ -12,12 +12,16 @@ const Components: Record<
 > = {
 	edit: ArticleEditRenderer,
 	read: ArticleReadRenderer,
-	diff: ArticleDiffViewWrapper,
 	markdown: ArticleMarkdownRenderer,
 };
 
 export const ArticleComponent = ({ data, isReadOnly }: ArticleComponentProps<ArticlePageData["mode"]>) => {
 	const Component = Components[data.mode];
 	if (!Component) throw new DefaultError("Invalid article mode", null, { errorCode: "invalid-article-mode" });
-	return <Component data={data} isReadOnly={isReadOnly} key={data.articleProps.ref.path} />;
+	// Will be deleted when diff will be implemented in ContentEditor
+	if (data?.diff) {
+		return <ArticleDiffViewWrapper data={data.diff} isReadOnly={isReadOnly} />;
+	}
+
+	return <Component data={data} isReadOnly={isReadOnly} />;
 };

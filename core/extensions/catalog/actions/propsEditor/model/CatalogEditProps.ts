@@ -4,7 +4,7 @@ import type { Syntax } from "@ext/markdown/core/edit/logic/Formatter/Formatters/
 import type { Property } from "@ext/properties/models";
 
 export interface CatalogEditProps {
-	title: string;
+	title?: string;
 	url: string;
 	docroot?: string;
 	versions?: string[];

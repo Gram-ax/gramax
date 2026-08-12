@@ -5,7 +5,7 @@ import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogP
 import styled from "@emotion/styled";
 import { makeGitShareData } from "@ext/git/actions/Clone/logic/makeGitShareData";
 import { useCloneRepo } from "@ext/git/actions/Clone/logic/useCloneRepo";
-import { ErrorMessage, TechnicalDetails } from "@ext/git/actions/RepositoryBroken/TechnicalDetails";
+import { ErrorLine, TechnicalDetails } from "@ext/git/actions/RepositoryBroken/TechnicalDetails";
 import getUrlFromShareData from "@ext/git/core/GitPathnameHandler/clone/logic/getUrlFromShareData";
 import type GitStorageData from "@ext/git/core/model/GitStorageData";
 import t from "@ext/localization/locale/translate";
@@ -74,21 +74,15 @@ export const RepositoryNotFullyCloned = ({ trigger, error }: RepositoryNotFullyC
 			<DialogContent>
 				<DialogBody className="flex flex-row items-start gap-4 lg:py-6">
 					<Icon className="text-status-error" code="circle-alert" size="24px" />
-					<div className="space-y-2">
+					<div className="min-w-0 flex-1 space-y-2">
 						<DialogTitle className="text-lg">{t("git.error.broken.clone-failed.title")}</DialogTitle>
 						<p style={{ paddingBottom: "1rem" }}>{t("git.error.broken.clone-failed.body")}</p>
-						{removeCatalogError && (
-							<ErrorMessage className="text-status-error">
-								<pre>{removeCatalogError?.message}</pre>
-							</ErrorMessage>
-						)}
+						<ErrorLine error={removeCatalogError} />
 					</div>
 				</DialogBody>
 				<FooterWrapper>
-					<TechnicalDetails error={error}>
-						<Button className="p-0 h-auto underline" size="xl" variant="link">
-							{t("git.error.broken.clone-failed.technical-details")}
-						</Button>
+					<TechnicalDetails className="my-auto text-sm" error={error}>
+						{t("git.error.broken.clone-failed.technical-details")}
 					</TechnicalDetails>
 					<div className="ml-auto gap-2 flex">
 						<AlertConfirm

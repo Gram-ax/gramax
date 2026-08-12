@@ -18,9 +18,10 @@ editorTest.describe("Code Block", () => {
 		);
 		await editor.press("ControlOrMeta+V");
 		await editor.assertMarkdownContains(md`
+			\`\`\`
 			testo
-
 			testo
+			\`\`\`
 		`);
 	});
 

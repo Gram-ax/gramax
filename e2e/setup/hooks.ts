@@ -1,3 +1,4 @@
+import type { CommandTree } from "@app/commands";
 import {
 	AfterAll,
 	AfterStep,
@@ -9,10 +10,27 @@ import {
 } from "@cucumber/cucumber";
 import fs from "fs/promises";
 import path from "path";
+import type { Browser, BrowserContext, Page } from "playwright";
 import { chromium } from "playwright";
+import type App from "../../app/types/Application";
+import type * as Debug from "../../apps/web/src/debug";
 import E2EWorld from "../models/World";
 import { checkForErrorModal } from "../steps/utils/utils";
 import config from "./config";
+
+declare global {
+	var page: Page;
+	var browser: Browser;
+	var context: BrowserContext;
+	var scenario: ITestCaseHookParameter;
+
+	interface Window {
+		debug: typeof Debug;
+		app: Promise<App>;
+		commands: CommandTree;
+		refreshPage: () => Promise<void>;
+	}
+}
 
 setWorldConstructor(E2EWorld);
 setDefaultTimeout(config.timeouts.medium);
@@ -41,9 +59,9 @@ const shouldClearContext = (left: ITestCaseHookParameter, right: ITestCaseHookPa
 	let splits = 0;
 
 	for (let i = 0; i < Math.min(lhs?.length, rhs?.length); i++) {
-		if (lhs[i] != rhs[i]) return true;
-		if (lhs[i] == "/" || lhs[i] == "\\") splits++;
-		if (splits == deep) return false;
+		if (lhs[i] !== rhs[i]) return true;
+		if (lhs[i] === "/" || lhs[i] === "\\") splits++;
+		if (splits === deep) return false;
 	}
 	return false;
 };
@@ -56,7 +74,7 @@ BeforeAll({ timeout: config.timeouts.long * 10 }, async () => {
 
 Before({ timeout: config.timeouts.long * 10 }, async function (this: E2EWorld, scenario: ITestCaseHookParameter) {
 	if (shouldClearContext(global.scenario, scenario)) {
-		await context.tracing.stop({ path: "report/tracing/trace-" + ++TRACE_DUMP_COUNT + ".zip" });
+		await context.tracing.stop({ path: `report/tracing/trace-${++TRACE_DUMP_COUNT}.zip` });
 		await makeGlobalContext();
 	}
 	this.setContext(global.page, scenario);
@@ -69,6 +87,6 @@ AfterStep(async function (this: E2EWorld) {
 });
 
 AfterAll({ timeout: config.timeouts.long * 4 }, async () => {
-	await context.tracing.stop({ path: "report/tracing/trace-" + ++TRACE_DUMP_COUNT + ".zip" });
+	await context.tracing.stop({ path: `report/tracing/trace-${++TRACE_DUMP_COUNT}.zip` });
 	await context.pages().at(0).screenshot({ path: "report/screenshot.png", fullPage: true, caret: "initial" });
 });

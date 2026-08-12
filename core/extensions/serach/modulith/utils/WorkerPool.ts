@@ -19,7 +19,7 @@ export class WorkerPool<TWorker extends PoolWorker> {
 		this._lock = new SemaphoreLock(maxWorkers);
 	}
 
-	async run<T>(task: (worker: TWorker) => T | Promise<T>): Promise<T> {
+	async run<T>(task: (worker: TWorker) => T | Promise<T>, taskTimeoutMs?: number): Promise<T> {
 		const release = await this._lock.lock();
 
 		let worker: TWorker;
@@ -36,25 +36,34 @@ export class WorkerPool<TWorker extends PoolWorker> {
 			this._workerTimers.set(worker, null);
 		}
 
-		let rejectOnWorkerError: ((reason: unknown) => void) | undefined;
 		let failed = false;
-		const onWorkerError = (event: unknown) => {
+		let rejectOnFailure: ((reason: unknown) => void) | undefined;
+		const fail = (reason: unknown) => {
+			if (failed) return;
 			failed = true;
-			rejectOnWorkerError?.(new Error("Worker crashed while handling task", { cause: event }));
+			rejectOnFailure?.(reason);
 			void this._terminateWorker(worker);
 		};
+
+		const onWorkerError = (event: unknown) =>
+			fail(new Error("Worker crashed while handling task", { cause: event }));
 		worker.addEventListener("error", onWorkerError);
+
+		const taskTimeout =
+			taskTimeoutMs != null
+				? setTimeout(() => fail(new Error(`Worker task timed out after ${taskTimeoutMs}ms`)), taskTimeoutMs)
+				: undefined;
 
 		try {
 			return await Promise.race([
 				task(worker),
 				new Promise<T>((_resolve, reject) => {
-					rejectOnWorkerError = reject;
+					rejectOnFailure = reject;
 				}),
 			]);
 		} finally {
+			if (taskTimeout) clearTimeout(taskTimeout);
 			worker.removeEventListener("error", onWorkerError);
-			release();
 
 			if (!failed) {
 				// Starting terminate timer
@@ -62,6 +71,8 @@ export class WorkerPool<TWorker extends PoolWorker> {
 				this._workerTimers.set(worker, timeout);
 				this._idleWorkers.push(worker);
 			}
+
+			release();
 		}
 	}
 

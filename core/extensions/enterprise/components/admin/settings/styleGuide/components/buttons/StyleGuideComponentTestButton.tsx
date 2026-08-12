@@ -1,45 +1,61 @@
 import { useStyleGuideTests } from "@ext/enterprise/components/admin/settings/styleGuide/helpers/StyleGuideContext";
 import type { StyleGuideRule } from "@ext/enterprise/components/admin/settings/styleGuide/helpers/StyleGuideRuleAdapter";
+import { Button } from "@ext/enterprise/components/admin/ui-kit/Button";
 import t from "@ext/localization/locale/translate";
-import { Button } from "@ui-kit/Button";
 import { Ban, LoaderCircle, Play } from "lucide-react";
 
-interface StyleGuideComponentTestButtonProps {
-	isUiLocked: boolean;
-	rule?: StyleGuideRule;
+export interface StyleGuideTestManager {
+	isAnyTestRunning: boolean;
+	hasValidTests: boolean;
+	abortAllTests: () => void;
+	runAllTestsGlobal: () => void;
 }
 
-export function StyleGuideComponentTestButton({ isUiLocked, rule }: StyleGuideComponentTestButtonProps) {
-	const { isAnyTestRunning, hasValidTests, abortAllTests, runAllTestsForRule, runAllTestsGlobal } =
-		useStyleGuideTests();
+type BaseProps = { isUiLocked: boolean };
 
-	const runTests = () => {
-		if (!rule) {
-			runAllTestsGlobal();
-		} else {
-			runAllTestsForRule(rule);
-		}
-	};
+type PropsWithRule = BaseProps & {
+	rule: StyleGuideRule;
+};
 
-	if (isAnyTestRunning && !rule) {
-		return (
-			<Button className="abort-test-button" disabled={isUiLocked} onClick={abortAllTests} variant="outline">
-				<LoaderCircle className="abort-loader animate-spin h-4 w-4 mr-1" />
-				<Ban className="abort-stop h-4 w-4 mr-1" />
-				{t("enterprise.admin.check.stop-all-tests")}
-			</Button>
-		);
-	}
+type PropsWithManager = BaseProps & {
+	testManager: StyleGuideTestManager;
+};
+
+export const StyleGuideRuleTestButton = ({ isUiLocked, rule }: PropsWithRule) => {
+	const { isAnyTestRunning, hasValidTests, runAllTestsForRule } = useStyleGuideTests();
 
 	return (
 		<Button
-			className="pl-[10px] px-3"
+			className="pl-2.5"
 			disabled={isUiLocked || isAnyTestRunning || !hasValidTests}
-			onClick={runTests}
+			onClick={() => runAllTestsForRule(rule)}
 			variant="outline"
 		>
 			<Play className="h-4 w-4" />
 			{t("enterprise.admin.check.run-all-tests")}
 		</Button>
 	);
-}
+};
+
+export const StyleGuideGlobalTestButton = ({ isUiLocked, testManager }: PropsWithManager) => {
+	if (testManager.isAnyTestRunning) {
+		return (
+			<Button className="group" disabled={isUiLocked} onClick={testManager.abortAllTests} variant="outline">
+				<LoaderCircle className="h-4 w-4 mr-1 animate-spin group-hover:hidden" />
+				<Ban className="h-4 w-4 mr-1 hidden group-hover:inline" />
+				{t("enterprise.admin.check.stop-all-tests")}
+			</Button>
+		);
+	}
+	return (
+		<Button
+			className="pl-2.5"
+			disabled={isUiLocked || testManager.isAnyTestRunning || !testManager.hasValidTests}
+			onClick={testManager.runAllTestsGlobal}
+			variant="outline"
+		>
+			<Play className="h-4 w-4" />
+			{t("enterprise.admin.check.run-all-tests")}
+		</Button>
+	);
+};

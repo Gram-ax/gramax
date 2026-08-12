@@ -1,4 +1,7 @@
 import { classNames } from "@components/libs/classNames";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
+import { cn } from "@core-ui/utils/cn";
+// biome-ignore lint/style/noRestrictedImports: fix in future
 import styled from "@emotion/styled";
 import { useQuestionsStore } from "@ext/markdown/elements/question/render/logic/QuestionsProvider";
 import type { QuestionType } from "@ext/markdown/elements/question/types";
@@ -68,6 +71,8 @@ export const BaseQuestion = memo(({ children, required, focused, focusState }: B
 });
 
 export const Question = ({ children, id, required }: BaseQuestionProps) => {
+	const { isNext } = usePlatform();
+
 	const { isFocused, focusState, isLast } = useQuestionsStore(
 		(store) => ({
 			isFocused: store.focusState?.questionId === id,
@@ -79,7 +84,7 @@ export const Question = ({ children, id, required }: BaseQuestionProps) => {
 
 	return (
 		<>
-			<div className="mb-4 mt-4">
+			<div className={cn("mb-4 mt-4", !isNext && "pointer-events-none")}>
 				<BaseQuestion focused={isFocused} focusState={focusState} required={required}>
 					<div>
 						<div>{children}</div>

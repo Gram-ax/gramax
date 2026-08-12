@@ -1,4 +1,3 @@
-import { DATA_QA_LIGHTBOX as LIGHTBOX_DATA_QA } from "@components/Atoms/Image/modalImage/MediaPreview";
 import stopOpeningPanels from "@core-ui/utils/stopOpeningPanels ";
 import type { CellAttrs } from "@ext/markdown/elements/table/edit/model/columnResizing/CellAttrs";
 import { updateColumnsOnResize } from "@ext/markdown/elements/table/edit/model/columnResizing/updateColumns";
@@ -172,7 +171,6 @@ function currentColWidth(view: EditorView, cellPos: number, { colspan, colwidth 
 function domCellAround(target: HTMLElement | null): HTMLElement | null {
 	let newTarget = target;
 	while (newTarget && newTarget.nodeName !== "TD" && newTarget.nodeName !== "TH") {
-		if (newTarget.dataset.qa === LIGHTBOX_DATA_QA) return null;
 		newTarget = newTarget.classList?.contains("ProseMirror") ? null : (newTarget.parentNode as HTMLElement);
 	}
 	return newTarget;

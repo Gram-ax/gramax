@@ -2,7 +2,7 @@ import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import { SilentMiddleware } from "@core/Api/middleware/SilentMiddleware";
 import type Context from "@core/Context/Context";
-import { span } from "@ext/loggers/opentelemetry";
+import { addEvent, Level } from "@ext/loggers/opentelemetry";
 import { Command } from "../../types/Command";
 
 const haveToPull: Command<{ ctx: Context; shouldFetch: boolean; catalogName: string }, boolean> = Command.create({
@@ -23,7 +23,7 @@ const haveToPull: Command<{ ctx: Context; shouldFetch: boolean; catalogName: str
 		return catalog.repo.isShouldSync({
 			data,
 			shouldFetch,
-			onFetch: () => span()?.addEvent("fetched", { catalogName }),
+			onFetch: () => addEvent("fetched", Level.Full, { catalogName }),
 		});
 	},
 

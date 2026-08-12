@@ -1,15 +1,13 @@
 import { useRouter } from "@core/Api/useRouter";
-import { useDiffViewMode } from "@ext/git/core/Diff/components/store/DiffViewModeStore";
+import { useIsDoublePanel } from "@ext/git/core/Diff/components/store/DiffViewModeStore";
 import { useMemo } from "react";
 
 export const useToolbarMode = () => {
-	const diffView = useDiffViewMode();
 	const router = useRouter();
+	const isDoublePanel = useIsDoublePanel();
 
 	return useMemo(
-		() =>
-			router.query.mode !== "markdown" &&
-			(router.query.mode !== "diff" || (diffView !== "single-panel" && diffView !== "double-panel")),
-		[router.query.mode, diffView],
+		() => router.query.mode !== "markdown" && (!isDoublePanel || router.query.diff !== "1"),
+		[router.query.mode, router.query.diff, isDoublePanel],
 	);
 };

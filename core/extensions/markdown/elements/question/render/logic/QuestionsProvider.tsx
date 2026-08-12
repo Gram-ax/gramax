@@ -1,4 +1,5 @@
 /** biome-ignore-all lint/correctness/useHookAtTopLevel: hook used normal */
+
 import Workspace from "@core-ui/ContextServices/Workspace";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import {
@@ -38,8 +39,9 @@ export const useQuestionsStore = <T,>(
 };
 
 const ChildrenOfProvider = ({ children, path }: { children: ReactNode; path: string }) => {
+	const { isNext } = usePlatform();
 	const workspace = Workspace.current();
-	if (!workspace?.enterprise?.gesUrl) return children;
+	if (!workspace?.enterprise?.gesUrl || !isNext) return children;
 
 	const deps = useMemo(() => [path], [path]);
 

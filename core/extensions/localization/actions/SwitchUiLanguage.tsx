@@ -1,10 +1,7 @@
 import { topMenuItemClassName } from "@components/HomePage/TopMenu/const";
-import FetchService from "@core-ui/ApiServices/FetchService";
-import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import LanguageService from "@core-ui/ContextServices/Language";
-import { usePlatform } from "@core-ui/hooks/usePlatform";
 import UiLanguage from "@ext/localization/core/model/Language";
 import t from "@ext/localization/locale/translate";
+import { useSetting, useSettingEffect } from "@ext/settings/logic/hooks";
 import { IconButton } from "@ui-kit/Button";
 import {
 	DropdownMenu,
@@ -15,23 +12,11 @@ import {
 } from "@ui-kit/Dropdown";
 import { MenuItemInfoTemplate } from "@ui-kit/MenuItem";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
-import { useCallback } from "react";
+import { refreshPage } from "../../../ui-logic/utils/initGlobalFuncs";
 
 const SwitchUiLanguage = ({ size = "md" }: { size?: "md" | "lg" }) => {
-	const apiUrlCreator = ApiUrlCreatorService.value;
-	const { isNext, isDocportal } = usePlatform();
-
-	const setLanguage = useCallback(
-		async (language: UiLanguage) => {
-			if (!isNext && !isDocportal) return LanguageService.setUiLanguage(language);
-
-			const r = await FetchService.fetch(apiUrlCreator.getSetLanguageURL(language));
-			if (r.ok) LanguageService.setUiLanguage(language);
-		},
-		[apiUrlCreator, isNext, isDocportal],
-	);
-
-	const current = LanguageService.currentUi();
+	const [current, setLanguage] = useSetting("general.language");
+	useSettingEffect("general.language", refreshPage);
 
 	return (
 		<DropdownMenu>
@@ -56,10 +41,10 @@ const SwitchUiLanguage = ({ size = "md" }: { size?: "md" | "lg" }) => {
 			</Tooltip>
 			<DropdownMenuContent>
 				<DropdownMenuGroup>
-					{Object.values(UiLanguage).map((l, idx) => (
+					{Object.values(UiLanguage).map((l) => (
 						<DropdownMenuItem
 							data-qa="qa-clickable"
-							key={idx + l}
+							key={l}
 							onClick={l === current ? null : () => setLanguage(l)}
 						>
 							<MenuItemInfoTemplate isSelected={current === l} text={t("current", l)} />

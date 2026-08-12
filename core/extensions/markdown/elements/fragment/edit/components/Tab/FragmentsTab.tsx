@@ -22,7 +22,7 @@ const FragmentsTab = ({ show }: FragmentsTabProps) => {
 
 	const addNewFragment = useCallback(async () => {
 		await FragmentService.addNewFragment(apiUrlCreator);
-	}, [apiUrlCreator]);
+	}, []);
 
 	useEffect(() => {
 		if (!selectedID) return;
@@ -43,11 +43,12 @@ const FragmentsTab = ({ show }: FragmentsTabProps) => {
 			NavigationEvents.off(createToken);
 			NavigationEvents.off(deleteToken);
 		};
-	}, [selectedID, apiUrlCreator, router.pushPath]);
+	}, [selectedID, router.pushPath]);
 
 	return (
 		<TabWrapper
 			contentHeight={height}
+			dataQa="fragments-tab"
 			isTop
 			ref={tabWrapperRef}
 			show={show}

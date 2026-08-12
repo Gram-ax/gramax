@@ -5,6 +5,7 @@ import Icon from "@components/Atoms/Icon";
 import Tooltip from "@components/Atoms/Tooltip";
 import { classNames } from "@components/libs/classNames";
 import type PageDataContext from "@core/Context/PageDataContext";
+import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import type { ClientArticleProps, ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
 import safeDecode from "@core/utils/safeDecode";
 import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
@@ -18,6 +19,7 @@ import { useApi } from "@core-ui/hooks/useApi";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
 import { ArticlePropsStoreProvider } from "@core-ui/stores/ArticlePropsStore/ArticlePropsStore.provider";
 import { CatalogStoreProvider } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
+// biome-ignore lint/style/noRestrictedImports: expected
 import styled from "@emotion/styled";
 import type { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
 import type { RenderableTreeNodes } from "@ext/markdown/core/render/logic/Markdoc";
@@ -31,7 +33,7 @@ import {
 import PropertyServiceProvider from "@ext/properties/components/PropertyService";
 import type { Mark } from "@tiptap/pm/model";
 import { TooltipProvider } from "@ui-kit/Tooltip";
-import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { type CSSProperties, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Router } from "wouter";
 
 type DataType = {
@@ -40,6 +42,8 @@ type DataType = {
 	content: RenderableTreeNodes;
 	articleProps: ClientArticleProps;
 	error?: string;
+	// returned by getRenderContentByLogicPath when fetching a preview without a resourcePath
+	articlePath?: string;
 };
 
 type TooltipContent = {
@@ -80,11 +84,43 @@ export interface LinkTooltipProps extends Omit<TooltipProviderProps, "children" 
 	basePath?: string;
 }
 
+// For a top/bottom-placed popper "up/down" is popper's alt axis: altAxis keeps the preview from
+// overflowing the screen edge, tether: false lets it slide fully into view instead of clipping.
+const POPPER_OPTIONS = {
+	modifiers: [{ name: "preventOverflow", options: { altAxis: true, tether: false } }],
+};
+
+const MAX_SIZE_RATIO = 0.8;
+const MIN_SIZE_RATIO = 0.15;
+const DEFAULT_SIZE = { width: 400, height: 250 };
+
+const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
+
+const getTooltipSizeBounds = () => ({
+	minWidth: window.innerWidth * MIN_SIZE_RATIO,
+	minHeight: window.innerHeight * MIN_SIZE_RATIO,
+	maxWidth: window.innerWidth * MAX_SIZE_RATIO,
+	maxHeight: window.innerHeight * MAX_SIZE_RATIO,
+});
+
+type TooltipSizeBounds = ReturnType<typeof getTooltipSizeBounds>;
+
+// Stored size can come from a larger window, so clamp it back into the current viewport bounds —
+// the box scrolls internally (overflow-y: scroll), so the preview always fits on screen.
+const getTooltipStyle = (width: number, height: number, bounds: TooltipSizeBounds): CSSProperties => {
+	if (!width || !height) return { width: `${DEFAULT_SIZE.width}px`, height: `${DEFAULT_SIZE.height}px` };
+
+	return {
+		width: `${clamp(width, bounds.minWidth, bounds.maxWidth)}px`,
+		height: `${clamp(height, bounds.minHeight, bounds.maxHeight)}px`,
+	};
+};
+
 const components: Record<Environment, (props: { basePath; children }) => React.ReactNode> = {
 	tauri: ({ children }) => children,
 	next: ({ children }) => children,
 	static: ({ basePath, children }) => <Router base={basePath}>{children}</Router>,
-	browser: ({ children }) => children,
+	web: ({ children }) => children,
 	cli: ({ basePath, children }) => <Router base={basePath}>{children}</Router>,
 	test: ({ children }) => children,
 	docportal: ({ basePath, children }) => <Router base={basePath}>{children}</Router>,
@@ -134,8 +170,16 @@ const ArticleLinkTooltip = (props: LinkTooltipProps) => {
 			if (url) return url;
 			const mark = getMark();
 			const combinedResourcePath = mark?.attrs?.resourcePath || resourcePath;
-			return apiUrlCreator.getArticleContentByRelativePath(combinedResourcePath);
-		}, [apiUrlCreator, getMark, resourcePath, url]),
+			if (combinedResourcePath) return apiUrlCreator.getArticleContentByRelativePath(combinedResourcePath);
+			if (href) {
+				const logicPath = RouterPathProvider.getLogicPath(href);
+				const catalogName = logicPath.split("/")[0];
+				return apiUrlCreator
+					.fromNewArticlePath(logicPath, catalogName)
+					.getArticleRenderDataByLogicPath(logicPath);
+			}
+			return null;
+		}, [apiUrlCreator, getMark, resourcePath, url, href]),
 		onDone: () => {
 			const mark = getMark();
 			if (mark?.attrs?.hash && mark.attrs?.hash !== hash) setHash(safeDecode(mark.attrs.hash));
@@ -248,6 +292,7 @@ const ArticleLinkTooltip = (props: LinkTooltipProps) => {
 			hideOnClick={undefined}
 			interactive={true}
 			maxWidth={window.innerWidth * 0.8}
+			popperOptions={POPPER_OPTIONS}
 			setPlaceCallback={(place) => setTooltipPlace(place)}
 			visible={isVisible}
 		>
@@ -264,7 +309,7 @@ const ArticleTooltipProvider = (props: TooltipProviderProps) => {
 		data,
 		children,
 		basePath,
-		environment = "browser",
+		environment = "web",
 		resourceItemId,
 		resourceProviderType,
 	} = props;
@@ -277,7 +322,7 @@ const ArticleTooltipProvider = (props: TooltipProviderProps) => {
 			<RouterComponent basePath={basePath}>
 				<TooltipProvider>
 					<ApiUrlCreatorService.Provider
-						value={apiUrlCreator.fromNewArticlePath(data.path, catalogProps?.name)}
+						value={apiUrlCreator.fromNewArticlePath(data.path ?? data.articlePath, catalogProps?.name)}
 					>
 						<ResourceService.Provider id={resourceItemId} provider={resourceProviderType}>
 							<PageDataContextService.Provider value={pageDataContext}>
@@ -304,8 +349,8 @@ const TooltipContentComponent = (props: TooltipContent) => {
 	const articleRef = ArticleRefService.value;
 	const isResizeRef = useRef(false);
 	const { width, height } = useTooltipSize();
+	const isReadOnly = PageDataContextService.value?.conf?.isReadOnly ?? false;
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useEffect(() => {
 		const handleMouseLeave = () => {
 			if (isResizeRef.current) return;
@@ -363,24 +408,22 @@ const TooltipContentComponent = (props: TooltipContent) => {
 		close();
 	};
 
+	const sizeBounds = getTooltipSizeBounds();
+
 	return (
 		<div ref={articleRef}>
 			<div className={className}>
 				<BoxResizeWrapper
-					className={"article tooltip-size"}
-					maxHeight={window.innerHeight * 0.8}
-					maxWidth={window.innerWidth * 0.8}
-					minHeight={window.innerHeight * 0.15}
-					minWidth={window.innerWidth * 0.15}
+					className={"article tooltip-size bg-[var(--color-article-bg)]"}
+					maxHeight={sizeBounds.maxHeight}
+					maxWidth={sizeBounds.maxWidth}
+					minHeight={sizeBounds.minHeight}
+					minWidth={sizeBounds.minWidth}
 					onResizeEnd={onResizeEnd}
 					onResizeStart={onResizeStart}
-					style={
-						width && height
-							? { width: `${width}px`, height: `${height}px` }
-							: { width: "400px", height: "250px" }
-					}
+					style={getTooltipStyle(width, height, sizeBounds)}
 				>
-					{isFragment && (
+					{isFragment && !isReadOnly && (
 						<EditFragmentButton aria-label="Edit fragment" onClick={onEditFragment} type="button">
 							<Icon code="pencil" />
 						</EditFragmentButton>

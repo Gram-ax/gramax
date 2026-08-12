@@ -1,5 +1,5 @@
-import LanguageService from "@core-ui/ContextServices/Language";
 import UiLanguage from "@ext/localization/core/model/Language";
+import { cachedSettingsStore } from "@ext/settings/logic/cachedSettingsStore";
 import type { RenderableTreeNode } from "../../render/logic/Markdoc";
 import { getParserTestData } from "./getParserTestData";
 import MarkdownTestData from "./MarkdownTestData.json";
@@ -22,7 +22,7 @@ jest.mock("next/router", () => ({
 
 describe("MarkdownParser", () => {
 	beforeAll(() => {
-		LanguageService.setUiLanguage(UiLanguage.ru);
+		cachedSettingsStore.getState().set("general.language", UiLanguage.ru);
 
 		global.ResizeObserver = jest.fn().mockImplementation(() => ({
 			observe: jest.fn(),

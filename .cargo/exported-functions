@@ -23,6 +23,7 @@ _get_remote
 _has_remotes
 _init_new
 _merge
+_has_merge_conflicts
 _new_branch
 _push
 _reset
@@ -73,3 +74,4 @@ _lfs_prune
 _storage_stats
 _delete_empty_dirs
 _scan_workspace
+_scan_catalog

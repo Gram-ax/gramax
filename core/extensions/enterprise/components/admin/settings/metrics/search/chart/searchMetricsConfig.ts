@@ -1,5 +1,5 @@
-import LanguageService from "@core-ui/ContextServices/Language";
 import t from "@ext/localization/locale/translate";
+import { getCachedSetting } from "@ext/settings/logic/cachedSettingsStore";
 import type { DesignerConfig, MdtChartsConfig, MdtChartsDataSource } from "mdt-charts";
 import { type AxisLabelFormat, aggregateByPeriod, formatDateForAxis } from "../../components/chart/chartUtils";
 import type { ChartValueField } from "../../components/chart/configs/MetricsChartConfig.interface";
@@ -44,6 +44,7 @@ const transformSearchData = (dataSet: unknown[], labelFormat?: string): MdtChart
 
 	return {
 		dataSet: aggregated.map((point) => ({
+			// biome-ignore lint/style/useNamingConvention: required by chart library
 			$id: point.date,
 			date: formatDateForAxis(point.date, format),
 			totalSearches: point.totalSearches,
@@ -178,7 +179,7 @@ const createDesignerConfig = (visibleFields?: SearchMetricField[]): DesignerConf
 	const fields = getFields();
 	const activeFields = visibleFields ? fields.filter((f) => visibleFields.includes(f.name)) : [...fields];
 	const colors = activeFields.map((field) => SEARCH_CHART_COLORS[field.name]);
-	const locale = LanguageService.currentUi();
+	const locale = getCachedSetting("general.language");
 
 	return {
 		canvas: {

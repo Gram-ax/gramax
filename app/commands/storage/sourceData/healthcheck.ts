@@ -13,9 +13,11 @@ const healthcheck: Command<{ ctx: Context; sourceName: string }, { isHealthy: bo
 		if (!data) return { isHealthy: true };
 
 		const sourceApi = makeSourceApi(data);
+		if (!sourceApi) return { isHealthy: true };
+
 		const isHealthy = await Promise.race<boolean>([
 			sourceApi.healthcheck().catch(() => false),
-			new Promise((resolve) => setTimeout(() => resolve(false), 1000)),
+			new Promise((resolve) => setTimeout(() => resolve(false), 5000)),
 		]);
 		return { isHealthy };
 	},

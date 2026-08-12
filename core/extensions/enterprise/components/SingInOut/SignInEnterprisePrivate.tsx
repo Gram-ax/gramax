@@ -16,7 +16,7 @@ export const SignInEnterprisePrivate = () => {
 			</Head>
 			<div className="min-h-screen flex items-center justify-center px-4 py-8">
 				{/* 443px for InputOTP to be aligned with Email input */}
-				<div className="max-w-[443px] rounded-3xl border bg-white p-6 shadow-lg">
+				<div className="max-w-[443px] rounded-3xl border bg-secondary-bg p-6 shadow-lg">
 					<SignInEnterpriseForm
 						authUrl={authUrl}
 						{...signInProps}

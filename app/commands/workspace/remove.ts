@@ -1,9 +1,8 @@
-import { getExecutingEnvironment } from "@app/resolveModule/env";
 import { ResponseKind } from "@app/types/ResponseKind";
+import applyWorkspaceServices from "@app/utils/applyWorkspaceServices";
 import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddleware";
 import type Context from "@core/Context/Context";
 import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
-import setWorkerProxy from "../../../apps/browser/src/logic/setWorkerProxy";
 import { Command } from "../../types/Command";
 
 const remove: Command<{ ctx: Context; id: WorkspacePath }, void> = Command.create({
@@ -15,11 +14,7 @@ const remove: Command<{ ctx: Context; id: WorkspacePath }, void> = Command.creat
 
 	async do({ id }) {
 		await this._app.wm.removeWorkspace(id);
-		// TODO: Remove if
-		if (getExecutingEnvironment() == "browser") {
-			const config = await this._app.wm.current().config();
-			setWorkerProxy(config.services?.gitProxy?.url);
-		}
+		applyWorkspaceServices(await this._app.wm.current().config());
 	},
 
 	params(ctx, q) {

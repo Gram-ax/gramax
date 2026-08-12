@@ -4,7 +4,7 @@ import type Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
 import parseContent from "@core/FileStructue/Article/parseContent";
 import ArticleProvider, { type ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
-import assert from "assert";
+import { addEvent, Level } from "@ext/loggers/opentelemetry";
 import type { Article } from "../../../../core/logic/FileStructue/Article/Article";
 
 const getPath: Command<
@@ -25,7 +25,10 @@ const getPath: Command<
 		const { parser, parserContextFactory, wm } = this._app;
 		const workspace = wm.current();
 		const catalog = await workspace.getCatalog(catalogName, ctx);
-		assert(catalog);
+		if (!catalog) {
+			addEvent("no-catalog", Level.Internal, { catalogName });
+			return;
+		}
 
 		const article = providerType
 			? ArticleProvider.getProvider(catalog, providerType).getArticle(articlePath.value)

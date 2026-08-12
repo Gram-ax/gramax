@@ -14,6 +14,19 @@ use serde::Serialize;
 #[macro_use]
 extern crate tracing;
 
+/// Suppresses OpenTelemetry span export for the current scope when no parent span
+/// is active. Filesystem work runs on rayon workers and background threads where
+/// the caller's trace context does not survive the thread hop; without this such
+/// `#[instrument]` fs calls emit orphan root spans that flood the logs. When a
+/// parent span is active (a real traced request on this thread) nothing is
+/// suppressed and the span is exported as its child. Hold the returned guard for
+/// the duration of the fs work.
+#[must_use]
+pub fn suppress_orphan_telemetry() -> Option<opentelemetry::ContextGuard> {
+	use opentelemetry::trace::TraceContextExt;
+	(!opentelemetry::Context::current().has_active_span()).then(opentelemetry::Context::enter_telemetry_suppressed_scope)
+}
+
 #[derive(Serialize, Debug)]
 pub struct FileInfo {
 	#[serde(rename = "type")]
