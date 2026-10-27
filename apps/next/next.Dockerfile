@@ -1,11 +1,14 @@
 ARG NEXUS_DOCKERHUB=docker.io
 ARG USE_IMAGE_TAG="latest-dev"
+ARG NODE_VERSION=24.22.1
 
 FROM --platform=$BUILDPLATFORM gitlab.ics-it.ru:4567/ics/doc-reader/base-image:${USE_IMAGE_TAG:-latest-dev} AS deps
 
+ARG NODE_VERSION
+
 WORKDIR /app
 
-RUN n install 23
+RUN n install "${NODE_VERSION}"
 
 ARG BUGSNAG_API_KEY \
   PRODUCTION \
@@ -19,8 +22,6 @@ ENV BUGSNAG_API_KEY=${BUGSNAG_API_KEY} \
   ROOT_PATH=/app/data \
   BRANCH=${BRANCH} \
   UPLOAD_SOURCE_MAPS_TO_BUGSNAG=${UPLOAD_SOURCE_MAPS_TO_BUGSNAG}
-
-RUN n install 23
 
 COPY . .
 
@@ -36,7 +37,10 @@ RUN --mount=type=secret,id=npmrc,target=/root/.npmrc \
   npm --prefix apps/next run build && \
   rm -fr .npm ./target ./apps/next/.next/cache ./.git ~/.gitconfig
 
-FROM --platform=$TARGETPLATFORM ${NEXUS_DOCKERHUB}/node:23-bookworm-slim AS run
+FROM --platform=$TARGETPLATFORM ${NEXUS_DOCKERHUB}/node:${NODE_VERSION}-bookworm-slim AS run
+
+# Fail the build if Node.js lacks the CVE-2026-111497 Brotli decoder fix.
+RUN node -e "if (typeof require('node:zlib').constants.BROTLI_DECODER_ERROR_FORMAT_BLOCK_SWITCH !== 'number') { throw new Error('Missing Brotli CVE-2026-111497 fix'); }"
 
 WORKDIR /app
 
